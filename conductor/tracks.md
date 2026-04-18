@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Initialize Kotlin/Ktor Android App Structure and Port Core Logic**
+- [x] **Track: Initialize Kotlin/Ktor Android App Structure and Port Core Logic**
   *Link: [./tracks/initialize_kotlin_ktor_20260417/](./tracks/initialize_kotlin_ktor_20260417/)*
