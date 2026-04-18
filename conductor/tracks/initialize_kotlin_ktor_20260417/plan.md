@@ -1,7 +1,7 @@
 # Implementation Plan: Initialize Kotlin/Ktor Android App Structure and Port Core Logic
 
 ## Phase 1: Project Initialization
-- [ ] Task: Initialize Android Project
+- [~] Task: Initialize Android Project
     - [ ] Create basic Android project structure with Kotlin.
     - [ ] Set up Gradle build scripts and Ktor dependencies.
 - [ ] Task: Configure CI/CD

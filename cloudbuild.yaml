@@ -1,0 +1,8 @@
+steps:
+  # Build and test the Android app
+  - name: 'cimg/android:2024.01'
+    entrypoint: '/bin/bash'
+    args: ['-c', 'sudo chown -R circleci:circleci . && gradle test']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
