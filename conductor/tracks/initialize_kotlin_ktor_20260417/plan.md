@@ -8,8 +8,8 @@
     - [x] Create `cloudbuild.yaml` for Google Cloud Build.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Project Initialization' (Protocol in workflow.md)
 
-## Phase 2: Port Core Logic
-- [~] Task: Port PDF Generation
-    - [ ] Write tests for core PDF generation logic.
-    - [ ] Implement PDF generation in Kotlin (porting `poster.py`).
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Port Core Logic' (Protocol in workflow.md)
+## Phase 2: Port Core Logic [checkpoint: d0a086e]
+- [x] Task: Port PDF Generation (d0a086e)
+    - [x] Write tests for core PDF generation logic.
+    - [x] Implement PDF generation in Kotlin (porting `poster.py`).
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Port Core Logic' (Protocol in workflow.md)
