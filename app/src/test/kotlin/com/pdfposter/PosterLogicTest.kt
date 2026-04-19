@@ -49,42 +49,7 @@ class PosterLogicTest {
     /*
     @Test
     fun testCreateTiledPoster() {
-        val logic = PosterLogic()
-        
-        // Valid 1x1 pixel PNG
-        val pngBytes = byteArrayOf(
-            0x89.toByte(), 0x50.toByte(), 0x4E.toByte(), 0x47.toByte(), 0x0D.toByte(), 0x0A.toByte(), 0x1A.toByte(), 0x0A.toByte(),
-            0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x0D.toByte(), 0x49.toByte(), 0x48.toByte(), 0x44.toByte(), 0x52.toByte(),
-            0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x01.toByte(),
-            0x08.toByte(), 0x02.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x90.toByte(), 0x77.toByte(), 0x53.toByte(),
-            0xDE.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x0C.toByte(), 0x49.toByte(), 0x44.toByte(), 0x41.toByte(),
-            0x54.toByte(), 0x08.toByte(), 0xD7.toByte(), 0x63.toByte(), 0xF8.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0x3F.toByte(),
-            0x00.toByte(), 0x05.toByte(), 0xFE.toByte(), 0x02.toByte(), 0xFE.toByte(), 0xDC.toByte(), 0x44.toByte(), 0x74.toByte(),
-            0x3E.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x00.toByte(), 0x49.toByte(), 0x45.toByte(), 0x4E.toByte(),
-            0x44.toByte(), 0xAE.toByte(), 0x42.toByte(), 0x60.toByte(), 0x82.toByte()
-        )
-        val imageFile = File("dummy.png")
-        imageFile.writeBytes(pngBytes)
-        
-        try {
-            logic.createTiledPoster(
-                imagePath = "dummy.png",
-                posterW = 792.0,
-                posterH = 1224.0,
-                pageW = 612.0, // 8.5 inch
-                pageH = 792.0, // 11 inch
-                margin = 36.0, // 0.5 inch
-                overlap = 18.0, // 0.25 inch
-                outputPath = "output.pdf"
-            )
-            
-            val outputFile = File("output.pdf")
-            assertTrue(outputFile.exists())
-            assertTrue(outputFile.length() > 0)
-        } finally {
-            imageFile.delete()
-            File("output.pdf").delete()
-        }
+        // This test now requires Android Bitmap and is better suited for androidTest
     }
     */
 }

@@ -1,11 +1,13 @@
 package com.pdfposter
 
 import kotlin.math.ceil
+import android.graphics.Bitmap
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
+import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
 import java.io.File
 
@@ -91,58 +93,109 @@ class PosterLogic {
      * Note: This is a JVM-specific implementation using PDFBox.
      */
     fun createTiledPoster(
-        imagePath: String,
+        bitmap: Bitmap,
         posterW: Double,
         posterH: Double,
         pageW: Double,
         pageH: Double,
         margin: Double,
         overlap: Double,
-        outputPath: String
+        outputPath: String,
+        showOutlines: Boolean = true,
+        outlineStyle: String = "Solid",
+        outlineThickness: String = "Medium",
+        labelPanes: Boolean = true,
+        includeInstructions: Boolean = true
     ) {
         val doc = PDDocument()
-        val image = PDImageXObject.createFromFile(imagePath, doc)
+        
+        if (includeInstructions) {
+            addInstructionsPage(doc, posterW, posterH, pageW, pageH, margin, overlap)
+        }
+
+        val image = LosslessFactory.createFromImage(doc, bitmap)
         
         val printableW = pageW - 2 * margin
         val printableH = pageH - 2 * margin
         
         val tiles = generateTiles(posterW, posterH, printableW, printableH, overlap)
         
+        val thickness = when(outlineThickness) {
+            "Thin" -> 0.5f
+            "Heavy" -> 2.0f
+            else -> 1.0f
+        }
+
         for (tile in tiles) {
             val page = PDPage(PDRectangle(pageW.toFloat(), pageH.toFloat()))
             doc.addPage(page)
             
             val contentStream = PDPageContentStream(doc, page)
             
-            // Draw image tile
-            // Offset logic: The image is drawn with a negative offset to only show the relevant tile
-            // We use clipping or just coordinate transformation
             contentStream.saveGraphicsState()
-            
-            // Clip to printable area
             contentStream.addRect(margin.toFloat(), margin.toFloat(), printableW.toFloat(), printableH.toFloat())
             contentStream.clip()
             
-            // Draw the full image at the calculated offset
-            // In PDFBox, (0,0) is bottom-left. 
-            // The image should be drawn so that the current tile (offsetX, offsetY) is at (margin, margin)
             val drawX = margin - tile.offsetX
-            val drawY = margin - (posterH - tile.offsetY - printableH) // Adjust for bottom-up coordinates
+            val drawY = margin - (posterH - tile.offsetY - printableH)
             
             contentStream.drawImage(image, drawX.toFloat(), drawY.toFloat(), posterW.toFloat(), posterH.toFloat())
             contentStream.restoreGraphicsState()
             
+            // Draw Outline
+            if (showOutlines) {
+                contentStream.setLineWidth(thickness)
+                when (outlineStyle) {
+                    "Dotted" -> contentStream.setLineDashPattern(floatArrayOf(1f, 2f), 0f)
+                    "Dashed" -> contentStream.setLineDashPattern(floatArrayOf(5f, 5f), 0f)
+                }
+                contentStream.addRect(margin.toFloat(), margin.toFloat(), printableW.toFloat(), printableH.toFloat())
+                contentStream.stroke()
+            }
+
             // Draw Label
-            contentStream.beginText()
-            contentStream.setFont(PDType1Font.HELVETICA, 10f)
-            contentStream.newLineAtOffset(margin.toFloat(), (pageH - margin + 5).toFloat())
-            contentStream.showText("Tile ${tile.label} (Row ${tile.row + 1}, Col ${tile.col + 1})")
-            contentStream.endText()
+            if (labelPanes) {
+                contentStream.beginText()
+                contentStream.setFont(PDType1Font.HELVETICA, 10f)
+                contentStream.setLineDashPattern(floatArrayOf(), 0f) // Reset dash for text
+                contentStream.newLineAtOffset(margin.toFloat(), (pageH - margin + 5).toFloat())
+                contentStream.showText("Tile ${tile.label} (Row ${tile.row + 1}, Col ${tile.col + 1})")
+                contentStream.endText()
+            }
             
             contentStream.close()
         }
         
         doc.save(File(outputPath))
         doc.close()
+    }
+
+    private fun addInstructionsPage(doc: PDDocument, pw: Double, ph: Double, pgw: Double, pgh: Double, m: Double, o: Double) {
+        val page = PDPage(PDRectangle(pgw.toFloat(), pgh.toFloat()))
+        doc.addPage(page)
+        val contentStream = PDPageContentStream(doc, page)
+        
+        contentStream.beginText()
+        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 16f)
+        contentStream.newLineAtOffset(50f, pgh.toFloat() - 50f)
+        contentStream.showText("Poster PDF Assembly Instructions")
+        
+        contentStream.setFont(PDType1Font.HELVETICA, 12f)
+        contentStream.newLineAtOffset(0f, -30f)
+        contentStream.showText("Total Poster Size: ${"%.2f".format(pw/72.0)} x ${"%.2f".format(ph/72.0)} inches")
+        contentStream.newLineAtOffset(0f, -20f)
+        contentStream.showText("Paper Size: ${"%.2f".format(pgw/72.0)} x ${"%.2f".format(pgh/72.0)} inches")
+        contentStream.newLineAtOffset(0f, -20f)
+        contentStream.showText("Margins: ${"%.2f".format(m/72.0)} in, Overlap: ${"%.2f".format(o/72.0)} in")
+        
+        contentStream.newLineAtOffset(0f, -40f)
+        contentStream.showText("1. Cut along the provided outlines (if enabled).")
+        contentStream.newLineAtOffset(0f, -20f)
+        contentStream.showText("2. Match the labels (A1, A2...) to align the grid.")
+        contentStream.newLineAtOffset(0f, -20f)
+        contentStream.showText("3. Use the overlap areas to tape or glue the pages together.")
+        
+        contentStream.endText()
+        contentStream.close()
     }
 }
