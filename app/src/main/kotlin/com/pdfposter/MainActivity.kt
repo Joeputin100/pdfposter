@@ -1,5 +1,6 @@
 package com.pdfposter
 
+import androidx.activity.compose.BackHandler
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -40,6 +41,10 @@ import com.pdfposter.ui.components.PosterPreview
 import com.pdfposter.ui.theme.PDFPosterTheme
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.viewinterop.AndroidView
+import android.widget.VideoView
+import com.pdfposter.R
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,11 +54,34 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    var showSplash by remember { mutableStateOf(true) }
+                    if (showSplash) {
+                        SplashScreen { showSplash = false }
+                    } else {
+                        MainScreen()
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun SplashScreen(onComplete: () -> Unit) {
+    val context = LocalContext.current
+    AndroidView(
+        factory = { ctx ->
+            VideoView(ctx).apply {
+                val uri = Uri.parse("android.resource://${ctx.packageName}/raw/splash")
+                setVideoURI(uri)
+                setOnCompletionListener {
+                    onComplete()
+                }
+                start()
+            }
+        },
+        modifier = Modifier.fillMaxSize().background(Color.Black)
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,6 +91,11 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+
+    // Handle back button to close drawer
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch { drawerState.close() }
+    }
 
     val saveLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/pdf")
@@ -88,6 +121,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.titleMedium
                 )
+                
                 // Units Selector
                 ListItem(
                     headlineContent = { Text("Measurement Units") },
@@ -109,6 +143,19 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     headlineContent = { Text("Default Paper") },
                     supportingContent = { Text(viewModel.paperSize) },
                     leadingContent = { Icon(Icons.Default.Description, null) }
+                )
+
+                Divider(Modifier.padding(vertical = 8.dp))
+                
+                Text(
+                    "Supported File Types:",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.labelLarge
+                )
+                Text(
+                    "• PNG\n• JPG / JPEG\n• WEBP\n• BMP",
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Divider(Modifier.padding(vertical = 8.dp))
@@ -145,7 +192,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             }
         ) { padding ->
             if (viewModel.isFirstRun) {
-                FirstRunWizard(onDismiss = { viewModel.saveAllSettings() })
+                FirstRunWizard(viewModel = viewModel, onDismiss = { viewModel.saveAllSettings() })
             }
 
             Column(
@@ -162,14 +209,23 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     selectedImageUri = viewModel.selectedImageUri,
                     onImageSelected = { viewModel.updateImage(context, it) }
                 )
+
                 // 2. Image Info (Resolution & AR)
                 viewModel.imageMetadata?.let { meta ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         InfoChip(label = "Resolution", value = meta.resolution)
-                        InfoChip(label = "Aspect Ratio", value = String.format("%.2f:1", meta.aspectRatio))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            InfoChip(label = "Aspect Ratio", value = meta.aspectRatioString)
+                            IconButton(onClick = { 
+                                viewModel.errorMessage = "Aspect Ratio: The ratio of width to height. Linked scaling maintains this shape."
+                            }) {
+                                Icon(Icons.Default.Info, "Explanation", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
                     }
                 }
 
@@ -238,26 +294,25 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                 
                                 PaperSizeSelector(viewModel)
 
-                                if (viewModel.paperSize == "Custom") {
-                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                        ConfigInput(
-                                            label = "Paper Width (in)",
-                                            value = viewModel.customPaperWidth,
-                                            onValueChange = { 
-                                                viewModel.customPaperWidth = it
-                                                viewModel.saveAllSettings()
-                                            },
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        ConfigInput(
-                                            label = "Paper Height (in)",
-                                            value = viewModel.customPaperHeight,
-                                            onValueChange = { 
-                                                viewModel.customPaperHeight = it
-                                                viewModel.saveAllSettings()
-                                            },
-                                            modifier = Modifier.weight(1f)
-                                        )
+                                // Orientation Selector
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Orientation", style = MaterialTheme.typography.bodyMedium)
+                                    Row {
+                                        listOf("Best Fit", "Portrait", "Landscape").forEach { o ->
+                                            FilterChip(
+                                                selected = viewModel.orientation == o,
+                                                onClick = { 
+                                                    viewModel.orientation = o
+                                                    viewModel.saveAllSettings()
+                                                },
+                                                label = { Text(o) },
+                                                modifier = Modifier.padding(horizontal = 2.dp)
+                                            )
+                                        }
                                     }
                                 }
 
@@ -295,69 +350,61 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                         // 5. Advanced Options (Outlines & Labels)
                         AdvancedOptionsSection(viewModel)
 
-                        // 6. Preview & Generate
+                        // 6. Preview
                         PosterPreview(viewModel)
 
-                        Button(
-                            onClick = { viewModel.generatePoster(context) },
-                            enabled = !viewModel.isGenerating,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(64.dp),
-                            shape = RoundedCornerShape(20.dp)
-                        ) {
-                            if (viewModel.isGenerating) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                            } else {
-                                Icon(Icons.Default.PictureAsPdf, null)
-                                Spacer(Modifier.width(12.dp))
-                                Text("Generate Tiled PDF", fontWeight = FontWeight.Bold)
+                        // 7. Actions (Merged Generate)
+                        if (viewModel.isGenerating) {
+                            Box(Modifier.fillMaxWidth().height(64.dp), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
                             }
-                        }
-                        
-                        // Messages
-                        viewModel.errorMessage?.let { MessageText(it, MaterialTheme.colorScheme.error) }
-                        
-                        if (viewModel.successMessage != null && viewModel.lastGeneratedFile != null) {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                MessageText(viewModel.successMessage!!, MaterialTheme.colorScheme.primary)
-                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    val file = viewModel.lastGeneratedFile!!
-                                    Button(
-                                        onClick = { 
+                        } else {
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Button(
+                                    onClick = { 
+                                        viewModel.generatePoster(context) {
+                                            // View on success
+                                            val file = viewModel.lastGeneratedFile ?: return@generatePoster
                                             val uri = androidx.core.content.FileProvider.getUriForFile(
-                                                context, 
-                                                "${context.packageName}.provider", 
-                                                file
+                                                context, "${context.packageName}.provider", file
                                             )
                                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
                                                 setDataAndType(uri, "application/pdf")
                                                 addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                             }
                                             context.startActivity(android.content.Intent.createChooser(intent, "Open PDF"))
-                                        },
-                                        modifier = Modifier.weight(1f),
-                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                                    ) {
-                                        Icon(Icons.Default.Visibility, null)
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("View")
-                                    }
-                                    
-                                    Button(
-                                        onClick = { 
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f).height(64.dp),
+                                    shape = RoundedCornerShape(20.dp)
+                                ) {
+                                    Icon(Icons.Default.Visibility, null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("View PDF", fontWeight = FontWeight.Bold)
+                                }
+                                
+                                Button(
+                                    onClick = { 
+                                        viewModel.generatePoster(context) {
                                             saveLauncher.launch("poster_${System.currentTimeMillis()}.pdf")
-                                        },
-                                        modifier = Modifier.weight(1f),
-                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
-                                    ) {
-                                        Icon(Icons.Default.Save, null)
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("Save As...")
-                                    }
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f).height(64.dp),
+                                    shape = RoundedCornerShape(20.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                                ) {
+                                    Icon(Icons.Default.Save, null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Save As...", fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
+                        
+                        // Messages
+                        viewModel.errorMessage?.let { 
+                            MessageText(it, if (it.contains("Warning")) Color(0xFFFFA000) else MaterialTheme.colorScheme.error) 
+                        }
+                        viewModel.successMessage?.let { MessageText(it, MaterialTheme.colorScheme.primary) }
                     }
                 }
             }
@@ -381,7 +428,7 @@ fun InfoChip(label: String, value: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaperSizeSelector(viewModel: MainViewModel) {
-    val options = listOf("Letter (8.5x11)", "A4 (8.27x11.69)", "A3 (11.69x16.54)", "Custom")
+    val options = listOf("Letter (8.5x11)", "Legal (8.5x14)", "Tabloid (11x17)", "A4 (8.27x11.69)", "A3 (11.69x16.54)", "Custom")
     var expanded by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -404,7 +451,13 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
             ) {
                 options.forEach { selectionOption ->
                     DropdownMenuItem(
-                        text = { Text(selectionOption) },
+                        text = { 
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Description, null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(selectionOption) 
+                            }
+                        },
                         onClick = {
                             viewModel.paperSize = selectionOption
                             viewModel.saveAllSettings()
@@ -420,13 +473,19 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
                 ConfigInput(
                     label = "Paper Width (in)",
                     value = viewModel.customPaperWidth,
-                    onValueChange = { viewModel.customPaperWidth = it },
+                    onValueChange = { 
+                        viewModel.customPaperWidth = it
+                        viewModel.saveAllSettings()
+                    },
                     modifier = Modifier.weight(1f)
                 )
                 ConfigInput(
                     label = "Paper Height (in)",
                     value = viewModel.customPaperHeight,
-                    onValueChange = { viewModel.customPaperHeight = it },
+                    onValueChange = { 
+                        viewModel.customPaperHeight = it
+                        viewModel.saveAllSettings()
+                    },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -516,13 +575,13 @@ fun OutlineStyleSelector(
         Text("Line Style", style = MaterialTheme.typography.labelSmall)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             LineStyleIcon(label = "Solid", isSelected = style == "Solid", onClick = { onStyleChange("Solid") }) {
-                drawLine(Color.White, Offset(0f, 15f), Offset(40f, 15f), 2f)
+                drawLine(Color.White, Offset(10f, 30f), Offset(90f, 30f), 4f)
             }
             LineStyleIcon(label = "Dashed", isSelected = style == "Dashed", onClick = { onStyleChange("Dashed") }) {
-                drawLine(Color.White, Offset(0f, 15f), Offset(40f, 15f), 2f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f))
+                drawLine(Color.White, Offset(10f, 30f), Offset(90f, 30f), 4f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f))
             }
             LineStyleIcon(label = "Dotted", isSelected = style == "Dotted", onClick = { onStyleChange("Dotted") }) {
-                drawLine(Color.White, Offset(0f, 15f), Offset(40f, 15f), 2f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(2f, 5f), 0f))
+                drawLine(Color.White, Offset(10f, 30f), Offset(90f, 30f), 4f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 10f), 0f))
             }
         }
         
@@ -544,8 +603,8 @@ fun LineStyleIcon(label: String, isSelected: Boolean, onClick: () -> Unit, draw:
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .size(60.dp, 40.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(100.dp, 60.dp)
+                .clip(RoundedCornerShape(12.dp))
                 .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                 .clickable { onClick() }
                 .padding(8.dp),
@@ -569,16 +628,25 @@ fun MessageText(msg: String, color: Color) {
 }
 
 @Composable
-fun FirstRunWizard(onDismiss: () -> Unit) {
+fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = { },
         title = { Text("Welcome to Poster PDF!") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text("Let's get you set up. You can always change these settings later in the side menu.")
+                
                 Text("Select your preferred measurement units:", style = MaterialTheme.typography.labelLarge)
-                // Note: Simplified for the wizard
-                Text("Initial setup: Inches, Letter Paper")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected = viewModel.units == "Inches", onClick = { viewModel.units = "Inches" })
+                    Text("Inches")
+                    Spacer(Modifier.width(16.dp))
+                    RadioButton(selected = viewModel.units == "Metric", onClick = { viewModel.units = "Metric" })
+                    Text("Metric")
+                }
+
+                Text("Default Paper Size:", style = MaterialTheme.typography.labelLarge)
+                PaperSizeSelector(viewModel)
             }
         },
         confirmButton = {

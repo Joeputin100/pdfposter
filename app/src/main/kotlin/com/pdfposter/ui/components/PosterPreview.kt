@@ -1,5 +1,8 @@
 package com.pdfposter.ui.components
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -19,28 +22,47 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.text.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pdfposter.MainViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun PosterPreview(viewModel: MainViewModel) {
-    val infiniteTransition = rememberInfiniteTransition(label = "wood_grain")
+    val context = LocalContext.current
     val woodColor = Color(0xFF3E2723)
     val woodHighlight = Color(0xFF4E342E)
     
     // Animation state
-    var animationPhase by remember { mutableStateOf(0) } // 0: Original, 1: Borders, 2: Melt, 3: Separate
-    val transitionProgress = animateFloatAsState(
+    val infiniteTransition = rememberInfiniteTransition(label = "preview_loop")
+    val t by infiniteTransition.animateFloat(
+        initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = LinearEasing),
+            animation = tween(6000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "preview_anim"
+        label = "time"
     )
+
+    // Load bitmap for preview
+    var previewBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(viewModel.selectedImageUri) {
+        val uri = viewModel.selectedImageUri ?: return@LaunchedEffect
+        val bitmap = withContext(Dispatchers.IO) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { 
+                    BitmapFactory.decodeStream(it)
+                }
+            } catch (e: Exception) { null }
+        }
+        previewBitmap = bitmap?.asImageBitmap()
+    }
 
     Column(
         modifier = Modifier
@@ -59,7 +81,7 @@ fun PosterPreview(viewModel: MainViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(260.dp)
+                .height(300.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(
                     brush = Brush.verticalGradient(
@@ -75,27 +97,26 @@ fun PosterPreview(viewModel: MainViewModel) {
                 val canvasW = size.width
                 val canvasH = size.height
                 
-                // Draw Wood Grain (Simple lines)
-                for (i in 0..10) {
+                // Draw Wood Grain
+                for (i in 0..15) {
                     drawLine(
-                        color = Color.Black.copy(alpha = 0.1f),
-                        start = Offset(0f, i * canvasH / 10),
-                        end = Offset(canvasW, i * canvasH / 10 + 20f),
-                        strokeWidth = 2f
+                        color = Color.Black.copy(alpha = 0.2f),
+                        start = Offset(0f, i * canvasH / 15f),
+                        end = Offset(canvasW, i * canvasH / 15f + 30f),
+                        strokeWidth = 3f
                     )
                 }
 
                 if (paneInfo != null) {
                     val (_, rows, cols) = paneInfo
                     
-                    // Scale poster to fit canvas (with padding)
-                    val padding = 40f
+                    val padding = 60f
                     val availableW = canvasW - 2 * padding
                     val availableH = canvasH - 2 * padding
                     
                     val pw = viewModel.posterWidth.toDoubleOrNull() ?: 1.0
                     val ph = viewModel.posterHeight.toDoubleOrNull() ?: 1.0
-                    val scale = kotlin.math.min(availableW / pw, availableH / ph).toFloat()
+                    val scale = kotlin.math.min(availableW.toDouble() / pw, availableH.toDouble() / ph).toFloat()
                     
                     val posterDrawW = (pw * scale).toFloat()
                     val posterDrawH = (ph * scale).toFloat()
@@ -103,87 +124,80 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val startX = (canvasW - posterDrawW) / 2
                     val startY = (canvasH - posterDrawH) / 2
 
-                    // Draw Background Shadow for the whole poster
-                    drawRoundRect(
-                        color = Color.Black.copy(alpha = 0.3f),
-                        topLeft = Offset(startX + 10f, startY + 10f),
-                        size = Size(posterDrawW, posterDrawH),
-                        cornerRadius = CornerRadius(4f, 4f)
-                    )
+                    if (t < 0.6) {
+                        // Draw shadow
+                        drawRoundRect(
+                            color = Color.Black.copy(alpha = 0.3f),
+                            topLeft = Offset(startX + 10f, startY + 10f),
+                            size = Size(posterDrawW, posterDrawH),
+                            cornerRadius = CornerRadius(4f, 4f)
+                        )
 
-                    // Draw the "Base" image (White sheet)
-                    drawRect(
-                        color = Color.White,
-                        topLeft = Offset(startX, startY),
-                        size = Size(posterDrawW, posterDrawH)
-                    )
+                        // Draw Image
+                        previewBitmap?.let {
+                            drawImage(
+                                image = it,
+                                dstOffset = IntOffset(startX.toInt(), startY.toInt()),
+                                dstSize = IntSize(posterDrawW.toInt(), posterDrawH.toInt())
+                            )
+                        } ?: drawRect(Color.White, Offset(startX, startY), Size(posterDrawW, posterDrawH))
 
-                    // Animate Layers based on time
-                    val t = transitionProgress.value
-                    
-                    // Phase: Drawing Borders (t: 0.0 -> 0.3)
-                    if (t > 0.1) {
-                        val borderAlpha = kotlin.math.min(1f, (t - 0.1f) * 5f)
-                        for (r in 0 until rows) {
-                            for (c in 0 until cols) {
-                                val tileW = posterDrawW / cols
-                                val tileH = posterDrawH / rows
-                                
-                                // Draw Grid Line
-                                drawRect(
-                                    color = Color.LightGray.copy(alpha = borderAlpha * 0.5f),
-                                    topLeft = Offset(startX + c * tileW, startY + r * tileH),
-                                    size = Size(tileW, tileH),
-                                    style = Stroke(width = 1f)
-                                )
+                        // Borders (Phase 2)
+                        if (t > 0.2) {
+                            val alpha = kotlin.math.min(1f, (t - 0.2f) * 5f)
+                            for (r in 0 until rows) {
+                                for (c in 0 until cols) {
+                                    val tw = posterDrawW / cols
+                                    val th = posterDrawH / rows
+                                    drawRect(
+                                        color = Color.White.copy(alpha = alpha * 0.7f),
+                                        topLeft = Offset(startX + c * tw, startY + r * th),
+                                        size = Size(tw, th),
+                                        style = Stroke(width = 2f)
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    // Phase: Melting Margins (t: 0.4 -> 0.7)
-                    val m = (viewModel.margin.toDoubleOrNull() ?: 0.0) * scale
-                    if (t > 0.4) {
-                        val meltProgress = kotlin.math.min(1f, (t - 0.4f) * 3f)
-                        val meltAlpha = meltProgress * 0.4f
-                        
-                        // Draw simulated margins on the edges with "melting" effect (growing slightly)
-                        drawRect(
-                            color = Color.Blue.copy(alpha = meltAlpha),
-                            topLeft = Offset(startX, startY),
-                            size = Size(posterDrawW, m.toFloat() * meltProgress)
-                        )
-                        drawRect(
-                            color = Color.Blue.copy(alpha = meltAlpha),
-                            topLeft = Offset(startX, (startY + posterDrawH - m * meltProgress).toFloat()),
-                            size = Size(posterDrawW, m.toFloat() * meltProgress)
-                        )
-                    }
-
-                    // Phase: Pages separating (t: 0.7 -> 1.0)
-                    if (t > 0.7) {
-                        val sepProgress = (t - 0.7f) * 3.33f
-                        val sep = sepProgress * 20f
+                        // Margins (Phase 3)
+                        if (t > 0.4) {
+                            val alpha = kotlin.math.min(0.5f, (t - 0.4f) * 5f)
+                            val m = (viewModel.margin.toDoubleOrNull() ?: 0.0).toFloat() * scale
+                            drawRect(
+                                color = Color.Blue.copy(alpha = alpha),
+                                topLeft = Offset(startX, startY),
+                                size = Size(posterDrawW, m)
+                            )
+                            drawRect(
+                                color = Color.Blue.copy(alpha = alpha),
+                                topLeft = Offset(startX, startY + posterDrawH - m),
+                                size = Size(posterDrawW, m)
+                            )
+                        }
+                    } else {
+                        // Separate Pages (Phase 4)
+                        val sepProgress = (t - 0.6f) * 2.5f
+                        val gap = sepProgress * 40f
                         
                         for (r in 0 until rows) {
                             for (c in 0 until cols) {
-                                val tileW = posterDrawW / cols
-                                val tileH = posterDrawH / rows
+                                val tw = posterDrawW / cols
+                                val th = posterDrawH / rows
                                 
-                                val tileStartX = startX + c * tileW + (c - (cols-1)/2f) * sep
-                                val tileStartY = startY + r * tileH + (r - (rows-1)/2f) * sep
+                                val dx = startX + c * tw + (c - (cols-1)/2f) * gap
+                                val dy = startY + r * th + (r - (rows-1)/2f) * gap
                                 
-                                drawRect(
-                                    color = Color.White,
-                                    topLeft = Offset(tileStartX, tileStartY),
-                                    size = Size(tileW, tileH),
-                                    style = Fill
-                                )
+                                // Each tile shadow
                                 drawRect(
                                     color = Color.Black.copy(alpha = 0.2f),
-                                    topLeft = Offset(tileStartX, tileStartY),
-                                    size = Size(tileW, tileH),
-                                    style = Stroke(width = 1f)
+                                    topLeft = Offset(dx + 5f, dy + 5f),
+                                    size = Size(tw, th)
                                 )
+
+                                // Tile content
+                                drawRect(Color.White, Offset(dx, dy), Size(tw, th), style = Fill)
+                                // Draw thin outline
+                                drawRect(Color.Black.copy(alpha = 0.1f), Offset(dx, dy), Size(tw, th), style = Stroke(1f))
                             }
                         }
                     }

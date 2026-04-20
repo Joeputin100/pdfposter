@@ -16,10 +16,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
 
 data class ImageMetadata(
     val width: Int,
     val height: Int,
+    val aspectRatioString: String,
     val aspectRatio: Double,
     val resolution: String
 )
@@ -36,6 +38,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var paperSize by mutableStateOf("Letter (8.5x11)")
     var customPaperWidth by mutableStateOf("8.5")
     var customPaperHeight by mutableStateOf("11")
+    var orientation by mutableStateOf("Best Fit") // Best Fit, Portrait, Landscape
     var margin by mutableStateOf("0.5")
     var overlap by mutableStateOf("0.25")
     
@@ -100,7 +103,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun resetToDefaults() {
         viewModelScope.launch {
             repository.resetSettings()
-            // Values will be updated via loadSettings collectLatest
+            // Reset local states to hardcoded defaults immediately
+            posterWidth = "24"
+            posterHeight = "36"
+            paperSize = "Letter (8.5x11)"
+            customPaperWidth = "8.5"
+            customPaperHeight = "11"
+            orientation = "Best Fit"
+            margin = "0.5"
+            overlap = "0.25"
+            showOutlines = true
+            outlineStyle = "Solid"
+            outlineThickness = "Medium"
+            labelPanes = true
+            includeInstructions = true
+            units = "Inches"
         }
     }
 
@@ -118,13 +135,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         width = w,
                         height = h,
                         aspectRatio = ar,
+                        aspectRatioString = String.format(Locale.US, "%.1f:%.1f", ar, 1.0),
                         resolution = "${w}x${h}px"
                     )
                     
                     // Initial sizing based on current width and image aspect ratio
                     if (isAspectRatioLocked) {
                         val currentW = posterWidth.toDoubleOrNull() ?: 24.0
-                        posterHeight = String.format("%.2f", currentW / ar)
+                        posterHeight = String.format(Locale.US, "%.2f", currentW / ar)
                     }
                 }
             }
@@ -138,7 +156,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val w = width.toDoubleOrNull()
         val metadata = imageMetadata
         if (isAspectRatioLocked && w != null && metadata != null) {
-            posterHeight = String.format("%.2f", w / metadata.aspectRatio)
+            posterHeight = String.format(Locale.US, "%.2f", w / metadata.aspectRatio)
         }
     }
 
@@ -147,7 +165,37 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val h = height.toDoubleOrNull()
         val metadata = imageMetadata
         if (isAspectRatioLocked && h != null && metadata != null) {
-            posterWidth = String.format("%.2f", h * metadata.aspectRatio)
+            posterWidth = String.format(Locale.US, "%.2f", h * metadata.aspectRatio)
+        }
+    }
+
+    fun getPaperDimensions(): Pair<Double, Double> {
+        var paperW: Double
+        var paperH: Double
+        if (paperSize == "Custom") {
+            paperW = customPaperWidth.toDoubleOrNull() ?: 8.5
+            paperH = customPaperHeight.toDoubleOrNull() ?: 11.0
+        } else {
+            val parts = paperSize.replace(")", "").split("(").last().split("x", "X")
+            if (parts.size < 2) {
+                paperW = 8.5
+                paperH = 11.0
+            } else {
+                paperW = parts[0].trim().toDoubleOrNull() ?: 8.5
+                paperH = parts[1].trim().toDoubleOrNull() ?: 11.0
+            }
+        }
+
+        return when (orientation) {
+            "Portrait" -> Pair(kotlin.math.min(paperW, paperH), kotlin.math.max(paperW, paperH))
+            "Landscape" -> Pair(kotlin.math.max(paperW, paperH), kotlin.math.min(paperW, paperH))
+            else -> {
+                // Best Fit: Match aspect ratio of poster
+                val pw = posterWidth.toDoubleOrNull() ?: 1.0
+                val ph = posterHeight.toDoubleOrNull() ?: 1.0
+                if (pw > ph) Pair(kotlin.math.max(paperW, paperH), kotlin.math.min(paperW, paperH))
+                else Pair(kotlin.math.min(paperW, paperH), kotlin.math.max(paperW, paperH))
+            }
         }
     }
 
@@ -171,18 +219,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val m = margin.toDoubleOrNull() ?: 0.0
         val o = overlap.toDoubleOrNull() ?: 0.0
         
-        // Parse paper size
-        val paperW: Double
-        val paperH: Double
-        if (paperSize == "Custom") {
-            paperW = customPaperWidth.toDoubleOrNull() ?: 8.5
-            paperH = customPaperHeight.toDoubleOrNull() ?: 11.0
-        } else {
-            val parts = paperSize.replace(")", "").split("(").last().split("x", "X")
-            if (parts.size < 2) return null
-            paperW = parts[0].trim().toDouble()
-            paperH = parts[1].trim().toDouble()
-        }
+        val (paperW, paperH) = getPaperDimensions()
         
         val printableW = paperW - 2 * m
         val printableH = paperH - 2 * m
@@ -190,7 +227,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return posterLogic.calculateSheetCount(pw * 72.0, ph * 72.0, printableW * 72.0, printableH * 72.0, o * 72.0)
     }
 
-    fun generatePoster(context: Context) {
+    fun generatePoster(context: Context, onSuccess: () -> Unit = {}) {
         val uri = selectedImageUri ?: return
         viewModelScope.launch {
             isGenerating = true
@@ -210,17 +247,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val m = margin.toDoubleOrNull() ?: 0.5
                     val o = overlap.toDoubleOrNull() ?: 0.25
 
-                    val paperW: Double
-                    val paperH: Double
-                    if (paperSize == "Custom") {
-                        paperW = customPaperWidth.toDoubleOrNull() ?: 8.5
-                        paperH = customPaperHeight.toDoubleOrNull() ?: 11.0
-                    } else {
-                        val parts = paperSize.replace(")", "").split("(").last().split("x", "X")
-                        if (parts.size < 2) throw Exception("Invalid paper size")
-                        paperW = parts[0].trim().toDouble()
-                        paperH = parts[1].trim().toDouble()
-                    }
+                    val (paperW, paperH) = getPaperDimensions()
 
                     val outputDir = context.getExternalFilesDir(null) ?: context.filesDir
                     val outputFile = File(outputDir, "poster_${System.currentTimeMillis()}.pdf")
@@ -228,7 +255,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     posterLogic.createTiledPoster(
                         bitmap = bitmap,
                         posterW = pw * 72.0,
-                        ph * 72.0,
+                        posterH = ph * 72.0,
                         pageW = paperW * 72.0,
                         pageH = paperH * 72.0,
                         margin = m * 72.0,
@@ -241,8 +268,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         includeInstructions = includeInstructions
                     )
                     
-                    lastGeneratedFile = outputFile
-                    successMessage = "Poster generated: ${outputFile.name}"
+                    withContext(Dispatchers.Main) {
+                        lastGeneratedFile = outputFile
+                        successMessage = "Poster generated: ${outputFile.name}"
+                        onSuccess()
+                    }
                 }
             } catch (e: Exception) {
                 errorMessage = "Failed: ${e.message}"

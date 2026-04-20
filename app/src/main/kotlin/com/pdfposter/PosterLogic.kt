@@ -176,26 +176,67 @@ class PosterLogic {
         val contentStream = PDPageContentStream(doc, page)
         
         contentStream.beginText()
-        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 16f)
+        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 18f)
         contentStream.newLineAtOffset(50f, pgh.toFloat() - 50f)
         contentStream.showText("Poster PDF Assembly Instructions")
         
-        contentStream.setFont(PDType1Font.HELVETICA, 12f)
+        contentStream.setFont(PDType1Font.HELVETICA, 11f)
         contentStream.newLineAtOffset(0f, -30f)
         contentStream.showText("Total Poster Size: ${"%.2f".format(pw/72.0)} x ${"%.2f".format(ph/72.0)} inches")
-        contentStream.newLineAtOffset(0f, -20f)
+        contentStream.newLineAtOffset(0f, -15f)
         contentStream.showText("Paper Size: ${"%.2f".format(pgw/72.0)} x ${"%.2f".format(pgh/72.0)} inches")
-        contentStream.newLineAtOffset(0f, -20f)
+        contentStream.newLineAtOffset(0f, -15f)
         contentStream.showText("Margins: ${"%.2f".format(m/72.0)} in, Overlap: ${"%.2f".format(o/72.0)} in")
         
         contentStream.newLineAtOffset(0f, -40f)
+        contentStream.showText("Assembly Steps:")
+        contentStream.newLineAtOffset(10f, -20f)
         contentStream.showText("1. Cut along the provided outlines (if enabled).")
-        contentStream.newLineAtOffset(0f, -20f)
-        contentStream.showText("2. Match the labels (A1, A2...) to align the grid.")
-        contentStream.newLineAtOffset(0f, -20f)
+        contentStream.newLineAtOffset(0f, -15f)
+        contentStream.showText("2. Match the labels (A1, A2...) as shown in the diagram below.")
+        contentStream.newLineAtOffset(0f, -15f)
         contentStream.showText("3. Use the overlap areas to tape or glue the pages together.")
-        
         contentStream.endText()
+
+        // Draw Grid Diagram
+        val printableW = pgw - 2 * m
+        val printableH = pgh - 2 * m
+        val tiles = generateTiles(pw, ph, printableW, printableH, o)
+        val (_, rows, cols) = calculateSheetCount(pw, ph, printableW, printableH, o)
+
+        val diagMaxWidth = pgw - 100
+        val diagMaxHeight = pgh / 2
+        val scale = kotlin.math.min(diagMaxWidth / pw, diagMaxHeight / ph).toFloat()
+        
+        val diagW = (pw * scale).toFloat()
+        val diagH = (ph * scale).toFloat()
+        val startX = 50f
+        val startY = pgh.toFloat() / 2 - 50f
+
+        contentStream.setLineWidth(1f)
+        contentStream.setStrokingColor(0.5f, 0.5f, 0.5f)
+        
+        // Draw the tiles
+        val tw = diagW / cols
+        val th = diagH / rows
+        for (r in 0 until rows) {
+            for (c in 0 until cols) {
+                val tx = startX + c * tw
+                val ty = startY + (rows - 1 - r) * th
+                
+                contentStream.addRect(tx, ty, tw, th)
+                contentStream.stroke()
+                
+                // Add Label in mini tile
+                contentStream.beginText()
+                contentStream.setFont(PDType1Font.HELVETICA, 8f * scale * 72f / 10f) // Scaled font
+                contentStream.setFont(PDType1Font.HELVETICA, 8f)
+                contentStream.newLineAtOffset(tx + 2, ty + 2)
+                contentStream.showText(getGridLabel(r, c))
+                contentStream.endText()
+            }
+        }
+
         contentStream.close()
     }
 }
