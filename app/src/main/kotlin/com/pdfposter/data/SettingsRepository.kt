@@ -23,6 +23,8 @@ class SettingsRepository(private val context: Context) {
         val INCLUDE_INSTRUCTIONS = booleanPreferencesKey("include_instructions")
         val UNITS = stringPreferencesKey("units")
         val IS_FIRST_RUN = booleanPreferencesKey("is_first_run")
+        val DEBUG_LOGGING_ENABLED = booleanPreferencesKey("debug_logging_enabled")
+        val POSTERS_MADE_COUNT = intPreferencesKey("posters_made_count")
     }
 
     val settingsFlow: Flow<Map<Preferences.Key<*>, Any>> = context.dataStore.data

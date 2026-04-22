@@ -3,6 +3,7 @@ package com.pdfposter
 import androidx.activity.compose.BackHandler
 import android.net.Uri
 import android.os.Bundle
+import android.widget.VideoView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -34,16 +35,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdfposter.ui.components.GlassCard
 import com.pdfposter.ui.components.ImagePickerHeader
 import com.pdfposter.ui.components.PosterPreview
 import com.pdfposter.ui.theme.PDFPosterTheme
 import kotlinx.coroutines.launch
-
-import androidx.compose.ui.viewinterop.AndroidView
-import android.widget.VideoView
-import com.pdfposter.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,19 +67,33 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SplashScreen(onComplete: () -> Unit) {
     val context = LocalContext.current
-    AndroidView(
-        factory = { ctx ->
-            VideoView(ctx).apply {
-                val uri = Uri.parse("android.resource://${ctx.packageName}/raw/splash")
-                setVideoURI(uri)
-                setOnCompletionListener {
-                    onComplete()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .clickable { onComplete() }
+    ) {
+        AndroidView(
+            factory = { ctx ->
+                VideoView(ctx).apply {
+                    val uri = Uri.parse("android.resource://${ctx.packageName}/raw/splash")
+                    setVideoURI(uri)
+                    setOnCompletionListener { onComplete() }
+                    setVolume(0f, 0f)
+                    start()
                 }
-                start()
-            }
-        },
-        modifier = Modifier.fillMaxSize().background(Color.Black)
-    )
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+        Text(
+            text = "Tap to skip",
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 14.sp,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,6 +103,33 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+
+    val storagePermissions = arrayOf(
+        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        val allGranted = grants.values.all { it }
+        if (allGranted) {
+            // Start debug logging if enabled
+        }
+    }
+    var permissionsRequested by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        val hasPermissions = storagePermissions.all {
+            androidx.core.content.ContextCompat.checkSelfPermission(context, it) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        if (!hasPermissions && !permissionsRequested) {
+            permissionLauncher.launch(storagePermissions)
+            permissionsRequested = true
+        }
+    }
+
+    // Info Dialog states
+    var infoDialogContent by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     // Handle back button to close drawer
     BackHandler(enabled = drawerState.isOpen) {
@@ -103,12 +142,39 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         uri?.let {
             viewModel.lastGeneratedFile?.let { file ->
                 context.contentResolver.openOutputStream(it)?.use { output ->
-                    file.inputStream().use { input ->
-                        input.copyTo(output)
-                    }
+                    file.inputStream().use { input -> input.copyTo(output) }
                 }
             }
         }
+    }
+
+    infoDialogContent?.let { (title, msg) ->
+        AlertDialog(
+            onDismissRequest = { infoDialogContent = null },
+            title = { Text(title) },
+            text = { Text(msg) },
+            confirmButton = { TextButton(onClick = { infoDialogContent = null }) { Text("OK") } }
+        )
+    }
+
+    if (viewModel.showNagwareModal) {
+        AlertDialog(
+            onDismissRequest = { if (viewModel.nagwareCountdown <= 0) viewModel.dismissNagwareModal() },
+            title = { Text("Support the Developer") },
+            text = { 
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("You've made ${viewModel.postersMadeCount} posters! Please consider registering the app on the Play Store for just \$2 to support the very poor software developer.")
+                    Text("Link: https://play.google.com/store/apps/details?id=com.pdfposter")
+                    Text("Time remaining: ${viewModel.nagwareCountdown} seconds", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { if (viewModel.nagwareCountdown <= 0) viewModel.dismissNagwareModal() },
+                    enabled = viewModel.nagwareCountdown <= 0
+                ) { Text("Continue") }
+            }
+        )
     }
 
     ModalNavigationDrawer(
@@ -122,30 +188,47 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     style = MaterialTheme.typography.titleMedium
                 )
                 
-                // Units Selector
-                ListItem(
-                    headlineContent = { Text("Measurement Units") },
-                    supportingContent = { Text(viewModel.units) },
-                    leadingContent = { Icon(Icons.Default.Straighten, null) },
-                    trailingContent = {
-                        Switch(
-                            checked = viewModel.units == "Metric",
-                            onCheckedChange = { 
-                                viewModel.units = if (it) "Metric" else "Inches"
-                                viewModel.saveAllSettings()
-                            }
-                        )
-                    }
-                )
+                 ListItem(
+                     headlineContent = { Text("Units") },
+                     supportingContent = { Text(viewModel.units) },
+                     leadingContent = { Icon(Icons.Default.Straighten, null) },
+                     trailingContent = {
+                         Switch(
+                             checked = viewModel.units == "Metric",
+                             onCheckedChange = { 
+                                 viewModel.logEvent(context, "Units switch toggled", "checked=$it")
+                                 viewModel.toggleUnits(it) 
+                             }
+                         )
+                     }
+                 )
 
-                // Default Paper Size
-                ListItem(
-                    headlineContent = { Text("Default Paper") },
-                    supportingContent = { Text(viewModel.paperSize) },
-                    leadingContent = { Icon(Icons.Default.Description, null) }
-                )
+                 ListItem(
+                     headlineContent = { Text("Debug Logging") },
+                     supportingContent = { Text("Write logs to Downloads folder") },
+                     leadingContent = { Icon(Icons.Default.BugReport, null) },
+                     trailingContent = {
+                         Switch(
+                             checked = viewModel.debugLoggingEnabled,
+                             onCheckedChange = { 
+                                 viewModel.debugLoggingEnabled = it
+                                 viewModel.saveAllSettings()
+                                 viewModel.logEvent(context, "Debug logging toggled", "enabled=$it")
+                             }
+                         )
+                     }
+                 )
 
-                Divider(Modifier.padding(vertical = 8.dp))
+                 Text(
+                     "Default Paper Size",
+                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                     style = MaterialTheme.typography.labelMedium
+                 )
+                Box(Modifier.padding(horizontal = 16.dp)) {
+                    PaperSizeSelector(viewModel)
+                }
+
+                Divider(Modifier.padding(vertical = 16.dp))
                 
                 Text(
                     "Supported File Types:",
@@ -153,23 +236,25 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     style = MaterialTheme.typography.labelLarge
                 )
                 Text(
-                    "• PNG\n• JPG / JPEG\n• WEBP\n• BMP",
+                    "• PNG\n• JPG / JPEG\n• SVG\n• WEBP\n• BMP",
                     modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Divider(Modifier.padding(vertical = 8.dp))
+                Divider(Modifier.padding(vertical = 16.dp))
                 
-                NavigationDrawerItem(
-                    label = { Text("Reset to Defaults") },
-                    selected = false,
-                    onClick = { 
-                        viewModel.resetToDefaults()
-                        scope.launch { drawerState.close() }
-                    },
-                    icon = { Icon(Icons.Default.Refresh, null) },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
+                 NavigationDrawerItem(
+                     label = { Text("Reset to Defaults") },
+                     selected = false,
+                     onClick = { 
+                         viewModel.logEvent(context, "Reset to defaults triggered")
+                         viewModel.resetToDefaults()
+                         scope.launch { drawerState.close() }
+                     },
+                     icon = { Icon(Icons.Default.Refresh, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
             }
         }
     ) {
@@ -184,9 +269,12 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                         ) 
                     },
                     navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, "Settings")
-                        }
+                         IconButton(onClick = { 
+                             viewModel.logEvent(context, "Drawer opened")
+                             scope.launch { drawerState.open() } 
+                         }) {
+                             Icon(Icons.Default.Menu, "Settings")
+                         }
                     }
                 )
             }
@@ -207,208 +295,282 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                 // 1. Image Selection
                 ImagePickerHeader(
                     selectedImageUri = viewModel.selectedImageUri,
-                    onImageSelected = { viewModel.updateImage(context, it) }
+                    onImageSelected = { 
+                        viewModel.logEvent(context, "Image selected", "uri=$it")
+                        viewModel.updateImage(context, it) 
+                    }
                 )
 
-                // 2. Image Info (Resolution & AR)
-                viewModel.imageMetadata?.let { meta ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        InfoChip(label = "Resolution", value = meta.resolution)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            InfoChip(label = "Aspect Ratio", value = meta.aspectRatioString)
-                            IconButton(onClick = { 
-                                viewModel.errorMessage = "Aspect Ratio: The ratio of width to height. Linked scaling maintains this shape."
-                            }) {
-                                Icon(Icons.Default.Info, "Explanation", tint = MaterialTheme.colorScheme.primary)
+                if (viewModel.selectedImageUri == null) {
+                    OnboardingView()
+                } else {
+                    // 2. Image Info
+                    viewModel.imageMetadata?.let { meta ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            InfoChip(label = "Resolution", value = meta.resolution)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                InfoChip(label = "Aspect Ratio", value = meta.aspectRatioString)
+                                IconButton(onClick = { 
+                                    infoDialogContent = "Aspect Ratio" to "This is the ratio of width to height. Locked scaling ensures your poster matches the image proportions perfectly."
+                                }) {
+                                    Icon(Icons.Default.Info, null, tint = MaterialTheme.colorScheme.primary)
+                                }
                             }
                         }
                     }
-                }
 
-                AnimatedVisibility(
-                    visible = viewModel.selectedImageUri != null,
-                    enter = expandVertically(spring()),
-                    exit = shrinkVertically()
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                        
-                        // 3. Poster Dimensions
-                        GlassCard {
-                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                Text("Poster Size", style = MaterialTheme.typography.labelLarge)
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    ConfigInput(
-                                        label = "Width (in)",
-                                        value = viewModel.posterWidth,
-                                        onValueChange = { 
-                                            viewModel.updatePosterWidth(it)
-                                            viewModel.saveAllSettings()
-                                        },
-                                        modifier = Modifier.weight(1f)
-                                    )
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = expandVertically(spring()),
+                        exit = shrinkVertically()
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                            val unitLabel = if (viewModel.units == "Metric") "cm" else "in"
+
+                            // 3. Poster Dimensions
+                            GlassCard {
+                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    Text("Poster Size", style = MaterialTheme.typography.labelLarge)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        ConfigInput(
+                                            label = "Width ($unitLabel)",
+                                            value = viewModel.posterWidth,
+                                            onValueChange = { 
+                                                viewModel.updatePosterWidth(it)
+                                                viewModel.saveAllSettings()
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        
+                                         IconButton(onClick = { 
+                                             viewModel.isAspectRatioLocked = !viewModel.isAspectRatioLocked 
+                                             viewModel.logEvent(context, "Aspect ratio lock toggled", "locked=${viewModel.isAspectRatioLocked}")
+                                             viewModel.saveAllSettings()
+                                         }) {
+                                            Icon(
+                                                if (viewModel.isAspectRatioLocked) Icons.Default.Link else Icons.Default.LinkOff,
+                                                null,
+                                                tint = if (viewModel.isAspectRatioLocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                                            )
+                                        }
+
+                                         ConfigInput(
+                                             label = if (viewModel.isAspectRatioLocked) "Height (auto) ($unitLabel)" else "Height ($unitLabel)",
+                                             value = viewModel.posterHeight,
+                                             onValueChange = { 
+                                                 viewModel.updatePosterHeight(it)
+                                                 viewModel.saveAllSettings()
+                                             },
+                                             modifier = Modifier.weight(1f),
+                                             readOnly = viewModel.isAspectRatioLocked
+                                         )
+                                    }
                                     
-                                    IconButton(onClick = { 
-                                        viewModel.isAspectRatioLocked = !viewModel.isAspectRatioLocked 
-                                        viewModel.saveAllSettings()
-                                    }) {
-                                        Icon(
-                                            if (viewModel.isAspectRatioLocked) Icons.Default.Link else Icons.Default.LinkOff,
-                                            contentDescription = "Lock Ratio",
-                                            tint = if (viewModel.isAspectRatioLocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                                    viewModel.getDpiWarning()?.let { warning ->
+                                        Text(
+                                            text = warning,
+                                            color = Color(0xFFFFA000),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.padding(horizontal = 4.dp)
                                         )
                                     }
-
-                                    ConfigInput(
-                                        label = "Height (in)",
-                                        value = viewModel.posterHeight,
-                                        onValueChange = { 
-                                            viewModel.updatePosterHeight(it)
-                                            viewModel.saveAllSettings()
-                                        },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                                
-                                viewModel.getDpiWarning()?.let { warning ->
-                                    Text(
-                                        text = warning,
-                                        color = Color(0xFFFFA000), // Material Orange 700
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.padding(horizontal = 4.dp)
-                                    )
                                 }
                             }
-                        }
 
-                        // 4. Paper & Layout
-                        GlassCard {
-                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                Text("Paper & Layout", style = MaterialTheme.typography.labelLarge)
-                                
-                                PaperSizeSelector(viewModel)
+                            // 4. Paper & Layout
+                            GlassCard {
+                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    Text("Paper & Layout", style = MaterialTheme.typography.labelLarge)
+                                    
+                                    PaperSizeSelector(viewModel)
 
-                                // Orientation Selector
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text("Orientation", style = MaterialTheme.typography.bodyMedium)
-                                    Row {
-                                        listOf("Best Fit", "Portrait", "Landscape").forEach { o ->
-                                            FilterChip(
-                                                selected = viewModel.orientation == o,
-                                                onClick = { 
-                                                    viewModel.orientation = o
-                                                    viewModel.saveAllSettings()
-                                                },
-                                                label = { Text(o) },
-                                                modifier = Modifier.padding(horizontal = 2.dp)
-                                            )
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("Orientation", style = MaterialTheme.typography.bodyMedium)
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            listOf("Best Fit", "Portrait", "Landscape").forEach { o ->
+                                             FilterChip(
+                                                 selected = viewModel.orientation == o,
+                                                 onClick = { 
+                                                     viewModel.orientation = o
+                                                     viewModel.logEvent(context, "Orientation changed", "value=$o")
+                                                     viewModel.saveAllSettings()
+                                                 },
+                                                 label = { Text(o) }
+                                             )
+                                            }
                                         }
                                     }
-                                }
 
-                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    ConfigInput(
-                                        label = "Margin (in)",
-                                        value = viewModel.margin,
-                                        onValueChange = { 
-                                            viewModel.margin = it
-                                            viewModel.saveAllSettings()
-                                        },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    ConfigInput(
-                                        label = "Overlap (in)",
-                                        value = viewModel.overlap,
-                                        onValueChange = { 
-                                            viewModel.overlap = it
-                                            viewModel.saveAllSettings()
-                                        },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                                
-                                viewModel.getPaneCount()?.let { (total, rows, cols) ->
-                                    Text(
-                                        "Will generate $total pages ($rows rows x $cols columns)",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.secondary
-                                    )
+                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                             ConfigInput(
+                                                 label = "Margin ($unitLabel)",
+                                                 value = viewModel.margin,
+                                                 onValueChange = { 
+                                                     viewModel.margin = it
+                                                     viewModel.logEvent(context, "Margin changed", "value=$it")
+                                                     viewModel.saveAllSettings() 
+                                                 },
+                                                 modifier = Modifier.weight(1f)
+                                             )
+                                            IconButton(onClick = { 
+                                                infoDialogContent = "Margin" to "The unprinted space around the edges of each page. Most home printers require at least 0.25in (0.64cm)."
+                                            }) { Icon(Icons.Default.Info, null, Modifier.size(18.dp)) }
+                                        }
+                                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                             ConfigInput(
+                                                 label = "Overlap ($unitLabel)",
+                                                 value = viewModel.overlap,
+                                                 onValueChange = { 
+                                                     viewModel.overlap = it
+                                                     viewModel.logEvent(context, "Overlap changed", "value=$it")
+                                                     viewModel.saveAllSettings() 
+                                                 },
+                                                 modifier = Modifier.weight(1f)
+                                             )
+                                            IconButton(onClick = { 
+                                                infoDialogContent = "Overlap" to "The repeated area between tiles to help you align and glue them together. 0.25in to 0.5in is recommended."
+                                            }) { Icon(Icons.Default.Info, null, Modifier.size(18.dp)) }
+                                        }
+                                    }
+                                    
+                                    viewModel.getPaneCount()?.let { (total, rows, cols) ->
+                                        Text(
+                                            "Project scope: $total pages ($rows rows x $cols columns)",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.secondary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                        // 5. Advanced Options (Outlines & Labels)
-                        AdvancedOptionsSection(viewModel)
+                            AdvancedOptionsSection(viewModel)
+                            PosterPreview(viewModel)
 
-                        // 6. Preview
-                        PosterPreview(viewModel)
-
-                        // 7. Actions (Merged Generate)
-                        if (viewModel.isGenerating) {
-                            Box(Modifier.fillMaxWidth().height(64.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
-                            }
-                        } else {
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Button(
-                                    onClick = { 
-                                        viewModel.generatePoster(context) {
-                                            // View on success
-                                            val file = viewModel.lastGeneratedFile ?: return@generatePoster
-                                            val uri = androidx.core.content.FileProvider.getUriForFile(
-                                                context, "${context.packageName}.provider", file
-                                            )
-                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                                                setDataAndType(uri, "application/pdf")
-                                                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            // 7. Unified Actions
+                            if (viewModel.isGenerating) {
+                                Box(Modifier.fillMaxWidth().height(64.dp), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator()
+                                }
+                            } else {
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Button(
+                                        onClick = { 
+                                            viewModel.triggerNagwareModal {
+                                                viewModel.generatePoster(context) {
+                                                    val file = viewModel.lastGeneratedFile ?: return@generatePoster
+                                                    val uri = androidx.core.content.FileProvider.getUriForFile(
+                                                        context, "${context.packageName}.provider", file
+                                                    )
+                                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                                        setDataAndType(uri, "application/pdf")
+                                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                    }
+                                                    context.startActivity(android.content.Intent.createChooser(intent, "Open PDF"))
+                                                }
                                             }
-                                            context.startActivity(android.content.Intent.createChooser(intent, "Open PDF"))
-                                        }
-                                    },
-                                    modifier = Modifier.weight(1f).height(64.dp),
-                                    shape = RoundedCornerShape(20.dp)
-                                ) {
-                                    Icon(Icons.Default.Visibility, null)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text("View PDF", fontWeight = FontWeight.Bold)
-                                }
-                                
-                                Button(
-                                    onClick = { 
-                                        viewModel.generatePoster(context) {
-                                            saveLauncher.launch("poster_${System.currentTimeMillis()}.pdf")
-                                        }
-                                    },
-                                    modifier = Modifier.weight(1f).height(64.dp),
-                                    shape = RoundedCornerShape(20.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
-                                ) {
-                                    Icon(Icons.Default.Save, null)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text("Save As...", fontWeight = FontWeight.Bold)
+                                        },
+                                        modifier = Modifier.weight(1f).height(64.dp),
+                                        shape = RoundedCornerShape(20.dp)
+                                    ) {
+                                        Icon(Icons.Default.Visibility, null)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("View")
+                                    }
+                                    
+                                    Button(
+                                        onClick = { 
+                                            viewModel.triggerNagwareModal {
+                                                viewModel.generatePoster(context) {
+                                                    saveLauncher.launch("poster_${System.currentTimeMillis()}.pdf")
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.weight(1f).height(64.dp),
+                                        shape = RoundedCornerShape(20.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                                    ) {
+                                        Icon(Icons.Default.Save, null)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Save")
+                                    }
+
+                                    Button(
+                                        onClick = { 
+                                            viewModel.triggerNagwareModal {
+                                                viewModel.generatePoster(context) {
+                                                    val file = viewModel.lastGeneratedFile ?: return@generatePoster
+                                                    val uri = androidx.core.content.FileProvider.getUriForFile(
+                                                        context, "${context.packageName}.provider", file
+                                                    )
+                                                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                                        type = "application/pdf"
+                                                        putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                    }
+                                                    context.startActivity(android.content.Intent.createChooser(intent, "Share PDF"))
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.width(64.dp).height(64.dp),
+                                        shape = RoundedCornerShape(20.dp),
+                                        contentPadding = PaddingValues(0.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+                                    ) {
+                                        Icon(Icons.Default.Share, null)
+                                    }
                                 }
                             }
+                            
+                            viewModel.errorMessage?.let { MessageText(it, MaterialTheme.colorScheme.error) }
+                            viewModel.successMessage?.let { MessageText(it, MaterialTheme.colorScheme.primary) }
                         }
-                        
-                        // Messages
-                        viewModel.errorMessage?.let { 
-                            MessageText(it, if (it.contains("Warning")) Color(0xFFFFA000) else MaterialTheme.colorScheme.error) 
-                        }
-                        viewModel.successMessage?.let { MessageText(it, MaterialTheme.colorScheme.primary) }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun OnboardingView() {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+        Text("How to get started:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        
+        OnboardingStep(1, "Pick a high-resolution image above.")
+        OnboardingStep(2, "Set your final poster dimensions.")
+        OnboardingStep(3, "Select your paper size and orientation.")
+        OnboardingStep(4, "View or Save your print-ready PDF!")
+    }
+}
+
+@Composable
+fun OnboardingStep(num: Int, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(num.toString(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Text(text, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -458,36 +620,40 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
                                 Text(selectionOption) 
                             }
                         },
-                        onClick = {
-                            viewModel.paperSize = selectionOption
-                            viewModel.saveAllSettings()
-                            expanded = false
-                        }
+                         onClick = {
+                             viewModel.paperSize = selectionOption
+                             viewModel.logEvent(context, "Paper size selected", "size=$selectionOption")
+                             viewModel.saveAllSettings()
+                             expanded = false
+                         }
                     )
                 }
             }
         }
 
         if (viewModel.paperSize == "Custom") {
+            val unitLabel = if (viewModel.units == "Metric") "cm" else "in"
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                ConfigInput(
-                    label = "Paper Width (in)",
-                    value = viewModel.customPaperWidth,
-                    onValueChange = { 
-                        viewModel.customPaperWidth = it
-                        viewModel.saveAllSettings()
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-                ConfigInput(
-                    label = "Paper Height (in)",
-                    value = viewModel.customPaperHeight,
-                    onValueChange = { 
-                        viewModel.customPaperHeight = it
-                        viewModel.saveAllSettings()
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+                 ConfigInput(
+                     label = "Width ($unitLabel)",
+                     value = viewModel.customPaperWidth,
+                     onValueChange = { 
+                         viewModel.customPaperWidth = it
+                         viewModel.logEvent(context, "Custom paper width changed", "value=$it")
+                         viewModel.saveAllSettings() 
+                     },
+                     modifier = Modifier.weight(1f)
+                 )
+                 ConfigInput(
+                     label = "Height ($unitLabel)",
+                     value = viewModel.customPaperHeight,
+                     onValueChange = { 
+                         viewModel.customPaperHeight = it
+                         viewModel.logEvent(context, "Custom paper height changed", "value=$it")
+                         viewModel.saveAllSettings() 
+                     },
+                     modifier = Modifier.weight(1f)
+                 )
             }
         }
     }
@@ -510,53 +676,49 @@ fun AdvancedOptionsSection(viewModel: MainViewModel) {
             
             AnimatedVisibility(visible = expanded) {
                 Column(Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = viewModel.showOutlines, 
-                            onCheckedChange = { 
-                                viewModel.showOutlines = it 
-                                viewModel.saveAllSettings()
-                            }
-                        )
-                        Text("Draw Outlines")
-                    }
+                         Row(verticalAlignment = Alignment.CenterVertically) {
+                             Checkbox(checked = viewModel.showOutlines, onCheckedChange = { 
+                                 viewModel.showOutlines = it
+                                 viewModel.logEvent(context, "Show outlines toggled", "enabled=$it")
+                                 viewModel.saveAllSettings() 
+                             })
+                             Text("Draw Outlines")
+                         }
                     
                     if (viewModel.showOutlines) {
-                        OutlineStyleSelector(
-                            style = viewModel.outlineStyle,
-                            onStyleChange = { 
-                                viewModel.outlineStyle = it 
-                                viewModel.saveAllSettings()
-                            },
-                            thickness = viewModel.outlineThickness,
-                            onThicknessChange = { 
-                                viewModel.outlineThickness = it 
-                                viewModel.saveAllSettings()
-                            }
-                        )
+                         OutlineStyleSelector(
+                             style = viewModel.outlineStyle,
+                             onStyleChange = { 
+                                 viewModel.outlineStyle = it
+                                 viewModel.logEvent(context, "Outline style changed", "style=$it")
+                                 viewModel.saveAllSettings() 
+                             },
+                             thickness = viewModel.outlineThickness,
+                             onThicknessChange = { 
+                                 viewModel.outlineThickness = it
+                                 viewModel.logEvent(context, "Outline thickness changed", "thickness=$it")
+                                 viewModel.saveAllSettings() 
+                             }
+                         )
                     }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = viewModel.labelPanes, 
-                            onCheckedChange = { 
-                                viewModel.labelPanes = it 
-                                viewModel.saveAllSettings()
-                            }
-                        )
-                        Text("Label Each Pane (A1, B2...)")
-                    }
+                     Row(verticalAlignment = Alignment.CenterVertically) {
+                         Checkbox(checked = viewModel.labelPanes, onCheckedChange = { 
+                             viewModel.labelPanes = it
+                             viewModel.logEvent(context, "Label panes toggled", "enabled=$it")
+                             viewModel.saveAllSettings() 
+                         })
+                         Text("Label Each Pane (A1, B2...)")
+                     }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = viewModel.includeInstructions, 
-                            onCheckedChange = { 
-                                viewModel.includeInstructions = it 
-                                viewModel.saveAllSettings()
-                            }
-                        )
-                        Text("Include Assembly Instructions")
-                    }
+                     Row(verticalAlignment = Alignment.CenterVertically) {
+                         Checkbox(checked = viewModel.includeInstructions, onCheckedChange = { 
+                             viewModel.includeInstructions = it
+                             viewModel.logEvent(context, "Include instructions toggled", "enabled=$it")
+                             viewModel.saveAllSettings() 
+                         })
+                         Text("Include Assembly Instructions")
+                     }
                 }
             }
         }
@@ -588,11 +750,7 @@ fun OutlineStyleSelector(
         Text("Thickness", style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("Thin", "Medium", "Heavy").forEach { t ->
-                FilterChip(
-                    selected = thickness == t,
-                    onClick = { onThicknessChange(t) },
-                    label = { Text(t) }
-                )
+                FilterChip(selected = thickness == t, onClick = { onThicknessChange(t) }, label = { Text(t) })
             }
         }
     }
@@ -629,6 +787,8 @@ fun MessageText(msg: String, color: Color) {
 
 @Composable
 fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
+    var selectedUnits by remember { mutableStateOf(viewModel.units) }
+    
     AlertDialog(
         onDismissRequest = { },
         title = { Text("Welcome to Poster PDF!") },
@@ -638,10 +798,10 @@ fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
                 
                 Text("Select your preferred measurement units:", style = MaterialTheme.typography.labelLarge)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = viewModel.units == "Inches", onClick = { viewModel.units = "Inches" })
+                    RadioButton(selected = selectedUnits == "Inches", onClick = { selectedUnits = "Inches" })
                     Text("Inches")
                     Spacer(Modifier.width(16.dp))
-                    RadioButton(selected = viewModel.units == "Metric", onClick = { viewModel.units = "Metric" })
+                    RadioButton(selected = selectedUnits == "Metric", onClick = { selectedUnits = "Metric" })
                     Text("Metric")
                 }
 
@@ -650,7 +810,14 @@ fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
             }
         },
         confirmButton = {
-            Button(onClick = onDismiss) { Text("Get Started") }
+            Button(onClick = {
+                viewModel.units = selectedUnits
+                if (selectedUnits == "Metric") {
+                    viewModel.toggleUnits(true)
+                }
+                viewModel.saveAllSettings()
+                onDismiss()
+            }) { Text("Get Started") }
         }
     )
 }
@@ -661,7 +828,8 @@ fun ConfigInput(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = ""
+    placeholder: String = "",
+    readOnly: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
@@ -671,6 +839,13 @@ fun ConfigInput(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        singleLine = true
+        singleLine = true,
+        readOnly = readOnly,
+        colors = if (readOnly) OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledPlaceholderColor = MaterialTheme.colorScheme.outline
+        ) else OutlinedTextFieldDefaults.colors()
     )
 }

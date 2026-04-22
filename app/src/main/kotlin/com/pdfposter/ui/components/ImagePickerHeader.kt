@@ -16,14 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import android.os.Build
+import androidx.compose.foundation.layout.*
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -74,31 +74,23 @@ fun ImagePickerHeader(
                 )
                 
                 // Overlay label
-                Box(
+                FilledTonalButton(
+                    onClick = { launcher.launch("image/*") },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(8.dp)
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    // Background layer with blur
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .then(
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                    Modifier.blur(8.dp)
-                                } else {
-                                    Modifier
-                                }
-                            )
-                            .glassmorphism(RoundedCornerShape(8.dp))
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
                     )
-                    
-                    // Text layer
+                    Spacer(Modifier.width(8.dp))
                     Text(
                         text = "Change Image",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }

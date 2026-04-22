@@ -44,7 +44,7 @@ fun PosterPreview(viewModel: MainViewModel) {
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(6000, easing = LinearEasing),
+            animation = tween(8000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "time"
@@ -125,7 +125,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val startY = (canvasH - posterDrawH) / 2
 
                     if (t < 0.6) {
-                        // Draw shadow
+                        // Phase 1-3: Consolidated View
                         drawRoundRect(
                             color = Color.Black.copy(alpha = 0.3f),
                             topLeft = Offset(startX + 10f, startY + 10f),
@@ -133,7 +133,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                             cornerRadius = CornerRadius(4f, 4f)
                         )
 
-                        // Draw Image
+                        // Draw Whole Image
                         previewBitmap?.let {
                             drawImage(
                                 image = it,
@@ -142,7 +142,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                             )
                         } ?: drawRect(Color.White, Offset(startX, startY), Size(posterDrawW, posterDrawH))
 
-                        // Borders (Phase 2)
+                        // Borders (t: 0.2 -> 0.6)
                         if (t > 0.2) {
                             val alpha = kotlin.math.min(1f, (t - 0.2f) * 5f)
                             for (r in 0 until rows) {
@@ -159,9 +159,9 @@ fun PosterPreview(viewModel: MainViewModel) {
                             }
                         }
 
-                        // Margins (Phase 3)
+                        // Margins (t: 0.4 -> 0.6)
                         if (t > 0.4) {
-                            val alpha = kotlin.math.min(0.5f, (t - 0.4f) * 5f)
+                            val alpha = kotlin.math.min(0.4f, (t - 0.4f) * 5f)
                             val m = (viewModel.margin.toDoubleOrNull() ?: 0.0).toFloat() * scale
                             drawRect(
                                 color = Color.Blue.copy(alpha = alpha),
@@ -175,9 +175,9 @@ fun PosterPreview(viewModel: MainViewModel) {
                             )
                         }
                     } else {
-                        // Separate Pages (Phase 4)
+                        // Phase 4: Separate Pages (t: 0.6 -> 1.0)
                         val sepProgress = (t - 0.6f) * 2.5f
-                        val gap = sepProgress * 40f
+                        val gap = sepProgress * 30f
                         
                         for (r in 0 until rows) {
                             for (c in 0 until cols) {
@@ -187,17 +187,33 @@ fun PosterPreview(viewModel: MainViewModel) {
                                 val dx = startX + c * tw + (c - (cols-1)/2f) * gap
                                 val dy = startY + r * th + (r - (rows-1)/2f) * gap
                                 
-                                // Each tile shadow
+                                // Shadow for individual tile
                                 drawRect(
                                     color = Color.Black.copy(alpha = 0.2f),
-                                    topLeft = Offset(dx + 5f, dy + 5f),
+                                    topLeft = Offset(dx + 4f, dy + 4f),
                                     size = Size(tw, th)
                                 )
 
-                                // Tile content
-                                drawRect(Color.White, Offset(dx, dy), Size(tw, th), style = Fill)
-                                // Draw thin outline
-                                drawRect(Color.Black.copy(alpha = 0.1f), Offset(dx, dy), Size(tw, th), style = Stroke(1f))
+                                // Draw the piece of the image on the tile
+                                previewBitmap?.let { bitmap ->
+                                    val srcW = bitmap.width / cols
+                                    val srcH = bitmap.height / rows
+                                    drawImage(
+                                        image = bitmap,
+                                        srcOffset = IntOffset(c * srcW, r * srcH),
+                                        srcSize = IntSize(srcW, srcH),
+                                        dstOffset = IntOffset(dx.toInt(), dy.toInt()),
+                                        dstSize = IntSize(tw.toInt(), th.toInt())
+                                    )
+                                } ?: drawRect(Color.White, Offset(dx, dy), Size(tw, th))
+
+                                // Draw tile border
+                                drawRect(
+                                    color = Color.White.copy(alpha = 0.5f),
+                                    topLeft = Offset(dx, dy),
+                                    size = Size(tw, th),
+                                    style = Stroke(width = 1f)
+                                )
                             }
                         }
                     }

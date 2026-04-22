@@ -11,10 +11,12 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.material3.MaterialTheme
+
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = Color.White.copy(alpha = 0.15f),
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(modifier = modifier) {
