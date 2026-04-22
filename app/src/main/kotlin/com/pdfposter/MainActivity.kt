@@ -84,7 +84,12 @@ fun SplashScreen(onComplete: () -> Unit) {
                     setVideoURI(uri)
                     setOnCompletionListener { onComplete() }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        setVolume(0f, 0f)
+                        try {
+                            val method = VideoView::class.java.getMethod("setVolume", Float::class.java, Float::class.java)
+                            method.invoke(this, 0f, 0f)
+                        } catch (e: Exception) {
+                            // Ignore
+                        }
                     }
                     start()
                 }
