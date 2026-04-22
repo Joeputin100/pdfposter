@@ -3,7 +3,11 @@ package com.pdfposter
 import androidx.activity.compose.BackHandler
 import android.net.Uri
 import android.os.Bundle
+import android.os.Build
 import android.widget.VideoView
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -79,7 +83,9 @@ fun SplashScreen(onComplete: () -> Unit) {
                     val uri = Uri.parse("android.resource://${ctx.packageName}/raw/splash")
                     setVideoURI(uri)
                     setOnCompletionListener { onComplete() }
-                    setVolume(0f, 0f)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        setVolume(0f, 0f)
+                    }
                     start()
                 }
             },
@@ -590,6 +596,7 @@ fun InfoChip(label: String, value: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaperSizeSelector(viewModel: MainViewModel) {
+    val context = LocalContext.current
     val options = listOf("Letter (8.5x11)", "Legal (8.5x14)", "Tabloid (11x17)", "A4 (8.27x11.69)", "A3 (11.69x16.54)", "Custom")
     var expanded by remember { mutableStateOf(false) }
 
@@ -661,6 +668,7 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
 
 @Composable
 fun AdvancedOptionsSection(viewModel: MainViewModel) {
+    val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
     
     GlassCard {
