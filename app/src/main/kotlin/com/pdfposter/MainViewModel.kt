@@ -51,18 +51,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var overlap by mutableStateOf("0.25")
     
     // Advanced options
-    var showOutlines by mutableStateOf(true)
-    var outlineStyle by mutableStateOf("Solid") // Solid, Dotted, Dashed
-    var outlineThickness by mutableStateOf("Medium") // Thin, Medium, Heavy
+    // outlineSelection: "None" | "Solid Thin" | ... | "Crop Marks"
+    var outlineSelection by mutableStateOf("Solid Medium")
+    val showOutlines: Boolean get() = outlineSelection != "None"
+    val outlineStyle: String get() = when {
+        outlineSelection.startsWith("Crop Marks") -> "CropMarks"
+        outlineSelection.startsWith("Solid") -> "Solid"
+        outlineSelection.startsWith("Dashed") -> "Dashed"
+        outlineSelection.startsWith("Dotted") -> "Dotted"
+        else -> "Solid"
+    }
+    val outlineThickness: String get() = when {
+        outlineSelection.endsWith("Thin") -> "Thin"
+        outlineSelection.endsWith("Heavy") -> "Heavy"
+        else -> "Medium"
+    }
     var labelPanes by mutableStateOf(true)
     var includeInstructions by mutableStateOf(true)
+
+    // Source image tracking (per-image counter)
+    var currentImageHash by mutableStateOf<String?>(null)
+    var lastCountedHash by mutableStateOf<String?>(null)
     
     // Debug & telemetry
     var debugLoggingEnabled by mutableStateOf(false)
     var postersMadeCount by mutableStateOf(0)
     var showNagwareModal by mutableStateOf(false)
     var nagwareCountdown by mutableStateOf(5) // seconds
-    var pendingAction: (() -> Unit)? = null
+    var nagwareDismissed by mutableStateOf(false)
     
     var isAspectRatioLocked by mutableStateOf(true)
     var imageMetadata by mutableStateOf<ImageMetadata?>(null)
@@ -90,9 +106,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 settings[SettingsRepository.PAPER_SIZE]?.let { paperSize = it as String }
                 settings[SettingsRepository.MARGIN]?.let { margin = it as String }
                 settings[SettingsRepository.OVERLAP]?.let { overlap = it as String }
-                settings[SettingsRepository.SHOW_OUTLINES]?.let { showOutlines = it as Boolean }
-                settings[SettingsRepository.OUTLINE_STYLE]?.let { outlineStyle = it as String }
-                settings[SettingsRepository.OUTLINE_THICKNESS]?.let { outlineThickness = it as String }
+                // Migrate legacy outline settings to new combined selection
+                val legacyShow = settings[SettingsRepository.SHOW_OUTLINES] as? Boolean
+                val legacyStyle = settings[SettingsRepository.OUTLINE_STYLE] as? String
+                val legacyThickness = settings[SettingsRepository.OUTLINE_THICKNESS] as? String
+                settings[SettingsRepository.OUTLINE_SELECTION]?.let {
+                    outlineSelection = it as String
+                } ?: run {
+                    if (legacyShow == false) outlineSelection = "None"
+                    else if (legacyStyle != null && legacyThickness != null) {
+                        outlineSelection = "$legacyStyle $legacyThickness"
+                    }
+                }
+                settings[SettingsRepository.LAST_COUNTED_HASH]?.let { lastCountedHash = it as String }
                 settings[SettingsRepository.LABEL_PANES]?.let { labelPanes = it as Boolean }
                 settings[SettingsRepository.INCLUDE_INSTRUCTIONS]?.let { includeInstructions = it as Boolean }
                 settings[SettingsRepository.UNITS]?.let { units = it as String }
@@ -112,9 +138,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 repository.saveSetting(SettingsRepository.PAPER_SIZE, paperSize)
                 repository.saveSetting(SettingsRepository.MARGIN, margin)
                 repository.saveSetting(SettingsRepository.OVERLAP, overlap)
-                repository.saveSetting(SettingsRepository.SHOW_OUTLINES, showOutlines)
-                repository.saveSetting(SettingsRepository.OUTLINE_STYLE, outlineStyle)
-                repository.saveSetting(SettingsRepository.OUTLINE_THICKNESS, outlineThickness)
+                repository.saveSetting(SettingsRepository.OUTLINE_SELECTION, outlineSelection)
+                lastCountedHash?.let { repository.saveSetting(SettingsRepository.LAST_COUNTED_HASH, it) }
                 repository.saveSetting(SettingsRepository.LABEL_PANES, labelPanes)
                 repository.saveSetting(SettingsRepository.INCLUDE_INSTRUCTIONS, includeInstructions)
                 repository.saveSetting(SettingsRepository.UNITS, units)
@@ -139,9 +164,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             orientation = "Best Fit"
             margin = if (units == "Metric") "1.27" else "0.5"
             overlap = if (units == "Metric") "0.63" else "0.25"
-            showOutlines = true
-            outlineStyle = "Solid"
-            outlineThickness = "Medium"
+            outlineSelection = "Solid Medium"
             labelPanes = true
             includeInstructions = true
             saveAllSettings()
@@ -167,9 +190,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return String.format(Locale.US, "%.2f", parsed * factor)
     }
 
+    private fun formatWithSamePrecision(value: Double, source: String): String {
+        val decimalPlaces = if (source.contains('.')) {
+            val decimalPart = source.substringAfter('.')
+            // Limit to reasonable precision, max 4 decimal places
+            kotlin.math.min(decimalPart.length, 4)
+        } else {
+            // If source has no decimal point, check if it parses as integer
+            if (source.toDoubleOrNull()?.rem(1) == 0.0) 0 else 2
+        }
+        return String.format(Locale.US, "%.${decimalPlaces}f", value)
+    }
+
+    private fun computeSha256(bytes: ByteArray): String {
+        val md = java.security.MessageDigest.getInstance("SHA-256")
+        val digest = md.digest(bytes)
+        return digest.joinToString("") { "%02x".format(it) }
+    }
+
     fun updateImage(context: Context, uri: Uri) {
         selectedImageUri = uri
         try {
+            // Compute image content hash for per-image counter
+            val imageBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            currentImageHash = imageBytes?.let { computeSha256(it) }
+
             context.contentResolver.openInputStream(uri)?.use { input ->
                 val bitmap = if (uri.toString().lowercase(Locale.US).endsWith(".svg") || 
                     context.contentResolver.getType(uri)?.contains("svg") == true) {
@@ -198,7 +243,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     
                     if (isAspectRatioLocked) {
                         val currentW = posterWidth.toDoubleOrNull() ?: (if (units == "Metric") 60.96 else 24.0)
-                        posterHeight = String.format(Locale.US, "%.2f", currentW / ar)
+                        posterHeight = formatWithSamePrecision(currentW / ar, posterWidth)
                         saveAllSettings()
                     }
                 }
@@ -213,7 +258,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val w = width.toDoubleOrNull()
         val metadata = imageMetadata
         if (isAspectRatioLocked && w != null && metadata != null) {
-            posterHeight = String.format(Locale.US, "%.2f", w / metadata.aspectRatio)
+            posterHeight = formatWithSamePrecision(w / metadata.aspectRatio, width)
             logEvent(appContext, "Aspect ratio locked height update", "width=$width, height=$posterHeight, aspectRatio=${metadata.aspectRatio}")
         }
         logEvent(appContext, "Poster width changed", "width=$width, locked=$isAspectRatioLocked")
@@ -224,13 +269,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val h = height.toDoubleOrNull()
         val metadata = imageMetadata
         if (isAspectRatioLocked && h != null && metadata != null) {
-            posterWidth = String.format(Locale.US, "%.2f", h * metadata.aspectRatio)
+            posterWidth = formatWithSamePrecision(h * metadata.aspectRatio, height)
             logEvent(appContext, "Aspect ratio locked width update", "height=$height, width=$posterWidth, aspectRatio=${metadata.aspectRatio}")
         }
         logEvent(appContext, "Poster height changed", "height=$height, locked=$isAspectRatioLocked")
     }
 
-    fun getPaperDimensions(): Pair<Double, Double> {
+    private fun getPaperDimensionsForOrientation(orient: String): Pair<Double, Double> {
         var paperW: Double
         var paperH: Double
         if (paperSize == "Custom") {
@@ -248,18 +293,48 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 paperH = if (units == "Metric") phInches * 2.54 else phInches
             }
         }
-
-        return when (orientation) {
+        return when (orient) {
             "Portrait" -> Pair(kotlin.math.min(paperW, paperH), kotlin.math.max(paperW, paperH))
             "Landscape" -> Pair(kotlin.math.max(paperW, paperH), kotlin.math.min(paperW, paperH))
-            else -> {
-                // Best Fit: Match aspect ratio of poster
-                val pw = posterWidth.toDoubleOrNull() ?: 1.0
-                val ph = posterHeight.toDoubleOrNull() ?: 1.0
-                if (pw > ph) Pair(kotlin.math.max(paperW, paperH), kotlin.math.min(paperW, paperH))
-                else Pair(kotlin.math.min(paperW, paperH), kotlin.math.max(paperW, paperH))
-            }
+            else -> Pair(paperW, paperH)
         }
+    }
+
+    fun getPaperDimensions(): Pair<Double, Double> {
+        if (orientation != "Best Fit") {
+            return getPaperDimensionsForOrientation(orientation)
+        }
+        // Best Fit: calculate pane counts for both orientations, choose the one with fewer panes
+        val pw = posterWidth.toDoubleOrNull() ?: return getPaperDimensionsForOrientation("Portrait")
+        val ph = posterHeight.toDoubleOrNull() ?: return getPaperDimensionsForOrientation("Portrait")
+        val m = margin.toDoubleOrNull() ?: 0.0
+        val o = overlap.toDoubleOrNull() ?: 0.0
+        val unitScale = if (units == "Metric") 72.0 / 2.54 else 72.0
+
+        val portraitDims = getPaperDimensionsForOrientation("Portrait")
+        val landscapeDims = getPaperDimensionsForOrientation("Landscape")
+
+        val portraitPW = portraitDims.first - 2 * m
+        val portraitPH = portraitDims.second - 2 * m
+        val landscapePW = landscapeDims.first - 2 * m
+        val landscapePH = landscapeDims.second - 2 * m
+
+        if (portraitPW <= 0 || portraitPH <= 0 || landscapePW <= 0 || landscapePH <= 0) {
+            return portraitDims
+        }
+
+        val (portraitTotal, _, _) = posterLogic.calculateSheetCount(
+            pw * unitScale, ph * unitScale,
+            portraitPW * unitScale, portraitPH * unitScale,
+            o * unitScale
+        )
+        val (landscapeTotal, _, _) = posterLogic.calculateSheetCount(
+            pw * unitScale, ph * unitScale,
+            landscapePW * unitScale, landscapePH * unitScale,
+            o * unitScale
+        )
+
+        return if (portraitTotal <= landscapeTotal) portraitDims else landscapeDims
     }
 
     fun getDpiWarning(): String? {
@@ -277,7 +352,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val minDpi = kotlin.math.min(dpiW, dpiH)
         
         return if (minDpi < 150) {
-            "Low Print Resolution: Your poster will print at ~${minDpi.toInt()} DPI. For sharp prints, use a higher resolution image or smaller poster size."
+            "Low Print Resolution: ~${minDpi.toInt()} DPI. Try AI upscaling (e.g., OpenArt Ultimate Upscale) or use a higher resolution image."
         } else null
     }
 
@@ -297,6 +372,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val unitScale = if (units == "Metric") 72.0 / 2.54 else 72.0
 
         return posterLogic.calculateSheetCount(pw * unitScale, ph * unitScale, printableW * unitScale, printableH * unitScale, o * unitScale)
+    }
+
+    fun getGridLabel(row: Int, col: Int): String {
+        return posterLogic.getGridLabel(row, col)
     }
 
     fun generatePoster(context: Context, onSuccess: () -> Unit = {}) {
@@ -337,6 +416,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val outputFile = File(outputDir, "poster_${System.currentTimeMillis()}.pdf")
 
                     val unitScale = if (units == "Metric") 72.0 / 2.54 else 72.0
+                    val logoBitmap = try {
+                        val res = appContext.resources
+                        val pkg = appContext.packageName
+                        val customLogoId = res.getIdentifier("pdf_logo", "drawable", pkg)
+                        when {
+                            customLogoId != 0 -> BitmapFactory.decodeResource(res, customLogoId)
+                            else -> BitmapFactory.decodeResource(res, com.pdfposter.R.drawable.dogcow)
+                        }
+                    } catch (_: Exception) {
+                        null
+                    }
 
                     posterLogic.createTiledPoster(
                         bitmap = bitmap,
@@ -351,14 +441,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         outlineStyle = outlineStyle,
                         outlineThickness = outlineThickness,
                         labelPanes = labelPanes,
-                        includeInstructions = includeInstructions
+                        includeInstructions = includeInstructions,
+                        logoBitmap = logoBitmap,
+                        sourcePixelW = imageMetadata?.width ?: bitmap.width,
+                        sourcePixelH = imageMetadata?.height ?: bitmap.height
                     )
                     
                      withContext(Dispatchers.Main) {
                          lastGeneratedFile = outputFile
                          successMessage = "Poster generated: ${outputFile.name}"
-                         logEvent(appContext, "Poster generation succeeded", "file=${outputFile.name}, count=$postersMadeCount")
-                         postersMadeCount++
+                         // Only count a new poster if this image hasn't been counted yet
+                         val hash = currentImageHash
+                         if (hash != null && hash != lastCountedHash) {
+                             postersMadeCount++
+                             lastCountedHash = hash
+                             logEvent(appContext, "Poster count incremented", "file=${outputFile.name}, count=$postersMadeCount, hash=${hash.take(8)}")
+                         } else {
+                             logEvent(appContext, "Poster regenerated (not counted)", "file=${outputFile.name}, count=$postersMadeCount")
+                         }
                          saveAllSettings()
                          onSuccess()
                      }
@@ -372,28 +472,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun triggerNagwareModal(action: () -> Unit) {
-        if (postersMadeCount >= 10) {
-            pendingAction = action
-            showNagwareModal = true
-            nagwareCountdown = 5
-            viewModelScope.launch {
-                repeat(5) {
-                    kotlinx.coroutines.delay(1000)
-                    nagwareCountdown--
-                }
-                showNagwareModal = false
-                pendingAction?.invoke()
-                pendingAction = null
-            }
-        } else {
-            action()
-        }
-    }
-
-    fun dismissNagwareModal() {
+    fun dismissNagware() {
         showNagwareModal = false
-        pendingAction = null
+        nagwareDismissed = true
     }
 
     fun logEvent(context: Context, event: String, details: String? = null) {

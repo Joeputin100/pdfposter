@@ -83,14 +83,6 @@ fun SplashScreen(onComplete: () -> Unit) {
                     val uri = Uri.parse("android.resource://${ctx.packageName}/raw/splash")
                     setVideoURI(uri)
                     setOnCompletionListener { onComplete() }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        try {
-                            val method = VideoView::class.java.getMethod("setVolume", Float::class.java, Float::class.java)
-                            method.invoke(this, 0f, 0f)
-                        } catch (e: Exception) {
-                            // Ignore
-                        }
-                    }
                     start()
                 }
             },
@@ -168,25 +160,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         )
     }
 
-    if (viewModel.showNagwareModal) {
-        AlertDialog(
-            onDismissRequest = { if (viewModel.nagwareCountdown <= 0) viewModel.dismissNagwareModal() },
-            title = { Text("Support the Developer") },
-            text = { 
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("You've made ${viewModel.postersMadeCount} posters! Please consider registering the app on the Play Store for just \$2 to support the very poor software developer.")
-                    Text("Link: https://play.google.com/store/apps/details?id=com.pdfposter")
-                    Text("Time remaining: ${viewModel.nagwareCountdown} seconds", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { if (viewModel.nagwareCountdown <= 0) viewModel.dismissNagwareModal() },
-                    enabled = viewModel.nagwareCountdown <= 0
-                ) { Text("Continue") }
-            }
-        )
-    }
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -214,27 +188,41 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                      }
                  )
 
-                 ListItem(
-                     headlineContent = { Text("Debug Logging") },
-                     supportingContent = { Text("Write logs to Downloads folder") },
-                     leadingContent = { Icon(Icons.Default.BugReport, null) },
-                     trailingContent = {
-                         Switch(
-                             checked = viewModel.debugLoggingEnabled,
-                             onCheckedChange = { 
-                                 viewModel.debugLoggingEnabled = it
-                                 viewModel.saveAllSettings()
-                                 viewModel.logEvent(context, "Debug logging toggled", "enabled=$it")
-                             }
-                         )
-                     }
-                 )
+                  ListItem(
+                      headlineContent = { Text("Debug Logging") },
+                      supportingContent = { Text("Write logs to Downloads folder") },
+                      leadingContent = { Icon(Icons.Default.BugReport, null) },
+                      trailingContent = {
+                          Switch(
+                              checked = viewModel.debugLoggingEnabled,
+                              onCheckedChange = { 
+                                  viewModel.debugLoggingEnabled = it
+                                  viewModel.saveAllSettings()
+                                  viewModel.logEvent(context, "Debug logging toggled", "enabled=$it")
+                              }
+                          )
+                      }
+                  )
 
-                 Text(
-                     "Default Paper Size",
-                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                     style = MaterialTheme.typography.labelMedium
-                 )
+                  ListItem(
+                      headlineContent = { Text("Posters Generated") },
+                      supportingContent = { Text("Total posters created") },
+                      leadingContent = { Icon(Icons.Default.Dashboard, null) },
+                      trailingContent = {
+                          Text(
+                              "${viewModel.postersMadeCount}",
+                              style = MaterialTheme.typography.titleMedium,
+                              fontWeight = FontWeight.Bold,
+                              color = MaterialTheme.colorScheme.primary
+                          )
+                      }
+                  )
+
+                  Text(
+                      "Default Paper Size",
+                      modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                      style = MaterialTheme.typography.labelMedium
+                  )
                 Box(Modifier.padding(horizontal = 16.dp)) {
                     PaperSizeSelector(viewModel)
                 }
@@ -312,6 +300,69 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     }
                 )
 
+                val showNagBanner = viewModel.postersMadeCount >= 10 && !viewModel.nagwareDismissed
+                LaunchedEffect(showNagBanner) {
+                    if (showNagBanner) {
+                        viewModel.nagwareCountdown = 5
+                        while (viewModel.nagwareCountdown > 0) {
+                            kotlinx.coroutines.delay(1000)
+                            viewModel.nagwareCountdown--
+                        }
+                    }
+                }
+                if (showNagBanner) {
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color(0xFFFFEB3B),
+                        tonalElevation = 4.dp,
+                        shadowElevation = 4.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    "Support the Developer",
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = Color.Black
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "You've made ${viewModel.postersMadeCount} posters! Please consider registering on the Play Store for just \$2 to support development.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Black
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "play.google.com/store/apps/details?id=com.pdfposter",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Black
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                TextButton(
+                                    onClick = { viewModel.dismissNagware() },
+                                    enabled = viewModel.nagwareCountdown <= 0
+                                ) {
+                                    Text(
+                                        if (viewModel.nagwareCountdown > 0) "Maybe Later (${viewModel.nagwareCountdown}s)" else "Maybe Later",
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                IconButton(onClick = { viewModel.dismissNagware() }) {
+                                    Icon(Icons.Default.Close, "Dismiss", tint = Color.Black)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (viewModel.selectedImageUri == null) {
                     OnboardingView()
                 } else {
@@ -373,14 +424,13 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                         }
 
                                          ConfigInput(
-                                             label = if (viewModel.isAspectRatioLocked) "Height (auto) ($unitLabel)" else "Height ($unitLabel)",
+                                             label = "Height ($unitLabel)",
                                              value = viewModel.posterHeight,
                                              onValueChange = { 
                                                  viewModel.updatePosterHeight(it)
                                                  viewModel.saveAllSettings()
                                              },
-                                             modifier = Modifier.weight(1f),
-                                             readOnly = viewModel.isAspectRatioLocked
+                                             modifier = Modifier.weight(1f)
                                          )
                                     }
                                     
@@ -402,22 +452,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                     
                                     PaperSizeSelector(viewModel)
 
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Text("Orientation", style = MaterialTheme.typography.bodyMedium)
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                            listOf("Best Fit", "Portrait", "Landscape").forEach { o ->
-                                             FilterChip(
-                                                 selected = viewModel.orientation == o,
-                                                 onClick = { 
-                                                     viewModel.orientation = o
-                                                     viewModel.logEvent(context, "Orientation changed", "value=$o")
-                                                     viewModel.saveAllSettings()
-                                                 },
-                                                 label = { Text(o) }
-                                             )
-                                            }
-                                        }
-                                    }
+                                    OrientationSelector(viewModel)
 
                                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
@@ -475,18 +510,16 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = { 
-                                            viewModel.triggerNagwareModal {
-                                                viewModel.generatePoster(context) {
-                                                    val file = viewModel.lastGeneratedFile ?: return@generatePoster
-                                                    val uri = androidx.core.content.FileProvider.getUriForFile(
-                                                        context, "${context.packageName}.provider", file
-                                                    )
-                                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                                                        setDataAndType(uri, "application/pdf")
-                                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                                    }
-                                                    context.startActivity(android.content.Intent.createChooser(intent, "Open PDF"))
+                                            viewModel.generatePoster(context) {
+                                                val file = viewModel.lastGeneratedFile ?: return@generatePoster
+                                                val uri = androidx.core.content.FileProvider.getUriForFile(
+                                                    context, "${context.packageName}.provider", file
+                                                )
+                                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                                    setDataAndType(uri, "application/pdf")
+                                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                                 }
+                                                context.startActivity(android.content.Intent.createChooser(intent, "Open PDF"))
                                             }
                                         },
                                         modifier = Modifier.weight(1f).height(64.dp),
@@ -499,10 +532,8 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                     
                                     Button(
                                         onClick = { 
-                                            viewModel.triggerNagwareModal {
-                                                viewModel.generatePoster(context) {
-                                                    saveLauncher.launch("poster_${System.currentTimeMillis()}.pdf")
-                                                }
+                                            viewModel.generatePoster(context) {
+                                                saveLauncher.launch("poster_${System.currentTimeMillis()}.pdf")
                                             }
                                         },
                                         modifier = Modifier.weight(1f).height(64.dp),
@@ -516,19 +547,17 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
 
                                     Button(
                                         onClick = { 
-                                            viewModel.triggerNagwareModal {
-                                                viewModel.generatePoster(context) {
-                                                    val file = viewModel.lastGeneratedFile ?: return@generatePoster
-                                                    val uri = androidx.core.content.FileProvider.getUriForFile(
-                                                        context, "${context.packageName}.provider", file
-                                                    )
-                                                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                                        type = "application/pdf"
-                                                        putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                                    }
-                                                    context.startActivity(android.content.Intent.createChooser(intent, "Share PDF"))
+                                            viewModel.generatePoster(context) {
+                                                val file = viewModel.lastGeneratedFile ?: return@generatePoster
+                                                val uri = androidx.core.content.FileProvider.getUriForFile(
+                                                    context, "${context.packageName}.provider", file
+                                                )
+                                                val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                                    type = "application/pdf"
+                                                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                                 }
+                                                context.startActivity(android.content.Intent.createChooser(intent, "Share PDF"))
                                             }
                                         },
                                         modifier = Modifier.width(64.dp).height(64.dp),
@@ -624,11 +653,21 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
                 onDismissRequest = { expanded = false }
             ) {
                 options.forEach { selectionOption ->
+                    val dims = com.pdfposter.ui.components.parsePaperSize(selectionOption)
                     DropdownMenuItem(
                         text = { 
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Description, null, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(8.dp))
+                                if (dims != null) {
+                                    com.pdfposter.ui.components.PaperGraphic(
+                                        widthInches = dims.first,
+                                        heightInches = dims.second,
+                                        boxSize = 32.dp,
+                                        selected = (viewModel.paperSize == selectionOption)
+                                    )
+                                } else {
+                                    Icon(Icons.Default.Edit, null, modifier = Modifier.size(32.dp))
+                                }
+                                Spacer(Modifier.width(12.dp))
                                 Text(selectionOption) 
                             }
                         },
@@ -672,6 +711,62 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
 }
 
 @Composable
+fun OrientationSelector(viewModel: MainViewModel) {
+    val context = LocalContext.current
+    val dims = com.pdfposter.ui.components.parsePaperSize(viewModel.paperSize)
+        ?: ((viewModel.customPaperWidth.toDoubleOrNull() ?: 8.5) to
+            (viewModel.customPaperHeight.toDoubleOrNull() ?: 11.0))
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Orientation", style = MaterialTheme.typography.bodyMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("Best Fit", "Portrait", "Landscape").forEach { orient ->
+                val isSelected = viewModel.orientation == orient
+                val bg = if (isSelected) MaterialTheme.colorScheme.primary
+                         else MaterialTheme.colorScheme.surfaceVariant
+                val fg = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                         else MaterialTheme.colorScheme.onSurfaceVariant
+                val displayOrient = when (orient) {
+                    "Portrait" -> "Portrait"
+                    "Landscape" -> "Landscape"
+                    else -> null // Best Fit - show natural paper orientation
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(bg)
+                        .clickable {
+                            viewModel.orientation = orient
+                            viewModel.logEvent(context, "Orientation changed", "value=$orient")
+                            viewModel.saveAllSettings()
+                        }
+                        .padding(vertical = 8.dp, horizontal = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    com.pdfposter.ui.components.PaperGraphic(
+                        widthInches = dims.first,
+                        heightInches = dims.second,
+                        boxSize = 56.dp,
+                        orientation = displayOrient,
+                        showDogCow = (orient != "Best Fit"),
+                        selected = isSelected,
+                        relativeScale = false
+                    )
+                    Text(
+                        orient,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = fg,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun AdvancedOptionsSection(viewModel: MainViewModel) {
     val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
@@ -689,31 +784,14 @@ fun AdvancedOptionsSection(viewModel: MainViewModel) {
             
             AnimatedVisibility(visible = expanded) {
                 Column(Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                         Row(verticalAlignment = Alignment.CenterVertically) {
-                             Checkbox(checked = viewModel.showOutlines, onCheckedChange = { 
-                                 viewModel.showOutlines = it
-                                 viewModel.logEvent(context, "Show outlines toggled", "enabled=$it")
-                                 viewModel.saveAllSettings() 
-                             })
-                             Text("Draw Outlines")
-                         }
-                    
-                    if (viewModel.showOutlines) {
-                         OutlineStyleSelector(
-                             style = viewModel.outlineStyle,
-                             onStyleChange = { 
-                                 viewModel.outlineStyle = it
-                                 viewModel.logEvent(context, "Outline style changed", "style=$it")
-                                 viewModel.saveAllSettings() 
-                             },
-                             thickness = viewModel.outlineThickness,
-                             onThicknessChange = { 
-                                 viewModel.outlineThickness = it
-                                 viewModel.logEvent(context, "Outline thickness changed", "thickness=$it")
-                                 viewModel.saveAllSettings() 
-                             }
-                         )
-                    }
+                    OutlineStyleDropdown(
+                        selection = viewModel.outlineSelection,
+                        onSelectionChange = {
+                            viewModel.outlineSelection = it
+                            viewModel.logEvent(context, "Outline selection changed", "value=$it")
+                            viewModel.saveAllSettings()
+                        }
+                    )
 
                      Row(verticalAlignment = Alignment.CenterVertically) {
                          Checkbox(checked = viewModel.labelPanes, onCheckedChange = { 
@@ -738,52 +816,135 @@ fun AdvancedOptionsSection(viewModel: MainViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+val OUTLINE_OPTIONS = listOf(
+    "None",
+    "Solid Thin", "Solid Medium", "Solid Heavy",
+    "Dashed Thin", "Dashed Medium", "Dashed Heavy",
+    "Dotted Thin", "Dotted Medium", "Dotted Heavy",
+    "Crop Marks"
+)
+
 @Composable
-fun OutlineStyleSelector(
-    style: String, 
-    onStyleChange: (String) -> Unit,
-    thickness: String,
-    onThicknessChange: (String) -> Unit
+fun OutlineStyleDropdown(
+    selection: String,
+    onSelectionChange: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Line Style", style = MaterialTheme.typography.labelSmall)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LineStyleIcon(label = "Solid", isSelected = style == "Solid", onClick = { onStyleChange("Solid") }) {
-                drawLine(Color.White, Offset(10f, 30f), Offset(90f, 30f), 4f)
-            }
-            LineStyleIcon(label = "Dashed", isSelected = style == "Dashed", onClick = { onStyleChange("Dashed") }) {
-                drawLine(Color.White, Offset(10f, 30f), Offset(90f, 30f), 4f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f))
-            }
-            LineStyleIcon(label = "Dotted", isSelected = style == "Dotted", onClick = { onStyleChange("Dotted") }) {
-                drawLine(Color.White, Offset(10f, 30f), Offset(90f, 30f), 4f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 10f), 0f))
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(132.dp)
+                .clickable { expanded = !expanded },
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinePreview(selection = selection, fullWidth = true, compact = false)
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = null
+                )
             }
         }
-        
-        Text("Thickness", style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Thin", "Medium", "Heavy").forEach { t ->
-                FilterChip(selected = thickness == t, onClick = { onThicknessChange(t) }, label = { Text(t) })
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth(0.92f)
+        ) {
+            OUTLINE_OPTIONS.forEach { option ->
+                DropdownMenuItem(
+                    text = { OutlinePreview(selection = option, fullWidth = true, compact = false) },
+                    onClick = {
+                        onSelectionChange(option)
+                        expanded = false
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-fun LineStyleIcon(label: String, isSelected: Boolean, onClick: () -> Unit, draw: androidx.compose.ui.graphics.drawscope.DrawScope.() -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun OutlinePreview(selection: String, fullWidth: Boolean = false, compact: Boolean = true) {
+    if (selection == "None") {
+        // Show the word "None" instead of a preview line
         Box(
-            modifier = Modifier
-                .size(100.dp, 60.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                .clickable { onClick() }
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
+            modifier = if (fullWidth) Modifier
+                .fillMaxWidth()
+                .height(if (compact) 32.dp else 88.dp)
+            else Modifier.size(width = 96.dp, height = 28.dp),
+            contentAlignment = Alignment.CenterStart
         ) {
-            Canvas(modifier = Modifier.fillMaxSize()) { draw() }
+            Text(
+                "None",
+                style = if (compact) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(start = 4.dp)
+            )
         }
-        Text(label, style = MaterialTheme.typography.labelSmall)
+        return
+    }
+
+    // Exaggerated preview line thicknesses so user can clearly distinguish Thin / Medium / Heavy
+    val thickness = when {
+        selection.startsWith("Crop Marks") -> if (compact) 3f else 8f
+        selection.endsWith("Thin") -> if (compact) 2.5f else 8f
+        selection.endsWith("Heavy") -> if (compact) 10f else 26f
+        else -> if (compact) 6f else 16f
+    }
+    // Exaggerated dash/dot patterns
+    val pathEffect = when {
+        selection.startsWith("Dashed") -> PathEffect.dashPathEffect(
+            if (compact) floatArrayOf(24f, 10f) else floatArrayOf(44f, 18f),
+            0f
+        )
+        selection.startsWith("Dotted") -> PathEffect.dashPathEffect(
+            if (compact) floatArrayOf(1f, 12f) else floatArrayOf(2f, 20f),
+            0f
+        )
+        else -> null
+    }
+    Canvas(
+        modifier = (if (fullWidth) Modifier
+            .fillMaxWidth()
+            .height(if (compact) 36.dp else 96.dp)
+        else Modifier.size(width = 96.dp, height = 28.dp))
+            .padding(horizontal = if (compact) 4.dp else 8.dp)
+    ) {
+        if (selection.startsWith("Crop Marks")) {
+            val pad = if (compact) 2f else 6f
+            val arm = if (compact) 8f else 26f
+            val sw = if (compact) 2f else 6f
+            // four corner L marks
+            drawLine(Color.Black, Offset(pad, pad + arm), Offset(pad, pad), sw)
+            drawLine(Color.Black, Offset(pad, pad), Offset(pad + arm, pad), sw)
+
+            drawLine(Color.Black, Offset(size.width - pad - arm, pad), Offset(size.width - pad, pad), sw)
+            drawLine(Color.Black, Offset(size.width - pad, pad), Offset(size.width - pad, pad + arm), sw)
+
+            drawLine(Color.Black, Offset(pad, size.height - pad - arm), Offset(pad, size.height - pad), sw)
+            drawLine(Color.Black, Offset(pad, size.height - pad), Offset(pad + arm, size.height - pad), sw)
+
+            drawLine(Color.Black, Offset(size.width - pad - arm, size.height - pad), Offset(size.width - pad, size.height - pad), sw)
+            drawLine(Color.Black, Offset(size.width - pad, size.height - pad - arm), Offset(size.width - pad, size.height - pad), sw)
+        } else {
+            drawLine(
+                color = Color.Black,
+                start = Offset(4f, size.height / 2),
+                end = Offset(size.width - 4f, size.height / 2),
+                strokeWidth = thickness,
+                pathEffect = pathEffect,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+        }
     }
 }
 

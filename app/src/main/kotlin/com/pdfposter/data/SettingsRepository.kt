@@ -19,6 +19,8 @@ class SettingsRepository(private val context: Context) {
         val SHOW_OUTLINES = booleanPreferencesKey("show_outlines")
         val OUTLINE_STYLE = stringPreferencesKey("outline_style")
         val OUTLINE_THICKNESS = stringPreferencesKey("outline_thickness")
+        val OUTLINE_SELECTION = stringPreferencesKey("outline_selection")
+        val LAST_COUNTED_HASH = stringPreferencesKey("last_counted_hash")
         val LABEL_PANES = booleanPreferencesKey("label_panes")
         val INCLUDE_INSTRUCTIONS = booleanPreferencesKey("include_instructions")
         val UNITS = stringPreferencesKey("units")
