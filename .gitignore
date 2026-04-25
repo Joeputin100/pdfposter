@@ -1,0 +1,19 @@
+# Android
+**/build/
+*.apk
+
+# Node / Firebase backend
+backend/functions/node_modules/
+backend/functions/lib/
+backend/functions/.secrets.local
+
+# Local env / secrets
+*.env
+*.env.local
+
+# IDE
+.idea/
+.vscode/
+
+# Coding-agent session transcripts (opencode etc.)
+session-*.md
