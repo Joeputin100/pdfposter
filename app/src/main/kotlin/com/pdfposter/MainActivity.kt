@@ -103,9 +103,16 @@ fun SplashScreen(onComplete: () -> Unit) {
 @Composable
 fun MainScreen(viewModel: MainViewModel = viewModel()) {
     val context = LocalContext.current
+    val activity = context as? android.app.Activity
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+
+    val signInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.handleGoogleSignInResult(result.data)
+    }
 
     val storagePermissions = arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -165,14 +172,27 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Poster PDF Settings",
+                    "Poster PDF",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold
+                )
+
+                HistorySection(viewModel)
+
+                Divider(Modifier.padding(vertical = 12.dp))
+
+                Text(
+                    "Settings",
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.titleMedium
                 )
-                
+
                  ListItem(
                      headlineContent = { Text("Units") },
                      supportingContent = { Text(viewModel.units) },
@@ -246,7 +266,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                  NavigationDrawerItem(
                      label = { Text("Reset to Defaults") },
                      selected = false,
-                     onClick = { 
+                     onClick = {
                          viewModel.logEvent(context, "Reset to defaults triggered")
                          viewModel.resetToDefaults()
                          scope.launch { drawerState.close() }
@@ -254,6 +274,16 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                      icon = { Icon(Icons.Default.Refresh, null) },
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
+
+                Divider(Modifier.padding(vertical = 12.dp))
+
+                AccountSection(
+                    viewModel = viewModel,
+                    onSignInClick = {
+                        activity?.let { signInLauncher.launch(viewModel.googleSignInIntent(it)) }
+                    },
+                )
+                Spacer(Modifier.height(24.dp))
             }
         }
     ) {
@@ -994,6 +1024,127 @@ fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
             }) { Text("Get Started") }
         }
     )
+}
+
+@Composable
+fun HistorySection(viewModel: MainViewModel) {
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.History, null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(8.dp))
+            Text("History", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.weight(1f))
+            IconButton(onClick = { viewModel.refreshHistory() }) {
+                Icon(Icons.Default.Refresh, "Refresh history", modifier = Modifier.size(20.dp))
+            }
+        }
+
+        when {
+            viewModel.isHistoryLoading -> {
+                Box(Modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                }
+            }
+            viewModel.historyItems.isEmpty() -> {
+                Text(
+                    "No posters yet. Generate one — it'll appear here.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+            else -> {
+                Column {
+                    viewModel.historyItems.take(8).forEach { item ->
+                        HistoryRow(item)
+                    }
+                    if (viewModel.historyItems.size > 8) {
+                        Text(
+                            "+ ${viewModel.historyItems.size - 8} more",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HistoryRow(item: com.pdfposter.data.backend.HistoryItem) {
+    val icon = when (item.type) {
+        "upscale_local", "upscale_remote" -> Icons.Default.AutoAwesome
+        else -> Icons.Default.PictureAsPdf
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                fileNameFromUri(item.localUri).ifEmpty { item.id.ifEmpty { item.type } },
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1
+            )
+            Text(
+                item.type,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private fun fileNameFromUri(uri: String): String =
+    uri.substringAfterLast('/').substringBefore('?')
+
+@Composable
+fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
+    val s = viewModel.authSession
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.AccountCircle, null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(8.dp))
+            Text("Account", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(8.dp))
+        when {
+            !s.signedIn -> Text(
+                "Offline — Firebase not reachable. PDFs still work locally.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            s.isAnonymous -> {
+                Text(
+                    "Signed in anonymously. Sign in with Google to keep your history across devices.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = onSignInClick, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Login, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Sign in with Google")
+                }
+            }
+            else -> {
+                Text(s.displayName ?: s.email ?: "Signed in", style = MaterialTheme.typography.bodyMedium)
+                s.email?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(onClick = { viewModel.signOut() }, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Logout, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Sign out")
+                }
+            }
+        }
+    }
 }
 
 @Composable

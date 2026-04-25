@@ -19,6 +19,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.caverock.androidsvg.SVG
 import com.pdfposter.data.SettingsRepository
+import com.pdfposter.data.backend.AuthRepository
+import com.pdfposter.data.backend.AuthSession
+import com.pdfposter.data.backend.BackendClient
+import com.pdfposter.data.backend.HistoryItem
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -91,10 +95,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = SettingsRepository(application)
     private val appContext = application.applicationContext
 
+    private val auth = AuthRepository.get(appContext)
+    private val backend = BackendClient.create(auth)
+
+    var authSession by mutableStateOf(AuthSession())
+        private set
+    var historyItems by mutableStateOf<List<HistoryItem>>(emptyList())
+        private set
+    var isHistoryLoading by mutableStateOf(false)
+        private set
+
     private var ignoreFlowUpdates = false
 
     init {
         loadSettings()
+        viewModelScope.launch { auth.session.collectLatest { authSession = it } }
+        viewModelScope.launch {
+            auth.ensureSignedIn()
+            refreshHistory()
+        }
     }
 
     private fun loadSettings() {
@@ -460,6 +479,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                              logEvent(appContext, "Poster regenerated (not counted)", "file=${outputFile.name}, count=$postersMadeCount")
                          }
                          saveAllSettings()
+                         recordPdfHistory(outputFile, paperW, paperH)
                          onSuccess()
                      }
                 }
@@ -475,6 +495,67 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun dismissNagware() {
         showNagwareModal = false
         nagwareDismissed = true
+    }
+
+    private fun recordPdfHistory(file: File, paperW: Double, paperH: Double) {
+        val hash = currentImageHash ?: return
+        val pane = getPaneCount()
+        val metadata = mapOf(
+            "fileName" to file.name,
+            "posterWidth" to posterWidth,
+            "posterHeight" to posterHeight,
+            "paperSize" to paperSize,
+            "paperW" to paperW,
+            "paperH" to paperH,
+            "units" to units,
+            "rows" to (pane?.second ?: 0),
+            "cols" to (pane?.third ?: 0),
+            "pages" to (pane?.first ?: 0),
+        )
+        viewModelScope.launch {
+            val ok = backend.addHistory(
+                type = "pdf_local",
+                sourceHash = hash,
+                localUri = file.absolutePath,
+                metadata = metadata,
+            )
+            if (ok) refreshHistory()
+        }
+    }
+
+    fun refreshHistory() {
+        viewModelScope.launch {
+            isHistoryLoading = true
+            try {
+                historyItems = backend.listHistory(limit = 50)
+            } finally {
+                isHistoryLoading = false
+            }
+        }
+    }
+
+    /** Pull a sign-in intent the Activity can launch. */
+    fun googleSignInIntent(activity: android.app.Activity): android.content.Intent =
+        auth.googleSignInIntent(activity, com.pdfposter.data.backend.BackendConfig.WEB_CLIENT_ID)
+
+    fun handleGoogleSignInResult(data: android.content.Intent?) {
+        viewModelScope.launch {
+            val result = auth.handleGoogleSignInResult(data)
+            if (result.isSuccess) {
+                successMessage = "Signed in"
+                refreshHistory()
+            } else {
+                errorMessage = "Sign-in failed: ${result.exceptionOrNull()?.message}"
+            }
+        }
+    }
+
+    fun signOut() {
+        auth.signOut()
+        viewModelScope.launch {
+            auth.ensureSignedIn() // immediately go back to anonymous
+            refreshHistory()
+        }
     }
 
     fun logEvent(context: Context, event: String, details: String? = null) {
