@@ -9,63 +9,52 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import kotlinx.serialization.json.JsonObject
 
 /**
- * Phase-2 backend client contract.
+ * Strict-typed HTTP client for the Phase-2 backend.
  *
- * Notes:
- * - This intentionally uses loose payload maps for now so we can move quickly
- *   without adding a serialization plugin migration in this phase.
- * - In phase 3 we should migrate to strict @Serializable DTOs and typed responses.
+ * All payloads are @Serializable DTOs (see BackendDtos.kt). The HttpClient
+ * passed in must have ContentNegotiation+JSON installed — see
+ * `BackendClient.create()`.
  */
 class BackendApi(
     private val client: HttpClient,
     private val baseUrl: String,
 ) {
-    suspend fun bootstrap(idToken: String): Map<String, Any?> {
-        return client.post("$baseUrl/v1/bootstrap") {
-            header(HttpHeaders.Authorization, "Bearer $idToken")
-            contentType(ContentType.Application.Json)
+    suspend fun bootstrap(idToken: String): BootstrapResponseDto =
+        client.post("$baseUrl/v1/bootstrap") {
+            authed(idToken)
             setBody(emptyMap<String, String>())
         }.body()
-    }
 
-    suspend fun quote(idToken: String, outputMegapixels: Double): Map<String, Any?> {
-        return client.post("$baseUrl/v1/credits/quote") {
-            header(HttpHeaders.Authorization, "Bearer $idToken")
-            contentType(ContentType.Application.Json)
-            setBody(mapOf("outputMegapixels" to outputMegapixels))
+    suspend fun quote(idToken: String, outputMegapixels: Double): QuoteResponseDto =
+        client.post("$baseUrl/v1/credits/quote") {
+            authed(idToken)
+            setBody(QuoteRequestDto(outputMegapixels))
         }.body()
-    }
 
-    suspend fun stageCredits(idToken: String, sourceHash: String, outputMegapixels: Double): Map<String, Any?> {
-        return client.post("$baseUrl/v1/credits/stage") {
-            header(HttpHeaders.Authorization, "Bearer $idToken")
-            contentType(ContentType.Application.Json)
-            setBody(
-                mapOf(
-                    "sourceHash" to sourceHash,
-                    "outputMegapixels" to outputMegapixels,
-                )
-            )
+    suspend fun stageCredits(
+        idToken: String,
+        sourceHash: String,
+        outputMegapixels: Double,
+    ): StageResponseDto =
+        client.post("$baseUrl/v1/credits/stage") {
+            authed(idToken)
+            setBody(StageRequestDto(sourceHash, outputMegapixels))
         }.body()
-    }
 
-    suspend fun commitCredits(idToken: String, transactionId: String): Map<String, Any?> {
-        return client.post("$baseUrl/v1/credits/commit") {
-            header(HttpHeaders.Authorization, "Bearer $idToken")
-            contentType(ContentType.Application.Json)
-            setBody(mapOf("transactionId" to transactionId))
+    suspend fun commitCredits(idToken: String, transactionId: String): TxResponseDto =
+        client.post("$baseUrl/v1/credits/commit") {
+            authed(idToken)
+            setBody(TxRequestDto(transactionId))
         }.body()
-    }
 
-    suspend fun refundCredits(idToken: String, transactionId: String): Map<String, Any?> {
-        return client.post("$baseUrl/v1/credits/refund") {
-            header(HttpHeaders.Authorization, "Bearer $idToken")
-            contentType(ContentType.Application.Json)
-            setBody(mapOf("transactionId" to transactionId))
+    suspend fun refundCredits(idToken: String, transactionId: String): TxResponseDto =
+        client.post("$baseUrl/v1/credits/refund") {
+            authed(idToken)
+            setBody(TxRequestDto(transactionId))
         }.body()
-    }
 
     suspend fun addHistory(
         idToken: String,
@@ -73,26 +62,20 @@ class BackendApi(
         sourceHash: String,
         localUri: String,
         remoteUri: String,
-        metadata: Map<String, Any?>,
-    ): Map<String, Any?> {
-        return client.post("$baseUrl/v1/history/add") {
-            header(HttpHeaders.Authorization, "Bearer $idToken")
-            contentType(ContentType.Application.Json)
-            setBody(
-                mapOf(
-                    "type" to type,
-                    "sourceHash" to sourceHash,
-                    "localUri" to localUri,
-                    "remoteUri" to remoteUri,
-                    "metadata" to metadata,
-                )
-            )
+        metadata: JsonObject,
+    ): HistoryAddResponseDto =
+        client.post("$baseUrl/v1/history/add") {
+            authed(idToken)
+            setBody(HistoryAddRequestDto(type, sourceHash, localUri, remoteUri, metadata))
         }.body()
-    }
 
-    suspend fun listHistory(idToken: String, limit: Int = 50): Map<String, Any?> {
-        return client.get("$baseUrl/v1/history/list?limit=$limit") {
-            header(HttpHeaders.Authorization, "Bearer $idToken")
+    suspend fun listHistory(idToken: String, limit: Int = 50): HistoryListResponseDto =
+        client.get("$baseUrl/v1/history/list?limit=$limit") {
+            authed(idToken)
         }.body()
+
+    private fun io.ktor.client.request.HttpRequestBuilder.authed(idToken: String) {
+        header(HttpHeaders.Authorization, "Bearer $idToken")
+        contentType(ContentType.Application.Json)
     }
 }

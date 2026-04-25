@@ -6,14 +6,21 @@ import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * Auth-aware façade over BackendApi.
  *
- * - Pulls a fresh ID token from AuthRepository per call.
- * - Wraps every endpoint so transient failures (no network, backend not
- *   deployed yet, anon auth disabled) don't crash the app — they just
- *   degrade gracefully.
+ * Translates wire DTOs into domain types (HistoryItem) and centralises all
+ * "fail soft" error handling so transient failures (no network, backend not
+ * deployed yet, anon auth disabled) don't crash the app.
  */
 class BackendClient(
     private val api: BackendApi,
@@ -30,7 +37,7 @@ class BackendClient(
         return try {
             auth.ensureSignedIn()
             val token = auth.getIdToken() ?: return false
-            api.addHistory(token, type, sourceHash, localUri, remoteUri, metadata)
+            api.addHistory(token, type, sourceHash, localUri, remoteUri, metadata.toJsonObject())
             true
         } catch (t: Throwable) {
             Log.w(TAG, "addHistory failed: ${t.message}")
@@ -42,25 +49,34 @@ class BackendClient(
         return try {
             auth.ensureSignedIn()
             val token = auth.getIdToken() ?: return emptyList()
-            val raw = api.listHistory(token, limit)
-            val items = raw["items"] as? List<*> ?: return emptyList()
-            items.mapNotNull { it.toHistoryItem() }
+            api.listHistory(token, limit).items.map { it.toDomain() }
         } catch (t: Throwable) {
             Log.w(TAG, "listHistory failed: ${t.message}")
             emptyList()
         }
     }
 
-    private fun Any?.toHistoryItem(): HistoryItem? {
-        val m = this as? Map<*, *> ?: return null
+    private fun HistoryItemDto.toDomain(): HistoryItem {
+        val meta = metadata.toAnyMap()
         return HistoryItem(
-            id = m["id"]?.toString().orEmpty(),
-            type = m["type"]?.toString().orEmpty(),
-            sourceHash = m["sourceHash"]?.toString().orEmpty(),
-            localUri = m["localUri"]?.toString().orEmpty(),
-            remoteUri = m["remoteUri"]?.toString().orEmpty(),
-            metadataJson = (m["metadata"] as? Map<*, *>)?.toString().orEmpty(),
+            id = id,
+            type = type,
+            sourceHash = sourceHash,
+            localUri = localUri,
+            remoteUri = remoteUri,
+            metadataJson = meta.toString(),
+            createdAtMillis = parseFirestoreTimestamp(createdAt as? JsonObject),
+            metadata = meta,
         )
+    }
+
+    /** Firestore timestamps come over JSON as {_seconds, _nanoseconds}. */
+    private fun parseFirestoreTimestamp(obj: JsonObject?): Long? {
+        if (obj == null) return null
+        val seconds = (obj["_seconds"] ?: obj["seconds"])?.jsonPrimitive?.doubleOrNull
+            ?: return null
+        val nanos = (obj["_nanoseconds"] ?: obj["nanoseconds"])?.jsonPrimitive?.doubleOrNull ?: 0.0
+        return (seconds * 1000.0 + nanos / 1_000_000.0).toLong()
     }
 
     companion object {
@@ -76,4 +92,34 @@ class BackendClient(
             return BackendClient(api, auth)
         }
     }
+}
+
+private fun Map<String, Any?>.toJsonObject(): JsonObject =
+    JsonObject(mapValues { (_, v) -> v.toJsonPrimitive() })
+
+private fun Any?.toJsonPrimitive(): JsonPrimitive = when (this) {
+    null -> JsonPrimitive(null as String?)
+    is String -> JsonPrimitive(this)
+    is Boolean -> JsonPrimitive(this)
+    is Number -> JsonPrimitive(this)
+    else -> JsonPrimitive(toString())
+}
+
+private fun JsonObject.toAnyMap(): Map<String, Any?> =
+    mapValues { (_, v) ->
+        when (v) {
+            is JsonPrimitive -> v.unwrap()
+            is JsonObject -> v.toAnyMap()
+            else -> v.toString()
+        }
+    }
+
+private fun JsonPrimitive.unwrap(): Any? = when {
+    isString -> content
+    booleanOrNull != null -> boolean
+    doubleOrNull != null -> {
+        val d = double
+        if (d == d.toLong().toDouble()) d.toLong() else d
+    }
+    else -> content
 }

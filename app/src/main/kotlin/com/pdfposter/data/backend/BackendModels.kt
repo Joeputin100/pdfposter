@@ -1,36 +1,11 @@
 package com.pdfposter.data.backend
 
-data class BackendBootstrap(
-    val uid: String,
-    val freeUpscalesRemaining: Int,
-    val paidCreditsAvailable: Int,
-    val nagDismissed: Boolean,
-    val supportPurchaseActive: Boolean,
-)
-
-data class CreditQuote(
-    val outputMegapixels: Double,
-    val credits: Int,
-    val falBaseUsd: Double,
-    val chargedUsd: Double,
-    val note: String,
-)
-
-data class StageResult(
-    val transactionId: String,
-    val status: String,
-)
-
-data class CommitResult(
-    val transactionId: String,
-    val status: String,
-)
-
-data class RefundResult(
-    val transactionId: String,
-    val status: String,
-)
-
+/**
+ * Domain types consumed by the UI/ViewModel layer.
+ *
+ * Wire-level @Serializable DTOs live in BackendDtos.kt; BackendClient is
+ * responsible for mapping between the two.
+ */
 data class HistoryItem(
     val id: String,
     val type: String,
@@ -38,4 +13,6 @@ data class HistoryItem(
     val localUri: String,
     val remoteUri: String,
     val metadataJson: String,
+    val createdAtMillis: Long? = null,
+    val metadata: Map<String, Any?> = emptyMap(),
 )

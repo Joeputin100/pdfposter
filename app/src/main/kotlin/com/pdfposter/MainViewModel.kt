@@ -104,6 +104,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
     var isHistoryLoading by mutableStateOf(false)
         private set
+    var showHistoryScreen by mutableStateOf(false)
 
     private var ignoreFlowUpdates = false
 

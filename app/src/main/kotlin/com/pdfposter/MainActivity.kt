@@ -44,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdfposter.ui.components.GlassCard
 import com.pdfposter.ui.components.ImagePickerHeader
 import com.pdfposter.ui.components.PosterPreview
+import com.pdfposter.ui.screens.HistoryScreen
 import com.pdfposter.ui.theme.PDFPosterTheme
 import kotlinx.coroutines.launch
 
@@ -112,6 +113,12 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         viewModel.handleGoogleSignInResult(result.data)
+    }
+
+    if (viewModel.showHistoryScreen) {
+        BackHandler { viewModel.showHistoryScreen = false }
+        HistoryScreen(viewModel = viewModel, onBack = { viewModel.showHistoryScreen = false })
+        return
     }
 
     val storagePermissions = arrayOf(
@@ -183,7 +190,13 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     fontWeight = FontWeight.ExtraBold
                 )
 
-                HistorySection(viewModel)
+                HistorySection(
+                    viewModel = viewModel,
+                    onViewAll = {
+                        viewModel.showHistoryScreen = true
+                        scope.launch { drawerState.close() }
+                    },
+                )
 
                 Divider(Modifier.padding(vertical = 12.dp))
 
@@ -1027,7 +1040,7 @@ fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun HistorySection(viewModel: MainViewModel) {
+fun HistorySection(viewModel: MainViewModel, onViewAll: () -> Unit) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.History, null, tint = MaterialTheme.colorScheme.primary)
@@ -1055,15 +1068,16 @@ fun HistorySection(viewModel: MainViewModel) {
             }
             else -> {
                 Column {
-                    viewModel.historyItems.take(8).forEach { item ->
+                    viewModel.historyItems.take(5).forEach { item ->
                         HistoryRow(item)
                     }
-                    if (viewModel.historyItems.size > 8) {
+                    Spacer(Modifier.height(4.dp))
+                    TextButton(onClick = onViewAll, modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            "+ ${viewModel.historyItems.size - 8} more",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                            if (viewModel.historyItems.size > 5)
+                                "View all (${viewModel.historyItems.size})"
+                            else
+                                "View all",
                         )
                     }
                 }

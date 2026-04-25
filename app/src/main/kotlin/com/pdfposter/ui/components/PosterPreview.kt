@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -154,6 +155,21 @@ fun PosterPreview(viewModel: MainViewModel) {
     var zoom by remember { mutableStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
 
+    // Per-pane jiggle: tap a specific page to jiggle just that page.
+    // paneBounds is filled during Canvas draw and read by the tap handler;
+    // using a plain MutableList (not state) to avoid recompositions on every frame.
+    val paneBounds = remember { mutableListOf<PaneBounds>() }
+    var jiggledPane by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var jiggleStartedAt by remember { mutableLongStateOf(0L) }
+    var boxSize by remember { mutableStateOf(IntSize.Zero) }
+    val jiggleDurationMs = 600f
+    val jigglePhase = if (jiggledPane == null) 0f else {
+        val elapsed = (now - jiggleStartedAt).toFloat()
+        (elapsed / jiggleDurationMs).coerceIn(0f, 1f)
+    }
+    val jiggleAmp = if (jigglePhase >= 1f) 0f else (1f - jigglePhase)
+    val jiggleSwing = sin((jigglePhase * 4f * Math.PI).toFloat()) * jiggleAmp
+
     var previewBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     LaunchedEffect(viewModel.selectedImageUri) {
         val uri = viewModel.selectedImageUri ?: return@LaunchedEffect
@@ -194,20 +210,36 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val brush = ShaderBrush(woodShader)
                     onDrawBehind { drawRect(brush = brush, size = size) }
                 }
-                .shadow(8.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = { tapAt = System.currentTimeMillis() })
-                },
+                .shadow(8.dp),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .onSizeChanged { boxSize = it }
                     .pointerInput(Unit) {
                         detectTransformGestures { _, panChange, zoomChange, _ ->
                             zoom = (zoom * zoomChange).coerceIn(1f, 6f)
                             pan += panChange
                         }
+                    }
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { rawOffset ->
+                            tapAt = System.currentTimeMillis()
+                            // Invert the graphicsLayer pan/zoom to land in canvas coords.
+                            val pivotX = boxSize.width / 2f
+                            val pivotY = boxSize.height / 2f
+                            val cx = pivotX + (rawOffset.x - pivotX - pan.x) / zoom
+                            val cy = pivotY + (rawOffset.y - pivotY - pan.y) / zoom
+                            val hit = paneBounds.firstOrNull { p ->
+                                cx >= p.left && cx <= p.left + p.width &&
+                                    cy >= p.top && cy <= p.top + p.height
+                            }
+                            if (hit != null) {
+                                jiggledPane = hit.row to hit.col
+                                jiggleStartedAt = System.currentTimeMillis()
+                            }
+                        })
                     }
                     .graphicsLayer {
                         scaleX = zoom
@@ -218,8 +250,12 @@ fun PosterPreview(viewModel: MainViewModel) {
             ) {
             val paneInfo = viewModel.getPaneCount()
             Canvas(modifier = Modifier.fillMaxSize()) {
-                if (paneInfo == null) return@Canvas
+                if (paneInfo == null) {
+                    paneBounds.clear()
+                    return@Canvas
+                }
                 val (_, rows, cols) = paneInfo
+                paneBounds.clear()
 
                 val padding = 28f
                 val gap = 18f
@@ -273,6 +309,14 @@ fun PosterPreview(viewModel: MainViewModel) {
                         val tilePosterY = r * (printableH - overlapPx)
                         val dx = sheetStartX + c * (printableW + gap)
                         val dy = sheetStartY + r * (printableH + gap)
+
+                        paneBounds.add(PaneBounds(r, c, dx, dy, printableW, printableH))
+
+                        val isJiggled = jiggledPane?.let { it.first == r && it.second == c } == true
+                        val paneJiggleAngle = if (isJiggled) jiggleSwing * 4.5f else 0f
+                        val paneJiggleDx = if (isJiggled) jiggleSwing * 2.5f else 0f
+                        val paneJiggleDy = if (isJiggled) -jiggleAmp * 1.8f else 0f
+                        val paneCenter = Offset(dx + printableW / 2f, dy + printableH / 2f)
 
                         // individual pane curl wave
                         val panePos = (c + r).toFloat() / max(1f, (rows + cols - 2).toFloat())
@@ -369,53 +413,60 @@ fun PosterPreview(viewModel: MainViewModel) {
                             }
                         }
 
-                        drawPaneSurface()
-
-                        if (paneCurl > 0.02f) {
-                            val br = Offset(dx + printableW, dy + printableH)
-                            val corner = cornerCurlSize.coerceAtMost(min(printableW, printableH) * 0.65f)
-                            val flapPath = Path().apply {
-                                // Curved corner flap (not triangular fold)
-                                moveTo(br.x, br.y)
-                                lineTo(br.x - corner, br.y)
-                                quadraticBezierTo(
-                                    br.x - corner * 0.30f,
-                                    br.y - corner * 0.30f,
-                                    br.x,
-                                    br.y - corner
-                                )
-                                close()
+                        withTransform({
+                            if (isJiggled) {
+                                rotate(paneJiggleAngle, pivot = paneCenter)
+                                translate(paneJiggleDx, paneJiggleDy)
                             }
+                        }) {
+                            drawPaneSurface()
 
-                            drawPath(flapPath, Color.Black.copy(alpha = 0.18f + paneCurl * 0.24f))
+                            if (paneCurl > 0.02f) {
+                                val br = Offset(dx + printableW, dy + printableH)
+                                val corner = cornerCurlSize.coerceAtMost(min(printableW, printableH) * 0.65f)
+                                val flapPath = Path().apply {
+                                    // Curved corner flap (not triangular fold)
+                                    moveTo(br.x, br.y)
+                                    lineTo(br.x - corner, br.y)
+                                    quadraticBezierTo(
+                                        br.x - corner * 0.30f,
+                                        br.y - corner * 0.30f,
+                                        br.x,
+                                        br.y - corner
+                                    )
+                                    close()
+                                }
 
-                            clipPath(flapPath) {
-                                withTransform({
-                                    rotate(-34f * paneCurl, pivot = br)
-                                    scale(
-                                        scaleX = 0.56f + (1f - paneCurl) * 0.24f,
-                                        scaleY = 1f,
-                                        pivot = br
-                                    )
-                                    translate(-corner * 0.08f * paneCurl, -corner * 0.30f * paneCurl)
-                                }) {
-                                    // Backside of paper for curled corner
-                                    drawRect(
-                                        color = Color(0xFFF6F6F2),
-                                        topLeft = Offset(br.x - corner, br.y - corner),
-                                        size = Size(corner, corner)
-                                    )
-                                    drawRect(
-                                        color = Color.Black.copy(alpha = 0.16f + paneCurl * 0.20f),
-                                        topLeft = Offset(br.x - corner, br.y - corner),
-                                        size = Size(corner, corner)
-                                    )
-                                    drawLine(
-                                        color = Color.White.copy(alpha = 0.55f),
-                                        start = Offset(br.x - corner * 0.95f, br.y - 1f),
-                                        end = Offset(br.x - 1f, br.y - corner * 0.95f),
-                                        strokeWidth = max(1.2f, 2.8f * paneCurl)
-                                    )
+                                drawPath(flapPath, Color.Black.copy(alpha = 0.18f + paneCurl * 0.24f))
+
+                                clipPath(flapPath) {
+                                    withTransform({
+                                        rotate(-34f * paneCurl, pivot = br)
+                                        scale(
+                                            scaleX = 0.56f + (1f - paneCurl) * 0.24f,
+                                            scaleY = 1f,
+                                            pivot = br
+                                        )
+                                        translate(-corner * 0.08f * paneCurl, -corner * 0.30f * paneCurl)
+                                    }) {
+                                        // Backside of paper for curled corner
+                                        drawRect(
+                                            color = Color(0xFFF6F6F2),
+                                            topLeft = Offset(br.x - corner, br.y - corner),
+                                            size = Size(corner, corner)
+                                        )
+                                        drawRect(
+                                            color = Color.Black.copy(alpha = 0.16f + paneCurl * 0.20f),
+                                            topLeft = Offset(br.x - corner, br.y - corner),
+                                            size = Size(corner, corner)
+                                        )
+                                        drawLine(
+                                            color = Color.White.copy(alpha = 0.55f),
+                                            start = Offset(br.x - corner * 0.95f, br.y - 1f),
+                                            end = Offset(br.x - 1f, br.y - corner * 0.95f),
+                                            strokeWidth = max(1.2f, 2.8f * paneCurl)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -429,10 +480,18 @@ fun PosterPreview(viewModel: MainViewModel) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             LegendSwatch(Color(0xFF1976D2).copy(alpha = 0.55f), "Margin")
             LegendSwatch(Color(0xFFFF6F00).copy(alpha = 0.55f), "Overlap")
-            Text("Tap to curl", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
+
+private data class PaneBounds(
+    val row: Int,
+    val col: Int,
+    val left: Float,
+    val top: Float,
+    val width: Float,
+    val height: Float,
+)
 
 @Composable
 private fun LegendSwatch(color: Color, label: String) {
