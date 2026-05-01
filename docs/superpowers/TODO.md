@@ -209,4 +209,95 @@ Baseline profiles encode "which classes/methods to AOT-compile at install time" 
 
 ---
 
+## TODO 8 — Aggressive automated testing CI (Tiers 1–5b on every build)
+
+**Status:** Planned for after Phase F (security review) but before final Play Store submission. Bundle with TODO 1 (GH Actions migration).
+
+**Goal:** Run all of Tiers 1, 2, 3, 4, 5a, 5b on every push, with the user's Galaxy A26 (Android 16 / One UI 8) reserved as the tier-5c manual smoke-test device. Repo is public → unlimited GH Actions Linux minutes; FTL fits in free tier.
+
+**Two new workflow files:**
+
+### `.github/workflows/test.yml` — every push, ~10–15 min wall-clock
+
+Three jobs in parallel:
+1. **`jvm`** (Tiers 1–3): `./gradlew test verifyPaparazzi lint`. ~5 min cached.
+2. **`emulator`** (Tier 4): `reactivecircus/android-emulator-runner@v2` API 34, runs `./gradlew connectedDebugAndroidTest`. ~10 min with cached AVD snapshot.
+3. **`ftl-virtual`** (Tier 5a): `gcloud firebase test android run` against `Pixel2.arm/30`, `Pixel2.arm/33`, `MediumPhone.arm/34`. Free tier (~5 device-hours/day budget covers ~60 short runs).
+
+Gate `emulator` + `ftl-virtual` on `jvm` passing first (cheap fail-fast).
+
+### `.github/workflows/ftl-physical-weekly.yml` — Mondays + on `v*` / `md3e-*` tags
+
+Single job runs `gcloud firebase test android run` against real-device models from FTL's catalog. Free tier: 0.5 physical device-hours/day (~6 short runs); weekly cadence consumes ~2 hours/month, well within budget.
+
+### Setup prerequisites (one-time)
+- **Workload Identity Federation** for GH Actions → GCP auth. Configure pool + provider in GCP IAM (~30 min). Use OIDC tokens, not service-account JSON keys (long-lived keys are a rotation pain).
+- **Service account** `ftl-runner@static-webbing-461904-c4.iam.gserviceaccount.com` with `Firebase Test Lab Admin` + `Cloud Storage Object Admin` (for FTL result uploads).
+- **Add `org.junit.platform:junit-platform-launcher` + `com.google.testing.platform:core-proto:0.0.9-alpha02`** if FTL needs newer test-platform protos.
+
+### Code-side prerequisites
+- **Paparazzi**: add `app.cash.paparazzi:paparazzi-gradle-plugin:1.3.5` (or current) to project. Write 8–10 initial snapshots: `PosterPreview` × {1×1, 3×4, no-margin, large-overlap, dark-theme, custom-paper}; `MainScreen` × {empty-state, image-picked, advanced-options-expanded}.
+- **Instrumented tests**: `androidx.compose.ui:ui-test-junit4` already on classpath via BOM. Write Compose UI tests for paper-size selector, generate-button click flow, history navigation.
+- **Macrobenchmark** module: see TODO 3 — gated on tier-5c access (TODO 9). For v1.0 use the FTL-virtual-device profile.
+
+**Estimate:** 4 hours one-time setup + ~30 min per new test class.
+
+**Layered with the A26 manual ritual** — described in TODO 9 — this gives full coverage: Tiers 1–4 fast-fail-fast on every PR, FTL virtual matrix on every push to master, FTL physical matrix weekly + on tag, A26 manual smoke before tag.
+
+---
+
+## TODO 9 — Solve tier-5c (real-device benchmarking on Galaxy A26)
+
+**Status:** Open question. Blocks optimal Baseline Profile generation but does not block v1.0 launch.
+
+**The constraint:** the user's only Android device is the Galaxy A26 (Android 16, One UI 8). They lack:
+- A computer (no traditional adb-over-USB)
+- A second device (no second-phone adb-pairing bootstrap)
+- A wifi network (no adb-over-wifi pairing)
+
+**Why this matters:** Macrobenchmark requires `adb shell` access. It installs/uninstalls the test app, clears package data between iterations, and reads perfetto traces — all `adb`-gated. Without adb the user cannot run `./gradlew :app:generateReleaseBaselineProfile` against their A26.
+
+**Manual smoke testing is unaffected.** Sideloading APKs via the Files app + Chrome download from a GCS signed URL works without adb. Only Macrobenchmark / Baseline Profile generation is blocked.
+
+### Path A — Ship v1.0 with FTL-virtual-generated Baseline Profile (recommended)
+- Run Macrobenchmark from the GH Actions FTL workflow against `Pixel2.arm` virtual device.
+- Pull the resulting `baseline-prof.txt` as a workflow artifact.
+- Commit it via a follow-up PR (or auto-commit via a scheduled workflow).
+- **Quality gap:** ~10–20% less optimal than a profile generated against the actual A26 hardware (Exynos 1380 has different cache hierarchy than virtual Pixel ARM).
+- **Setup time:** ~2 hours (Macrobenchmark module + FTL game-loop invocation).
+
+### Path B — Wait for adb access
+- One-time event: borrow a friend's laptop / library computer, do baseline profile generation, commit.
+- Or acquire a Raspberry Pi 5 (~$35 one-time) — runs adb on Linux, sits in a drawer, USB-C cable to A26, generate profile occasionally.
+- Or: occasional public-library access; a 30-minute session is enough for one Macrobenchmark run.
+- **Quality:** optimal profile (Exynos-tuned, One UI 8 quirks accounted for).
+- **Setup time:** variable depending on access.
+
+### Path C — Cloud device service
+- BrowserStack App Live ($39/mo) gives remote real-device access including Samsung Galaxy A series (occasionally exact A26).
+- Free tier: 30 min/mo limited.
+- Heavy for a one-time profile generation; lighter for occasional debug sessions if needed.
+- **Quality:** good if exact A26 model available; otherwise marginal improvement over FTL virtual.
+- **Setup time:** account creation + walkthrough, ~1 hour.
+
+### Path D — Skip Baseline Profile for v1.0
+- App will start ~20–30% slower than it could (still usable, just suboptimal).
+- Add Baseline Profile in v1.1 once tier-5c is solved.
+- **Quality:** no profile = baseline AOT.
+- **Setup time:** $0.
+
+### Recommendation
+
+**v1.0 → Path A** (FTL-virtual profile). Automated, free, ships with the redesign. Document the limitation in `app/src/main/baseline-prof.txt` header.
+
+**Post-v1.0 → Path B with Raspberry Pi 5** (or borrowed laptop). Regenerate the profile as a single dedicated PR titled "perf: regenerate baseline profile on real Galaxy A26 hardware". Compare cold-start times before/after on FTL physical Samsung models to verify the upgrade is real.
+
+**Path C** is the right answer if there's also a recurring need for remote A26 debugging sessions (e.g., occasional crash reproduction). Otherwise overpaying.
+
+**Estimate:**
+- Path A: 2 hours (one-time setup) + 0.5 device-hours/run on FTL.
+- Path B: 30 min one-time once adb is available.
+
+---
+
 ## (Append future deferrals here)
