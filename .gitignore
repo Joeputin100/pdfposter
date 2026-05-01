@@ -11,6 +11,14 @@ backend/functions/.secrets.local
 *.env
 *.env.local
 
+# Signing material — keep out of source control.
+# release.keystore is fetched from GCS at Cloud Build time; never commit.
+*.keystore
+*.jks
+*.p12
+release.keystore
+keystore_gen.yaml
+
 # IDE
 .idea/
 .vscode/
