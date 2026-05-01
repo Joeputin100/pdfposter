@@ -4,15 +4,18 @@ steps:
     entrypoint: 'gsutil'
     args: ['cp', 'gs://static-webbing-461904-c4_artifacts/release.keystore', '.']
 
-  # Build and sign the Android app
-  - name: 'cimg/android:2024.01'
+  # Build and sign the Android app — debug APK for phone testing,
+  # release AAB for Play Console upload.
+  - name: 'cimg/android:2025.10'
     entrypoint: '/bin/bash'
-    args: ['-c', 'sudo chown -R circleci:circleci . && gradle assembleDebug']
+    args: ['-c', 'sudo chown -R circleci:circleci . && gradle assembleDebug bundleRelease']
 
 artifacts:
   objects:
     location: 'gs://static-webbing-461904-c4_artifacts/build'
-    paths: ['app/build/outputs/apk/debug/*.apk']
+    paths:
+      - 'app/build/outputs/apk/debug/*.apk'
+      - 'app/build/outputs/bundle/release/*.aab'
 
 options:
   logging: CLOUD_LOGGING_ONLY
