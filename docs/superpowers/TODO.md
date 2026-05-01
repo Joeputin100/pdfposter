@@ -167,4 +167,46 @@ Baseline profiles encode "which classes/methods to AOT-compile at install time" 
 
 ---
 
+## TODO 7 — Make the GitHub presence a showcase piece
+
+**Status:** Long-term polish; runs in parallel with engineering.
+
+**Why:** The repo at `https://github.com/Joeputin100/pdfposter` is the public artifact of this app. For a Play-Store-featured-app candidate, the GitHub repo is the secondary calling card — recruiters, fellow developers, journalists, and the curious all land there before they land on the Play Store listing. Currently it's a working dev repo, not a showcase.
+
+**Workstreams:**
+
+### A. Repository hygiene
+- **README.md (top-level, missing today)**: hero image / animated GIF of the construction preview, value proposition, "what it does" 1-paragraph, screenshots, install link to Play Store, link to Privacy Policy, build status badge from Cloud Build (or GH Actions when migrated), Firebase status badge, license, contact / contributing section. Aim for the first scroll to convey *what the app is* without scrolling past it.
+- **LICENSE file**: pick a license deliberately (MIT for permissive, AGPL-3.0 if you want to require derivatives stay open-source, or proprietary "all rights reserved" if you'd rather show source without granting use). Without a license, by default no one can legally fork.
+- **Topics + description**: set GitHub repo topics (`android`, `jetpack-compose`, `material3`, `kotlin`, `pdf-generator`, `firebase`, `material-3-expressive`) and a one-sentence description. These feed GitHub Search.
+- **`.github/`**: `ISSUE_TEMPLATE/bug_report.md`, `ISSUE_TEMPLATE/feature_request.md`, `PULL_REQUEST_TEMPLATE.md`, `FUNDING.yml` (if accepting sponsorship), `dependabot.yml` (auto-PRs for dep bumps).
+- **Branch protection on `master`**: require PR review, require CI passing, no force-pushes (set after MD3E lands so this current rewrite isn't blocked).
+
+### B. Visual marketing
+- **Repo social preview image** (1280×640 PNG): Settings → Social Preview. Use a hero shot of the construction preview's Reveal phase (with the thumb tacks pinned) — this is the single most photogenic frame the app produces.
+- **`docs/screenshots/` directory**: 6–8 carefully-staged screenshots covering each major flow (image pick → preview → settings → generate → history → assembly cycle in motion). Include 1 video / animated GIF (≤5 MB) demonstrating the Assembly Cycle.
+- **`docs/architecture.md`**: 1–2 page walkthrough of the layer diagram (Compose UI → ViewModel → Repository → Backend / Firebase). Aim it at a developer reading code review.
+- **`docs/design-system.md`**: showcase the blueprint-blue + Fraunces brand identity, MD3E motion tokens, and component patterns. Lift the "Phase B + E" sections of the redesign plan and edit for a public audience.
+
+### C. Code-level polish for showcase reading
+- **All TODOs in code link to issues**: `// TODO: …` becomes `// TODO(#42): …` so a reader can click through.
+- **Top-of-file comments on the major composables**: `MainActivity.kt`, `PosterPreview.kt`, `PaneGeometry.kt` — one paragraph each explaining what this file is for and the major decisions, written for someone who's never seen the codebase.
+- **Module README files**: `app/README.md`, `backend/README.md` (already exists; expand it).
+- **Type the gnarly bits**: ensure public-facing classes (`PosterLogic`, `MainViewModel`, `PaneGeometry`) have KDoc.
+
+### D. CI badges + automation
+- After GH Actions migration (TODO 1), add badges for build status, latest release, Play Store install count, and code coverage. Each badge is a 1-line README addition.
+- GitHub Releases for each Play Store release: tag (`v1.0`), changelog, attached AAB.
+- Optional: Renovate or Dependabot configured for weekly dep PRs.
+
+### E. Discoverability
+- **Submit to lists**: `awesome-android`, `awesome-jetpack-compose`, `awesome-material-3` curated GitHub lists accept PRs; landing on one of those gets meaningful inbound traffic.
+- **Cross-link**: Play Store listing description includes GitHub URL. Personal site / portfolio links to the repo.
+
+**Estimate:** 6–10 hours, distributed: A is 2h, B is 3h (most of it screenshots + GIF rendering), C is 2h, D is 1h post-GH-Actions-migration, E is 1h plus the wait time for `awesome-*` PRs to merge.
+
+**When to start:** A + B can start the day MD3E redesign lands on master. C piggybacks on each phase's PR. D is gated on TODO 1 (GH Actions). E is the very last step.
+
+---
+
 ## (Append future deferrals here)
