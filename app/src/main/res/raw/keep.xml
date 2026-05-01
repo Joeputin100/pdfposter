@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tells the Android resource shrinker to preserve drawables that are
+  referenced reflectively via Resources.getIdentifier(), which static
+  analysis cannot see.
+
+  - @drawable/pdf_logo — looked up by name in MainViewModel.kt as the
+    custom-logo drawable (user-replaceable artwork in the generated PDF).
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/pdf_logo" />

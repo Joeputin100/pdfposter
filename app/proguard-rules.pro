@@ -21,29 +21,26 @@
 -dontwarn reactor.blockhound.**
 -dontwarn reactor.blockhound.integration.BlockHoundIntegration
 
-# Coil's optional GIF/SVG/Video decoder modules are referenced reflectively;
-# we only use the core decoder. Suppress missing-class warnings.
--dontwarn coil.**
+# Coil's GIF / video / network-images decoders are NOT in our dep list
+# (we only ship coil-compose + coil-svg). Suppress missing-class warnings
+# for those decoders without hiding bugs in the modules we DO use.
+-dontwarn coil.gif.**
+-dontwarn coil.video.**
+-dontwarn coil.network.**
 
 # ────────────────────────────────────────────────────────────────────────
 # kotlinx.serialization R8 rules
 # https://github.com/Kotlin/kotlinx.serialization/blob/master/rules/common.pro
 # ────────────────────────────────────────────────────────────────────────
--keepattributes RuntimeVisibleAnnotations,AnnotationDefault
 
-# Keep @Serializable annotations on classes (used at runtime by serializer-resolver).
--keepclasseswithmembers class * {
-    @kotlinx.serialization.Serializable *;
-}
-
-# Keep `Companion.serializer()` and the generated `$serializer` companion class
-# of every @Serializable type. The two -if rules below cover both unnamed and
-# named companion objects.
+# Keep `Companion` object fields of serializable classes.
+# This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
 -if @kotlinx.serialization.Serializable class **
 -keepclassmembers class <1> {
     static <1>$Companion Companion;
 }
 
+# Keep `serializer()` on companion objects (both default and named) of serializable classes.
 -if @kotlinx.serialization.Serializable class ** {
     static **$* *;
 }
@@ -51,7 +48,7 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-# Keep `INSTANCE.serializer()` for object @Serializable singletons.
+# Keep `INSTANCE.serializer()` of serializable objects.
 -if @kotlinx.serialization.Serializable class ** {
     public static ** INSTANCE;
 }
@@ -59,6 +56,12 @@
     public static <1> INSTANCE;
     kotlinx.serialization.KSerializer serializer(...);
 }
+
+# @Serializable and @Polymorphic annotations are read at runtime via reflection.
+-keepclasseswithmembers,allowobfuscation class * {
+    @kotlinx.serialization.Serializable <fields>;
+}
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
 
 # ────────────────────────────────────────────────────────────────────────
 # PDFBox-Android — heavily reflective; keep public surface to be safe.
