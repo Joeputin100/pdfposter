@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.pdfposter"
+    namespace = "com.posterpdf"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.pdfposter"
+        applicationId = "com.posterpdf"
         // Bumped from 21 to 23 in Phase B because material3:1.5.0-alpha18
         // (required for the public MaterialExpressiveTheme + MotionScheme APIs)
         // declares minSdkVersion 23 in its manifest. Coverage loss vs. 21:
@@ -64,6 +64,14 @@ android {
     }
     buildFeatures {
         compose = true
+        // Phase G3: BillingRepository.TEST_MODE flips on BuildConfig.DEBUG, so we
+        // need the generated BuildConfig class. (AGP 8 turns it off by default.)
+        buildConfig = true
+    }
+    // Phase G8: keep .tflite uncompressed inside the APK so the runtime can
+    // mmap the model directly out of assets (Interpreter.MappedByteBuffer path).
+    androidResources {
+        noCompress.add("tflite")
     }
 }
 
@@ -124,6 +132,18 @@ dependencies {
 
     // kotlinx.serialization runtime (the Gradle plugin generates the Serializer code)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    // Phase G3: Google Play Billing Library v7 (KTX coroutine extensions).
+    // Used by app/src/main/kotlin/com/pdfposter/billing/BillingRepository.kt.
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
+
+    // Phase G8: on-device TFLite x4 super-resolution (ESRGAN-TF2).
+    // Substituted from the plan's "Real-ESRGAN x4 INT8" because no canonical
+    // TFLite distribution of Real-ESRGAN exists publicly without a custom
+    // PyTorch->TFLite conversion. ESRGAN-TF2 is FP32, ~5MB, x4 upscaler.
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
