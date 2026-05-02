@@ -12,6 +12,11 @@ const FAL_KEY = defineSecret('FAL_KEY');
 const TOPAZ_ENDPOINT_ID = 'fal-ai/topaz/upscale/image';
 const FAL_PRICING_URL = 'https://api.fal.ai/v1/models/pricing';
 
+// 1 credit = 5 MP of FAL output capacity. Mirror of the constant in
+// upscale.ts; if either changes, change both. See:
+//   docs/superpowers/plans/2026-05-02-phase-g-economics-revision.md (D1)
+const MP_PER_CREDIT = 5;
+
 const SKUS = ['credits_small', 'credits_medium', 'credits_large', 'credits_jumbo'] as const;
 // SKU ladder rescaled upward 2026-05-02 once live FAL pricing showed
 // per-megapixel cost — the original $1.99 entry tier couldn't profitably
@@ -68,21 +73,22 @@ async function fetchFalCostPerCredit(falKey: string): Promise<number> {
   if (!Number.isFinite(item.unit_price) || item.unit_price <= 0) {
     throw new Error(`FAL pricing returned invalid unit_price=${item.unit_price}`);
   }
-  if (item.unit !== 'image') {
-    // FAIL CLOSED. Confirmed against the live API (2026-05-02): FAL returns
-    // unit="megapixels" at $0.01/MP for fal-ai/topaz/upscale/image. Treating
-    // that as $/image would massively under-cost credits (84 credits per
-    // $1.99 SKU vs. the intended 16) and ship a guaranteed-loss product.
-    // Until pricing.ts grows a per-MP cost model that multiplies by an
-    // expected output area, throwing here forces refreshPricing to reuse
-    // the last known-good cached value rather than corrupt pricing/current.
+  if (item.unit !== 'megapixels') {
+    // After Phase G economics revision (2026-05-02), we expect "megapixels".
+    // Any other unit means FAL changed their pricing model — back to flat
+    // $/image, or to a new dimension we haven't mapped. Surface loudly via
+    // ALERT-level log; refreshPricing's caller will fall back to cached.
+    logger.error(
+      'FAL Topaz pricing unit changed unexpectedly — pricing model needs review',
+      { unit: item.unit, unit_price: item.unit_price, endpoint_id: item.endpoint_id },
+    );
     throw new Error(
-      `FAL Topaz pricing unit is "${item.unit}" (expected "image"). ` +
-        `Credit-cost math needs a megapixel multiplier — see TODO 10 / ` +
-        `Phase G economics revision before deploying this fetch.`,
+      `FAL Topaz pricing unit is "${item.unit}" (expected "megapixels"). ` +
+        `See docs/superpowers/plans/2026-05-02-phase-g-economics-revision.md.`,
     );
   }
-  return item.unit_price;
+  // unit_price is $/MP. cost-per-credit = $/MP × MP/credit.
+  return item.unit_price * MP_PER_CREDIT;
 }
 
 async function fetchLastKnownCost(): Promise<number | null> {
