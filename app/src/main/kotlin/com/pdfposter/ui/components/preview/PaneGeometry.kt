@@ -52,6 +52,15 @@ object PaneGeometry {
         val panes: List<Pane>,
     )
 
+    /** Hard cap on the preview's pane count.
+     *  Phase F security review: posterW/H are user-controlled via free-form TextField;
+     *  unbounded values would produce millions of Pane allocations inside Canvas onDraw
+     *  and OOM the UI thread. 16x16 = 256 panes is well past any realistic poster grid
+     *  and keeps the per-frame draw cost bounded. The PDF generator (PosterLogic.kt)
+     *  has no such cap because it doesn't render to screen, but the preview must.
+     */
+    private const val MAX_PANE_AXIS = 16
+
     fun compute(
         posterW: Double, posterH: Double,
         paperW: Double, paperH: Double,
@@ -64,8 +73,10 @@ object PaneGeometry {
         val stepX = printableW - overlap
         val stepY = printableH - overlap
 
-        val cols = if (posterW <= printableW) 1 else ceil((posterW - printableW) / stepX).toInt() + 1
-        val rows = if (posterH <= printableH) 1 else ceil((posterH - printableH) / stepY).toInt() + 1
+        val rawCols = if (posterW <= printableW) 1 else ceil((posterW - printableW) / stepX).toInt() + 1
+        val rawRows = if (posterH <= printableH) 1 else ceil((posterH - printableH) / stepY).toInt() + 1
+        val cols = rawCols.coerceIn(1, MAX_PANE_AXIS)
+        val rows = rawRows.coerceIn(1, MAX_PANE_AXIS)
 
         // Pick scale that fits (cols paperW + gaps), (rows paperH + gaps) into available.
         val scaleX = if (cols == 1) availableW / paperW.toFloat()

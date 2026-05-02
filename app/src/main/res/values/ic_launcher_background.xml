@@ -1,1 +1,6 @@
-<resources><color name="ic_launcher_background">#FFFFFF</color></resources>
+<resources>
+    <!-- Adaptive-icon background: brand blueprint-blue. Same hue as Brand.kt's BlueprintBlue700,
+         which the colored foreground (ic_launcher_foreground.png) sits on top of inside the
+         system-applied shape mask. -->
+    <color name="ic_launcher_background">#0A3D62</color>
+</resources>
