@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.spring
@@ -23,6 +24,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,9 +38,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -46,10 +52,15 @@ import com.pdfposter.ui.components.ImagePickerHeader
 import com.pdfposter.ui.components.PosterPreview
 import com.pdfposter.ui.screens.HistoryScreen
 import com.pdfposter.ui.theme.PDFPosterTheme
+import com.pdfposter.ui.util.Hapt
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Edge-to-edge: required for Android 15 (API 35), where system bars
+        // draw over content by default unless the app opts in. Must run
+        // before super.onCreate.
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             PDFPosterTheme {
@@ -100,25 +111,48 @@ fun SplashScreen(onComplete: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MainScreen(viewModel: MainViewModel = viewModel()) {
+    // Hoisted out of transitionSpec because that lambda is not @Composable —
+    // MaterialTheme.motionScheme reads a CompositionLocal so it must be captured here.
+    val swapSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
+    AnimatedContent(
+        targetState = viewModel.showHistoryScreen,
+        transitionSpec = {
+            if (targetState) {
+                (slideInHorizontally(swapSpec) { it } + fadeIn())
+                    .togetherWith(slideOutHorizontally(swapSpec) { -it / 4 } + fadeOut())
+            } else {
+                (slideInHorizontally(swapSpec) { -it / 4 } + fadeIn())
+                    .togetherWith(slideOutHorizontally(swapSpec) { it } + fadeOut())
+            }
+        },
+        label = "screen-swap",
+    ) { showHistory ->
+        if (showHistory) {
+            BackHandler { viewModel.showHistoryScreen = false }
+            HistoryScreen(viewModel = viewModel, onBack = { viewModel.showHistoryScreen = false })
+        } else {
+            MainScreenContent(viewModel = viewModel)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun MainScreenContent(viewModel: MainViewModel) {
     val context = LocalContext.current
     val activity = context as? android.app.Activity
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val hapt = Hapt(LocalHapticFeedback.current)
 
     val signInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         viewModel.handleGoogleSignInResult(result.data)
-    }
-
-    if (viewModel.showHistoryScreen) {
-        BackHandler { viewModel.showHistoryScreen = false }
-        HistoryScreen(viewModel = viewModel, onBack = { viewModel.showHistoryScreen = false })
-        return
     }
 
     val storagePermissions = arrayOf(
@@ -193,12 +227,13 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                 HistorySection(
                     viewModel = viewModel,
                     onViewAll = {
+                        hapt.tap()
                         viewModel.showHistoryScreen = true
                         scope.launch { drawerState.close() }
                     },
                 )
 
-                Divider(Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(Modifier.padding(vertical = 12.dp))
 
                 Text(
                     "Settings",
@@ -260,7 +295,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     PaperSizeSelector(viewModel)
                 }
 
-                Divider(Modifier.padding(vertical = 16.dp))
+                HorizontalDivider(Modifier.padding(vertical = 16.dp))
                 
                 Text(
                     "Supported File Types:",
@@ -274,7 +309,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Divider(Modifier.padding(vertical = 16.dp))
+                HorizontalDivider(Modifier.padding(vertical = 16.dp))
                 
                  NavigationDrawerItem(
                      label = { Text("Reset to Defaults") },
@@ -288,7 +323,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
 
-                Divider(Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(Modifier.padding(vertical = 12.dp))
 
                 AccountSection(
                     viewModel = viewModel,
@@ -335,13 +370,15 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 // 1. Image Selection
-                ImagePickerHeader(
-                    selectedImageUri = viewModel.selectedImageUri,
-                    onImageSelected = { 
-                        viewModel.logEvent(context, "Image selected", "uri=$it")
-                        viewModel.updateImage(context, it) 
-                    }
-                )
+                EnterStagger(index = 0) {
+                    ImagePickerHeader(
+                        selectedImageUri = viewModel.selectedImageUri,
+                        onImageSelected = {
+                            viewModel.logEvent(context, "Image selected", "uri=$it")
+                            viewModel.updateImage(context, it)
+                        }
+                    )
+                }
 
                 val showNagBanner = viewModel.postersMadeCount >= 10 && !viewModel.nagwareDismissed
                 LaunchedEffect(showNagBanner) {
@@ -354,6 +391,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     }
                 }
                 if (showNagBanner) {
+                    EnterStagger(index = 1) {
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = Color(0xFFFFEB3B),
@@ -404,10 +442,11 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                             }
                         }
                     }
+                    }
                 }
 
                 if (viewModel.selectedImageUri == null) {
-                    OnboardingView()
+                    EnterStagger(index = 2) { OnboardingView() }
                 } else {
                     // 2. Image Info
                     viewModel.imageMetadata?.let { meta ->
@@ -437,6 +476,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                             val unitLabel = if (viewModel.units == "Metric") "cm" else "in"
 
                             // 3. Poster Dimensions
+                            EnterStagger(index = 3) {
                             GlassCard {
                                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                     Text("Poster Size", style = MaterialTheme.typography.labelLarge)
@@ -487,8 +527,10 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                     }
                                 }
                             }
+                            }
 
                             // 4. Paper & Layout
+                            EnterStagger(index = 4) {
                             GlassCard {
                                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                     Text("Paper & Layout", style = MaterialTheme.typography.labelLarge)
@@ -534,25 +576,28 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                         Text(
                                             "Project scope: $total pages ($rows rows x $cols columns)",
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.secondary,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             fontWeight = FontWeight.Bold
                                         )
                                     }
                                 }
                             }
+                            }
 
-                            AdvancedOptionsSection(viewModel)
-                            PosterPreview(viewModel)
+                            EnterStagger(index = 5) { AdvancedOptionsSection(viewModel) }
+                            EnterStagger(index = 6) { PosterPreview(viewModel) }
 
                             // 7. Unified Actions
+                            EnterStagger(index = 7) {
                             if (viewModel.isGenerating) {
                                 Box(Modifier.fillMaxWidth().height(64.dp), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator()
+                                    LoadingIndicator()
                                 }
                             } else {
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
-                                        onClick = { 
+                                        onClick = {
+                                            hapt.confirm()
                                             viewModel.generatePoster(context) {
                                                 val file = viewModel.lastGeneratedFile ?: return@generatePoster
                                                 val uri = androidx.core.content.FileProvider.getUriForFile(
@@ -572,9 +617,10 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                         Spacer(Modifier.width(8.dp))
                                         Text("View")
                                     }
-                                    
+
                                     Button(
-                                        onClick = { 
+                                        onClick = {
+                                            hapt.confirm()
                                             viewModel.generatePoster(context) {
                                                 saveLauncher.launch("poster_${System.currentTimeMillis()}.pdf")
                                             }
@@ -589,7 +635,8 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                     }
 
                                     Button(
-                                        onClick = { 
+                                        onClick = {
+                                            hapt.tap()
                                             viewModel.generatePoster(context) {
                                                 val file = viewModel.lastGeneratedFile ?: return@generatePoster
                                                 val uri = androidx.core.content.FileProvider.getUriForFile(
@@ -612,7 +659,8 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                                     }
                                 }
                             }
-                            
+                            }
+
                             viewModel.errorMessage?.let { MessageText(it, MaterialTheme.colorScheme.error) }
                             viewModel.successMessage?.let { MessageText(it, MaterialTheme.colorScheme.primary) }
                         }
@@ -670,58 +718,35 @@ fun InfoChip(label: String, value: String) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PaperSizeSelector(viewModel: MainViewModel) {
     val context = LocalContext.current
     val options = listOf("Letter (8.5x11)", "Legal (8.5x14)", "Tabloid (11x17)", "A4 (8.27x11.69)", "A3 (11.69x16.54)", "Custom")
-    var expanded by remember { mutableStateOf(false) }
+    val selectedIndex = options.indexOf(viewModel.paperSize).coerceAtLeast(0)
+    val hapt = Hapt(LocalHapticFeedback.current)
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
+        Text("Paper Size", style = MaterialTheme.typography.bodyMedium)
+        // ButtonGroup's scope DSL in material3 1.5.0-alpha18 doesn't accept direct
+        // ToggleButton calls inside a plain content lambda; fell back to a Row.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            OutlinedTextField(
-                value = viewModel.paperSize,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Paper Size") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                options.forEach { selectionOption ->
-                    val dims = com.pdfposter.ui.components.parsePaperSize(selectionOption)
-                    DropdownMenuItem(
-                        text = { 
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (dims != null) {
-                                    com.pdfposter.ui.components.PaperGraphic(
-                                        widthInches = dims.first,
-                                        heightInches = dims.second,
-                                        boxSize = 32.dp,
-                                        selected = (viewModel.paperSize == selectionOption)
-                                    )
-                                } else {
-                                    Icon(Icons.Default.Edit, null, modifier = Modifier.size(32.dp))
-                                }
-                                Spacer(Modifier.width(12.dp))
-                                Text(selectionOption) 
-                            }
-                        },
-                         onClick = {
-                             viewModel.paperSize = selectionOption
-                             viewModel.logEvent(context, "Paper size selected", "size=$selectionOption")
-                             viewModel.saveAllSettings()
-                             expanded = false
-                         }
-                    )
-                }
+            for ((index, option) in options.withIndex()) {
+                ToggleButton(
+                    checked = index == selectedIndex,
+                    onCheckedChange = {
+                        if (index != selectedIndex) {
+                            hapt.tap()
+                            viewModel.paperSize = option
+                            viewModel.logEvent(context, "Paper size selected", "size=$option")
+                            viewModel.saveAllSettings()
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                ) { Text(option.substringBefore(' ')) }
             }
         }
 
@@ -731,20 +756,20 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
                  ConfigInput(
                      label = "Width ($unitLabel)",
                      value = viewModel.customPaperWidth,
-                     onValueChange = { 
+                     onValueChange = {
                          viewModel.customPaperWidth = it
                          viewModel.logEvent(context, "Custom paper width changed", "value=$it")
-                         viewModel.saveAllSettings() 
+                         viewModel.saveAllSettings()
                      },
                      modifier = Modifier.weight(1f)
                  )
                  ConfigInput(
                      label = "Height ($unitLabel)",
                      value = viewModel.customPaperHeight,
-                     onValueChange = { 
+                     onValueChange = {
                          viewModel.customPaperHeight = it
                          viewModel.logEvent(context, "Custom paper height changed", "value=$it")
-                         viewModel.saveAllSettings() 
+                         viewModel.saveAllSettings()
                      },
                      modifier = Modifier.weight(1f)
                  )
@@ -753,57 +778,33 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OrientationSelector(viewModel: MainViewModel) {
     val context = LocalContext.current
-    val dims = com.pdfposter.ui.components.parsePaperSize(viewModel.paperSize)
-        ?: ((viewModel.customPaperWidth.toDoubleOrNull() ?: 8.5) to
-            (viewModel.customPaperHeight.toDoubleOrNull() ?: 11.0))
+    val orientations = listOf("Best Fit", "Portrait", "Landscape")
+    val selectedIndex = orientations.indexOf(viewModel.orientation).coerceAtLeast(0)
+    val hapt = Hapt(LocalHapticFeedback.current)
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Orientation", style = MaterialTheme.typography.bodyMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Best Fit", "Portrait", "Landscape").forEach { orient ->
-                val isSelected = viewModel.orientation == orient
-                val bg = if (isSelected) MaterialTheme.colorScheme.primary
-                         else MaterialTheme.colorScheme.surfaceVariant
-                val fg = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                         else MaterialTheme.colorScheme.onSurfaceVariant
-                val displayOrient = when (orient) {
-                    "Portrait" -> "Portrait"
-                    "Landscape" -> "Landscape"
-                    else -> null // Best Fit - show natural paper orientation
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(bg)
-                        .clickable {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            for ((index, orient) in orientations.withIndex()) {
+                ToggleButton(
+                    checked = index == selectedIndex,
+                    onCheckedChange = {
+                        if (index != selectedIndex) {
+                            hapt.tap()
                             viewModel.orientation = orient
                             viewModel.logEvent(context, "Orientation changed", "value=$orient")
                             viewModel.saveAllSettings()
                         }
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    com.pdfposter.ui.components.PaperGraphic(
-                        widthInches = dims.first,
-                        heightInches = dims.second,
-                        boxSize = 56.dp,
-                        orientation = displayOrient,
-                        showDogCow = (orient != "Best Fit"),
-                        selected = isSelected,
-                        relativeScale = false
-                    )
-                    Text(
-                        orient,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = fg,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                    )
-                }
+                    },
+                    modifier = Modifier.weight(1f),
+                ) { Text(orient) }
             }
         }
     }
@@ -1140,7 +1141,7 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                 )
                 Spacer(Modifier.height(8.dp))
                 Button(onClick = onSignInClick, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Login, null)
+                    Icon(Icons.AutoMirrored.Filled.Login, null)
                     Spacer(Modifier.width(8.dp))
                     Text("Sign in with Google")
                 }
@@ -1152,7 +1153,7 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                 }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = { viewModel.signOut() }, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Logout, null)
+                    Icon(Icons.AutoMirrored.Filled.Logout, null)
                     Spacer(Modifier.width(8.dp))
                     Text("Sign out")
                 }
@@ -1187,4 +1188,24 @@ fun ConfigInput(
             disabledPlaceholderColor = MaterialTheme.colorScheme.outline
         ) else OutlinedTextFieldDefaults.colors()
     )
+}
+
+/**
+ * Wraps a top-level scroll child to slide-and-fade in on first composition,
+ * staggered by 80ms * index. The LaunchedEffect keys on Unit so subsequent
+ * recompositions don't re-trigger the entrance — it plays exactly once.
+ */
+@Composable
+private fun EnterStagger(index: Int, content: @Composable () -> Unit) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(80L * index)
+        visible = true
+    }
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(
+            animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+        ) { it / 8 } + fadeIn(),
+    ) { content() }
 }
