@@ -255,43 +255,32 @@ fun PosterPreview(viewModel: MainViewModel) {
                     paneBounds.clear()
                     return@Canvas
                 }
-                val (_, rows, cols) = paneInfo
                 paneBounds.clear()
 
                 val padding = 28f
                 val gap = 18f
-                val availableW = size.width - 2 * padding
-                val availableH = size.height - 2 * padding
+                val availableW = (size.width - 2 * padding).coerceAtLeast(1f)
+                val availableH = (size.height - 2 * padding).coerceAtLeast(1f)
                 val pw = viewModel.posterWidth.toDoubleOrNull() ?: 1.0
                 val ph = viewModel.posterHeight.toDoubleOrNull() ?: 1.0
-                val scale = min(
-                    (availableW - (cols - 1) * gap).toDouble() / pw,
-                    (availableH - (rows - 1) * gap).toDouble() / ph
-                ).toFloat()
+                val paperW = viewModel.currentPaperWidthInches()
+                val paperH = viewModel.currentPaperHeightInches()
+                val m = viewModel.margin.toDoubleOrNull() ?: 0.0
+                val o = viewModel.overlap.toDoubleOrNull() ?: 0.0
 
-                val posterDrawW = (pw * scale).toFloat()
-                val posterDrawH = (ph * scale).toFloat()
-                val startX = (size.width - (posterDrawW + (cols - 1) * gap)) / 2f
-                val startY = (size.height - (posterDrawH + (rows - 1) * gap)) / 2f
-
-                val unitScale = scale.toDouble()
-                val marginPx = ((viewModel.margin.toDoubleOrNull() ?: 0.0) * unitScale).toFloat()
-                val overlapPx = ((viewModel.overlap.toDoubleOrNull() ?: 0.0) * unitScale).toFloat()
-                val printableW = if (cols > 1) (posterDrawW + (cols - 1) * overlapPx) / cols else posterDrawW
-                val printableH = if (rows > 1) (posterDrawH + (rows - 1) * overlapPx) / rows else posterDrawH
-
-                // Layout each page as separate sheets with guaranteed visual gap.
-                // Source sampling still uses overlap-aware coordinates so content remains accurate.
-                val layoutTotalW = cols * printableW + (cols - 1) * gap
-                val layoutTotalH = rows * printableH + (rows - 1) * gap
-                val sheetStartX = (size.width - layoutTotalW) / 2f
-                val sheetStartY = (size.height - layoutTotalH) / 2f
+                val layout = com.pdfposter.ui.components.preview.PaneGeometry.compute(
+                    posterW = pw, posterH = ph,
+                    paperW = paperW, paperH = paperH,
+                    margin = m, overlap = o,
+                    availableW = availableW, availableH = availableH,
+                    interPaneGap = gap,
+                )
+                val rows = layout.rows
+                val cols = layout.cols
+                val marginPx = layout.marginPx
+                val overlapPx = layout.overlapPx
 
                 val src = previewBitmap
-                val srcW = src?.width ?: 0
-                val srcH = src?.height ?: 0
-                val srcPerCanvasX = if (src != null) srcW / posterDrawW else 1f
-                val srcPerCanvasY = if (src != null) srcH / posterDrawH else 1f
 
                 val outlinePx = when (viewModel.outlineThickness) {
                     "Thin" -> 1.2f
@@ -304,102 +293,120 @@ fun PosterPreview(viewModel: MainViewModel) {
                     else -> null
                 }
 
-                for (r in 0 until rows) {
-                    for (c in 0 until cols) {
-                        val tilePosterX = c * (printableW - overlapPx)
-                        val tilePosterY = r * (printableH - overlapPx)
-                        val dx = sheetStartX + c * (printableW + gap)
-                        val dy = sheetStartY + r * (printableH + gap)
+                for (pane in layout.panes) {
+                    val r = pane.row
+                    val c = pane.col
+                    val dx = pane.pageLeft
+                    val dy = pane.pageTop
+                    val pageW = pane.pageWidth
+                    val pageH = pane.pageHeight
 
-                        paneBounds.add(PaneBounds(r, c, dx, dy, printableW, printableH))
+                    paneBounds.add(PaneBounds(r, c, dx, dy, pageW, pageH))
 
-                        val isJiggled = jiggledPane?.let { it.first == r && it.second == c } == true
-                        val paneJiggleAngle = if (isJiggled) jiggleSwing * 4.5f else 0f
-                        val paneJiggleDx = if (isJiggled) jiggleSwing * 2.5f else 0f
-                        val paneJiggleDy = if (isJiggled) -jiggleAmp * 1.8f else 0f
-                        val paneCenter = Offset(dx + printableW / 2f, dy + printableH / 2f)
+                    val isJiggled = jiggledPane?.let { it.first == r && it.second == c } == true
+                    val paneJiggleAngle = if (isJiggled) jiggleSwing * 4.5f else 0f
+                    val paneJiggleDx = if (isJiggled) jiggleSwing * 2.5f else 0f
+                    val paneJiggleDy = if (isJiggled) -jiggleAmp * 1.8f else 0f
+                    val paneCenter = Offset(dx + pageW / 2f, dy + pageH / 2f)
 
-                        // individual pane curl wave
-                        val panePos = (c + r).toFloat() / max(1f, (rows + cols - 2).toFloat())
-                        val paneCurl = (globalCurl * 1.6f - panePos * 0.35f).coerceIn(0f, 1f)
-                        val cornerCurlSize = min(printableW, printableH) * (0.08f + 0.40f * paneCurl)
+                    // individual pane curl wave
+                    val panePos = (c + r).toFloat() / max(1f, (rows + cols - 2).toFloat())
+                    val paneCurl = (globalCurl * 1.6f - panePos * 0.35f).coerceIn(0f, 1f)
+                    val cornerCurlSize = min(pageW, pageH) * (0.08f + 0.40f * paneCurl)
 
-                        withTransform({
-                            if (isJiggled) {
-                                rotate(paneJiggleAngle, pivot = paneCenter)
-                                translate(paneJiggleDx, paneJiggleDy)
-                            }
-                        }) {
-                            drawPaperFill(dx, dy, printableW, printableH)
-                            if (src != null) {
-                                val paneSrcX = (tilePosterX * srcPerCanvasX).toInt().coerceIn(0, srcW)
-                                val paneSrcY = (tilePosterY * srcPerCanvasY).toInt().coerceIn(0, srcH)
-                                val paneSrcTileW = (printableW * srcPerCanvasX).toInt().coerceIn(1, srcW - paneSrcX)
-                                val paneSrcTileH = (printableH * srcPerCanvasY).toInt().coerceIn(1, srcH - paneSrcY)
-                                drawPaneImage(
-                                    src = src,
-                                    imageDstLeft = dx, imageDstTop = dy,
-                                    imageDstWidth = printableW, imageDstHeight = printableH,
-                                    srcX = paneSrcX, srcY = paneSrcY,
-                                    srcTileW = paneSrcTileW, srcTileH = paneSrcTileH,
-                                )
-                            }
-                            drawPaneOverlapZones(
-                                pageLeft = dx, pageTop = dy,
-                                pageWidth = printableW, pageHeight = printableH,
-                                overlapPx = overlapPx,
-                                row = r, col = c, rows = rows, cols = cols,
+                    withTransform({
+                        if (isJiggled) {
+                            rotate(paneJiggleAngle, pivot = paneCenter)
+                            translate(paneJiggleDx, paneJiggleDy)
+                        }
+                    }) {
+                        drawPaperFill(dx, dy, pageW, pageH)
+                        if (src != null) {
+                            val srcW = src.width
+                            val srcH = src.height
+                            val paneSrcX = (pane.sourceFracLeft * srcW).toInt().coerceIn(0, srcW - 1)
+                            val paneSrcY = (pane.sourceFracTop * srcH).toInt().coerceIn(0, srcH - 1)
+                            val paneSrcTileW = (pane.sourceFracWidth * srcW).toInt().coerceAtLeast(1).coerceAtMost(srcW - paneSrcX)
+                            val paneSrcTileH = (pane.sourceFracHeight * srcH).toInt().coerceAtLeast(1).coerceAtMost(srcH - paneSrcY)
+                            drawPaneImage(
+                                src = src,
+                                imageDstLeft = pane.imageDstLeft, imageDstTop = pane.imageDstTop,
+                                imageDstWidth = pane.imageDstWidth, imageDstHeight = pane.imageDstHeight,
+                                srcX = paneSrcX, srcY = paneSrcY,
+                                srcTileW = paneSrcTileW, srcTileH = paneSrcTileH,
                             )
-                            drawPaneMarginGuide(dx, dy, printableW, printableH, marginPx)
-                            drawCutLineOrOutline(viewModel, dx, dy, printableW, printableH, overlapPx, outlinePx, outlineEffect)
-                            drawPaneLabel(viewModel, dx, dy, printableW, printableH, r, c)
+                        }
+                        // Overlap zones now sit INSIDE the printable image area, not at the page edge —
+                        // matching where the seam will be after the user trims along the cut marks.
+                        drawPaneOverlapZones(
+                            pageLeft = pane.imageDstLeft, pageTop = pane.imageDstTop,
+                            pageWidth = pane.imageDstWidth, pageHeight = pane.imageDstHeight,
+                            overlapPx = overlapPx,
+                            row = r, col = c, rows = rows, cols = cols,
+                        )
+                        // Margin guide draws faint blue lines at the printable-area boundary.
+                        // The page (paperFill) is already the white "paper", so no overlay needed.
+                        drawPaneMarginGuide(dx, dy, pageW, pageH, marginPx)
+                        // Cut marks / outline live inside the printable area (image dst rect).
+                        drawCutLineOrOutline(
+                            viewModel,
+                            pane.imageDstLeft, pane.imageDstTop,
+                            pane.imageDstWidth, pane.imageDstHeight,
+                            overlapPx, outlinePx, outlineEffect,
+                        )
+                        // Label is positioned inside the printable area.
+                        drawPaneLabel(
+                            viewModel,
+                            pane.imageDstLeft, pane.imageDstTop,
+                            pane.imageDstWidth, pane.imageDstHeight,
+                            r, c,
+                        )
 
-                            if (paneCurl > 0.02f) {
-                                val br = Offset(dx + printableW, dy + printableH)
-                                val corner = cornerCurlSize.coerceAtMost(min(printableW, printableH) * 0.65f)
-                                val flapPath = Path().apply {
-                                    // Curved corner flap (not triangular fold)
-                                    moveTo(br.x, br.y)
-                                    lineTo(br.x - corner, br.y)
-                                    quadraticBezierTo(
-                                        br.x - corner * 0.30f,
-                                        br.y - corner * 0.30f,
-                                        br.x,
-                                        br.y - corner
+                        if (paneCurl > 0.02f) {
+                            val br = Offset(dx + pageW, dy + pageH)
+                            val corner = cornerCurlSize.coerceAtMost(min(pageW, pageH) * 0.65f)
+                            val flapPath = Path().apply {
+                                // Curved corner flap (not triangular fold)
+                                moveTo(br.x, br.y)
+                                lineTo(br.x - corner, br.y)
+                                quadraticBezierTo(
+                                    br.x - corner * 0.30f,
+                                    br.y - corner * 0.30f,
+                                    br.x,
+                                    br.y - corner
+                                )
+                                close()
+                            }
+
+                            drawPath(flapPath, Color.Black.copy(alpha = 0.18f + paneCurl * 0.24f))
+
+                            clipPath(flapPath) {
+                                withTransform({
+                                    rotate(-34f * paneCurl, pivot = br)
+                                    scale(
+                                        scaleX = 0.56f + (1f - paneCurl) * 0.24f,
+                                        scaleY = 1f,
+                                        pivot = br
                                     )
-                                    close()
-                                }
-
-                                drawPath(flapPath, Color.Black.copy(alpha = 0.18f + paneCurl * 0.24f))
-
-                                clipPath(flapPath) {
-                                    withTransform({
-                                        rotate(-34f * paneCurl, pivot = br)
-                                        scale(
-                                            scaleX = 0.56f + (1f - paneCurl) * 0.24f,
-                                            scaleY = 1f,
-                                            pivot = br
-                                        )
-                                        translate(-corner * 0.08f * paneCurl, -corner * 0.30f * paneCurl)
-                                    }) {
-                                        // Backside of paper for curled corner
-                                        drawRect(
-                                            color = Color(0xFFF6F6F2),
-                                            topLeft = Offset(br.x - corner, br.y - corner),
-                                            size = Size(corner, corner)
-                                        )
-                                        drawRect(
-                                            color = Color.Black.copy(alpha = 0.16f + paneCurl * 0.20f),
-                                            topLeft = Offset(br.x - corner, br.y - corner),
-                                            size = Size(corner, corner)
-                                        )
-                                        drawLine(
-                                            color = Color.White.copy(alpha = 0.55f),
-                                            start = Offset(br.x - corner * 0.95f, br.y - 1f),
-                                            end = Offset(br.x - 1f, br.y - corner * 0.95f),
-                                            strokeWidth = max(1.2f, 2.8f * paneCurl)
-                                        )
-                                    }
+                                    translate(-corner * 0.08f * paneCurl, -corner * 0.30f * paneCurl)
+                                }) {
+                                    // Backside of paper for curled corner
+                                    drawRect(
+                                        color = Color(0xFFF6F6F2),
+                                        topLeft = Offset(br.x - corner, br.y - corner),
+                                        size = Size(corner, corner)
+                                    )
+                                    drawRect(
+                                        color = Color.Black.copy(alpha = 0.16f + paneCurl * 0.20f),
+                                        topLeft = Offset(br.x - corner, br.y - corner),
+                                        size = Size(corner, corner)
+                                    )
+                                    drawLine(
+                                        color = Color.White.copy(alpha = 0.55f),
+                                        start = Offset(br.x - corner * 0.95f, br.y - 1f),
+                                        end = Offset(br.x - 1f, br.y - corner * 0.95f),
+                                        strokeWidth = max(1.2f, 2.8f * paneCurl)
+                                    )
                                 }
                             }
                         }
@@ -411,7 +418,7 @@ fun PosterPreview(viewModel: MainViewModel) {
 
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            LegendSwatch(Color(0xFF1976D2).copy(alpha = 0.55f), "Margin")
+            LegendSwatch(Color(0xFF0A3D62).copy(alpha = 0.55f), "Margin")
             LegendSwatch(Color(0xFFFF6F00).copy(alpha = 0.55f), "Overlap")
         }
     }
@@ -491,24 +498,25 @@ private fun DrawScope.drawPaneOverlapZones(
 }
 
 /**
- * White margin overlay (covers image bleed at the page edges) plus a faint blue
- * boundary line at the printable-area edge. Behavior-preserving — colors and
- * geometry exactly match the pre-refactor inline lambda.
+ * Faint blue lines at the printable-area boundary (margin lines). The page surface
+ * itself is already drawn as paper-cream by [drawPaperFill] and the image is inset
+ * by margin on every side, so no white overlay is needed in the margin area —
+ * the user sees the actual paper rather than an opaque overlay.
  */
 private fun DrawScope.drawPaneMarginGuide(
     pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
     marginPx: Float,
 ) {
     if (marginPx <= 0.5f) return
-    drawRect(Color.White, Offset(pageLeft, pageTop), Size(pageWidth, marginPx))
-    drawRect(Color.White, Offset(pageLeft, pageTop + pageHeight - marginPx), Size(pageWidth, marginPx))
-    drawRect(Color.White, Offset(pageLeft, pageTop), Size(marginPx, pageHeight))
-    drawRect(Color.White, Offset(pageLeft + pageWidth - marginPx, pageTop), Size(marginPx, pageHeight))
-    val borderColor = Color(0xFF1976D2).copy(alpha = 0.6f)
-    drawLine(borderColor, Offset(pageLeft, pageTop + marginPx), Offset(pageLeft + pageWidth, pageTop + marginPx), 1.2f)
-    drawLine(borderColor, Offset(pageLeft, pageTop + pageHeight - marginPx), Offset(pageLeft + pageWidth, pageTop + pageHeight - marginPx), 1.2f)
-    drawLine(borderColor, Offset(pageLeft + marginPx, pageTop), Offset(pageLeft + marginPx, pageTop + pageHeight), 1.2f)
-    drawLine(borderColor, Offset(pageLeft + pageWidth - marginPx, pageTop), Offset(pageLeft + pageWidth - marginPx, pageTop + pageHeight), 1.2f)
+    val borderColor = Color(0xFF0A3D62).copy(alpha = 0.45f)
+    drawLine(borderColor, Offset(pageLeft + marginPx, pageTop + marginPx),
+        Offset(pageLeft + pageWidth - marginPx, pageTop + marginPx), 1.2f)
+    drawLine(borderColor, Offset(pageLeft + marginPx, pageTop + pageHeight - marginPx),
+        Offset(pageLeft + pageWidth - marginPx, pageTop + pageHeight - marginPx), 1.2f)
+    drawLine(borderColor, Offset(pageLeft + marginPx, pageTop + marginPx),
+        Offset(pageLeft + marginPx, pageTop + pageHeight - marginPx), 1.2f)
+    drawLine(borderColor, Offset(pageLeft + pageWidth - marginPx, pageTop + marginPx),
+        Offset(pageLeft + pageWidth - marginPx, pageTop + pageHeight - marginPx), 1.2f)
 }
 
 /**

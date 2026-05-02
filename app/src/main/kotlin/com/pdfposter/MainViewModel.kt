@@ -357,6 +357,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return if (portraitTotal <= landscapeTotal) portraitDims else landscapeDims
     }
 
+    /**
+     * Current paper width in the user's active units (inches if Imperial, cm if Metric),
+     * already orientation-aware. Mirrors `getPaperDimensions().first`. Used by the
+     * construction preview to compute pane geometry in the same unit space as
+     * `posterWidth`, `margin`, and `overlap`.
+     */
+    fun currentPaperWidthInches(): Double = getPaperDimensions().first
+
+    /**
+     * Current paper height in the user's active units (inches if Imperial, cm if Metric).
+     * See [currentPaperWidthInches].
+     */
+    fun currentPaperHeightInches(): Double = getPaperDimensions().second
+
     fun getDpiWarning(): String? {
         val metadata = imageMetadata ?: return null
         val w = posterWidth.toDoubleOrNull() ?: return null
