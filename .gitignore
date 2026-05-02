@@ -19,6 +19,12 @@ backend/functions/.secrets.local
 release.keystore
 keystore_gen.yaml
 
+# Firebase client config — fetched from GCS at Cloud Build time, same pattern
+# as release.keystore. Real google-services.json contains an OAuth client ID
+# and project identifiers we don't want in a public repo.
+google-services.json
+app/google-services.json
+
 # IDE
 .idea/
 .vscode/
