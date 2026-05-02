@@ -333,3 +333,6 @@ export const api = onRequest(
   },
   app
 )
+
+export { getPricing, refreshPricing } from './pricing';
+export { getFalBalance } from './balance';
