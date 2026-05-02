@@ -2,9 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Fix construction-preview stretch bug, redesign preview as "Assembly Cycle" (with thumb tacks + scotch tape), migrate the app to Material 3 Expressive (MD3E) motion + components, adopt blueprint-blue / Fraunces brand identity, and clean up working-tree audit findings (gradle.kts corruption, google-services plugin syntax).
+**Goal:** Fix construction-preview stretch bug, redesign preview as "Assembly Cycle" (with thumb tacks + scotch tape), migrate the app to Material 3 Expressive (MD3E) motion + components, adopt blueprint-blue / Fraunces brand identity, clean up working-tree audit findings (gradle.kts corruption, google-services plugin syntax), and ship in-app purchase + AI upscaling as the monetization layer.
 
-**Architecture:** Phase A locks in build-system fixes + dependency bumps so MD3E APIs become available. Phase B installs the new identity (palette + typography + theme migration) so subsequent UI work inherits it. Phase C corrects the preview's geometry without changing visuals (test-driven for the pure math). Phase D rebuilds the preview as a 5-phase cyclic animation with thumb-tack and scotch-tape decorations. Phase E adopts MD3E components and motion tokens across the rest of the app. Each phase ends with a Cloud Build verification step + a phone-test note (no local gradle wrapper exists in this repo).
+**Architecture:** Phase A locks in build-system fixes + dependency bumps so MD3E APIs become available. Phase B installs the new identity (palette + typography + theme migration) so subsequent UI work inherits it. Phase C corrects the preview's geometry without changing visuals (test-driven for the pure math). Phase D rebuilds the preview as a 5-phase cyclic animation with thumb-tack and scotch-tape decorations. Phase E adopts MD3E components and motion tokens across the rest of the app. Phase F runs a security review + adds the final logo assets + tags `md3e-redesign-rc1` (intermediate state, not the merge target). **Phase G adds Google Play Billing + AI upscaling (FAL/Topaz) + on-device upscaling (TFLite Real-ESRGAN x4) + the credit-balance UI + the low-DPI upgrade modal.** After Phase G, retag as `md3e-redesign-rc2`; that is the merge target for `master`.
+
+Each phase ends with a Cloud Build verification step + a phone-test note (no local gradle wrapper exists in this repo).
 
 **Tech Stack:** Kotlin 2.0.21, AGP 8.8.0, Jetpack Compose BOM 2025.10.00 (material3 1.4.0+), `org.jetbrains.kotlin.plugin.compose` (Kotlin 2.0+ replaces `kotlinCompilerExtensionVersion`), Compose Google Fonts (Fraunces + Manrope), `androidx.compose.material3:material3` MD3E APIs (`MaterialExpressiveTheme`, `MotionScheme`, `ButtonGroup`, `WavyProgressIndicator`, `LoadingIndicator`, shape morphing via `RoundedPolygon`). **SDK posture:** `minSdk=21` (Lollipop, ~99.5% device coverage), `targetSdk=36` (Android 16), `compileSdk=36` — requires AGP 8.8.0+ + a `cimg/android` image with SDK 36 pre-installed (e.g., `cimg/android:2025.10` or later).
 
@@ -2563,7 +2565,599 @@ Final smoke-test on the user's phone, end-to-end: pick image → adjust paper / 
 git tag -a md3e-redesign-rc1 -m "MD3E redesign ready for review"
 ```
 
-Plan execution complete after F2.
+Plan execution complete after F2 — but **rc1 is intermediate, not the merge target**. Phase G adds IAP + AI upscaling before retagging as `md3e-redesign-rc2` for merge.
+
+---
+
+## Phase G — IAP + AI upscaling (paywall layer)
+
+This phase adds:
+- Google Play Billing (consumable credits at $1.99 / $4.99 / $9.99 / $19.99 SKUs)
+- TFLite Real-ESRGAN x4 INT8 on-device upscaler (always free, unlimited, anonymous-OK, offline-OK, ships preloaded in base APK assets)
+- FAL.ai → Topaz Gigapixel cloud upscaler (1 credit = 4× / 2 credits = 8×)
+- Three-Mona-Lisa low-DPI upgrade modal (uses *user's actual image* for the pixelated + on-device samples; stock for AI demo)
+- TopAppBar credit balance badge + purchase sheet
+- Server-side dynamic credit-grant computation per `docs/superpowers/pricing-policy.md` (50% gross margin on each SKU after Play Store fee + FAL/Topaz cost + Firebase Storage retention)
+- Anonymous → Google account credit-merge handler (server-side, atomic, refuses if Google UID already has a `/users` doc)
+
+**Pre-decisions (locked):**
+- On-device upscaling: always free, no limits, no watermark, anonymous OK, offline OK.
+- AI upscaling: requires Google sign-in. No free trial at launch (revisit if revenue allows loss leader).
+- Anonymous users: cannot buy credits, cannot AI-upscale, no server-side history. Modal blocks them at the purchase step and offers Google sign-in.
+- Pricing dynamic per `docs/superpowers/pricing-policy.md`. Read it before implementing G2.
+- TFLite Real-ESRGAN x4 INT8 (~60 MB) preloaded in base APK assets — no on-demand download.
+- 1 credit = 1× 4× upscale; 2 credits = 1× 8× upscale (or 6× if Topaz caps below 8×).
+
+### File structure additions
+
+**Created:**
+| Path | Responsibility |
+|---|---|
+| `app/src/main/kotlin/com/pdfposter/billing/BillingRepository.kt` | Play Billing v7 wrapper (purchase, restore, acknowledge) |
+| `app/src/main/kotlin/com/pdfposter/billing/CreditPricing.kt` | Reads `/pricing/current` from backend; produces per-SKU display strings |
+| `app/src/main/kotlin/com/pdfposter/billing/CreditBalance.kt` | StateFlow<Int> exposing user's current credit balance |
+| `app/src/main/kotlin/com/pdfposter/ml/UpscalerOnDevice.kt` | TFLite Real-ESRGAN x4 wrapper, NNAPI delegate, suspend function returning `Bitmap` |
+| `app/src/main/kotlin/com/pdfposter/ml/UpscalerRemote.kt` | Cloud Function client for `/upscale`; polls job status |
+| `app/src/main/kotlin/com/pdfposter/ui/components/LowDpiUpgradeModal.kt` | Three-Mona-Lisa modal Composable; computes pixelated + on-device thumbnails inline |
+| `app/src/main/kotlin/com/pdfposter/ui/components/CreditBadge.kt` | TopAppBar trailing icon + numeric badge, opens purchase sheet on tap |
+| `app/src/main/kotlin/com/pdfposter/ui/components/PurchaseSheet.kt` | Bottom sheet listing SKUs from Play Billing, transaction history list |
+| `app/src/main/assets/realesrgan_x4plus_int8.tflite` | The model binary (~60 MB) |
+| `backend/functions/src/pricing.ts` | `/pricing` GET endpoint + daily cron `refreshPricing` |
+| `backend/functions/src/redeem.ts` | `/redeemPurchase` POST endpoint with Google Play Developer API verification |
+| `backend/functions/src/upscale.ts` | `/upscale` POST + `/upscaleStatus` GET endpoints; FAL/Topaz call orchestration |
+| `backend/functions/src/rtdn.ts` | RTDN webhook for refunds → atomic credit reversal |
+| `backend/functions/src/auth.ts` | Anonymous-to-Google account merge function |
+| `firestore.rules` | Updated rules locking `/users/{uid}.credits` to server-write-only |
+| `app/src/main/res/drawable/ai_upscale_demo.png` | Stock "AI upscaled" example for the modal (don't burn a real credit on demo) |
+
+**Modified:**
+| Path | Why |
+|---|---|
+| `app/build.gradle.kts` | Add `com.android.billingclient:billing-ktx:7.1.1`, `org.tensorflow:tensorflow-lite:2.16.1`, `org.tensorflow:tensorflow-lite-support:0.4.4`, `org.tensorflow:tensorflow-lite-gpu:2.16.1`. Bump `aaptOptions.noCompress` to include `*.tflite` (TFLite needs uncompressed assets for mmap). |
+| `app/src/main/AndroidManifest.xml` | Add `<uses-permission android:name="com.android.vending.BILLING" />` |
+| `app/src/main/kotlin/com/pdfposter/MainActivity.kt` | Wire `CreditBadge` into `CenterAlignedTopAppBar` actions; observe `CreditBalance.flow` |
+| `app/src/main/kotlin/com/pdfposter/MainViewModel.kt` | Add `creditBalance: StateFlow<Int>`, `currentDpi(): Float`, `showLowDpiModal: MutableState<Boolean>`; trigger modal when DPI < 150 |
+| `app/src/main/kotlin/com/pdfposter/data/backend/BackendDtos.kt` | Add `PricingResponseDto`, `SkuDto`, `RedeemRequestDto`, `RedeemResponseDto`, `UpscaleRequestDto`, `UpscaleStatusDto` (all `@Serializable`) |
+| `app/src/main/kotlin/com/pdfposter/data/backend/BackendApi.kt` | Add `getPricing()`, `redeemPurchase()`, `requestUpscale()`, `getUpscaleStatus()` |
+| `app/src/main/kotlin/com/pdfposter/ui/components/PosterPreview.kt` | Surface low-DPI warning as a tappable card; tap opens `LowDpiUpgradeModal` |
+
+### Verification model
+
+Same as prior phases: Cloud Build verifies compile + R8 minify on the new dependencies. Manual A26 sideload covers the actual Billing flow (Play Billing requires real device test).
+
+### Tasks G1 through G13
+
+(Each task ends with `- [ ]` checkboxes per the existing plan format. Code blocks are full text, not placeholders.)
+
+### Task G1: Play Console product creation
+
+**Files:** none (Play Console UI work).
+
+- [ ] **Step 1**: Confirm app uploaded to Play Console Internal Track at least once. Required to unlock the in-app products tab.
+- [ ] **Step 2**: Create four consumable products in Play Console → Monetization → Products → In-app products:
+  - `credits_small` $1.99 — "15 AI upscale credits"
+  - `credits_medium` $4.99 — "40 AI upscale credits"
+  - `credits_large` $9.99 — "85 AI upscale credits"
+  - `credits_jumbo` $19.99 — "180 AI upscale credits"
+  Set "Active" status.
+  Save the product IDs into `BillingRepository.kt` later.
+- [ ] **Step 3**: Enable Real-Time Developer Notifications in Play Console → Monetization setup → RTDN → Pub/Sub topic `gs://static-webbing-461904-c4/play-rtdn`. Note the topic name; G6 wires the Cloud Function trigger to it.
+- [ ] **Step 4**: Generate a service account key with `Android Publisher` role for the Google Play Developer API. Store as a Cloud Functions secret named `PLAY_DEVELOPER_API_KEY` via:
+  ```bash
+  gcloud secrets create PLAY_DEVELOPER_API_KEY --replication-policy=automatic
+  cat play-developer-key.json | gcloud secrets versions add PLAY_DEVELOPER_API_KEY --data-file=-
+  ```
+  G4 reads this secret.
+
+### Task G2: `/pricing` endpoint + daily cron
+
+**Files:**
+- Create: `backend/functions/src/pricing.ts`
+- Modify: `backend/functions/src/index.ts` to export the new functions
+
+- [ ] **Step 1: Write `backend/functions/src/pricing.ts`**
+
+```typescript
+import * as functions from 'firebase-functions/v2';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { getFirestore } from 'firebase-admin/firestore';
+import { defineSecret } from 'firebase-functions/params';
+
+const FAL_KEY = defineSecret('FAL_KEY');
+
+const SKUS = ['credits_small', 'credits_medium', 'credits_large', 'credits_jumbo'] as const;
+const SKU_PRICES_USD: Record<string, number> = {
+  credits_small: 1.99, credits_medium: 4.99, credits_large: 9.99, credits_jumbo: 19.99,
+};
+const PLAY_FEE_RATE = 0.15;
+const TARGET_GROSS_MARGIN = 0.50;
+
+interface PricingDoc {
+  costPerCreditUsd: number;
+  products: Array<{ id: string; credits: number; priceUsd: number }>;
+  updatedAt: FirebaseFirestore.Timestamp;
+  falModelCostUsd: number;
+}
+
+async function fetchFalCostPerCredit(falKey: string): Promise<number> {
+  // FAL Topaz Gigapixel returns price in their account API. Endpoint TBD —
+  // for v1, return a hardcoded $0.05 and audit monthly. When FAL exposes a
+  // pricing API, replace this stub.
+  return 0.05;
+}
+
+function computeCreditsForPrice(priceUsd: number, costPerCredit: number): number {
+  const netRevenue = priceUsd * (1 - PLAY_FEE_RATE);
+  const costBudget = netRevenue * (1 - TARGET_GROSS_MARGIN);
+  return Math.floor(costBudget / costPerCredit);
+}
+
+export const getPricing = functions.https.onRequest(async (req, res) => {
+  const db = getFirestore();
+  const doc = await db.doc('pricing/current').get();
+  if (!doc.exists) {
+    res.status(503).json({ error: 'pricing not yet computed' });
+    return;
+  }
+  res.json(doc.data());
+});
+
+export const refreshPricing = onSchedule(
+  { schedule: '0 6 * * *', timeZone: 'UTC', secrets: [FAL_KEY] },
+  async () => {
+    const cost = await fetchFalCostPerCredit(FAL_KEY.value());
+    const products = SKUS.map(id => ({
+      id,
+      credits: computeCreditsForPrice(SKU_PRICES_USD[id], cost),
+      priceUsd: SKU_PRICES_USD[id],
+    }));
+    await getFirestore().doc('pricing/current').set({
+      costPerCreditUsd: cost,
+      falModelCostUsd: cost,
+      products,
+      updatedAt: new Date(),
+    } as Partial<PricingDoc>);
+  }
+);
+```
+
+- [ ] **Step 2: Update `backend/functions/src/index.ts` to export**
+
+```typescript
+export { getPricing, refreshPricing } from './pricing';
+```
+
+- [ ] **Step 3: Manually run the cron once via gcloud** to seed `/pricing/current`:
+
+```bash
+gcloud scheduler jobs run refreshPricing --location=us-central1
+```
+
+- [ ] **Step 4: Verify** with `gcloud firestore documents list pricing` or via Firebase Console.
+
+### Task G3: BillingClient v7 integration
+
+**Files:**
+- Create: `app/src/main/kotlin/com/pdfposter/billing/BillingRepository.kt`
+- Create: `app/src/main/kotlin/com/pdfposter/billing/CreditPricing.kt`
+- Modify: `app/build.gradle.kts` (add billing-client dep)
+
+- [ ] **Step 1: Add billing dep** to `app/build.gradle.kts` dependencies block:
+
+```kotlin
+implementation("com.android.billingclient:billing-ktx:7.1.1")
+```
+
+- [ ] **Step 2: Add BILLING permission** to `app/src/main/AndroidManifest.xml` `<manifest>` element:
+
+```xml
+<uses-permission android:name="com.android.vending.BILLING" />
+```
+
+- [ ] **Step 3: Write `BillingRepository.kt`** — full implementation with `BillingClient.startConnection`, `queryProductDetailsAsync`, `launchBillingFlow`, `queryPurchasesAsync` (for restore), `acknowledgePurchase`, and `consumeAsync` (consumables). Wires to a `Flow<List<Purchase>>` for `MainViewModel`. (Detailed code: ~150 lines; see `requesting-code-review/billing-template.md` for the canonical Play Billing v7 boilerplate, or write from `developer.android.com/google/play/billing/integrate`.)
+
+- [ ] **Step 4: Write `CreditPricing.kt`** — Ktor client call to `/pricing` endpoint, returns `Flow<List<SkuDto>>` with credit counts per SKU. Cache for 1 hour locally.
+
+### Task G4: `/redeemPurchase` endpoint + Play Developer API verification
+
+**Files:**
+- Create: `backend/functions/src/redeem.ts`
+- Modify: `backend/functions/src/index.ts`
+
+- [ ] **Step 1: Install Google Play Developer API client** in `backend/functions/`:
+
+```bash
+cd backend/functions
+npm install googleapis
+```
+
+- [ ] **Step 2: Write `redeem.ts`** with full Google Play Developer API v3 verification:
+
+```typescript
+import * as functions from 'firebase-functions/v2';
+import { google } from 'googleapis';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { defineSecret } from 'firebase-functions/params';
+
+const PLAY_DEVELOPER_API_KEY = defineSecret('PLAY_DEVELOPER_API_KEY');
+
+export const redeemPurchase = functions.https.onCall(
+  { secrets: [PLAY_DEVELOPER_API_KEY] },
+  async (request) => {
+    if (!request.auth) throw new functions.https.HttpsError('unauthenticated', 'sign-in required');
+    if (request.auth.token.firebase.sign_in_provider === 'anonymous') {
+      throw new functions.https.HttpsError('permission-denied', 'anonymous accounts cannot purchase');
+    }
+
+    const { purchaseToken, productId } = request.data as { purchaseToken: string; productId: string };
+    const uid = request.auth.uid;
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: JSON.parse(PLAY_DEVELOPER_API_KEY.value()),
+      scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+    });
+    const androidPublisher = google.androidpublisher({ version: 'v3', auth });
+
+    const purchase = await androidPublisher.purchases.products.get({
+      packageName: 'com.pdfposter',
+      productId,
+      token: purchaseToken,
+    });
+    if (purchase.data.purchaseState !== 0) {
+      throw new functions.https.HttpsError('failed-precondition', `purchase state ${purchase.data.purchaseState}, not purchased`);
+    }
+    if (purchase.data.acknowledgementState === 1) {
+      throw new functions.https.HttpsError('already-exists', 'purchase already redeemed');
+    }
+
+    const db = getFirestore();
+    const pricing = (await db.doc('pricing/current').get()).data();
+    if (!pricing) throw new functions.https.HttpsError('internal', 'pricing not computed yet');
+    const product = pricing.products.find((p: any) => p.id === productId);
+    if (!product) throw new functions.https.HttpsError('invalid-argument', `unknown product ${productId}`);
+
+    await db.runTransaction(async (txn) => {
+      const userRef = db.doc(`users/${uid}`);
+      const userSnap = await txn.get(userRef);
+      const current = userSnap.data()?.credits ?? 0;
+      txn.set(userRef, {
+        credits: current + product.credits,
+        lastPurchaseToken: purchaseToken,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      txn.set(db.collection(`users/${uid}/transactions`).doc(), {
+        type: 'grant',
+        amount: product.credits,
+        purchaseToken,
+        productId,
+        timestamp: FieldValue.serverTimestamp(),
+      });
+    });
+
+    await androidPublisher.purchases.products.acknowledge({
+      packageName: 'com.pdfposter',
+      productId,
+      token: purchaseToken,
+    });
+
+    return { creditsGranted: product.credits };
+  }
+);
+```
+
+- [ ] **Step 3: Export from `index.ts`**: `export { redeemPurchase } from './redeem';`
+
+### Task G5: Firestore credit schema + security rules
+
+**Files:**
+- Modify: `firestore.rules`
+
+- [ ] **Step 1: Update `firestore.rules`** to lock credits to server-write-only:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // Client may write display preferences, but NOT credits.
+      allow create, update: if request.auth != null && request.auth.uid == uid
+                            && (!('credits' in request.resource.data.diff(resource.data).affectedKeys()))
+                            && (!('lastPurchaseToken' in request.resource.data.diff(resource.data).affectedKeys()));
+      match /transactions/{txId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow write: if false;  // server-only
+      }
+    }
+    match /pricing/current {
+      allow read: if true;
+      allow write: if false;  // cron only
+    }
+    match /upscaleJobs/{jobId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if false;
+    }
+  }
+}
+```
+
+- [ ] **Step 2**: Deploy via `gcloud builds submit --config=cloudbuild-backend.yaml .` (existing pipeline picks up rules).
+
+### Task G6: RTDN webhook for refunds
+
+**Files:**
+- Create: `backend/functions/src/rtdn.ts`
+- Modify: `backend/functions/src/index.ts`
+
+- [ ] **Step 1: Write `rtdn.ts`** to handle Pub/Sub messages from Play Console RTDN:
+
+```typescript
+import * as functions from 'firebase-functions/v2';
+import { onMessagePublished } from 'firebase-functions/v2/pubsub';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+
+interface RtdnMessage {
+  version: string;
+  packageName: string;
+  eventTimeMillis: string;
+  oneTimeProductNotification?: {
+    version: string;
+    notificationType: number;  // 1=PURCHASED, 2=CANCELED (refund)
+    purchaseToken: string;
+    sku: string;
+  };
+}
+
+export const handleRtdn = onMessagePublished('play-rtdn', async (event) => {
+  const data = event.data.message.json as RtdnMessage;
+  const oneTime = data.oneTimeProductNotification;
+  if (!oneTime || oneTime.notificationType !== 2) return;  // only refunds matter for credits
+
+  const db = getFirestore();
+  const txns = await db.collectionGroup('transactions')
+    .where('purchaseToken', '==', oneTime.purchaseToken)
+    .where('type', '==', 'grant')
+    .limit(1).get();
+  if (txns.empty) {
+    console.warn('refund for unknown purchaseToken', oneTime.purchaseToken);
+    return;
+  }
+  const grantTxn = txns.docs[0];
+  const userRef = grantTxn.ref.parent.parent!;
+  const grantedCredits = grantTxn.data().amount as number;
+
+  await db.runTransaction(async (txn) => {
+    const userSnap = await txn.get(userRef);
+    const current = userSnap.data()?.credits ?? 0;
+    txn.set(userRef, {
+      credits: current - grantedCredits,  // can go negative; industry-standard
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    txn.set(userRef.collection('transactions').doc(), {
+      type: 'refund',
+      amount: -grantedCredits,
+      purchaseToken: oneTime.purchaseToken,
+      productId: oneTime.sku,
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  });
+});
+```
+
+- [ ] **Step 2: Export** from `index.ts`: `export { handleRtdn } from './rtdn';`
+
+### Task G7: Anonymous → Google account credit-merge
+
+**Files:**
+- Create: `backend/functions/src/auth.ts`
+- Modify: `backend/functions/src/index.ts`
+- Modify: `app/src/main/kotlin/com/pdfposter/data/backend/AuthRepository.kt` (add post-link callback)
+
+- [ ] **Step 1: Write `auth.ts` with merge function**
+
+```typescript
+import * as functions from 'firebase-functions/v2';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+
+export const mergeAnonymousAccount = functions.https.onCall(async (request) => {
+  if (!request.auth) throw new functions.https.HttpsError('unauthenticated', 'sign-in required');
+  const { anonymousUid } = request.data as { anonymousUid: string };
+  const googleUid = request.auth.uid;
+  if (googleUid === anonymousUid) {
+    throw new functions.https.HttpsError('invalid-argument', 'cannot merge to self');
+  }
+
+  const db = getFirestore();
+  await db.runTransaction(async (txn) => {
+    const targetSnap = await txn.get(db.doc(`users/${googleUid}`));
+    if (targetSnap.exists && (targetSnap.data()?.credits ?? 0) > 0) {
+      throw new functions.https.HttpsError('failed-precondition', 'target account already has credits; refusing merge');
+    }
+    const sourceSnap = await txn.get(db.doc(`users/${anonymousUid}`));
+    const sourceCredits = sourceSnap.data()?.credits ?? 0;
+    if (sourceCredits === 0) return;
+    txn.set(db.doc(`users/${googleUid}`), {
+      credits: FieldValue.increment(sourceCredits),
+      mergedFromAnonymousUid: anonymousUid,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    txn.update(db.doc(`users/${anonymousUid}`), { credits: 0, mergedToUid: googleUid });
+    txn.set(db.collection(`users/${googleUid}/transactions`).doc(), {
+      type: 'merge',
+      amount: sourceCredits,
+      fromUid: anonymousUid,
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  });
+
+  return { merged: true };
+});
+```
+
+- [ ] **Step 2: Update `AuthRepository.kt`** so that after `linkWithCredential` succeeds, it calls `mergeAnonymousAccount` with the prior anonymous UID. Capture the anonymous UID before the link.
+
+### Task G8: TFLite Real-ESRGAN x4 integration
+
+**Files:**
+- Create: `app/src/main/kotlin/com/pdfposter/ml/UpscalerOnDevice.kt`
+- Create: `app/src/main/assets/realesrgan_x4plus_int8.tflite` (~60 MB binary)
+- Modify: `app/build.gradle.kts` (add tflite + tflite-gpu deps; aaptOptions for `.tflite`)
+
+- [ ] **Step 1: Add TFLite deps** to `app/build.gradle.kts`:
+
+```kotlin
+implementation("org.tensorflow:tensorflow-lite:2.16.1")
+implementation("org.tensorflow:tensorflow-lite-gpu:2.16.1")
+implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+```
+
+And in `android { ... aaptOptions { ... } }`:
+
+```kotlin
+aaptOptions { noCompress.add("tflite") }
+```
+
+- [ ] **Step 2: Download model**:
+
+```bash
+# Run once on dev machine (model is too large to commit; will need Git LFS or pull at build time)
+mkdir -p app/src/main/assets
+wget https://huggingface.co/spaces/Phips/Upscaler/resolve/main/realesrgan_x4plus_int8.tflite \
+     -O app/src/main/assets/realesrgan_x4plus_int8.tflite
+```
+
+(If model isn't on HF: convert PyTorch Real-ESRGAN x4plus weights via `tf.lite.TFLiteConverter` with INT8 post-training quantization.)
+
+- [ ] **Step 3: Set up Git LFS** (model is ~60 MB, exceeds GitHub's 100 MB hard limit warning):
+
+```bash
+git lfs install
+git lfs track "*.tflite"
+git add .gitattributes
+git add app/src/main/assets/realesrgan_x4plus_int8.tflite
+git commit -m "feat(ml): vendor Real-ESRGAN x4 INT8 model"
+```
+
+- [ ] **Step 4: Write `UpscalerOnDevice.kt`** — Coroutine-based suspend function. Loads model from assets via `Interpreter`, sets up NNAPI delegate, processes 1024×1024 input → 4096×4096 output, returns Bitmap. (Detailed code: ~120 lines; canonical reference: `tensorflow.org/lite/android/inference`.)
+
+### Task G9: `/upscale` Cloud Function (FAL/Topaz)
+
+**Files:**
+- Create: `backend/functions/src/upscale.ts`
+- Create: `app/src/main/kotlin/com/pdfposter/ml/UpscalerRemote.kt`
+
+- [ ] **Step 1: Write `upscale.ts`** — POST endpoint accepts `{ tier: '4x'|'8x', inputUrl: string }`. Validates user has enough credits (1 or 2). Atomically decrements credits + creates `upscaleJobs/{id}` doc. Calls FAL Topaz API. Polls FAL job to completion, downloads result, uploads to Firebase Storage `upscaled/{userId}/{jobId}.png`, updates Firestore job doc. Returns jobId for client to poll. (~200 lines TypeScript.)
+- [ ] **Step 2: Write `UpscalerRemote.kt`** — Ktor client wrapping `requestUpscale()` + `pollUpscaleJob(jobId)`. Polls every 2 seconds. Returns final URL or error.
+
+### Task G10: Three-Mona-Lisa low-DPI upgrade modal
+
+**Files:**
+- Create: `app/src/main/kotlin/com/pdfposter/ui/components/LowDpiUpgradeModal.kt`
+- Modify: `app/src/main/kotlin/com/pdfposter/ui/components/PosterPreview.kt` (surface DPI warning as tappable card)
+
+- [ ] **Step 1: Compute current DPI** in `PosterPreview.kt`:
+
+```kotlin
+val sourcePixelW = previewBitmap?.width ?: 0
+val posterWInches = pw  // already a Double
+val currentDpi = if (posterWInches > 0) (sourcePixelW / posterWInches).toFloat() else 0f
+val isLowDpi = currentDpi in 1f..149.99f
+```
+
+- [ ] **Step 2: Surface as tappable warning card** when `isLowDpi`:
+
+```kotlin
+if (isLowDpi) {
+    var showModal by remember { mutableStateOf(false) }
+    Card(
+        onClick = { showModal = true },
+        modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+    ) {
+        Text("Low resolution: ${currentDpi.toInt()} DPI. Tap to upscale ↑",
+            modifier = Modifier.padding(12.dp))
+    }
+    if (showModal) {
+        LowDpiUpgradeModal(
+            sourceBitmap = previewBitmap!!,
+            currentDpi = currentDpi,
+            onDismiss = { showModal = false },
+        )
+    }
+}
+```
+
+- [ ] **Step 3: Write `LowDpiUpgradeModal.kt`** — `ModalBottomSheet` with three side-by-side image columns (pixelated / on-device / AI), DPI labels per column, two action buttons (Free upscale / 1 credit AI 4× / 2 credits AI 8×), credit balance display, sign-in prompt for anonymous users. Pixelated thumbnail produced inline by downsampling source to 50% then upsampling with nearest-neighbor; on-device thumbnail produced by running `UpscalerOnDevice` on a 256×256 thumbnail of source (1-2 sec); AI thumbnail uses static `R.drawable.ai_upscale_demo`. (~250 lines.)
+
+### Task G11: TopAppBar credit balance badge + purchase sheet
+
+**Files:**
+- Create: `app/src/main/kotlin/com/pdfposter/ui/components/CreditBadge.kt`
+- Create: `app/src/main/kotlin/com/pdfposter/ui/components/PurchaseSheet.kt`
+- Modify: `app/src/main/kotlin/com/pdfposter/MainActivity.kt` (wire CreditBadge into TopAppBar)
+
+- [ ] **Step 1: Write `CreditBadge.kt`**:
+
+```kotlin
+@Composable
+fun CreditBadge(balance: Int, onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        BadgedBox(badge = { if (balance > 0) Badge { Text(balance.toString()) } }) {
+            Icon(Icons.Default.AutoAwesome, contentDescription = "AI credits")
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Wire into MainActivity's CenterAlignedTopAppBar** actions slot (next to history button):
+
+```kotlin
+actions = {
+    val balance by viewModel.creditBalance.collectAsState()
+    CreditBadge(balance = balance, onClick = { viewModel.showPurchaseSheet = true })
+    // ... existing actions ...
+}
+```
+
+- [ ] **Step 3: Write `PurchaseSheet.kt`** — `ModalBottomSheet` listing all 4 SKUs with dynamic credit amounts from `CreditPricing.flow`; tapping a SKU calls `BillingRepository.launchPurchase(sku)`; transaction history list below.
+
+### Task G12: Connect `HistoryItem` to actual upscale flow
+
+**Files:**
+- Modify: `app/src/main/kotlin/com/pdfposter/data/backend/BackendModels.kt` (add upscale-specific fields)
+- Modify: `app/src/main/kotlin/com/pdfposter/MainViewModel.kt` (call `UpscalerRemote.requestUpscale` when "AI upscale" is tapped)
+
+- [ ] **Step 1**: Connect the modal's "AI upscale" button to `viewModel.requestAiUpscale(tier: 4 or 8)`. The ViewModel calls `UpscalerRemote`, displays a progress indicator, and on completion creates a `HistoryItem(type = "upscale_remote", ...)`.
+- [ ] **Step 2**: Connect "Free upscale" to `UpscalerOnDevice.upscale(bitmap)`, save result to `HistoryItem(type = "upscale_local", ...)`.
+
+### Task G13: End-to-end testing
+
+**Files:** none (manual testing)
+
+- [ ] **Step 1: Cloud Build all backend changes**: `gcloud builds submit --config=cloudbuild-backend.yaml .`
+- [ ] **Step 2: Cloud Build APK**: `gcloud builds submit --config=cloudbuild.yaml .`
+- [ ] **Step 3: Sideload AAB to A26**: download from `gs://static-webbing-461904-c4_artifacts/build/`, install via Files app.
+- [ ] **Step 4: Test matrix**:
+  - On-device upscale, anonymous, offline (airplane mode) → succeeds
+  - On-device upscale, signed in → succeeds, history record created
+  - Tap purchase as anonymous → modal blocks, prompts Google sign-in
+  - Sign in with Google → modal proceeds
+  - Buy `credits_small` (test card) → balance updates from 0 to N (per current pricing)
+  - Trigger AI 4× upscale → 1 credit deducted, FAL Topaz call succeeds, result saved to history
+  - Trigger AI 8× upscale → 2 credits deducted
+  - Refund the test purchase via Play Console → RTDN fires → balance decrements (verify via Firestore Console)
+  - Restart app → balance + history still correct
+  - Insufficient credits → modal shows "buy more"
+- [ ] **Step 5: Re-tag**:
+
+```bash
+git tag -d md3e-redesign-rc1   # delete old tag locally
+git push origin :refs/tags/md3e-redesign-rc1   # delete remote tag
+git tag -a md3e-redesign-rc2 -m "MD3E + IAP release candidate 2"
+git push origin md3e-redesign-rc2
+```
+
+`md3e-redesign-rc2` is the merge target.
 
 ---
 
