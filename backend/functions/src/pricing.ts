@@ -13,8 +13,11 @@ const TOPAZ_ENDPOINT_ID = 'fal-ai/topaz/upscale/image';
 const FAL_PRICING_URL = 'https://api.fal.ai/v1/models/pricing';
 
 const SKUS = ['credits_small', 'credits_medium', 'credits_large', 'credits_jumbo'] as const;
+// SKU ladder rescaled upward 2026-05-02 once live FAL pricing showed
+// per-megapixel cost — the original $1.99 entry tier couldn't profitably
+// issue even one credit at realistic Topaz output sizes. New floor: $4.99.
 const SKU_PRICES_USD: Record<string, number> = {
-  credits_small: 1.99, credits_medium: 4.99, credits_large: 9.99, credits_jumbo: 19.99,
+  credits_small: 4.99, credits_medium: 9.99, credits_large: 19.99, credits_jumbo: 39.99,
 };
 const PLAY_FEE_RATE = 0.15;
 const TARGET_GROSS_MARGIN = 0.50;
