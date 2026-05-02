@@ -141,8 +141,14 @@ dependencies {
     // Substituted from the plan's "Real-ESRGAN x4 INT8" because no canonical
     // TFLite distribution of Real-ESRGAN exists publicly without a custom
     // PyTorch->TFLite conversion. ESRGAN-TF2 is FP32, ~5MB, x4 upscaler.
+    //
+    // NOTE: tensorflow-lite-gpu is intentionally NOT included. UpscalerOnDevice
+    // uses NnApiDelegate, not GPU. Including the gpu artifact pulled in classes
+    // (GpuDelegateFactory$Options$GpuBackend) that R8 couldn't resolve in the
+    // release minify step — see GH Actions run 25263859798 (2026-05-02). To
+    // re-add later: also add `-dontwarn org.tensorflow.lite.gpu.**` to
+    // proguard-rules.pro and switch UpscalerOnDevice to GpuDelegate.
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
-    implementation("org.tensorflow:tensorflow-lite-gpu:2.16.1")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
 
     testImplementation("junit:junit:4.13.2")
