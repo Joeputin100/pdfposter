@@ -346,4 +346,32 @@ Phase G introduces a multi-input/multi-output economic loop — Play Store reven
 
 ---
 
+## TODO 11 — Server-side input-dimension verification (anti-abuse for variable credit cost)
+
+**Status:** Future. Captured during the Phase G economics revision (2026-05-02). Not blocking v1 launch since there's a single trusted user.
+
+**Why this matters:**
+Per `plans/2026-05-02-phase-g-economics-revision.md` (G-R9), credit cost now scales with `inputMp × scale²`. The client computes `inputMp` from the bitmap header before calling `requestUpscale` and the server trusts the value for the debit. A malicious client could under-report `inputMp` (e.g., claim 1 MP when actually sending 50 MP) to under-pay credits. With a single user this is paper; once the app has scale, it's a real loss vector.
+
+**The fix:**
+After FAL completes a job, the response includes the output image URL. Either:
+- HEAD the URL and parse `Content-Length` + image-format magic bytes to derive output dimensions, or
+- Range-request the first ~1 KB and parse JPEG/PNG/WEBP headers directly.
+
+Compute `actual_output_mp` from the header. Verify `actual_output_mp / scale² > claimed_input_mp × 1.05` is false (5% tolerance for compression rounding). On failure:
+1. Log a fraud event to Cloud Logging at `WARNING` (so Cloud Monitoring can alert)
+2. Compute `additional_credits_owed = ceil((actual_output_mp - claimed_output_mp) / 5)`
+3. Idempotently increment `users/{uid}.credits_owed` (a separate balance the user must clear before the next purchase)
+4. Mark `upscaleTransactions/{txId}.fraud_flag = true`
+
+**Where this lives:**
+`backend/functions/src/upscale.ts` — extend the success path between `extractOutputUrl()` and the final `set({status: 'succeeded'})`. Don't refund or undo; the user already got their upscale. Just charge the difference.
+
+**Tighter alternative (consider for v2):**
+Verify dimensions BEFORE submit by reading the input from Storage. Adds 1-2 seconds of latency but closes the abuse window completely. Requires `getStorage().bucket().file(...).download()` + metadata parse. Pre-debit verification means we never under-charge.
+
+**Estimate:** 2 hours.
+
+---
+
 ## (Append future deferrals here)

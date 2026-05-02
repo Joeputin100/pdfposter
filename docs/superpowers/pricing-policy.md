@@ -10,14 +10,26 @@ This decouples customer-facing price anchors (which Google Play won't let us cha
 
 ## Tier model
 
-Two upscale tiers, both gated by credits:
+Two upscale tiers, both gated by credits. **Credit cost varies with output area** (revised 2026-05-02 — see `plans/2026-05-02-phase-g-economics-revision.md`):
 
-| Tier | Linear scale | Typical output | Cost in credits |
-|---|---|---|---|
-| Standard AI | 4× | ~3840×2160 (~8 MP) | **1 credit** |
-| Premium AI | 8× (or 6× capped by Topaz) | ~7680×4320 (~33 MP) | **2 credits** |
+```
+output_mp = input_mp × scale²        # 4× → 16× area, 8× → 64× area
+credits   = ceil(output_mp / 5)      # 1 credit = 5 MP of FAL output capacity
+```
 
-On-device upscaling (TFLite Real-ESRGAN x4) is **always free**, no limits, no watermark, works anonymously, works offline. Gates: none.
+| Input | 4× output (MP) | 4× cost | 8× output (MP) | 8× cost |
+|---|---|---|---|---|
+| 4 MP | 64 MP | 13 credits | 256 MP | 52 credits |
+| 6 MP | 96 MP | 20 credits | 384 MP | 77 credits |
+| 12 MP (typical phone) | 192 MP | 39 credits | 768 MP | 154 credits |
+| 24 MP | 384 MP | 77 credits | 1536 MP | 308 credits |
+| 50 MP (S25 / 16 Pro ProRAW) | 800 MP | 160 credits | 3200 MP | 640 credits |
+
+The client surfaces the credit count + USD-equivalent before the user commits, so variable cost stays predictable from their side. **No input cap.** Server-side dimension verification (TODO 11) catches misreporting after FAL responds.
+
+On-device upscaling (TFLite ESRGAN x4) is **always free**, no limits, no watermark, works anonymously, works offline — gated only by device RAM (32-bit + low-memory devices may not be capable; the client checks before offering).
+
+**3rd-party upscale is free** — users can bring an image already upscaled by Canva, OpenArt, Topaz Photo AI, Magnific, or anything else. The PosterPDF poster pipeline is free with any input. AI upscale credits only cover the FAL inference cost.
 
 ## SKU ladder
 
@@ -36,27 +48,28 @@ These prices **never change**. Local-currency conversions handled by Play Store 
 
 ## Credit grant formula
 
-For revenue `R` (post-tax, pre-Play-fee), Google takes 15% (or 30% above $1M annual). Server-side cost-per-credit `C` (sum of FAL/Topaz fee + Firebase Storage retention).
+For revenue `R` (post-tax, pre-Play-fee), Google takes 15% (or 30% above $1M annual). Server-side cost-per-credit `C` is derived from FAL's per-megapixel rate × `MP_PER_CREDIT` (currently 5):
 
 ```
+C              = fal_unit_price_per_mp × MP_PER_CREDIT   # = $0.01 × 5 = $0.05/credit
 revenue_net    = R × 0.85
 target_profit  = revenue_net × 0.50    # 50% gross margin
 cost_budget    = revenue_net × 0.50
 credits        = floor(cost_budget / C)
 ```
 
-**Worked example** at the rescaled ladder, evaluated against the *old* `C = $0.05/credit` placeholder for shape comparison only — the real `C` is per-megapixel and still being settled (see TODO 10):
+50% gross margin holds at every output size because both revenue (SKU $/credit) and cost (FAL $/credit) are proportional to credits.
+
+**Worked example** at `C = $0.05/credit` (FAL `$0.01/MP × MP_PER_CREDIT=5`):
 
 | SKU | Price | Math | Credits granted | Effective $/credit |
 |---|---|---|---|---|
-| `credits_small` | $4.99 | floor(4.99 × 0.85 × 0.50 / 0.05) = floor(42.4) | **40** | $0.125 |
-| `credits_medium` | $9.99 | floor(84.9) | **85** | $0.118 |
-| `credits_large` | $19.99 | floor(169.9) | **180** | $0.111 |
-| `credits_jumbo` | $39.99 | floor(339.9) | **380** | $0.105 |
+| `credits_small` | $4.99 | floor(4.99 × 0.85 × 0.50 / 0.05) = floor(42.4) | **42** | $0.119 |
+| `credits_medium` | $9.99 | floor(84.9) | **84** | $0.119 |
+| `credits_large` | $19.99 | floor(169.9) | **169** | $0.118 |
+| `credits_jumbo` | $39.99 | floor(339.9) | **339** | $0.118 |
 
-Larger packs receive minor volume discounts via the floor() rounding asymmetry; tweakable per launch.
-
-These credit grants are **fallback placeholders** (mirrored in `CreditPricing.kt` and `PurchaseSheet.kt`); production grants will come from the daily `refreshPricing` cron once a per-megapixel cost model lands. Until then the cron fail-closes (throws on `unit !== "image"`) and `pricing/current` is never written.
+The fallbacks in `CreditPricing.kt` / `PurchaseSheet.kt` carry slightly rounder numbers (40 / 85 / 180 / 380) for offline display; production grants come from the `refreshPricing` cron writing `/pricing/current` daily.
 
 ## Dynamic pricing flow
 
