@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,6 +54,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -596,6 +599,73 @@ fun PosterPreview(viewModel: MainViewModel) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             LegendSwatch(Color(0xFF0A3D62).copy(alpha = 0.55f), "Margin")
             LegendSwatch(Color(0xFFFF6F00).copy(alpha = 0.55f), "Overlap")
+        }
+
+        // Low-DPI surface (Plan G10 Step 1+2). Computes effective DPI from the
+        // source bitmap's pixel width over the configured poster width; if it
+        // falls in the warning band (1..149), shows a tappable card that opens
+        // the three-Mona-Lisa upgrade modal.
+        val sourcePixelW = previewBitmap?.width ?: 0
+        val posterWInchesD = viewModel.posterWidth.toDoubleOrNull() ?: 0.0
+        val posterHInchesD = viewModel.posterHeight.toDoubleOrNull() ?: 0.0
+        val currentDpi = if (posterWInchesD > 0) (sourcePixelW / posterWInchesD).toFloat() else 0f
+        val isLowDpi = currentDpi in 1f..149.99f
+        if (isLowDpi && previewBitmap != null) {
+            var showLowDpiModal by remember { mutableStateOf(false) }
+            Spacer(Modifier.height(8.dp))
+            Card(
+                onClick = { showLowDpiModal = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                ),
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                Text(
+                    "Low resolution: ${currentDpi.toInt()} DPI · Tap to upscale ↑",
+                    modifier = Modifier.padding(12.dp),
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            if (showLowDpiModal) {
+                val src = previewBitmap!!
+                // inputMp / inputBytes are derived from the preview bitmap that's
+                // already in memory. For the real pipeline this will come from
+                // the source URI before any downsampling, but the preview
+                // bitmap is a reasonable proxy for the modal's first paint.
+                val srcAndroid = src.asAndroidBitmap()
+                val inputMpInt = ((srcAndroid.width.toLong() * srcAndroid.height) / 1_000_000L)
+                    .toInt()
+                    .coerceAtLeast(1)
+                val inputBytesL = srcAndroid.byteCount.toLong()
+                LowDpiUpgradeModal(
+                    sourceBitmap = src,
+                    inputMp = inputMpInt,
+                    inputBytes = inputBytesL,
+                    currentDpi = currentDpi,
+                    posterWInches = posterWInchesD,
+                    posterHInches = posterHInchesD,
+                    // TODO(G12): replace placeholder 0 with viewModel.creditBalance.collectAsState().value
+                    creditBalance = 0,
+                    // TODO(G12): replace 0.119 with usdPerCredit derived from
+                    // pricing/current; 0.119 is the SKU-ladder default at 50% margin.
+                    usdPerCredit = 0.119,
+                    // TODO(G12): replace placeholder true with viewModel.isAnonymous.collectAsState().value
+                    isAnonymous = true,
+                    onDismiss = { showLowDpiModal = false },
+                    // TODO(G12): wire to viewModel.runFreeUpscale()
+                    onFreeUpscale = { showLowDpiModal = false },
+                    // TODO(G12): wire to viewModel.runAiUpscale(tier, inputMpInt)
+                    onAiUpscale = { _ -> showLowDpiModal = false },
+                    // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
+                    onPickAlreadyUpscaled = { showLowDpiModal = false },
+                    // TODO(G12): wire to viewModel.signInWithGoogle()
+                    onSignIn = { showLowDpiModal = false },
+                    // TODO(G12): wire to viewModel.openPurchaseSheet()
+                    onBuyCredits = { showLowDpiModal = false },
+                )
+            }
         }
     }
 }
