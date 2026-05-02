@@ -3,6 +3,7 @@ package com.pdfposter.ui.components
 import android.graphics.BitmapFactory
 import android.graphics.Paint
 import android.graphics.RuntimeShader
+import android.os.Build
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -30,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,8 +44,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.ShaderBrush
@@ -60,11 +64,16 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.pdfposter.MainViewModel
+import com.pdfposter.ui.components.preview.AssemblyPhase
+import com.pdfposter.ui.components.preview.drawScotchTape
+import com.pdfposter.ui.components.preview.drawThumbTack
+import com.pdfposter.ui.util.Hapt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -153,6 +162,35 @@ fun PosterPreview(viewModel: MainViewModel) {
     val autoCurl = sin((t * 2f * Math.PI).toFloat()).coerceAtLeast(0f)
     val globalCurl = max(tapCurl, autoCurl)
 
+    // Phase D: 12-second Assembly Cycle clock + per-phase derived state.
+    // The cycle (and the AGSL workbench shader, and the decoration draws) are gated
+    // on API 33+ because RuntimeShader is API 33. On older devices the preview is
+    // the static accurate Phase C output with a linear-gradient workbench fallback.
+    val cycleEnabled = Build.VERSION.SDK_INT >= 33
+    val cycleSeconds = remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(cycleEnabled) {
+        if (!cycleEnabled) return@LaunchedEffect
+        val start = System.currentTimeMillis()
+        while (true) {
+            val elapsed = (System.currentTimeMillis() - start) / 1000f
+            cycleSeconds.floatValue = elapsed % AssemblyPhase.CYCLE_SECONDS
+            delay(16)
+        }
+    }
+    val phase = AssemblyPhase.phaseAt(cycleSeconds.floatValue)
+    val phaseT = phase.localProgress(cycleSeconds.floatValue)
+
+    val hapt = Hapt(LocalHapticFeedback.current)
+
+    // One-shot confirm haptic when the cycle enters the Reveal phase.
+    val lastPhase = remember { mutableStateOf<AssemblyPhase?>(null) }
+    LaunchedEffect(phase) {
+        if (lastPhase.value != phase && phase == AssemblyPhase.Reveal) {
+            hapt.confirm()
+        }
+        lastPhase.value = phase
+    }
+
     var zoom by remember { mutableStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
 
@@ -184,7 +222,10 @@ fun PosterPreview(viewModel: MainViewModel) {
         previewBitmap = bitmap?.asImageBitmap()
     }
 
-    val woodShader = remember { RuntimeShader(WOOD_AGSL) }
+    // RuntimeShader is API 33+. On older devices we fall back to a static gradient.
+    val woodShader = remember(cycleEnabled) {
+        if (cycleEnabled) RuntimeShader(WOOD_AGSL) else null
+    }
 
     Column(
         modifier = Modifier
@@ -206,10 +247,26 @@ fun PosterPreview(viewModel: MainViewModel) {
                 .height(300.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .drawWithCache {
-                    woodShader.setFloatUniform("iResolution", size.width, size.height)
-                    woodShader.setFloatUniform("iTime", 0f)
-                    val brush = ShaderBrush(woodShader)
-                    onDrawBehind { drawRect(brush = brush, size = size) }
+                    if (woodShader != null) {
+                        woodShader.setFloatUniform("iResolution", size.width, size.height)
+                        // Subtle ambient grain scroll (was hardcoded 0f); ties into the
+                        // existing infinite transition `t`.
+                        woodShader.setFloatUniform("iTime", t * 0.6f)
+                        val brush = ShaderBrush(woodShader)
+                        onDrawBehind { drawRect(brush = brush, size = size) }
+                    } else {
+                        // API <33 fallback: warm three-stop wood gradient (no AGSL).
+                        val brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF6B4226),
+                                Color(0xFF8B5A37),
+                                Color(0xFF6B4226),
+                            ),
+                            start = Offset.Zero,
+                            end = Offset(size.width, size.height),
+                        )
+                        onDrawBehind { drawRect(brush = brush, size = size) }
+                    }
                 }
                 .shadow(8.dp),
             contentAlignment = Alignment.Center
@@ -226,6 +283,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                     }
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = { rawOffset ->
+                            hapt.tap()
                             tapAt = System.currentTimeMillis()
                             // Invert the graphicsLayer pan/zoom to land in canvas coords.
                             val pivotX = boxSize.width / 2f
@@ -314,13 +372,67 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val paneCurl = (globalCurl * 1.6f - panePos * 0.35f).coerceIn(0f, 1f)
                     val cornerCurlSize = min(pageW, pageH) * (0.08f + 0.40f * paneCurl)
 
+                    // Phase D: per-pane animation values driven by the cycle clock.
+                    // All zero when cycleEnabled=false (API <33), preserving the
+                    // static accurate Phase C output on older devices.
+                    val paneIndex = r * cols + c
+                    val panePrintT = if (cycleEnabled && phase == AssemblyPhase.Print) {
+                        val tInPhase = cycleSeconds.floatValue - paneIndex * 0.20f
+                        (tInPhase / 1.8f).coerceIn(0f, 1f)
+                    } else if (cycleEnabled && phase == AssemblyPhase.Reset) {
+                        1f - phaseT
+                    } else 1f
+                    val printY = if (panePrintT < 1f) {
+                        val tt = panePrintT
+                        (1f - tt) * 220f - sin(tt * Math.PI * 2.0).toFloat() * 8f * (1f - tt)
+                    } else 0f
+
+                    val printableWpx = layout.printableW.toFloat() * layout.scale
+                    val printableHpx = layout.printableH.toFloat() * layout.scale
+                    val targetAssembledX = layout.layoutLeft + c * (printableWpx - overlapPx)
+                    val targetAssembledY = layout.layoutTop + r * (printableHpx - overlapPx)
+                    val targetDx = targetAssembledX - pane.imageDstLeft
+                    val targetDy = targetAssembledY - pane.imageDstTop
+                    val assembleT = when (phase) {
+                        AssemblyPhase.Assemble -> if (cycleEnabled) phaseT else 0f
+                        AssemblyPhase.Reveal -> if (cycleEnabled) 1f else 0f
+                        AssemblyPhase.Reset -> if (cycleEnabled) 1f - phaseT else 0f
+                        else -> 0f
+                    }
+                    // Cubic ease-out + small sine ripple = pseudo-spring with overshoot.
+                    val springT = 1f - (1f - assembleT) * (1f - assembleT) * (1f - assembleT)
+                    val overshoot = sin(assembleT * Math.PI * 1.4).toFloat() * 0.08f * (1f - assembleT)
+                    val effT = (springT + overshoot).coerceIn(0f, 1.08f)
+                    val assembleDx = targetDx * effT
+                    val assembleDy = targetDy * effT
+
+                    // Margin tint (Trim ramps in, Assemble ramps out) + alpha (Assemble fades).
+                    val marginTintT = if (cycleEnabled) when (phase) {
+                        AssemblyPhase.Trim -> phaseT
+                        AssemblyPhase.Assemble -> 1f - phaseT
+                        else -> 0f
+                    } else 0f
+                    val paperColor = lerp(
+                        Color(0xFFFAFAF7),
+                        Color(0xFFC9C2B0), // muted "this falls away" gray
+                        marginTintT.coerceAtMost(0.7f),
+                    )
+                    val marginAlpha = if (cycleEnabled) when (phase) {
+                        AssemblyPhase.Assemble -> (1f - phaseT).coerceIn(0f, 1f)
+                        AssemblyPhase.Reveal -> 0f
+                        AssemblyPhase.Reset -> phaseT.coerceIn(0f, 1f)
+                        else -> 1f
+                    } else 1f
+
                     withTransform({
                         if (isJiggled) {
                             rotate(paneJiggleAngle, pivot = paneCenter)
                             translate(paneJiggleDx, paneJiggleDy)
                         }
+                        if (printY != 0f) translate(0f, printY)
+                        if (assembleDx != 0f || assembleDy != 0f) translate(assembleDx, assembleDy)
                     }) {
-                        drawPaperFill(dx, dy, pageW, pageH)
+                        drawPaperFill(dx, dy, pageW, pageH, paperColor = paperColor)
                         if (src != null) {
                             val srcW = src.width
                             val srcH = src.height
@@ -346,7 +458,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                         )
                         // Margin guide draws faint blue lines at the printable-area boundary.
                         // The page (paperFill) is already the white "paper", so no overlay needed.
-                        drawPaneMarginGuide(dx, dy, pageW, pageH, marginPx)
+                        drawPaneMarginGuide(dx, dy, pageW, pageH, marginPx, alpha = marginAlpha)
                         // Cut marks / outline live inside the printable area (image dst rect).
                         drawCutLineOrOutline(
                             viewModel,
@@ -412,6 +524,70 @@ fun PosterPreview(viewModel: MainViewModel) {
                         }
                     }
                 }
+
+                // Phase D: decoration draws — only on API 33+ (cycleEnabled), only
+                // when there's something to assemble (multi-pane layouts).
+                if (cycleEnabled) {
+                    val printableWpx2 = layout.printableW.toFloat() * layout.scale
+                    val printableHpx2 = layout.printableH.toFloat() * layout.scale
+
+                    // Tape strips fade in late-Assemble, hold during Reveal, fade in Reset.
+                    val tapeAppearT = when (phase) {
+                        AssemblyPhase.Assemble -> ((phaseT - 0.55f) / 0.45f).coerceIn(0f, 1f)
+                        AssemblyPhase.Reveal -> 1f
+                        AssemblyPhase.Reset -> 1f - phaseT
+                        else -> 0f
+                    }
+                    if (tapeAppearT > 0f && (cols > 1 || rows > 1)) {
+                        val tapeLen = printableWpx2 * 0.45f
+                        val tapeH = 14f
+                        // Vertical seams (between cols)
+                        for (rr in 0 until rows) {
+                            for (cc in 0 until cols - 1) {
+                                val seamX = layout.layoutLeft + (cc + 1) * (printableWpx2 - overlapPx) - overlapPx / 2f
+                                val seamY = layout.layoutTop + rr * (printableHpx2 - overlapPx) + printableHpx2 / 2f
+                                drawScotchTape(
+                                    centerX = seamX, centerY = seamY,
+                                    length = tapeLen, height = tapeH,
+                                    rotationDegrees = 90f + ((rr * 13 + cc * 7) % 9 - 4).toFloat(),
+                                    appearT = tapeAppearT,
+                                )
+                            }
+                        }
+                        // Horizontal seams (between rows)
+                        for (rr in 0 until rows - 1) {
+                            for (cc in 0 until cols) {
+                                val seamX = layout.layoutLeft + cc * (printableWpx2 - overlapPx) + printableWpx2 / 2f
+                                val seamY = layout.layoutTop + (rr + 1) * (printableHpx2 - overlapPx) - overlapPx / 2f
+                                drawScotchTape(
+                                    centerX = seamX, centerY = seamY,
+                                    length = tapeLen, height = tapeH,
+                                    rotationDegrees = ((rr * 11 + cc * 5) % 9 - 4).toFloat(),
+                                    appearT = tapeAppearT,
+                                )
+                            }
+                        }
+                    }
+
+                    // Four corner pins drop in during Reveal (staggered), fade in Reset.
+                    val pinT = when (phase) {
+                        AssemblyPhase.Reveal -> phaseT
+                        AssemblyPhase.Reset -> 1f - phaseT
+                        else -> 0f
+                    }
+                    if (pinT > 0f) {
+                        val assembledLeft = layout.layoutLeft
+                        val assembledTop = layout.layoutTop
+                        val assembledRight = layout.layoutLeft + cols * (printableWpx2 - overlapPx) + overlapPx
+                        val assembledBottom = layout.layoutTop + rows * (printableHpx2 - overlapPx) + overlapPx
+                        val tackR = 9f
+                        val inset = 6f
+                        drawThumbTack(assembledLeft + inset, assembledTop + inset, tackR, pinT)
+                        drawThumbTack(assembledRight - inset, assembledTop + inset, tackR, ((pinT - 0.10f) / 0.90f).coerceIn(0f, 1f))
+                        drawThumbTack(assembledLeft + inset, assembledBottom - inset, tackR, ((pinT - 0.20f) / 0.80f).coerceIn(0f, 1f))
+                        drawThumbTack(assembledRight - inset, assembledBottom - inset, tackR, ((pinT - 0.30f) / 0.70f).coerceIn(0f, 1f))
+                    }
+                }
             }
             }
         }
@@ -448,6 +624,7 @@ private fun LegendSwatch(color: Color, label: String) {
  */
 private fun DrawScope.drawPaperFill(
     pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    paperColor: Color = Color(0xFFFAFAF7),
 ) {
     drawRoundRect(
         color = Color.Black.copy(alpha = 0.32f),
@@ -455,7 +632,7 @@ private fun DrawScope.drawPaperFill(
         size = Size(pageWidth, pageHeight),
         cornerRadius = CornerRadius(2f, 2f),
     )
-    drawRect(Color(0xFFFAFAF7), Offset(pageLeft, pageTop), Size(pageWidth, pageHeight))
+    drawRect(paperColor, Offset(pageLeft, pageTop), Size(pageWidth, pageHeight))
 }
 
 /**
@@ -512,9 +689,11 @@ private fun DrawScope.drawPaneOverlapZones(
 private fun DrawScope.drawPaneMarginGuide(
     pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
     marginPx: Float,
+    alpha: Float = 1f,
 ) {
     if (marginPx <= 0.5f) return
-    val borderColor = Color(0xFF0A3D62).copy(alpha = 0.45f)
+    if (alpha <= 0.001f) return
+    val borderColor = Color(0xFF0A3D62).copy(alpha = 0.45f * alpha.coerceIn(0f, 1f))
     drawLine(borderColor, Offset(pageLeft + marginPx, pageTop + marginPx),
         Offset(pageLeft + pageWidth - marginPx, pageTop + marginPx), 1.2f)
     drawLine(borderColor, Offset(pageLeft + marginPx, pageTop + pageHeight - marginPx),
