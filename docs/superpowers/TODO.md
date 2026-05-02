@@ -300,4 +300,50 @@ Single job runs `gcloud firebase test android run` against real-device models fr
 
 ---
 
+## TODO 10 — FinOps module (profitability, cash flow, cost-driver dashboard)
+
+**Status:** Future. Lands once Phase G has real revenue + cost data flowing.
+
+**Why this matters:**
+Phase G introduces a multi-input/multi-output economic loop — Play Store revenue minus Play's 15% fee minus FAL inference cost minus Cloud Functions / Storage / Firestore cost = gross margin per credit. Without dedicated reporting we'll be guessing whether the 50%-target margin formula in `pricing-policy.md` is actually holding, whether one SKU subsidises another, or whether a price change at FAL has silently inverted the curve. A FinOps module surfaces all of that in one place.
+
+**Data sources to unify:**
+- **Revenue:** Play Store reports (CSV export from Play Console; eventually the Play Developer Reporting API). Per-SKU, per-country, per-day. Net of Play's 15% fee, refunds, taxes withheld.
+- **FAL cost:** new `falModelCostUsd` history (currently `pricing/current` is a single-doc snapshot — append to a `pricing/history/{date}` ledger instead so trends are queryable). Plus actual usage = count of `upscaleTransactions{status='succeeded'}` per day × `creditsCost` × `falModelCostUsd`.
+- **Google Cloud cost:** Billing export to BigQuery dataset `cloud_billing_export` (one-time setup in Billing → Billing export). Filter to project `static-webbing-461904-c4`. Breaks down by service (Functions invocations, Firestore reads/writes, Cloud Storage egress, Cloud Logging ingestion, Firebase Auth SMS — once it's enabled).
+- **Refund / chargeback rate:** `creditLog{type='refund'}` counts vs. `creditLog{type='grant'}`. Negative-margin canary if refunds spike.
+- **Float / cash flow:** Play pays out monthly with a ~30-day delay; FAL bills monthly; Cloud bills monthly. Float = (revenue earned) - (revenue paid) + (cost incurred) - (cost paid). Need running ledger.
+
+**Module shape:**
+- `backend/functions/src/finops/` (new directory):
+  - `dailyRollup.ts` — scheduled cron at 02:00 UTC writing `/finops/daily/{YYYY-MM-DD}` with the day's revenue, FAL spend, GCP spend, credits sold, credits burned, refund count, computed gross margin.
+  - `bigqueryAdapter.ts` — pulls Cloud billing data from the BigQuery export. Requires `roles/bigquery.dataViewer` on the dataset.
+  - `playReportingAdapter.ts` — pulls Play revenue once Play Console is funded + Reporting API is enabled. Until then, manual CSV upload to a `/finops/manual-revenue/{month}` doc.
+  - `falCostAdapter.ts` — already half-built; reuse `pricing.ts`'s FAL pricing fetch, multiply by transaction counts.
+- `backend/functions/src/finops/dashboard.ts` — admin-gated callable returning a 90-day window of rolled-up metrics for the dashboard UI.
+- **Dashboard UI** — open question:
+  - **Option A:** in-app admin screen behind the same `admin: true` custom claim used by `getFalBalance`. Keeps everything in Compose. Reuses MD3E charting; the `androidx.graphics:graphics-shapes` lib already on classpath does sparklines well.
+  - **Option B:** standalone web dashboard (Next.js + Recharts) hosted on Firebase Hosting. Easier to extend with rich tables, exports, more sophisticated filtering. Costs nothing extra on Hosting's free tier.
+  - Recommend **B** once dashboard becomes worth more than 1 chart — admin web UX is much friendlier than admin mobile UX for a finance tool.
+
+**Reports the module should answer:**
+1. **Per-SKU profitability:** for each of `credits_small/medium/large/jumbo`, the rolling 30-day gross margin. Catches "the $1.99 SKU is now unprofitable because FAL raised the Topaz rate".
+2. **Cost-driver waterfall:** revenue → minus Play fee → minus FAL inference → minus GCP infra → gross margin. Updates daily.
+3. **Cash flow forecast:** projected balance 30 / 60 / 90 days out given current burn + expected Play payout date + scheduled FAL invoice. Catches "we'll go cash-negative in May before Play deposits in June".
+4. **Cohort behaviour:** % of users who buy a second pack within 30 days. Drives "is this a sustainable business or a one-time-purchase trap?"
+5. **Anomaly alerts:** wired into Cloud Monitoring — page if the day's gross margin drops below 30%, or refund rate exceeds 5%, or any single user burns >$X of FAL credits in <1 hr (fraud canary).
+
+**Bootstrapping order:**
+1. Set up BigQuery billing export now (one-time GCP console action, takes 5 min, no code) so historical data starts accumulating.
+2. Append-only `pricing/history` instead of single `pricing/current` doc — small change, lots of leverage.
+3. `dailyRollup.ts` cron with just FAL + GCP data (Play data lands later when funded).
+4. CSV-upload Play revenue stub for the launch month.
+5. Standalone web dashboard — full Phase H deliverable, post v1.0.
+
+**Estimate:**
+- Bootstrapping (steps 1–4): 6 hours.
+- Full web dashboard with anomaly alerting (step 5): 16–24 hours, mostly chart + filter UX.
+
+---
+
 ## (Append future deferrals here)
