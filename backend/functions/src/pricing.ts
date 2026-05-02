@@ -66,12 +66,18 @@ async function fetchFalCostPerCredit(falKey: string): Promise<number> {
     throw new Error(`FAL pricing returned invalid unit_price=${item.unit_price}`);
   }
   if (item.unit !== 'image') {
-    // Don't fail — credit math still works as a per-unit cost — but flag
-    // for human review so we can decide whether to add a megapixel multiplier.
-    logger.warn('FAL Topaz pricing unit is not "image"; credit math may need a multiplier', {
-      unit: item.unit,
-      unit_price: item.unit_price,
-    });
+    // FAIL CLOSED. Confirmed against the live API (2026-05-02): FAL returns
+    // unit="megapixels" at $0.01/MP for fal-ai/topaz/upscale/image. Treating
+    // that as $/image would massively under-cost credits (84 credits per
+    // $1.99 SKU vs. the intended 16) and ship a guaranteed-loss product.
+    // Until pricing.ts grows a per-MP cost model that multiplies by an
+    // expected output area, throwing here forces refreshPricing to reuse
+    // the last known-good cached value rather than corrupt pricing/current.
+    throw new Error(
+      `FAL Topaz pricing unit is "${item.unit}" (expected "image"). ` +
+        `Credit-cost math needs a megapixel multiplier — see TODO 10 / ` +
+        `Phase G economics revision before deploying this fetch.`,
+    );
   }
   return item.unit_price;
 }

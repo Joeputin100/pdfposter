@@ -3,15 +3,23 @@
 //
 // Admin-gated callable that queries FAL's account billing endpoint.
 // FAL docs: https://fal.ai/docs/platform-apis/v1/account/billing
-// Same FAL_KEY secret used by pricing.ts and upscale.ts; the docs describe
-// this as an "Admin API key" so the existing key should suffice.
+//
+// IMPORTANT: this endpoint requires a separate "Admin API key" — the regular
+// FAL_KEY used by upscale.ts / pricing.ts returns 403 here (verified live
+// 2026-05-02). Generate an admin key in the FAL dashboard and store it as
+// a separate FAL_ADMIN_KEY secret:
+//   gcloud secrets create FAL_ADMIN_KEY --replication-policy=automatic
+//   echo -n "<admin-key>" | gcloud secrets versions add FAL_ADMIN_KEY --data-file=-
+// Keeping it separate from FAL_KEY follows least-privilege — the upscale
+// path doesn't need account-billing access, and a leaked upscale key
+// shouldn't leak account control.
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions/v2';
 import { defineSecret } from 'firebase-functions/params';
 import axios from 'axios';
 
-const FAL_KEY = defineSecret('FAL_KEY');
+const FAL_ADMIN_KEY = defineSecret('FAL_ADMIN_KEY');
 const FAL_BILLING_URL = 'https://api.fal.ai/v1/account/billing';
 
 interface FalBillingResponse {
@@ -27,7 +35,7 @@ export const getFalBalance = onCall(
     region: 'us-central1',
     timeoutSeconds: 30,
     memory: '256MiB',
-    secrets: [FAL_KEY],
+    secrets: [FAL_ADMIN_KEY],
   },
   async (request) => {
     const auth = request.auth;
@@ -44,7 +52,7 @@ export const getFalBalance = onCall(
 
     const resp = await axios.get<FalBillingResponse>(FAL_BILLING_URL, {
       params: { expand: 'credits' },
-      headers: { Authorization: `Key ${FAL_KEY.value()}` },
+      headers: { Authorization: `Key ${FAL_ADMIN_KEY.value()}` },
       timeout: 15_000,
       validateStatus: () => true,
     });
