@@ -26,6 +26,13 @@ object PaneGeometry {
         // Image dst rect — where to paint the source bitmap. Inset by margin.
         val imageDstLeft: Float, val imageDstTop: Float,
         val imageDstWidth: Float, val imageDstHeight: Float,
+        // Image *content* rect — the portion of imageDst* that actually receives image
+        // pixels. ≤ imageDstWidth/Height. For interior tiles these are equal; for edge
+        // tiles where the source rect is clamped (poster doesn't divide evenly into
+        // pages), the content rect is shorter, leaving blank paper on the trailing
+        // side. Mirrors PosterLogic.kt's clip()+drawImage(fullPoster, translated)
+        // flow which leaves the unfilled portion as blank paper.
+        val imageContentWidth: Float, val imageContentHeight: Float,
         // Source rect — sub-rect of the source bitmap to sample (0..1 in poster space).
         val sourceFracLeft: Float, val sourceFracTop: Float,
         val sourceFracWidth: Float, val sourceFracHeight: Float,
@@ -91,8 +98,23 @@ object PaneGeometry {
                 val tilePosterY = r * stepY
                 val sourceFracLeft = (tilePosterX / posterW).toFloat().coerceIn(0f, 1f)
                 val sourceFracTop = (tilePosterY / posterH).toFloat().coerceIn(0f, 1f)
-                val sourceFracWidth = (printableW / posterW).toFloat().coerceAtMost(1f - sourceFracLeft)
-                val sourceFracHeight = (printableH / posterH).toFloat().coerceAtMost(1f - sourceFracTop)
+                val sourceFracWidthUnclamped = (printableW / posterW).toFloat()
+                val sourceFracHeightUnclamped = (printableH / posterH).toFloat()
+                val sourceFracWidth = sourceFracWidthUnclamped.coerceAtMost(1f - sourceFracLeft)
+                val sourceFracHeight = sourceFracHeightUnclamped.coerceAtMost(1f - sourceFracTop)
+
+                // Edge-tile parity with PosterLogic.kt: when the poster doesn't divide
+                // evenly into pages, the rightmost/bottommost tile's source rect is a
+                // partial slice. The PDF generator clips to printable + draws the full
+                // poster translated, so the unfilled portion stays blank paper.
+                // We mirror that here: imageContent* shrinks by the same ratio the
+                // source rect was clamped by, leaving blank paper on the trailing edge.
+                val imageContentWidth = if (sourceFracWidthUnclamped > 0f)
+                    imageDstWidth * (sourceFracWidth / sourceFracWidthUnclamped)
+                else imageDstWidth
+                val imageContentHeight = if (sourceFracHeightUnclamped > 0f)
+                    imageDstHeight * (sourceFracHeight / sourceFracHeightUnclamped)
+                else imageDstHeight
 
                 panes.add(
                     Pane(
@@ -101,6 +123,7 @@ object PaneGeometry {
                         pageWidth = paneW, pageHeight = paneH,
                         imageDstLeft = imageDstLeft, imageDstTop = imageDstTop,
                         imageDstWidth = imageDstWidth, imageDstHeight = imageDstHeight,
+                        imageContentWidth = imageContentWidth, imageContentHeight = imageContentHeight,
                         sourceFracLeft = sourceFracLeft, sourceFracTop = sourceFracTop,
                         sourceFracWidth = sourceFracWidth, sourceFracHeight = sourceFracHeight,
                     )

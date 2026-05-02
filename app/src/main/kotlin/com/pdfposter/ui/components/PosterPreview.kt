@@ -331,7 +331,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                             drawPaneImage(
                                 src = src,
                                 imageDstLeft = pane.imageDstLeft, imageDstTop = pane.imageDstTop,
-                                imageDstWidth = pane.imageDstWidth, imageDstHeight = pane.imageDstHeight,
+                                imageContentWidth = pane.imageContentWidth, imageContentHeight = pane.imageContentHeight,
                                 srcX = paneSrcX, srcY = paneSrcY,
                                 srcTileW = paneSrcTileW, srcTileH = paneSrcTileH,
                             )
@@ -339,8 +339,8 @@ fun PosterPreview(viewModel: MainViewModel) {
                         // Overlap zones now sit INSIDE the printable image area, not at the page edge —
                         // matching where the seam will be after the user trims along the cut marks.
                         drawPaneOverlapZones(
-                            pageLeft = pane.imageDstLeft, pageTop = pane.imageDstTop,
-                            pageWidth = pane.imageDstWidth, pageHeight = pane.imageDstHeight,
+                            rectLeft = pane.imageDstLeft, rectTop = pane.imageDstTop,
+                            rectWidth = pane.imageDstWidth, rectHeight = pane.imageDstHeight,
                             overlapPx = overlapPx,
                             row = r, col = c, rows = rows, cols = cols,
                         )
@@ -460,13 +460,17 @@ private fun DrawScope.drawPaperFill(
 
 /**
  * Sample [src] at the pre-computed source-rect [srcX,srcY,srcTileW,srcTileH] and paint
- * it into the dst rect at [imageDstLeft,imageDstTop] with size [imageDstWidth,imageDstHeight].
- * Caller is responsible for null-checking [src] and clamping the source-rect ints.
+ * it into the content rect at [imageDstLeft,imageDstTop] with size
+ * [imageContentWidth,imageContentHeight]. The content rect is ≤ the printable rect
+ * (imageDstWidth/Height); on edge tiles where the source slice is clamped, the content
+ * rect is shorter, leaving blank paper on the trailing edge — mirroring PosterLogic's
+ * clip()+drawImage(fullPoster, translated) flow. Caller is responsible for
+ * null-checking [src] and clamping the source-rect ints.
  */
 private fun DrawScope.drawPaneImage(
     src: ImageBitmap,
     imageDstLeft: Float, imageDstTop: Float,
-    imageDstWidth: Float, imageDstHeight: Float,
+    imageContentWidth: Float, imageContentHeight: Float,
     srcX: Int, srcY: Int,
     srcTileW: Int, srcTileH: Int,
 ) {
@@ -475,26 +479,28 @@ private fun DrawScope.drawPaneImage(
         srcOffset = IntOffset(srcX, srcY),
         srcSize = IntSize(srcTileW, srcTileH),
         dstOffset = IntOffset(imageDstLeft.toInt(), imageDstTop.toInt()),
-        dstSize = IntSize(imageDstWidth.toInt(), imageDstHeight.toInt()),
+        dstSize = IntSize(imageContentWidth.toInt(), imageContentHeight.toInt()),
     )
 }
 
 /**
  * Orange-tinted overlap zones drawn on the seam edges of each pane. Edges that touch
- * a neighbor get a tint; outer edges (no neighbor) are left clean.
+ * a neighbor get a tint; outer edges (no neighbor) are left clean. Operates on
+ * whatever rect the caller passes (rect-agnostic) — currently the printable rect,
+ * since cut marks and overlap zones live inside the printable area.
  */
 private fun DrawScope.drawPaneOverlapZones(
-    pageLeft: Float, pageTop: Float,
-    pageWidth: Float, pageHeight: Float,
+    rectLeft: Float, rectTop: Float,
+    rectWidth: Float, rectHeight: Float,
     overlapPx: Float,
     row: Int, col: Int, rows: Int, cols: Int,
 ) {
     if (overlapPx <= 0.5f) return
     val overlapColor = Color(0xFFFF6F00).copy(alpha = 0.28f)
-    if (col < cols - 1) drawRect(overlapColor, Offset(pageLeft + pageWidth - overlapPx, pageTop), Size(overlapPx, pageHeight))
-    if (row < rows - 1) drawRect(overlapColor, Offset(pageLeft, pageTop + pageHeight - overlapPx), Size(pageWidth, overlapPx))
-    if (col > 0) drawRect(overlapColor, Offset(pageLeft, pageTop), Size(overlapPx, pageHeight))
-    if (row > 0) drawRect(overlapColor, Offset(pageLeft, pageTop), Size(pageWidth, overlapPx))
+    if (col < cols - 1) drawRect(overlapColor, Offset(rectLeft + rectWidth - overlapPx, rectTop), Size(overlapPx, rectHeight))
+    if (row < rows - 1) drawRect(overlapColor, Offset(rectLeft, rectTop + rectHeight - overlapPx), Size(rectWidth, overlapPx))
+    if (col > 0) drawRect(overlapColor, Offset(rectLeft, rectTop), Size(overlapPx, rectHeight))
+    if (row > 0) drawRect(overlapColor, Offset(rectLeft, rectTop), Size(rectWidth, overlapPx))
 }
 
 /**
