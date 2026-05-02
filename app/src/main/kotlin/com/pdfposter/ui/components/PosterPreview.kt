@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -323,103 +324,35 @@ fun PosterPreview(viewModel: MainViewModel) {
                         val paneCurl = (globalCurl * 1.6f - panePos * 0.35f).coerceIn(0f, 1f)
                         val cornerCurlSize = min(printableW, printableH) * (0.08f + 0.40f * paneCurl)
 
-                        val drawPaneSurface = {
-                            drawRoundRect(
-                                color = Color.Black.copy(alpha = 0.32f),
-                                topLeft = Offset(dx + 4f, dy + 6f),
-                                size = Size(printableW, printableH),
-                                cornerRadius = CornerRadius(2f, 2f)
-                            )
-                            drawRect(Color(0xFFFAFAF7), Offset(dx, dy), Size(printableW, printableH))
-
-                            if (src != null) {
-                                val srcX = (tilePosterX * srcPerCanvasX).toInt().coerceIn(0, srcW)
-                                val srcY = (tilePosterY * srcPerCanvasY).toInt().coerceIn(0, srcH)
-                                val srcTileW = (printableW * srcPerCanvasX).toInt().coerceIn(1, srcW - srcX)
-                                val srcTileH = (printableH * srcPerCanvasY).toInt().coerceIn(1, srcH - srcY)
-                                drawImage(
-                                    image = src,
-                                    srcOffset = IntOffset(srcX, srcY),
-                                    srcSize = IntSize(srcTileW, srcTileH),
-                                    dstOffset = IntOffset(dx.toInt(), dy.toInt()),
-                                    dstSize = IntSize(printableW.toInt(), printableH.toInt())
-                                )
-                            }
-
-                            if (overlapPx > 0.5f) {
-                                val overlapColor = Color(0xFFFF6F00).copy(alpha = 0.28f)
-                                if (c < cols - 1) drawRect(overlapColor, Offset(dx + printableW - overlapPx, dy), Size(overlapPx, printableH))
-                                if (r < rows - 1) drawRect(overlapColor, Offset(dx, dy + printableH - overlapPx), Size(printableW, overlapPx))
-                                if (c > 0) drawRect(overlapColor, Offset(dx, dy), Size(overlapPx, printableH))
-                                if (r > 0) drawRect(overlapColor, Offset(dx, dy), Size(printableW, overlapPx))
-                            }
-
-                            if (marginPx > 0.5f) {
-                                drawRect(Color.White, Offset(dx, dy), Size(printableW, marginPx))
-                                drawRect(Color.White, Offset(dx, dy + printableH - marginPx), Size(printableW, marginPx))
-                                drawRect(Color.White, Offset(dx, dy), Size(marginPx, printableH))
-                                drawRect(Color.White, Offset(dx + printableW - marginPx, dy), Size(marginPx, printableH))
-                                val b = Color(0xFF1976D2).copy(alpha = 0.6f)
-                                drawLine(b, Offset(dx, dy + marginPx), Offset(dx + printableW, dy + marginPx), 1.2f)
-                                drawLine(b, Offset(dx, dy + printableH - marginPx), Offset(dx + printableW, dy + printableH - marginPx), 1.2f)
-                                drawLine(b, Offset(dx + marginPx, dy), Offset(dx + marginPx, dy + printableH), 1.2f)
-                                drawLine(b, Offset(dx + printableW - marginPx, dy), Offset(dx + printableW - marginPx, dy + printableH), 1.2f)
-                            }
-
-                            if (viewModel.showOutlines) {
-                                val inset = overlapPx
-                                val rx = dx + inset
-                                val ry = dy + inset
-                                val rw = (printableW - 2 * inset).coerceAtLeast(4f)
-                                val rh = (printableH - 2 * inset).coerceAtLeast(4f)
-                                if (viewModel.outlineStyle == "CropMarks") {
-                                    val arm = min(rw, rh) * 0.10f
-                                    val sw = max(1.2f, outlinePx)
-                                    drawLine(Color.Black, Offset(rx, ry + arm), Offset(rx, ry), sw)
-                                    drawLine(Color.Black, Offset(rx, ry), Offset(rx + arm, ry), sw)
-                                    drawLine(Color.Black, Offset(rx + rw - arm, ry), Offset(rx + rw, ry), sw)
-                                    drawLine(Color.Black, Offset(rx + rw, ry), Offset(rx + rw, ry + arm), sw)
-                                    drawLine(Color.Black, Offset(rx, ry + rh - arm), Offset(rx, ry + rh), sw)
-                                    drawLine(Color.Black, Offset(rx, ry + rh), Offset(rx + arm, ry + rh), sw)
-                                    drawLine(Color.Black, Offset(rx + rw - arm, ry + rh), Offset(rx + rw, ry + rh), sw)
-                                    drawLine(Color.Black, Offset(rx + rw, ry + rh - arm), Offset(rx + rw, ry + rh), sw)
-                                } else {
-                                    drawRect(
-                                        color = Color.Black.copy(alpha = 0.85f),
-                                        topLeft = Offset(rx, ry),
-                                        size = Size(rw, rh),
-                                        style = Stroke(width = outlinePx, pathEffect = outlineEffect, cap = StrokeCap.Round)
-                                    )
-                                }
-                            }
-
-                            if (viewModel.labelPanes) {
-                                val label = viewModel.getGridLabel(r, c)
-                                val labelSize = min(printableW, printableH) * 0.22f
-                                drawIntoCanvas { canvas ->
-                                    canvas.nativeCanvas.drawText(
-                                        label,
-                                        dx + printableW * 0.08f,
-                                        dy + printableH - printableH * 0.08f,
-                                        Paint().apply {
-                                            color = android.graphics.Color.argb(235, 0, 0, 0)
-                                            textSize = labelSize
-                                            isAntiAlias = true
-                                            typeface = android.graphics.Typeface.DEFAULT_BOLD
-                                            setShadowLayer(5f, 0f, 0f, android.graphics.Color.argb(220, 255, 255, 255))
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
                         withTransform({
                             if (isJiggled) {
                                 rotate(paneJiggleAngle, pivot = paneCenter)
                                 translate(paneJiggleDx, paneJiggleDy)
                             }
                         }) {
-                            drawPaneSurface()
+                            drawPaperFill(dx, dy, printableW, printableH)
+                            if (src != null) {
+                                val paneSrcX = (tilePosterX * srcPerCanvasX).toInt().coerceIn(0, srcW)
+                                val paneSrcY = (tilePosterY * srcPerCanvasY).toInt().coerceIn(0, srcH)
+                                val paneSrcTileW = (printableW * srcPerCanvasX).toInt().coerceIn(1, srcW - paneSrcX)
+                                val paneSrcTileH = (printableH * srcPerCanvasY).toInt().coerceIn(1, srcH - paneSrcY)
+                                drawPaneImage(
+                                    src = src,
+                                    imageDstLeft = dx, imageDstTop = dy,
+                                    imageDstWidth = printableW, imageDstHeight = printableH,
+                                    srcX = paneSrcX, srcY = paneSrcY,
+                                    srcTileW = paneSrcTileW, srcTileH = paneSrcTileH,
+                                )
+                            }
+                            drawPaneOverlapZones(
+                                pageLeft = dx, pageTop = dy,
+                                pageWidth = printableW, pageHeight = printableH,
+                                overlapPx = overlapPx,
+                                row = r, col = c, rows = rows, cols = cols,
+                            )
+                            drawPaneMarginGuide(dx, dy, printableW, printableH, marginPx)
+                            drawCutLineOrOutline(viewModel, dx, dy, printableW, printableH, overlapPx, outlinePx, outlineEffect)
+                            drawPaneLabel(viewModel, dx, dy, printableW, printableH, r, c)
 
                             if (paneCurl > 0.02f) {
                                 val br = Offset(dx + printableW, dy + printableH)
@@ -499,5 +432,147 @@ private fun LegendSwatch(color: Color, label: String) {
         Box(modifier = Modifier.size(12.dp).background(color, RoundedCornerShape(2.dp)))
         Spacer(Modifier.width(4.dp))
         Text(label, style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+/**
+ * Drop shadow + page surface — what the user holds in their hand.
+ * Behavior-preserving extraction from the previous inline drawPaneSurface lambda.
+ */
+private fun DrawScope.drawPaperFill(
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+) {
+    drawRoundRect(
+        color = Color.Black.copy(alpha = 0.32f),
+        topLeft = Offset(pageLeft + 4f, pageTop + 6f),
+        size = Size(pageWidth, pageHeight),
+        cornerRadius = CornerRadius(2f, 2f),
+    )
+    drawRect(Color(0xFFFAFAF7), Offset(pageLeft, pageTop), Size(pageWidth, pageHeight))
+}
+
+/**
+ * Sample [src] at the pre-computed source-rect [srcX,srcY,srcTileW,srcTileH] and paint
+ * it into the dst rect at [imageDstLeft,imageDstTop] with size [imageDstWidth,imageDstHeight].
+ * Caller is responsible for null-checking [src] and clamping the source-rect ints.
+ */
+private fun DrawScope.drawPaneImage(
+    src: ImageBitmap,
+    imageDstLeft: Float, imageDstTop: Float,
+    imageDstWidth: Float, imageDstHeight: Float,
+    srcX: Int, srcY: Int,
+    srcTileW: Int, srcTileH: Int,
+) {
+    drawImage(
+        image = src,
+        srcOffset = IntOffset(srcX, srcY),
+        srcSize = IntSize(srcTileW, srcTileH),
+        dstOffset = IntOffset(imageDstLeft.toInt(), imageDstTop.toInt()),
+        dstSize = IntSize(imageDstWidth.toInt(), imageDstHeight.toInt()),
+    )
+}
+
+/**
+ * Orange-tinted overlap zones drawn on the seam edges of each pane. Edges that touch
+ * a neighbor get a tint; outer edges (no neighbor) are left clean.
+ */
+private fun DrawScope.drawPaneOverlapZones(
+    pageLeft: Float, pageTop: Float,
+    pageWidth: Float, pageHeight: Float,
+    overlapPx: Float,
+    row: Int, col: Int, rows: Int, cols: Int,
+) {
+    if (overlapPx <= 0.5f) return
+    val overlapColor = Color(0xFFFF6F00).copy(alpha = 0.28f)
+    if (col < cols - 1) drawRect(overlapColor, Offset(pageLeft + pageWidth - overlapPx, pageTop), Size(overlapPx, pageHeight))
+    if (row < rows - 1) drawRect(overlapColor, Offset(pageLeft, pageTop + pageHeight - overlapPx), Size(pageWidth, overlapPx))
+    if (col > 0) drawRect(overlapColor, Offset(pageLeft, pageTop), Size(overlapPx, pageHeight))
+    if (row > 0) drawRect(overlapColor, Offset(pageLeft, pageTop), Size(pageWidth, overlapPx))
+}
+
+/**
+ * White margin overlay (covers image bleed at the page edges) plus a faint blue
+ * boundary line at the printable-area edge. Behavior-preserving — colors and
+ * geometry exactly match the pre-refactor inline lambda.
+ */
+private fun DrawScope.drawPaneMarginGuide(
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    marginPx: Float,
+) {
+    if (marginPx <= 0.5f) return
+    drawRect(Color.White, Offset(pageLeft, pageTop), Size(pageWidth, marginPx))
+    drawRect(Color.White, Offset(pageLeft, pageTop + pageHeight - marginPx), Size(pageWidth, marginPx))
+    drawRect(Color.White, Offset(pageLeft, pageTop), Size(marginPx, pageHeight))
+    drawRect(Color.White, Offset(pageLeft + pageWidth - marginPx, pageTop), Size(marginPx, pageHeight))
+    val borderColor = Color(0xFF1976D2).copy(alpha = 0.6f)
+    drawLine(borderColor, Offset(pageLeft, pageTop + marginPx), Offset(pageLeft + pageWidth, pageTop + marginPx), 1.2f)
+    drawLine(borderColor, Offset(pageLeft, pageTop + pageHeight - marginPx), Offset(pageLeft + pageWidth, pageTop + pageHeight - marginPx), 1.2f)
+    drawLine(borderColor, Offset(pageLeft + marginPx, pageTop), Offset(pageLeft + marginPx, pageTop + pageHeight), 1.2f)
+    drawLine(borderColor, Offset(pageLeft + pageWidth - marginPx, pageTop), Offset(pageLeft + pageWidth - marginPx, pageTop + pageHeight), 1.2f)
+}
+
+/**
+ * Outline / cut-marks overlay. The rect sits inside the page by [overlapPx] (the
+ * cut line is inside the overlap zone, mirroring how PosterLogic draws cut marks
+ * on the actual PDF). Returns early if the user has outlines disabled.
+ */
+private fun DrawScope.drawCutLineOrOutline(
+    viewModel: MainViewModel,
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    overlapPx: Float,
+    outlinePx: Float,
+    outlineEffect: PathEffect?,
+) {
+    if (!viewModel.showOutlines) return
+    val rx = pageLeft + overlapPx
+    val ry = pageTop + overlapPx
+    val rw = (pageWidth - 2 * overlapPx).coerceAtLeast(4f)
+    val rh = (pageHeight - 2 * overlapPx).coerceAtLeast(4f)
+    if (viewModel.outlineStyle == "CropMarks") {
+        val arm = min(rw, rh) * 0.10f
+        val sw = max(1.2f, outlinePx)
+        drawLine(Color.Black, Offset(rx, ry + arm), Offset(rx, ry), sw)
+        drawLine(Color.Black, Offset(rx, ry), Offset(rx + arm, ry), sw)
+        drawLine(Color.Black, Offset(rx + rw - arm, ry), Offset(rx + rw, ry), sw)
+        drawLine(Color.Black, Offset(rx + rw, ry), Offset(rx + rw, ry + arm), sw)
+        drawLine(Color.Black, Offset(rx, ry + rh - arm), Offset(rx, ry + rh), sw)
+        drawLine(Color.Black, Offset(rx, ry + rh), Offset(rx + arm, ry + rh), sw)
+        drawLine(Color.Black, Offset(rx + rw - arm, ry + rh), Offset(rx + rw, ry + rh), sw)
+        drawLine(Color.Black, Offset(rx + rw, ry + rh - arm), Offset(rx + rw, ry + rh), sw)
+    } else {
+        drawRect(
+            color = Color.Black.copy(alpha = 0.85f),
+            topLeft = Offset(rx, ry),
+            size = Size(rw, rh),
+            style = Stroke(width = outlinePx, pathEffect = outlineEffect, cap = StrokeCap.Round),
+        )
+    }
+}
+
+/**
+ * Grid label (e.g. "A1", "B3") at the bottom-left of the page, with a soft white
+ * shadow so it stays legible over photos. Returns early if labels are disabled.
+ */
+private fun DrawScope.drawPaneLabel(
+    viewModel: MainViewModel,
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    row: Int, col: Int,
+) {
+    if (!viewModel.labelPanes) return
+    val label = viewModel.getGridLabel(row, col)
+    val labelSize = min(pageWidth, pageHeight) * 0.22f
+    drawIntoCanvas { canvas ->
+        canvas.nativeCanvas.drawText(
+            label,
+            pageLeft + pageWidth * 0.08f,
+            pageTop + pageHeight - pageHeight * 0.08f,
+            Paint().apply {
+                color = android.graphics.Color.argb(235, 0, 0, 0)
+                textSize = labelSize
+                isAntiAlias = true
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+                setShadowLayer(5f, 0f, 0f, android.graphics.Color.argb(220, 255, 255, 255))
+            },
+        )
     }
 }
