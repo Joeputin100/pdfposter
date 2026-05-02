@@ -12,7 +12,12 @@ android {
 
     defaultConfig {
         applicationId = "com.pdfposter"
-        minSdk = 21
+        // Bumped from 21 to 23 in Phase B because material3:1.5.0-alpha18
+        // (required for the public MaterialExpressiveTheme + MotionScheme APIs)
+        // declares minSdkVersion 23 in its manifest. Coverage loss vs. 21:
+        // ~0.5% (Android 5.0 + 5.1 only). Revisit if material3 promotes those
+        // APIs to a 1.5 stable that supports 21.
+        minSdk = 23
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -64,7 +69,7 @@ android {
 
 dependencies {
     val ktor_version = "2.3.6"
-    val compose_bom = "2025.10.00"
+    val compose_bom = "2026.04.01"
 
     implementation(platform("androidx.compose:compose-bom:$compose_bom"))
     implementation("androidx.compose.ui:ui")
@@ -73,7 +78,10 @@ dependencies {
     implementation("androidx.graphics:graphics-shapes:1.0.1")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
+    // material3 1.5.0-alpha exposes MaterialExpressiveTheme + MotionScheme.expressive() as
+    // public; the 1.4.x line in the BOM still has these APIs marked `internal`. Pinning
+    // overrides the BOM constraint for material3 only — rest of Compose stays on stable.
+    implementation("androidx.compose.material3:material3:1.5.0-alpha18")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.animation:animation")
     implementation("androidx.activity:activity-compose:1.8.0")
