@@ -25,12 +25,14 @@ Four consumable SKUs published once in Play Console:
 
 | SKU ID | Price (USD) |
 |---|---|
-| `credits_small` | $1.99 |
-| `credits_medium` | $4.99 |
-| `credits_large` | $9.99 |
-| `credits_jumbo` | $19.99 |
+| `credits_small` | $4.99 |
+| `credits_medium` | $9.99 |
+| `credits_large` | $19.99 |
+| `credits_jumbo` | $39.99 |
 
 These prices **never change**. Local-currency conversions handled by Play Store automatically.
+
+> **Rescale note (2026-05-02):** Original ladder was $1.99 / $4.99 / $9.99 / $19.99. Live check of FAL's `/v1/models/pricing` revealed Topaz Gigapixel is `$0.01/megapixel`, not `$0.05/image` as the original plan assumed. A 12 MP source upscaled 4× produces ~192 MP of output → ~$1.92 in FAL cost per single upscale. The $1.99 entry tier couldn't profitably issue even one credit; rescaled upward to $4.99 floor. The per-megapixel credit-cost model itself is still tracked as a Phase G economics revision (TODO 10) before the `refreshPricing` cron is unblocked.
 
 ## Credit grant formula
 
@@ -43,16 +45,18 @@ cost_budget    = revenue_net × 0.50
 credits        = floor(cost_budget / C)
 ```
 
-**Worked example** at `C = $0.05/credit` (current FAL pricing):
+**Worked example** at the rescaled ladder, evaluated against the *old* `C = $0.05/credit` placeholder for shape comparison only — the real `C` is per-megapixel and still being settled (see TODO 10):
 
 | SKU | Price | Math | Credits granted | Effective $/credit |
 |---|---|---|---|---|
-| `credits_small` | $1.99 | floor(1.99 × 0.85 × 0.50 / 0.05) = floor(16.9) | **15** | $0.133 |
-| `credits_medium` | $4.99 | floor(42.4) | **40** | $0.125 |
-| `credits_large` | $9.99 | floor(84.9) | **85** | $0.118 |
-| `credits_jumbo` | $19.99 | floor(169.9) | **180** | $0.111 |
+| `credits_small` | $4.99 | floor(4.99 × 0.85 × 0.50 / 0.05) = floor(42.4) | **40** | $0.125 |
+| `credits_medium` | $9.99 | floor(84.9) | **85** | $0.118 |
+| `credits_large` | $19.99 | floor(169.9) | **180** | $0.111 |
+| `credits_jumbo` | $39.99 | floor(339.9) | **380** | $0.105 |
 
 Larger packs receive minor volume discounts via the floor() rounding asymmetry; tweakable per launch.
+
+These credit grants are **fallback placeholders** (mirrored in `CreditPricing.kt` and `PurchaseSheet.kt`); production grants will come from the daily `refreshPricing` cron once a per-megapixel cost model lands. Until then the cron fail-closes (throws on `unit !== "image"`) and `pricing/current` is never written.
 
 ## Dynamic pricing flow
 
