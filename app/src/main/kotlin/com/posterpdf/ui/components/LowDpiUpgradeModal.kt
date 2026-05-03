@@ -2,6 +2,11 @@ package com.posterpdf.ui.components
 
 import android.graphics.Bitmap
 import android.widget.Toast
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -205,6 +211,7 @@ fun LowDpiUpgradeModal(
     onPickAlreadyUpscaled: () -> Unit,
     onSignIn: () -> Unit,
     onBuyCredits: () -> Unit,
+    onCompareModels: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val severityColor = when {
@@ -410,6 +417,19 @@ fun LowDpiUpgradeModal(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Per-model icon mapping (H-P1.11)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Returns the drawable resource id for the model's abstract icon thumbnail. */
+private fun iconForModel(model: UpscaleModel): Int = when (model) {
+    UpscaleModel.TOPAZ_4X, UpscaleModel.TOPAZ_8X -> R.drawable.ic_model_premium
+    UpscaleModel.RECRAFT -> R.drawable.ic_model_clean
+    UpscaleModel.AURASR -> R.drawable.ic_model_swirl
+    UpscaleModel.ESRGAN -> R.drawable.ic_model_basic
+    else -> R.drawable.ai_upscale_demo
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Option card
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -495,11 +515,34 @@ private fun UpscaleOptionCard(
                         }
                     }
                     else -> {
+                        // Distinct per-model icon (H-P1.11)
                         Image(
-                            painter = painterResource(id = R.drawable.ai_upscale_demo),
-                            contentDescription = "AI upscale demo",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxWidth().height(100.dp),
+                            painter = painterResource(id = iconForModel(option.model)),
+                            contentDescription = "${option.displayName} icon",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                                .padding(12.dp),
+                        )
+                        // Subtle pulsing wand emoji overlay — top-left corner
+                        val infiniteTransition = rememberInfiniteTransition(label = "wandPulse_${option.model.name}")
+                        val wandAlpha by infiniteTransition.animateFloat(
+                            initialValue = 0.7f,
+                            targetValue = 1.0f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(durationMillis = 800),
+                                repeatMode = RepeatMode.Reverse,
+                            ),
+                            label = "wandAlpha_${option.model.name}",
+                        )
+                        Text(
+                            text = "🪄",
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(4.dp)
+                                .alpha(wandAlpha),
                         )
                     }
                 }

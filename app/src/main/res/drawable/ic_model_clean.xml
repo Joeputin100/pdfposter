@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Clean model icon: horizontal line motif — used for RECRAFT.
+  Three parallel horizontal rules of decreasing width suggest precision
+  and clean, crisp output without any brand asset.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Top line — widest -->
+    <path
+        android:fillColor="#FF1976D2"
+        android:pathData="M3,8 L21,8 L21,10 L3,10 Z" />
+
+    <!-- Middle line — medium -->
+    <path
+        android:fillColor="#FF1976D2"
+        android:pathData="M5,12 L19,12 L19,14 L5,14 Z" />
+
+    <!-- Bottom line — narrowest, accent colour -->
+    <path
+        android:fillColor="#FF42A5F5"
+        android:pathData="M7,16 L17,16 L17,18 L7,18 Z" />
+</vector>

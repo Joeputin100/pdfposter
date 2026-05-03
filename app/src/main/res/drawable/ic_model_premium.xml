@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Premium model icon: 4-pointed sparkle/star — used for TOPAZ_4X and TOPAZ_8X.
+  Horizontal and vertical diamond arms plus diagonal smaller arms give the
+  classic AI-sparkle silhouette without using any brand asset.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Main 4-pointed star (long horizontal + vertical arms) -->
+    <path
+        android:fillColor="#FFF4B400"
+        android:pathData="M12,2 L13.5,10.5 L22,12 L13.5,13.5 L12,22 L10.5,13.5 L2,12 L10.5,10.5 Z" />
+
+    <!-- Inner highlight to give depth -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,8 L12.8,11.2 L16,12 L12.8,12.8 L12,16 L11.2,12.8 L8,12 L11.2,11.2 Z" />
+</vector>

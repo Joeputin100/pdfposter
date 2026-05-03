@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Basic model icon: two-circle outline motif — used for ESRGAN.
+  A large outer circle outline and a smaller inner circle outline evoke
+  the "classic open-source" feel of ESRGAN without any brand asset.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Outer circle outline (stroke emulated as a filled ring via two arcs) -->
+    <path
+        android:fillColor="#FF546E7A"
+        android:pathData="
+            M12,2
+            A10,10 0 1,0 12,22
+            A10,10 0 1,0 12,2 Z
+            M12,4
+            A8,8 0 1,1 12,20
+            A8,8 0 1,1 12,4 Z" />
+
+    <!-- Inner circle (smaller filled ring) -->
+    <path
+        android:fillColor="#FF546E7A"
+        android:pathData="
+            M12,8
+            A4,4 0 1,0 12,16
+            A4,4 0 1,0 12,8 Z
+            M12,10
+            A2,2 0 1,1 12,14
+            A2,2 0 1,1 12,10 Z" />
+</vector>
