@@ -88,6 +88,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         get() = authSession.email == "joeputin100@gmail.com"
 
     /**
+     * RC3+ target print DPI. Default 150 (industry-standard poster quality).
+     * Users with high-DPI printers (600 / 1200) can bump this to drive a
+     * higher-resolution upscale. Backend uses this to pick the smallest scale
+     * factor that meets the target — saves real money vs. always 4× / 8×.
+     */
+    var targetDpi by mutableStateOf(150)
+        private set
+
+    fun setTargetDpi(dpi: Int) {
+        targetDpi = dpi.coerceIn(75, 1200)
+    }
+
+    /**
      * RC3 fix: actually run the on-device ESRGAN upscale, save it to cache,
      * point selectedImageUri at the result so the next preview redraw + DPI
      * calc see the 4× larger image. Previously the modal's "Upscale free"

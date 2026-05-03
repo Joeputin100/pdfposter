@@ -1500,9 +1500,34 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                 }
             }
             else -> {
-                Text(s.displayName ?: s.email ?: "Signed in", style = MaterialTheme.typography.bodyMedium)
-                s.email?.let {
-                    Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // RC3+: render the Google profile photo + display name in a
+                // standard "avatar + name" Row. Uses Coil (already on the
+                // classpath) for async loading, with an account-circle
+                // fallback if photoUrl is missing or fails to load.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (s.photoUrl != null) {
+                        coil.compose.AsyncImage(
+                            model = s.photoUrl,
+                            contentDescription = "Profile picture",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape),
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.AccountCircle,
+                            contentDescription = "Profile picture",
+                            modifier = Modifier.size(40.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text(s.displayName ?: s.email ?: "Signed in", style = MaterialTheme.typography.bodyMedium)
+                        s.email?.let {
+                            Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = { viewModel.signOut() }, modifier = Modifier.fillMaxWidth()) {

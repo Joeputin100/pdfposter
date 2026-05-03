@@ -20,6 +20,7 @@ data class AuthSession(
     val isAnonymous: Boolean = true,
     val displayName: String? = null,
     val email: String? = null,
+    val photoUrl: String? = null,
     val signedIn: Boolean = false,
 )
 
@@ -126,6 +127,7 @@ class AuthRepository private constructor(appContext: Context) {
             isAnonymous = isAnonymous,
             displayName = displayName,
             email = email,
+            photoUrl = photoUrl?.toString(),
             signedIn = true,
         )
     }

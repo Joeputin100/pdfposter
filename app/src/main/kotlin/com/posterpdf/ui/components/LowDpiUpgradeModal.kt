@@ -459,11 +459,23 @@ private fun UpscaleOptionCard(
     onBuyCredits: () -> Unit,
 ) {
     val isAi = credits > 0
+    // RC3+ glint: TRUE network/cloud AI cards shimmer with a holographic
+    // "Pokemon TCG holofoil" effect that responds to phone tilt. The free
+    // on-device path (FREE_LOCAL) and the do-nothing NONE card stay matte —
+    // the visual treatment is the user's cue that "this card costs credits".
+    val isAiModel = option.model in setOf(
+        UpscaleModel.TOPAZ_4X,
+        UpscaleModel.TOPAZ_8X,
+        UpscaleModel.RECRAFT,
+        UpscaleModel.AURASR,
+        UpscaleModel.ESRGAN,
+    )
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         ),
+        modifier = Modifier.glintEffect(active = isAiModel),
     ) {
         Column(
             modifier = Modifier.padding(10.dp),
