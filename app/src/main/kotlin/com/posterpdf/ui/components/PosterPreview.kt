@@ -656,7 +656,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                     onDismiss = { showLowDpiModal = false },
                     // TODO(G12): wire to viewModel.runFreeUpscale()
                     onFreeUpscale = { showLowDpiModal = false },
-                    // TODO(G12): wire to viewModel.runAiUpscale(tier, inputMpInt)
+                    // TODO(G12): wire to viewModel.runAiUpscale(modelId, inputMpInt)
                     onAiUpscale = { _ -> showLowDpiModal = false },
                     // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
                     onPickAlreadyUpscaled = { showLowDpiModal = false },
