@@ -77,6 +77,50 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return (w.toDouble() / widthIn).toFloat()
     }
 
+    /**
+     * RC3 fix: actually run the on-device ESRGAN upscale, save it to cache,
+     * point selectedImageUri at the result so the next preview redraw + DPI
+     * calc see the 4× larger image. Previously the modal's "Upscale free"
+     * button just closed the modal and the user got the same low-DPI warning.
+     */
+    fun runFreeUpscale(context: Context) {
+        val uri = selectedImageUri ?: return
+        viewModelScope.launch {
+            isGenerating = true
+            try {
+                com.posterpdf.ml.UpscalerOnDevice.init(context)
+                val src = withContext(Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)?.use {
+                        BitmapFactory.decodeStream(it)
+                    }
+                } ?: run {
+                    errorMessage = "Couldn't open the source image"
+                    isGenerating = false
+                    return@launch
+                }
+                val upscaled = com.posterpdf.ml.UpscalerOnDevice.upscale(src)
+                val outFile = File(
+                    context.cacheDir,
+                    "upscaled_${System.currentTimeMillis()}.png",
+                )
+                withContext(Dispatchers.IO) {
+                    FileOutputStream(outFile).use { fos ->
+                        upscaled.compress(Bitmap.CompressFormat.PNG, 95, fos)
+                    }
+                }
+                selectedImageUri = Uri.fromFile(outFile)
+                sourcePixelDimensions = upscaled.width to upscaled.height
+                successMessage = "Upscaled to ${upscaled.width}×${upscaled.height}"
+                if (src !== upscaled) src.recycle()
+                upscaled.recycle()
+            } catch (e: Throwable) {
+                errorMessage = "Upscale failed: ${e.message ?: "unknown error"}"
+            } finally {
+                isGenerating = false
+            }
+        }
+    }
+
     // Reactive inputs
     var selectedImageUri by mutableStateOf<Uri?>(null)
     var posterWidth by mutableStateOf("24")

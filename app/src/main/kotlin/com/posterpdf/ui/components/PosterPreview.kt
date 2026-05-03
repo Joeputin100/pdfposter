@@ -897,8 +897,10 @@ fun PosterPreview(viewModel: MainViewModel) {
                     // TODO(G12): replace placeholder true with viewModel.isAnonymous.collectAsState().value
                     isAnonymous = true,
                     onDismiss = { showLowDpiModal = false },
-                    // TODO(G12): wire to viewModel.runFreeUpscale()
-                    onFreeUpscale = { showLowDpiModal = false },
+                    onFreeUpscale = {
+                        showLowDpiModal = false
+                        viewModel.runFreeUpscale(context)
+                    },
                     // TODO(G12): wire to viewModel.runAiUpscale(modelId, inputMpInt)
                     onAiUpscale = { _ -> showLowDpiModal = false },
                     // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
