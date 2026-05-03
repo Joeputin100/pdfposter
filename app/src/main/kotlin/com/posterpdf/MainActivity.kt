@@ -71,6 +71,31 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // RC8: install a global UncaughtExceptionHandler that writes the
+        // stack trace to the debug log BEFORE the JVM dies. Crash diagnosis
+        // was previously impossible without adb because the prior
+        // logEvent() coroutine never got a chance to run during a crash.
+        // We chain through the prior handler so the system still shows
+        // its default "App keeps stopping" dialog.
+        run {
+            val priorHandler = Thread.getDefaultUncaughtExceptionHandler()
+            val appCtx = applicationContext
+            Thread.setDefaultUncaughtExceptionHandler { thread, ex ->
+                try {
+                    val sw = java.io.StringWriter()
+                    ex.printStackTrace(java.io.PrintWriter(sw))
+                    val ts = java.text.SimpleDateFormat(
+                        "yyyy-MM-dd HH:mm:ss.SSS", java.util.Locale.US,
+                    ).format(java.util.Date())
+                    MainViewModel.writeLogLineSync(
+                        appCtx,
+                        "$ts - CRASH on ${thread.name}: ${ex.javaClass.simpleName}: " +
+                            "${ex.message}\n$sw\n",
+                    )
+                } catch (_: Throwable) { /* best-effort */ }
+                priorHandler?.uncaughtException(thread, ex)
+            }
+        }
         // Edge-to-edge: required for Android 15 (API 35), where system bars
         // draw over content by default unless the app opts in. Must run
         // before super.onCreate.
@@ -410,13 +435,51 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                       trailingContent = {
                           Switch(
                               checked = viewModel.debugLoggingEnabled,
-                              onCheckedChange = { 
+                              onCheckedChange = {
                                   viewModel.debugLoggingEnabled = it
                                   viewModel.saveAllSettings()
                                   viewModel.logEvent(context, "Debug logging toggled", "enabled=$it")
                               }
                           )
                       }
+                  )
+
+                  // RC8: "Share debug log" — uses FileProvider to share the
+                  // log file via ACTION_SEND so the user can submit it
+                  // (email, Drive, Gmail, anything that takes a text/plain
+                  // attachment). Without this, the log existed only inside
+                  // the app's external-files dir which most file managers
+                  // can't browse on Android 11+ scoped storage.
+                  ListItem(
+                      headlineContent = { Text("Share debug log") },
+                      supportingContent = {
+                          val f = MainViewModel.debugLogFile(context)
+                          Text(
+                              text = if (f != null) "${f.length() / 1024} KB · tap to share"
+                              else "No log file yet — enable debug logging above first",
+                              style = MaterialTheme.typography.bodySmall,
+                          )
+                      },
+                      leadingContent = { Icon(Icons.Default.Share, null) },
+                      modifier = Modifier.clickable {
+                          val f = MainViewModel.debugLogFile(context)
+                          if (f != null) {
+                              val uri = androidx.core.content.FileProvider.getUriForFile(
+                                  context,
+                                  "${context.packageName}.provider",
+                                  f,
+                              )
+                              val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                  type = "text/plain"
+                                  putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                  putExtra(android.content.Intent.EXTRA_SUBJECT, "PosterPDF debug log")
+                                  addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                              }
+                              context.startActivity(
+                                  android.content.Intent.createChooser(send, "Share debug log"),
+                              )
+                          }
+                      },
                   )
 
                   ListItem(

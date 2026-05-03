@@ -134,17 +134,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         freeUpscaleJob?.cancel()
         freeUpscaleJob = viewModelScope.launch {
             isFreeUpscaling = true
+            // RC8: log every step of the free-upscale lifecycle so the user's
+            // shared debug log shows exactly where it crashed/stalled.
+            logEvent(context, "free_upscale: start", "uri=$uri")
             try {
+                logEvent(context, "free_upscale: init UpscalerOnDevice")
                 com.posterpdf.ml.UpscalerOnDevice.init(context)
+                logEvent(context, "free_upscale: decode source bitmap")
                 val src = withContext(Dispatchers.IO) {
                     context.contentResolver.openInputStream(uri)?.use {
                         BitmapFactory.decodeStream(it)
                     }
                 } ?: run {
                     errorMessage = "Couldn't open the source image"
+                    logEvent(context, "free_upscale: ABORT — source decode returned null")
                     return@launch
                 }
+                logEvent(
+                    context,
+                    "free_upscale: source decoded",
+                    "${src.width}x${src.height}, ${src.byteCount / 1024} KB",
+                )
+                logEvent(context, "free_upscale: invoking ESRGAN upscale (4x)")
                 val upscaled = com.posterpdf.ml.UpscalerOnDevice.upscale(src)
+                logEvent(
+                    context,
+                    "free_upscale: upscale returned",
+                    "${upscaled.width}x${upscaled.height}",
+                )
                 val outFile = File(
                     context.cacheDir,
                     "upscaled_${System.currentTimeMillis()}.png",
@@ -159,12 +176,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 successMessage = "Upscaled to ${upscaled.width}×${upscaled.height}"
                 // RC7: image is now sharper — clear the "Upscaling with X" card.
                 pendingUpscaleModelLabel = null
+                logEvent(context, "free_upscale: SUCCESS", "wrote ${outFile.name}")
                 if (src !== upscaled) src.recycle()
                 upscaled.recycle()
             } catch (e: kotlinx.coroutines.CancellationException) {
-                // User pressed Cancel; swallow silently.
+                logEvent(context, "free_upscale: cancelled by user")
             } catch (e: Throwable) {
                 errorMessage = "Upscale failed: ${e.message ?: "unknown error"}"
+                logEvent(
+                    context,
+                    "free_upscale: FAILED",
+                    "${e.javaClass.simpleName}: ${e.message}",
+                )
             } finally {
                 isFreeUpscaling = false
             }
@@ -806,16 +829,48 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun logEvent(context: Context, event: String, details: String? = null) {
         if (!debugLoggingEnabled) return
         viewModelScope.launch(Dispatchers.IO) {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
+            val line = "$timestamp - $event${details?.let { ": $it" } ?: ""}\n"
+            writeLogLineSync(context, line)
+        }
+    }
+
+    companion object {
+        /**
+         * RC8: synchronous log-line write. Used by logEvent (already off the
+         * main thread via Dispatchers.IO coroutine) AND by the global
+         * UncaughtExceptionHandler installed in MainActivity, which has no
+         * coroutine context — the JVM is dying and any async write would lose
+         * the line. Writes go to the app's external-files Download dir,
+         * accessible via FileProvider for the "Share debug log" drawer item.
+         *
+         * Pre-RC8: this code wrote to context.getExternalFilesDir() with a
+         * fallback to Environment.getExternalStoragePublicDirectory() — the
+         * fallback path silently fails on Android 11+ scoped storage, so the
+         * "no log written" symptom user reported was the catch-all swallowing
+         * the FileNotFoundException.
+         */
+        fun writeLogLineSync(context: Context, line: String) {
             try {
-                val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                    ?: Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                val logFile = File(downloadsDir, "pdfposter_debug.log")
-                val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
-                val line = "$timestamp - $event${details?.let { ": $it" } ?: ""}\n"
+                val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                    ?: return
+                if (!dir.exists()) dir.mkdirs()
+                val logFile = File(dir, "pdfposter_debug.log")
                 FileOutputStream(logFile, true).use { it.write(line.toByteArray()) }
-            } catch (e: Exception) {
-                // Ignore logging failures
+            } catch (_: Throwable) {
+                // Best-effort. If the FS is unavailable, drop the line silently.
             }
+        }
+
+        /**
+         * Path to the log file the user can grab via FileProvider. Returns
+         * null when there is no log file (debug logging never enabled or
+         * cleared).
+         */
+        fun debugLogFile(context: Context): File? {
+            val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return null
+            val f = File(dir, "pdfposter_debug.log")
+            return if (f.exists()) f else null
         }
     }
 }
