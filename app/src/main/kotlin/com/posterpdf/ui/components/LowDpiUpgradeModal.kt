@@ -1,13 +1,17 @@
 package com.posterpdf.ui.components
 
 import android.graphics.Bitmap
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,7 +58,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -354,11 +360,13 @@ fun LowDpiUpgradeModal(
                                 usdStr = usdStr,
                                 isAnonymous = isAnonymous,
                                 hasEnoughCredits = hasEnough,
+                                isSelected = selectedModel == option.model,
                                 freeCapability = if (option.model == UpscaleModel.FREE_LOCAL) freeCapability else null,
                                 freeEnabled = if (option.model == UpscaleModel.FREE_LOCAL) freeEnabled else true,
                                 localEtaText = if (option.model == UpscaleModel.FREE_LOCAL) localEtaText else null,
                                 pixelatedThumb = if (option.model == UpscaleModel.NONE) pixelatedThumb else null,
                                 onDeviceThumb = if (option.model == UpscaleModel.FREE_LOCAL) onDeviceThumb else null,
+                                onCardClick = { selectedModel = option.model },
                                 onFreeUpscale = onFreeUpscale,
                                 onAiUpscale = { onAiUpscale(option.model.name.lowercase()) },
                                 onSignIn = onSignIn,
@@ -448,33 +456,54 @@ private fun UpscaleOptionCard(
     usdStr: String,
     isAnonymous: Boolean,
     hasEnoughCredits: Boolean,
+    isSelected: Boolean,
     freeCapability: DeviceCapability?,
     freeEnabled: Boolean,
     localEtaText: String?,
     pixelatedThumb: ImageBitmap?,
     onDeviceThumb: ImageBitmap?,
+    onCardClick: () -> Unit,
     onFreeUpscale: () -> Unit,
     onAiUpscale: () -> Unit,
     onSignIn: () -> Unit,
     onBuyCredits: () -> Unit,
 ) {
     val isAi = credits > 0
-    // RC3+ glint: TRUE network/cloud AI cards shimmer with a holographic
-    // "Pokemon TCG holofoil" effect that responds to phone tilt. The free
-    // on-device path (FREE_LOCAL) and the do-nothing NONE card stay matte —
-    // the visual treatment is the user's cue that "this card costs credits".
     val isAiModel = option.model in setOf(
         UpscaleModel.TOPAZ,
         UpscaleModel.RECRAFT,
         UpscaleModel.AURASR,
         UpscaleModel.ESRGAN,
     )
+    // RC3+: selected card glows — primary border + shadow + slight scale up.
+    val primary = MaterialTheme.colorScheme.primary
+    val borderColor by animateColorAsState(
+        if (isSelected) primary else Color.Transparent,
+        label = "card_border",
+    )
+    val scaleValue by animateFloatAsState(
+        if (isSelected) 1.03f else 1f,
+        label = "card_scale",
+    )
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         ),
-        modifier = Modifier.glintEffect(active = isAiModel),
+        modifier = Modifier
+            .graphicsLayer { scaleX = scaleValue; scaleY = scaleValue }
+            .shadow(
+                elevation = if (isSelected) 12.dp else 2.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = primary,
+            )
+            .border(
+                width = if (isSelected) 2.5.dp else 0.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(20.dp),
+            )
+            .clickable(onClick = onCardClick)
+            .glintEffect(active = isAiModel),
     ) {
         Column(
             modifier = Modifier.padding(10.dp),

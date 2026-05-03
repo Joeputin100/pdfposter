@@ -55,32 +55,49 @@ interface ModelSpec {
   body: (imageUrl: string, scale: number) => Record<string, unknown>;
 }
 
+// RC3+: every model body pins `output_format: 'png'` so FAL returns lossless
+// pixels. AuraSR's JPEG default was producing visibly blurry/blocky output at
+// 200+ MP poster sizes; pinning to PNG eliminates that loss. Models that don't
+// expose the param (recraft, esrgan) silently ignore it on FAL's side.
 const MODELS: Record<UpscaleModel, ModelSpec> = {
   topaz: {
     endpoint: 'fal-ai/topaz/upscale/image',
     supportedScales: [2, 4, 6, 8],
     costFn: (mp) => mp * 0.01,                        // $0.01/MP output
-    body: (url, scale) => ({ image_url: url, upscale_factor: scale }),
+    body: (url, scale) => ({
+      image_url: url,
+      upscale_factor: scale,
+      output_format: 'png',
+    }),
   },
   recraft: {
     endpoint: 'fal-ai/recraft/upscale/crisp',
     supportedScales: [4],                             // flat-rate per image
     costFn: () => 0.004,
-    body: (url) => ({ image_url: url }),
+    body: (url) => ({ image_url: url, output_format: 'png' }),
   },
   aurasr: {
     endpoint: 'fal-ai/aura-sr',
     supportedScales: [4],
     // ~1 second per output MP empirically; $0.00125/sec
     costFn: (mp) => mp * 0.00125,
-    body: (url) => ({ image_url: url, upscaling_factor: 4 }),
+    body: (url) => ({
+      image_url: url,
+      upscaling_factor: 4,
+      output_format: 'png',
+    }),
   },
   esrgan: {
     endpoint: 'fal-ai/esrgan',
     supportedScales: [4],
     // ~1 second per output MP empirically; $0.00111/sec
     costFn: (mp) => mp * 0.00111,
-    body: (url) => ({ image_url: url, scale: 4, model: 'RealESRGAN_x4plus' }),
+    body: (url) => ({
+      image_url: url,
+      scale: 4,
+      model: 'RealESRGAN_x4plus',
+      output_format: 'png',
+    }),
   },
 };
 

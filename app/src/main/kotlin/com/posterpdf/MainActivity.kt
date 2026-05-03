@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Density
@@ -112,7 +113,7 @@ fun SplashScreen(onComplete: () -> Unit) {
             modifier = Modifier.fillMaxSize()
         )
         Text(
-            text = "Tap to skip",
+            text = stringResource(R.string.splash_tap_to_skip),
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp,
             modifier = Modifier
@@ -267,7 +268,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             onDismissRequest = { infoDialogContent = null },
             title = { Text(title) },
             text = { Text(msg) },
-            confirmButton = { TextButton(onClick = { infoDialogContent = null }) { Text("OK") } }
+            confirmButton = { TextButton(onClick = { infoDialogContent = null }) { Text(stringResource(R.string.common_ok)) } }
         )
     }
 
@@ -301,7 +302,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             ) {
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Poster PDF",
+                    stringResource(R.string.app_name),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold
@@ -319,7 +320,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 HorizontalDivider(Modifier.padding(vertical = 12.dp))
 
                 Text(
-                    "Settings",
+                    stringResource(R.string.drawer_settings_header),
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -329,7 +330,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                  // sits above so the section reads as a settings item, not a
                  // freestanding card.
                  Text(
-                     "Units",
+                     stringResource(R.string.drawer_units_label),
                      modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                      style = MaterialTheme.typography.labelMedium
                  )
@@ -344,8 +345,8 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                  }
 
                   ListItem(
-                      headlineContent = { Text("Debug Logging") },
-                      supportingContent = { Text("Write logs to Downloads folder") },
+                      headlineContent = { Text(stringResource(R.string.drawer_debug_logging_title)) },
+                      supportingContent = { Text(stringResource(R.string.drawer_debug_logging_subtitle)) },
                       leadingContent = { Icon(Icons.Default.BugReport, null) },
                       trailingContent = {
                           Switch(
@@ -360,8 +361,8 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                   )
 
                   ListItem(
-                      headlineContent = { Text("Posters Generated") },
-                      supportingContent = { Text("Total posters created") },
+                      headlineContent = { Text(stringResource(R.string.drawer_posters_generated_title)) },
+                      supportingContent = { Text(stringResource(R.string.drawer_posters_generated_subtitle)) },
                       leadingContent = { Icon(Icons.Default.Dashboard, null) },
                       trailingContent = {
                           Text(
@@ -374,7 +375,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                   )
 
                   Text(
-                      "Default Paper Size",
+                      stringResource(R.string.drawer_default_paper_size),
                       modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                       style = MaterialTheme.typography.labelMedium
                   )
