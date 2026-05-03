@@ -667,18 +667,52 @@ fun PosterPreview(viewModel: MainViewModel) {
                         // area. Before Cutting, full page is paper. During Cutting,
                         // each edge fades independently. After Cutting, only the
                         // printable rect remains as paper.
+                        // RC5: leftover paper from imperfect grid-fit. When the
+                        // poster image doesn't divide evenly into the page grid,
+                        // the rightmost column / bottom row tiles have unused
+                        // printable area on their trailing edges. We draw that
+                        // band separately so we can fade it with the same
+                        // borderRightAlpha / borderBottomAlpha that the page
+                        // margins use — i.e. the scissors visibly trim it
+                        // during the Cutting phase, then it's gone afterward.
+                        val leftoverRight = pane.imageDstWidth - pane.imageContentWidth
+                        val leftoverBottom = pane.imageDstHeight - pane.imageContentHeight
+                        val paperColor = Color(0xFFFAFAF7)
                         val showFullPaper = !cycleEnabled ||
                             phase.ordinal() <= AssemblyPhase.Arranging.ordinal()
                         if (showFullPaper) {
-                            drawPaperFill(dx, dy, pageW, pageH, paperColor = Color(0xFFFAFAF7))
+                            drawPaperFill(dx, dy, pageW, pageH, paperColor = paperColor)
                         } else if (phase == AssemblyPhase.Cutting) {
+                            // Image-content rect always at full alpha.
                             drawPaperFill(
-                                pageLeft = dx + marginPx,
-                                pageTop = dy + marginPx,
-                                pageWidth = pageW - 2f * marginPx,
-                                pageHeight = pageH - 2f * marginPx,
-                                paperColor = Color(0xFFFAFAF7),
+                                pageLeft = pane.imageDstLeft,
+                                pageTop = pane.imageDstTop,
+                                pageWidth = pane.imageContentWidth,
+                                pageHeight = pane.imageContentHeight,
+                                paperColor = paperColor,
                             )
+                            // Trailing-edge leftover band on the right (alpha
+                            // tied to the right-edge scissor pass).
+                            if (leftoverRight > 0f) {
+                                drawPaperFill(
+                                    pageLeft = pane.imageDstLeft + pane.imageContentWidth,
+                                    pageTop = pane.imageDstTop,
+                                    pageWidth = leftoverRight,
+                                    pageHeight = pane.imageDstHeight,
+                                    paperColor = paperColor.copy(alpha = borderRightAlpha),
+                                )
+                            }
+                            // Trailing-edge leftover band on the bottom (alpha
+                            // tied to the bottom-edge scissor pass).
+                            if (leftoverBottom > 0f) {
+                                drawPaperFill(
+                                    pageLeft = pane.imageDstLeft,
+                                    pageTop = pane.imageDstTop + pane.imageContentHeight,
+                                    pageWidth = pane.imageContentWidth,
+                                    pageHeight = leftoverBottom,
+                                    paperColor = paperColor.copy(alpha = borderBottomAlpha),
+                                )
+                            }
                             drawBorderBands(
                                 pageLeft = dx, pageTop = dy,
                                 pageWidth = pageW, pageHeight = pageH,
@@ -689,12 +723,15 @@ fun PosterPreview(viewModel: MainViewModel) {
                                 leftAlpha = borderLeftAlpha,
                             )
                         } else {
+                            // Tightening / Taping / Pinning / Reset: only the
+                            // image-content rect remains as paper — leftover
+                            // is gone (consistent with the cut having happened).
                             drawPaperFill(
-                                pageLeft = dx + marginPx,
-                                pageTop = dy + marginPx,
-                                pageWidth = pageW - 2f * marginPx,
-                                pageHeight = pageH - 2f * marginPx,
-                                paperColor = Color(0xFFFAFAF7),
+                                pageLeft = pane.imageDstLeft,
+                                pageTop = pane.imageDstTop,
+                                pageWidth = pane.imageContentWidth,
+                                pageHeight = pane.imageContentHeight,
+                                paperColor = paperColor,
                             )
                         }
 
