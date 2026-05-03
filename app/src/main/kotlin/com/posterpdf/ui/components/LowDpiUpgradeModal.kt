@@ -362,7 +362,7 @@ fun LowDpiUpgradeModal(
                     else "This poster will print at low resolution",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = BlueprintBlue700,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
             if (!sourceIsSvg) {
@@ -582,7 +582,7 @@ private fun UpscaleOptionCard(
                     Icon(
                         Icons.Default.AutoAwesome,
                         contentDescription = null,
-                        tint = TrimOrange500,
+                        tint = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.size(14.dp),
                     )
                     Spacer(Modifier.width(4.dp))
@@ -591,7 +591,7 @@ private fun UpscaleOptionCard(
                     option.displayName,
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = BlueprintBlue700,
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                 )
             }
@@ -625,7 +625,7 @@ private fun UpscaleOptionCard(
                                 modifier = Modifier.fillMaxWidth().height(100.dp),
                             )
                         } else {
-                            CircularProgressIndicator(color = TrimOrange500, modifier = Modifier.size(32.dp))
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(32.dp))
                         }
                     }
                     else -> {
@@ -687,14 +687,14 @@ private fun UpscaleOptionCard(
             Text(
                 option.pros,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF2E7D32),
+                color = Color(0xFF66BB6A),
                 maxLines = 2,
             )
             // Cons (amber-tinted)
             Text(
                 option.cons,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF795548),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
             )
 
@@ -712,7 +712,7 @@ private fun UpscaleOptionCard(
                             .height(36.dp),
                         shape = RoundedCornerShape(10.dp),
                         enabled = freeEnabled && onDeviceThumb != null,
-                        colors = ButtonDefaults.buttonColors(containerColor = BlueprintBlue700),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     ) {
                         Text(
                             stringResource(R.string.upscale_card_upscale_free),
@@ -730,7 +730,7 @@ private fun UpscaleOptionCard(
                             .fillMaxWidth()
                             .height(36.dp),
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BlueprintBlue700),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_google_g),
@@ -755,7 +755,7 @@ private fun UpscaleOptionCard(
                             .fillMaxWidth()
                             .height(36.dp),
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = TrimOrange500),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                     ) {
                         Text(
                             stringResource(R.string.upscale_card_get_more_credits),
@@ -773,7 +773,7 @@ private fun UpscaleOptionCard(
                             .fillMaxWidth()
                             .height(36.dp),
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = TrimOrange500),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                     ) {
                         Icon(
                             Icons.Default.Bolt,
@@ -822,14 +822,14 @@ private fun SvgVectorBanner() {
                 Icon(
                     Icons.Default.AutoAwesome,
                     contentDescription = null,
-                    tint = TrimOrange500,
+                    tint = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.svg_banner_title),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = BlueprintBlue700,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
             // User's exact words from H-P1.13 spec.
@@ -866,7 +866,7 @@ private fun BringYourOwnCard(onPick: () -> Unit, modifier: Modifier = Modifier) 
                 Icon(
                     Icons.Default.FileUpload,
                     contentDescription = null,
-                    tint = BlueprintBlue700,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp),
                 )
                 Spacer(Modifier.width(4.dp))
@@ -874,7 +874,7 @@ private fun BringYourOwnCard(onPick: () -> Unit, modifier: Modifier = Modifier) 
                     "Bring your own",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = BlueprintBlue700,
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                 )
             }
@@ -890,7 +890,7 @@ private fun BringYourOwnCard(onPick: () -> Unit, modifier: Modifier = Modifier) 
                 Icon(
                     Icons.Default.FileUpload,
                     contentDescription = null,
-                    tint = BlueprintBlue700,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(40.dp),
                 )
             }
@@ -908,12 +908,12 @@ private fun BringYourOwnCard(onPick: () -> Unit, modifier: Modifier = Modifier) 
             // Pros/cons placeholders keep visual rhythm consistent
             Text(stringResource(R.string.byo_card_pros),
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF2E7D32),
+                color = Color(0xFF66BB6A),
                 maxLines = 2,
             )
             Text(stringResource(R.string.byo_card_cons),
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF795548),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
             )
 
@@ -923,7 +923,7 @@ private fun BringYourOwnCard(onPick: () -> Unit, modifier: Modifier = Modifier) 
                     .fillMaxWidth()
                     .height(36.dp),
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = BlueprintBlue700),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             ) {
                 Text(stringResource(R.string.byo_card_button), style = MaterialTheme.typography.labelSmall)
             }
@@ -947,7 +947,7 @@ private fun LeverRow(title: String, body: String) {
                 title,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
-                color = BlueprintBlue700,
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 body,
