@@ -119,6 +119,11 @@ dependencies {
     // PDF Generation
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 
+    // H-P2.7: QR code generation for the brand footer (Play Store URL).
+    // Pure-Java; produces a BitMatrix we convert to a Bitmap then embed via
+    // PDImageXObject in the PDF content stream.
+    implementation("com.google.zxing:core:3.5.3")
+
     // Firebase (Auth + Firestore via REST through BackendApi; Auth used directly)
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-auth-ktx")

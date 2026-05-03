@@ -304,108 +304,128 @@ fun LowDpiUpgradeModal(
                 )
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    "This poster will print at low resolution",
+                    if (sourceIsSvg) "Vector source — no upscale needed"
+                    else "This poster will print at low resolution",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = BlueprintBlue700,
                 )
             }
-            Text(
-                "Current: ${currentDpi.toInt()} DPI  ·  ${"%.0f".format(posterWInches)}\" × ${"%.0f".format(posterHInches)}\"",
-                style = MaterialTheme.typography.bodyMedium,
-                color = severityColor,
-                fontWeight = FontWeight.SemiBold,
-            )
+            if (!sourceIsSvg) {
+                Text(
+                    "Current: ${currentDpi.toInt()} DPI  ·  ${"%.0f".format(posterWInches)}\" × ${"%.0f".format(posterHInches)}\"",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = severityColor,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            } else {
+                Text(
+                    "Poster size: ${"%.0f".format(posterWInches)}\" × ${"%.0f".format(posterHInches)}\"",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
 
             HorizontalDivider()
 
-            // 2-column option grid — fixed height to avoid unbounded scroll conflict.
-            val rowCount = (visibleOptions.size + 1) / 2
-            val cardHeightDp = 290
-            val gridHeight = (rowCount * cardHeightDp + (rowCount - 1) * 12).dp
+            if (sourceIsSvg) {
+                // Phase H-P1.13: vector source — replace the upscale grid with
+                // a single explainer banner. The BringYourOwn card stays
+                // visible below (user might want to swap to a raster source).
+                SvgVectorBanner()
+                BringYourOwnCard(onPick = onShowBringYourOwnHelp, modifier = Modifier.fillMaxWidth())
+            } else {
+                // 2-column option grid — fixed height to avoid unbounded scroll conflict.
+                val rowCount = (visibleOptions.size + 1) / 2
+                val cardHeightDp = 290
+                val gridHeight = (rowCount * cardHeightDp + (rowCount - 1) * 12).dp
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(gridHeight),
-                userScrollEnabled = false,
-            ) {
-                items(visibleOptions) { modelOrNull ->
-                    if (modelOrNull == null) {
-                        BringYourOwnCard(onPick = onShowBringYourOwnHelp)
-                    } else {
-                        val option = ALL_OPTIONS.first { it.model == modelOrNull }
-                        val credits = remember(inputMp) { creditsForOption(option, inputMp) }
-                        val usdStr = usdEquivalent(credits, usdPerCredit)
-                        val outputDpi = currentDpi * option.scale
-                        val hasEnough = creditBalance >= credits
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(gridHeight),
+                    userScrollEnabled = false,
+                ) {
+                    items(visibleOptions) { modelOrNull ->
+                        if (modelOrNull == null) {
+                            BringYourOwnCard(onPick = onShowBringYourOwnHelp)
+                        } else {
+                            val option = ALL_OPTIONS.first { it.model == modelOrNull }
+                            val credits = remember(inputMp) { creditsForOption(option, inputMp) }
+                            val usdStr = usdEquivalent(credits, usdPerCredit)
+                            val outputDpi = currentDpi * option.scale
+                            val hasEnough = creditBalance >= credits
 
-                        UpscaleOptionCard(
-                            option = option,
-                            outputDpi = outputDpi,
-                            credits = credits,
-                            usdStr = usdStr,
-                            isAnonymous = isAnonymous,
-                            hasEnoughCredits = hasEnough,
-                            freeCapability = if (option.model == UpscaleModel.FREE_LOCAL) freeCapability else null,
-                            freeEnabled = if (option.model == UpscaleModel.FREE_LOCAL) freeEnabled else true,
-                            localEtaText = if (option.model == UpscaleModel.FREE_LOCAL) localEtaText else null,
-                            pixelatedThumb = if (option.model == UpscaleModel.NONE) pixelatedThumb else null,
-                            onDeviceThumb = if (option.model == UpscaleModel.FREE_LOCAL) onDeviceThumb else null,
-                            onFreeUpscale = onFreeUpscale,
-                            onAiUpscale = { onAiUpscale(option.model.name.lowercase()) },
-                            onSignIn = onSignIn,
-                            onBuyCredits = onBuyCredits,
-                        )
+                            UpscaleOptionCard(
+                                option = option,
+                                outputDpi = outputDpi,
+                                credits = credits,
+                                usdStr = usdStr,
+                                isAnonymous = isAnonymous,
+                                hasEnoughCredits = hasEnough,
+                                freeCapability = if (option.model == UpscaleModel.FREE_LOCAL) freeCapability else null,
+                                freeEnabled = if (option.model == UpscaleModel.FREE_LOCAL) freeEnabled else true,
+                                localEtaText = if (option.model == UpscaleModel.FREE_LOCAL) localEtaText else null,
+                                pixelatedThumb = if (option.model == UpscaleModel.NONE) pixelatedThumb else null,
+                                onDeviceThumb = if (option.model == UpscaleModel.FREE_LOCAL) onDeviceThumb else null,
+                                onFreeUpscale = onFreeUpscale,
+                                onAiUpscale = { onAiUpscale(option.model.name.lowercase()) },
+                                onSignIn = onSignIn,
+                                onBuyCredits = onBuyCredits,
+                            )
+                        }
                     }
                 }
-            }
 
-            // Expand / help row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TextButton(onClick = { showExtra = !showExtra }) {
-                    Text(
-                        if (showExtra) "Hide other AI options ▴" else "See other AI options ▾",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = BlueprintBlue700,
-                    )
-                }
-                TextButton(onClick = onCompareModels) {
-                    Text(
-                        "Help me decide…",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
+                // Expand / help row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextButton(onClick = { showExtra = !showExtra }) {
+                        Text(
+                            if (showExtra) "Hide other AI options ▴" else "See other AI options ▾",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = BlueprintBlue700,
+                        )
+                    }
+                    TextButton(onClick = onCompareModels) {
+                        Text(
+                            "Help me decide…",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.secondary,
+                        )
+                    }
                 }
             }
 
             HorizontalDivider()
 
             // Footer levers
-            Text(
-                "Aim for at least 150 DPI. You have a few ways to get there:",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            LeverRow(
-                title = "Reduce poster size",
-                body = "Same source image, smaller print → higher DPI. Fastest fix, no upload needed.",
-            )
-            LeverRow(
-                title = "Upgrade source",
-                body = "Upscale on-device (free, gated by RAM) or via AI (credits charged per model).",
-            )
-            LeverRow(
-                title = "Bring your own",
-                body = "Already upscaled with Canva, OpenArt, Topaz Photo AI, or Magnific? Load the upscaled file directly. PosterPDF is free with any image source — AI credits only cover the inference cost.",
-            )
+            if (!sourceIsSvg) {
+                Text(
+                    "Aim for at least 150 DPI. You have a few ways to get there:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                LeverRow(
+                    title = "Reduce poster size",
+                    body = "Same source image, smaller print → higher DPI. Fastest fix, no upload needed.",
+                )
+                LeverRow(
+                    title = "Upgrade source",
+                    body = "Upscale on-device (free, gated by RAM) or via AI (credits charged per model).",
+                )
+                LeverRow(
+                    title = "Bring your own",
+                    body = "Already upscaled with Canva, OpenArt, Topaz Photo AI, or Magnific? Load the upscaled file directly. PosterPDF is free with any image source — AI credits only cover the inference cost.",
+                )
+            }
 
             OutlinedButton(
                 onClick = onDismiss,
@@ -414,7 +434,7 @@ fun LowDpiUpgradeModal(
                     .height(48.dp),
                 shape = RoundedCornerShape(16.dp),
             ) {
-                Text("Reduce poster size instead")
+                Text(if (sourceIsSvg) "Got it" else "Reduce poster size instead")
             }
 
             Spacer(Modifier.height(8.dp))
@@ -663,16 +683,70 @@ private fun UpscaleOptionCard(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Phase H-P1.13 — SVG vector explainer banner
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Replaces the upscale grid when the source image is an SVG. The banner uses
+ * the user's exact words from the spec ("SVG is a **vector** image — it
+ * prints sharp at any size. No upscale needed.") and visually mirrors the
+ * Card style used by the upscale option cards so the layout doesn't shift.
+ */
+@Composable
+private fun SvgVectorBanner() {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = TrimOrange500,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Vector source",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = BlueprintBlue700,
+                )
+            }
+            // User's exact words from H-P1.13 spec.
+            Text(
+                "SVG is a vector image — it prints sharp at any size. No upscale needed.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                "If you'd rather start from a raster image, use \"Bring your own\" below.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // BringYourOwn special card
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun BringYourOwnCard(onPick: () -> Unit) {
+private fun BringYourOwnCard(onPick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         ),
+        modifier = modifier,
     ) {
         Column(
             modifier = Modifier.padding(10.dp),

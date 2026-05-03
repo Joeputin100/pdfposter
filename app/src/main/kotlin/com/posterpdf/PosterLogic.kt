@@ -1,6 +1,11 @@
 package com.posterpdf
 
 import android.graphics.Bitmap
+import android.graphics.Color as AndroidColor
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
@@ -10,6 +15,31 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
 import java.io.File
 import kotlin.math.ceil
+
+/**
+ * H-P2.7: render a QR code bitmap for the Play Store URL.
+ *
+ * Uses ZXing's MultiFormatWriter with QR_CODE format and Level M error
+ * correction (15% recovery — plenty for an in-app printed QR). The BitMatrix
+ * is converted to a square ARGB Bitmap with white background and black
+ * modules. We render at 320x320 px for embedding via PDImageXObject —
+ * downsampling at the PDF target size of ~64pt (≈ 0.89 in) keeps modules
+ * crisp.
+ */
+private fun generateQrBitmap(url: String, sizePx: Int = 320): Bitmap {
+    val hints = mapOf(
+        EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.M,
+        EncodeHintType.MARGIN to 1,
+    )
+    val matrix = MultiFormatWriter().encode(url, BarcodeFormat.QR_CODE, sizePx, sizePx, hints)
+    val bmp = Bitmap.createBitmap(matrix.width, matrix.height, Bitmap.Config.ARGB_8888)
+    for (y in 0 until matrix.height) {
+        for (x in 0 until matrix.width) {
+            bmp.setPixel(x, y, if (matrix.get(x, y)) AndroidColor.BLACK else AndroidColor.WHITE)
+        }
+    }
+    return bmp
+}
 
 data class TileInfo(
     val row: Int,
@@ -66,6 +96,16 @@ class PosterLogic {
         return tiles
     }
 
+    /**
+     * Phase H-P1.13: target DPI when rasterizing SVG sources for the PDF.
+     * Picked to be high enough to look "vector-quality" at typical viewing
+     * distances while keeping per-tile bitmap memory bounded — at 300 DPI a
+     * single Letter-size printable area (8" × 10.5") is 2400 × 3150 px ≈
+     * 30 MB ARGB_8888, which is fine even on low-RAM devices since we
+     * generate tiles serially and recycle between pages.
+     */
+    private val SVG_TILE_DPI: Double = 300.0
+
     fun createTiledPoster(
         bitmap: Bitmap,
         posterW: Double,
@@ -82,13 +122,33 @@ class PosterLogic {
         includeInstructions: Boolean = true,
         logoBitmap: Bitmap? = null,
         sourcePixelW: Int = bitmap.width,
-        sourcePixelH: Int = bitmap.height
+        sourcePixelH: Int = bitmap.height,
+        /**
+         * Phase H-P1.13: when non-null, the source is an SVG and the PDF path
+         * rasterizes each tile fresh via this callback. Signature:
+         *   (tilePxW, tilePxH, srcLeft01, srcTop01, srcRight01, srcBottom01) -> Bitmap
+         * where the four 0..1 fractions describe the slice of the full poster
+         * that this tile should render. The callback returns a tilePxW × tilePxH
+         * Bitmap showing exactly that slice straight from the SVG. If null,
+         * the poster is drawn from [bitmap] (raster fallback).
+         */
+        svgTileRenderer: ((tilePxW: Int, tilePxH: Int,
+                           srcLeft01: Float, srcTop01: Float,
+                           srcRight01: Float, srcBottom01: Float) -> Bitmap)? = null,
     ) {
         val doc = PDDocument()
-        val image = LosslessFactory.createFromImage(doc, bitmap)
+        // For raster sources we hoist the image once (PDFBox de-duplicates
+        // identical XObject streams). For SVG we draw fresh per tile, so we
+        // skip this hoist and let each tile create its own PDImageXObject.
+        val image = if (svgTileRenderer == null) LosslessFactory.createFromImage(doc, bitmap) else null
 
         if (includeInstructions) {
-            addInstructionsPage(doc, image, posterW, posterH, pageW, pageH, margin, overlap, logoBitmap, sourcePixelW, sourcePixelH)
+            // Instructions page uses the existing single bitmap (rasterized
+            // at SVG.documentWidth × .documentHeight by the caller). That's
+            // fine for the diagram/preview — only the per-page tiles need
+            // vector-quality fidelity.
+            val instructionImage = image ?: LosslessFactory.createFromImage(doc, bitmap)
+            addInstructionsPage(doc, instructionImage, posterW, posterH, pageW, pageH, margin, overlap, logoBitmap, sourcePixelW, sourcePixelH)
         }
 
         val printableW = pageW - 2 * margin
@@ -102,19 +162,53 @@ class PosterLogic {
             else -> 1.0f
         }
 
+        // Phase H-P1.13: per-tile SVG render dimensions (only used when
+        // svgTileRenderer != null). Page dimensions are in PDF points (72 pt =
+        // 1 inch), so tilePx = (pts / 72) × DPI.
+        val printableInchesX = printableW / 72.0
+        val printableInchesY = printableH / 72.0
+        val svgTilePxW = (printableInchesX * SVG_TILE_DPI).toInt().coerceAtLeast(1)
+        val svgTilePxH = (printableInchesY * SVG_TILE_DPI).toInt().coerceAtLeast(1)
+
         for (tile in tiles) {
             val page = PDPage(PDRectangle(pageW.toFloat(), pageH.toFloat()))
             doc.addPage(page)
-            
+
             val contentStream = PDPageContentStream(doc, page)
             contentStream.saveGraphicsState()
             contentStream.addRect(margin.toFloat(), margin.toFloat(), printableW.toFloat(), printableH.toFloat())
             contentStream.clip()
-            
-            val drawX = margin - tile.offsetX
-            val drawY = margin - (posterH - tile.offsetY - printableH)
-            
-            contentStream.drawImage(image, drawX.toFloat(), drawY.toFloat(), posterW.toFloat(), posterH.toFloat())
+
+            if (svgTileRenderer != null) {
+                // SVG path: rasterize JUST this tile's slice of the poster at
+                // SVG_TILE_DPI. Compute the slice as 0..1 fractions of the
+                // full poster so the renderer can render the whole SVG into
+                // a tilePxW × tilePxH bitmap with an offset Canvas.
+                // tile.offsetX/Y is the top-left of the tile's printable area
+                // in poster-pt coords; adding printableW/H gives the bottom-right.
+                val srcLeft01 = (tile.offsetX / posterW).toFloat().coerceIn(0f, 1f)
+                val srcTop01 = (tile.offsetY / posterH).toFloat().coerceIn(0f, 1f)
+                val srcRight01 = ((tile.offsetX + printableW) / posterW).toFloat().coerceIn(0f, 1f)
+                val srcBottom01 = ((tile.offsetY + printableH) / posterH).toFloat().coerceIn(0f, 1f)
+
+                val tileBmp = svgTileRenderer.invoke(
+                    svgTilePxW, svgTilePxH,
+                    srcLeft01, srcTop01, srcRight01, srcBottom01,
+                )
+                val tileImage = LosslessFactory.createFromImage(doc, tileBmp)
+                contentStream.drawImage(
+                    tileImage,
+                    margin.toFloat(),
+                    margin.toFloat(),
+                    printableW.toFloat(),
+                    printableH.toFloat(),
+                )
+                tileBmp.recycle()
+            } else {
+                val drawX = margin - tile.offsetX
+                val drawY = margin - (posterH - tile.offsetY - printableH)
+                contentStream.drawImage(image!!, drawX.toFloat(), drawY.toFloat(), posterW.toFloat(), posterH.toFloat())
+            }
             contentStream.restoreGraphicsState()
             
             if (showOutlines) {
@@ -419,6 +513,25 @@ class PosterLogic {
         cs.showText("Made with Poster PDF \u2022 play.google.com/store/apps/details?id=com.posterpdf")
         cs.endText()
         cs.setNonStrokingColor(0f, 0f, 0f)
+
+        // H-P2.7: render the Play Store URL as a QR code next to the brand text.
+        // Sized at 36pt (\u2248 0.5 in) \u2014 fits comfortably in the 6pt accent bar margin
+        // without crowding the credit text. ZXing Level M error correction.
+        try {
+            val qrBmp = generateQrBitmap(
+                "https://play.google.com/store/apps/details?id=com.posterpdf",
+                sizePx = 320,
+            )
+            val qrImage = LosslessFactory.createFromImage(document, qrBmp)
+            val qrSize = 36f
+            val qrX = pgw.toFloat() - qrSize - 50f
+            val qrY = 8f
+            cs.drawImage(qrImage, qrX, qrY, qrSize, qrSize)
+            qrBmp.recycle()
+        } catch (_: Throwable) {
+            // QR rendering is non-critical \u2014 if ZXing or the bitmap pipeline
+            // throws, we just skip and ship the text-only footer.
+        }
 
         cs.close()
     }

@@ -17,6 +17,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -324,20 +325,24 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                 ListItem(
-                     headlineContent = { Text("Units") },
-                     supportingContent = { Text(viewModel.units) },
-                     leadingContent = { Icon(Icons.Default.Straighten, null) },
-                     trailingContent = {
-                         Switch(
-                             checked = viewModel.units == "Metric",
-                             onCheckedChange = { 
-                                 viewModel.logEvent(context, "Units switch toggled", "checked=$it")
-                                 viewModel.toggleUnits(it) 
-                             }
-                         )
-                     }
+                 // H-P1.2: drawer Units control replaces the Switch row with
+                 // the ruler-infographic UnitsToggleCard. The supporting label
+                 // sits above so the section reads as a settings item, not a
+                 // freestanding card.
+                 Text(
+                     "Units",
+                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                     style = MaterialTheme.typography.labelMedium
                  )
+                 Box(Modifier.padding(horizontal = 16.dp)) {
+                     UnitsToggleCard(
+                         selectedUnits = viewModel.units,
+                         onSelect = { stored ->
+                             viewModel.logEvent(context, "Units toggled", "value=$stored")
+                             viewModel.toggleUnits(stored == "Metric")
+                         },
+                     )
+                 }
 
                   ListItem(
                       headlineContent = { Text("Debug Logging") },
@@ -939,37 +944,34 @@ fun InfoChip(label: String, value: String) {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+/**
+ * Paper size selector — H-P1.1 infographic version.
+ *
+ * Replaces the prior horizontal ToggleButton row with a row of
+ * [com.posterpdf.ui.components.PaperSizeCard]s rendering each paper size as
+ * a to-scale rectangle drawable. Letter carries a sparkle star + tooltip
+ * marking it as the North America default. State plumbing is unchanged:
+ * the ViewModel still owns `paperSize` as the canonical label string
+ * ("Letter (8.5x11)", "A4 (8.27x11.69)", "Legal (8.5x14)", "Tabloid (11x17)",
+ * or "Custom").
+ */
 @Composable
 fun PaperSizeSelector(viewModel: MainViewModel) {
     val context = LocalContext.current
-    val options = listOf("Letter (8.5x11)", "Legal (8.5x14)", "Tabloid (11x17)", "A4 (8.27x11.69)", "A3 (11.69x16.54)", "Custom")
-    val selectedIndex = options.indexOf(viewModel.paperSize).coerceAtLeast(0)
-    val hapt = Hapt(LocalHapticFeedback.current)
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Paper Size", style = MaterialTheme.typography.bodyMedium)
-        // ButtonGroup's scope DSL in material3 1.5.0-alpha18 doesn't accept direct
-        // ToggleButton calls inside a plain content lambda; fell back to a Row.
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            for ((index, option) in options.withIndex()) {
-                ToggleButton(
-                    checked = index == selectedIndex,
-                    onCheckedChange = {
-                        if (index != selectedIndex) {
-                            hapt.tap()
-                            viewModel.paperSize = option
-                            viewModel.logEvent(context, "Paper size selected", "size=$option")
-                            viewModel.saveAllSettings()
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                ) { Text(option.substringBefore(' ')) }
-            }
-        }
+
+        PaperSizeCardRow(
+            selectedLabel = viewModel.paperSize,
+            onSelect = { label ->
+                if (label != viewModel.paperSize) {
+                    viewModel.paperSize = label
+                    viewModel.logEvent(context, "Paper size selected", "size=$label")
+                    viewModel.saveAllSettings()
+                }
+            },
+        )
 
         if (viewModel.paperSize == "Custom") {
             val unitLabel = if (viewModel.units == "Metric") "cm" else "in"
@@ -999,25 +1001,34 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+/**
+ * Orientation selector — H-P1.3 (Clarus the Dogcow restored).
+ *
+ * Three cards: Best Fit / Portrait / Landscape. Portrait shows Clarus
+ * upright; Landscape shows Clarus rotated 90 degrees. Best Fit shows both
+ * miniaturized side-by-side so the user knows the renderer will pick.
+ *
+ * State plumbing is identical to the prior ToggleButton-row implementation:
+ * `viewModel.orientation` stores one of "Best Fit", "Portrait", "Landscape".
+ */
 @Composable
 fun OrientationSelector(viewModel: MainViewModel) {
     val context = LocalContext.current
     val orientations = listOf("Best Fit", "Portrait", "Landscape")
-    val selectedIndex = orientations.indexOf(viewModel.orientation).coerceAtLeast(0)
     val hapt = Hapt(LocalHapticFeedback.current)
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Orientation", style = MaterialTheme.typography.bodyMedium)
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            for ((index, orient) in orientations.withIndex()) {
-                ToggleButton(
-                    checked = index == selectedIndex,
-                    onCheckedChange = {
-                        if (index != selectedIndex) {
+            for (orient in orientations) {
+                OrientationCard(
+                    label = orient,
+                    isSelected = viewModel.orientation == orient,
+                    onClick = {
+                        if (viewModel.orientation != orient) {
                             hapt.tap()
                             viewModel.orientation = orient
                             viewModel.logEvent(context, "Orientation changed", "value=$orient")
@@ -1025,8 +1036,88 @@ fun OrientationSelector(viewModel: MainViewModel) {
                         }
                     },
                     modifier = Modifier.weight(1f),
-                ) { Text(orient) }
+                )
             }
+        }
+    }
+}
+
+/**
+ * One orientation card — Clarus dogcow rotated 0 / 90 degrees, or both for
+ * "Best Fit". Long-press reveals the classic "moof!" — er, no, just the
+ * orientation label. Selection inflates the border + tints the surface.
+ */
+@Composable
+private fun OrientationCard(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary
+                      else MaterialTheme.colorScheme.outlineVariant
+    val borderWidth = if (isSelected) 2.5.dp else 1.dp
+    val containerColor = if (isSelected)
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+    else
+        MaterialTheme.colorScheme.surface
+
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .clickable { onClick() }
+            .border(borderWidth, borderColor, RoundedCornerShape(20.dp)),
+        color = containerColor,
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Box(
+                modifier = Modifier.size(56.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                when (label) {
+                    "Portrait" -> androidx.compose.foundation.Image(
+                        painter = painterResource(id = com.posterpdf.R.drawable.clarus_portrait),
+                        contentDescription = "Portrait orientation (Clarus the Dogcow standing)",
+                        modifier = Modifier.size(56.dp),
+                    )
+                    "Landscape" -> androidx.compose.foundation.Image(
+                        painter = painterResource(id = com.posterpdf.R.drawable.clarus_landscape),
+                        contentDescription = "Landscape orientation (Clarus the Dogcow on its side)",
+                        modifier = Modifier.size(56.dp),
+                    )
+                    else -> Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        androidx.compose.foundation.Image(
+                            painter = painterResource(id = com.posterpdf.R.drawable.clarus_portrait),
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                        )
+                        androidx.compose.foundation.Image(
+                            painter = painterResource(id = com.posterpdf.R.drawable.clarus_landscape),
+                            contentDescription = "Best fit orientation",
+                            modifier = Modifier.size(28.dp),
+                        )
+                    }
+                }
+            }
+            Text(
+                label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurface,
+            )
         }
     }
 }
@@ -1249,13 +1340,15 @@ fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
                 Text("Let's get you set up. You can always change these settings later in the side menu.")
                 
                 Text("Select your preferred measurement units:", style = MaterialTheme.typography.labelLarge)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = selectedUnits == "Inches", onClick = { selectedUnits = "Inches" })
-                    Text("Inches")
-                    Spacer(Modifier.width(16.dp))
-                    RadioButton(selected = selectedUnits == "Metric", onClick = { selectedUnits = "Metric" })
-                    Text("Metric")
-                }
+                // H-P1.2: replaced RadioButton row with the ruler-infographic
+                // UnitsToggleCard. Storage keeps the legacy "Inches" / "Metric"
+                // values so MainViewModel.units and toggleUnits(...) work
+                // unchanged; the user-facing label on the second card reads
+                // "Centimeters".
+                UnitsToggleCard(
+                    selectedUnits = selectedUnits,
+                    onSelect = { selectedUnits = it },
+                )
 
                 Text("Default Paper Size:", style = MaterialTheme.typography.labelLarge)
                 PaperSizeSelector(viewModel)
