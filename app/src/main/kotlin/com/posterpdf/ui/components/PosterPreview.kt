@@ -691,26 +691,31 @@ fun PosterPreview(viewModel: MainViewModel) {
                                 pageHeight = pane.imageContentHeight,
                                 paperColor = paperColor,
                             )
-                            // Trailing-edge leftover band on the right (alpha
-                            // tied to the right-edge scissor pass).
+                            // RC6 — torn paper effect. tearProgress is the
+                            // *inverse* of edgeAlpha so the band tears as the
+                            // scissors pass: 0=intact, 1=fully torn and fallen.
+                            val rightTear = 1f - borderRightAlpha
+                            val bottomTear = 1f - borderBottomAlpha
                             if (leftoverRight > 0f) {
-                                drawPaperFill(
-                                    pageLeft = pane.imageDstLeft + pane.imageContentWidth,
-                                    pageTop = pane.imageDstTop,
-                                    pageWidth = leftoverRight,
-                                    pageHeight = pane.imageDstHeight,
-                                    paperColor = paperColor.copy(alpha = borderRightAlpha),
+                                com.posterpdf.ui.components.preview.drawTearingBand(
+                                    bandLeft = pane.imageDstLeft + pane.imageContentWidth,
+                                    bandTop = pane.imageDstTop,
+                                    bandWidth = leftoverRight,
+                                    bandHeight = pane.imageDstHeight,
+                                    tearProgress = rightTear,
+                                    isVertical = true,
+                                    seed = r * cols + c,
                                 )
                             }
-                            // Trailing-edge leftover band on the bottom (alpha
-                            // tied to the bottom-edge scissor pass).
                             if (leftoverBottom > 0f) {
-                                drawPaperFill(
-                                    pageLeft = pane.imageDstLeft,
-                                    pageTop = pane.imageDstTop + pane.imageContentHeight,
-                                    pageWidth = pane.imageContentWidth,
-                                    pageHeight = leftoverBottom,
-                                    paperColor = paperColor.copy(alpha = borderBottomAlpha),
+                                com.posterpdf.ui.components.preview.drawTearingBand(
+                                    bandLeft = pane.imageDstLeft,
+                                    bandTop = pane.imageDstTop + pane.imageContentHeight,
+                                    bandWidth = pane.imageContentWidth,
+                                    bandHeight = leftoverBottom,
+                                    tearProgress = bottomTear,
+                                    isVertical = false,
+                                    seed = (r * cols + c) * 31 + 7,
                                 )
                             }
                             drawBorderBands(
