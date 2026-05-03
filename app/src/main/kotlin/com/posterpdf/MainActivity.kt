@@ -292,7 +292,13 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             val (w, h) = viewModel.sourcePixelDimensions ?: (1 to 1)
             (w.toLong() * h * 16L / 1_000_000L).coerceAtLeast(1L)
         }
-        val msPerMp = remember { com.posterpdf.ml.cachedMsPerMegapixel(context) ?: 4_000L }
+        // Cached benchmark is a suspend fn; load it on first composition via
+        // LaunchedEffect. Fall back to 4 ms/MP — empirically a mid-tier
+        // Pixel produces ESRGAN output at roughly that rate.
+        var msPerMp by remember { mutableLongStateOf(4_000L) }
+        LaunchedEffect(Unit) {
+            com.posterpdf.ml.cachedMsPerMegapixel(context)?.let { msPerMp = it }
+        }
         val expectedMs = (msPerMp * outputMp).coerceAtLeast(20_000L)
         val progress = (elapsedMs.toFloat() / expectedMs.toFloat()).coerceIn(0f, 0.99f)
         val remainingSec = ((expectedMs - elapsedMs) / 1000L).coerceAtLeast(0L)

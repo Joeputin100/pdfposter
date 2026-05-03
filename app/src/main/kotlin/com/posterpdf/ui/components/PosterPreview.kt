@@ -77,6 +77,7 @@ import com.posterpdf.ui.components.preview.AssemblyPhase
 import com.posterpdf.ui.components.preview.PRINTER_INK_AGSL
 import com.posterpdf.ui.components.preview.drawHand
 import com.posterpdf.ui.components.preview.drawPrinter
+import com.posterpdf.R
 import com.posterpdf.ui.components.preview.drawScissors
 import com.posterpdf.ui.components.preview.drawTearingBand
 import com.posterpdf.ui.components.preview.drawScotchTape
