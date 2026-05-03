@@ -43,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
@@ -165,9 +167,40 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 CompareSubject.entries.forEach { s ->
+                    // RC4: 24dp thumbnail of the source image as the chip\'s
+                    // leading icon. Loaded lazily off the main thread per chip.
+                    val thumbBitmap by produceState<androidx.compose.ui.graphics.ImageBitmap?>(
+                        initialValue = null,
+                        key1 = s.key,
+                    ) {
+                        value = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            val resId = context.resources.getIdentifier(
+                                "${s.key}_source", "raw", context.packageName,
+                            )
+                            if (resId == 0) return@withContext null
+                            context.resources.openRawResource(resId).use { stream ->
+                                val full = android.graphics.BitmapFactory.decodeStream(stream)
+                                    ?: return@withContext null
+                                android.graphics.Bitmap.createScaledBitmap(full, 64, 64, true)
+                                    .asImageBitmap()
+                            }
+                        }
+                    }
                     FilterChip(
                         selected = subject == s,
                         onClick = { subject = s },
+                        leadingIcon = thumbBitmap?.let { bmp ->
+                            {
+                                Image(
+                                    bitmap = bmp,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .clip(RoundedCornerShape(50)),
+                                )
+                            }
+                        },
                         label = { Text(s.label, style = MaterialTheme.typography.labelSmall) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = BlueprintBlue700,
@@ -265,7 +298,11 @@ private fun SlideHandleViewer(
     onHandleXChange: (Float) -> Unit,
 ) {
     val density = LocalDensity.current
-    val handleHitRadiusPx = with(density) { 24.dp.toPx() }
+    // RC4: shrunk from 24dp → 10dp. Old radius made the entire center column
+    // of the viewport "near handle" — every center tap captured the
+    // before/after slider instead of letting the user drag-pan the image.
+    // 10dp is still wider than the actual handle stem and easy to grab.
+    val handleHitRadiusPx = with(density) { 10.dp.toPx() }
     val knobRadiusPx = with(density) { 14.dp.toPx() }
 
     var viewportW by remember { mutableFloatStateOf(0f) }
