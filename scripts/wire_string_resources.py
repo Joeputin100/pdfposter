@@ -55,6 +55,7 @@ COMPOSE_FILES = [
 ]
 
 STRING_RES_IMPORT = "import androidx.compose.ui.res.stringResource"
+R_IMPORT = "import com.posterpdf.R"
 
 
 def parse_strings_xml() -> dict[str, str]:
@@ -141,22 +142,30 @@ def rewrite_kotlin(path: Path, mapping: dict[str, str], dry_run: bool) -> int:
 
     content = pattern.sub(replace, content)
 
-    if replacements > 0 and STRING_RES_IMPORT not in content:
-        # Insert the import next to other compose.ui.res imports.
-        content = re.sub(
-            r"(import androidx\.compose\.ui\.res\.painterResource\n)",
-            r"\1" + STRING_RES_IMPORT + "\n",
-            content,
-            count=1,
-        )
-        # Fallback: insert near other androidx.compose.ui imports.
+    if replacements > 0:
         if STRING_RES_IMPORT not in content:
+            # Insert the import next to other compose.ui.res imports.
             content = re.sub(
-                r"(import androidx\.compose\.ui\.[^\n]+\n)",
+                r"(import androidx\.compose\.ui\.res\.painterResource\n)",
                 r"\1" + STRING_RES_IMPORT + "\n",
                 content,
                 count=1,
             )
+            if STRING_RES_IMPORT not in content:
+                content = re.sub(
+                    r"(import androidx\.compose\.ui\.[^\n]+\n)",
+                    r"\1" + STRING_RES_IMPORT + "\n",
+                    content,
+                    count=1,
+                )
+        # `R.string.X` requires com.posterpdf.R unless the file is in
+        # package com.posterpdf itself. Add it after the last androidx
+        # import if missing.
+        if R_IMPORT not in content:
+            matches = list(re.finditer(r"^import androidx\.[^\n]+\n", content, re.MULTILINE))
+            if matches:
+                last = matches[-1]
+                content = content[:last.end()] + R_IMPORT + "\n" + content[last.end():]
 
     if content != original:
         if dry_run:

@@ -60,6 +60,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.posterpdf.R
 import com.posterpdf.ui.theme.BlueprintBlue700
 import com.posterpdf.ui.theme.TrimOrange500
 import kotlin.math.abs
