@@ -50,18 +50,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -149,7 +146,6 @@ fun PosterPreview(viewModel: MainViewModel) {
         label = "time"
     )
 
-    var tapAt by remember { mutableLongStateOf(0L) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -157,13 +153,6 @@ fun PosterPreview(viewModel: MainViewModel) {
             delay(16)
         }
     }
-    val tapCurl = if (tapAt == 0L) 0f else {
-        val elapsed = ((now - tapAt).coerceAtLeast(0L)).toFloat()
-        val p = (elapsed / 1400f).coerceIn(0f, 1f)
-        if (p >= 1f) 0f else sin(p * Math.PI).toFloat().coerceIn(0f, 1f)
-    }
-    val autoCurl = sin((t * 2f * Math.PI).toFloat()).coerceAtLeast(0f)
-    val globalCurl = max(tapCurl, autoCurl)
 
     // Phase D: 12-second Assembly Cycle clock + per-phase derived state.
     // The cycle (and the AGSL workbench shader, and the decoration draws) are gated
@@ -287,7 +276,6 @@ fun PosterPreview(viewModel: MainViewModel) {
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = { rawOffset ->
                             hapt.tap()
-                            tapAt = System.currentTimeMillis()
                             // Invert the graphicsLayer pan/zoom to land in canvas coords.
                             val pivotX = boxSize.width / 2f
                             val pivotY = boxSize.height / 2f
@@ -369,11 +357,6 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val paneJiggleDx = if (isJiggled) jiggleSwing * 2.5f else 0f
                     val paneJiggleDy = if (isJiggled) -jiggleAmp * 1.8f else 0f
                     val paneCenter = Offset(dx + pageW / 2f, dy + pageH / 2f)
-
-                    // individual pane curl wave
-                    val panePos = (c + r).toFloat() / max(1f, (rows + cols - 2).toFloat())
-                    val paneCurl = (globalCurl * 1.6f - panePos * 0.35f).coerceIn(0f, 1f)
-                    val cornerCurlSize = min(pageW, pageH) * (0.08f + 0.40f * paneCurl)
 
                     // Phase D: per-pane animation values driven by the cycle clock.
                     // All zero when cycleEnabled=false (API <33), preserving the
@@ -476,55 +459,6 @@ fun PosterPreview(viewModel: MainViewModel) {
                             pane.imageDstWidth, pane.imageDstHeight,
                             r, c,
                         )
-
-                        if (paneCurl > 0.02f) {
-                            val br = Offset(dx + pageW, dy + pageH)
-                            val corner = cornerCurlSize.coerceAtMost(min(pageW, pageH) * 0.65f)
-                            val flapPath = Path().apply {
-                                // Curved corner flap (not triangular fold)
-                                moveTo(br.x, br.y)
-                                lineTo(br.x - corner, br.y)
-                                quadraticBezierTo(
-                                    br.x - corner * 0.30f,
-                                    br.y - corner * 0.30f,
-                                    br.x,
-                                    br.y - corner
-                                )
-                                close()
-                            }
-
-                            drawPath(flapPath, Color.Black.copy(alpha = 0.18f + paneCurl * 0.24f))
-
-                            clipPath(flapPath) {
-                                withTransform({
-                                    rotate(-34f * paneCurl, pivot = br)
-                                    scale(
-                                        scaleX = 0.56f + (1f - paneCurl) * 0.24f,
-                                        scaleY = 1f,
-                                        pivot = br
-                                    )
-                                    translate(-corner * 0.08f * paneCurl, -corner * 0.30f * paneCurl)
-                                }) {
-                                    // Backside of paper for curled corner
-                                    drawRect(
-                                        color = Color(0xFFF6F6F2),
-                                        topLeft = Offset(br.x - corner, br.y - corner),
-                                        size = Size(corner, corner)
-                                    )
-                                    drawRect(
-                                        color = Color.Black.copy(alpha = 0.16f + paneCurl * 0.20f),
-                                        topLeft = Offset(br.x - corner, br.y - corner),
-                                        size = Size(corner, corner)
-                                    )
-                                    drawLine(
-                                        color = Color.White.copy(alpha = 0.55f),
-                                        start = Offset(br.x - corner * 0.95f, br.y - 1f),
-                                        end = Offset(br.x - 1f, br.y - corner * 0.95f),
-                                        strokeWidth = max(1.2f, 2.8f * paneCurl)
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
 
