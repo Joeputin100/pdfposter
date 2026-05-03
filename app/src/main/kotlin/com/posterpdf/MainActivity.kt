@@ -338,7 +338,29 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 )
 
                 HorizontalDivider(Modifier.padding(vertical = 16.dp))
-                
+
+                 var showStorageDialog by remember { mutableStateOf(false) }
+                 NavigationDrawerItem(
+                     label = { Text("Cloud storage…") },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "Cloud storage settings opened")
+                         showStorageDialog = true
+                     },
+                     icon = { Icon(Icons.Default.CloudQueue, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
+                 if (showStorageDialog) {
+                     com.posterpdf.ui.components.StorageRetentionDialog(
+                         initialMode = viewModel.storageRetentionMode,
+                         onDismiss = { showStorageDialog = false },
+                         onConfirm = { mode ->
+                             viewModel.setStorageRetentionMode(mode)
+                             showStorageDialog = false
+                         },
+                     )
+                 }
+
                  NavigationDrawerItem(
                      label = { Text("Reset to Defaults") },
                      selected = false,
@@ -864,6 +886,19 @@ fun AdvancedOptionsSection(viewModel: MainViewModel) {
             
             AnimatedVisibility(visible = expanded) {
                 Column(Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            "Page borders & crop marks",
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                        Text(
+                            "Printed on each page to help you trim and align after printing. " +
+                                "\"Crop Marks\" prints corner ticks showing where to cut, like a pro print shop. " +
+                                "Solid/dashed/dotted draw a full border at varying weights. Pick \"None\" if you want clean edges.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     OutlineStyleDropdown(
                         selection = viewModel.outlineSelection,
                         onSelectionChange = {

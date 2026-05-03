@@ -20,9 +20,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -93,7 +103,23 @@ fun HistoryScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                     items(viewModel.historyItems, key = { it.id }) { item ->
                         HistoryCard(
                             item = item,
-                            onOpen = { openLocalPdf(context, item) },
+                            onView = { openLocalPdf(context, item) },
+                            onShare = { sharePdf(context, item) },
+                            onDownload = {
+                                // TODO(H-P3): pull cloud copy to local Downloads.
+                                // Stubbed for v1; History view shows the button
+                                // but the actual download flow needs a callable
+                                // function or signed-URL fetch.
+                            },
+                            onDeleteFromCloud = {
+                                // TODO(H-P3.4): wire to viewModel.deleteFromCloud(item.id)
+                                // which calls the deleteCloudCopy callable.
+                                viewModel.logEvent(
+                                    context,
+                                    "delete_cloud_copy_requested",
+                                    "id=${item.id}",
+                                )
+                            },
                         )
                     }
                 }
@@ -127,7 +153,13 @@ private fun EmptyState(modifier: Modifier) {
 }
 
 @Composable
-private fun HistoryCard(item: HistoryItem, onOpen: () -> Unit) {
+private fun HistoryCard(
+    item: HistoryItem,
+    onView: () -> Unit,
+    onShare: () -> Unit,
+    onDownload: () -> Unit,
+    onDeleteFromCloud: () -> Unit,
+) {
     val icon = when (item.type) {
         "upscale_local", "upscale_remote" -> Icons.Default.AutoAwesome
         else -> Icons.Default.PictureAsPdf
@@ -151,40 +183,98 @@ private fun HistoryCard(item: HistoryItem, onOpen: () -> Unit) {
         if (!pw.isNullOrEmpty() && !ph.isNullOrEmpty()) "$pw × $ph ${units ?: ""}" else null
     }
 
+    val hasCloud = item.cloudStorageUri.isNotEmpty()
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
         tonalElevation = 1.dp,
     ) {
-        Row(
+        Column(
             modifier = Modifier.fillMaxWidth().padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                Modifier.size(40.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(fileName, style = MaterialTheme.typography.titleSmall, maxLines = 1)
-                Text(
-                    createdLabel,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (dimensions != null || poster != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(40.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(fileName, style = MaterialTheme.typography.titleSmall, maxLines = 1)
                     Text(
-                        listOfNotNull(poster, dimensions).joinToString(" · "),
+                        createdLabel,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (dimensions != null || poster != null) {
+                        Text(
+                            listOfNotNull(poster, dimensions).joinToString(" · "),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                IconButton(onClick = onView, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Default.Visibility, contentDescription = "View")
+                }
+                IconButton(onClick = onShare, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Default.Share, contentDescription = "Share")
+                }
+                IconButton(
+                    onClick = onDownload,
+                    enabled = hasCloud,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(Icons.Default.Download, contentDescription = "Download from cloud")
+                }
+                IconButton(
+                    onClick = { showDeleteConfirm = true },
+                    enabled = hasCloud,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        Icons.Default.CloudOff,
+                        contentDescription = "Delete cloud copy",
+                        tint = if (hasCloud) MaterialTheme.colorScheme.error
+                               else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Delete cloud copy?") },
+            text = {
+                Text(
+                    "This removes the poster from cloud storage. Your local copy and this " +
+                        "history entry are unaffected — you'll just lose the ability to " +
+                        "re-download from cloud later. Frees up storage on your account.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteFromCloud()
+                    showDeleteConfirm = false
+                }) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+            },
+        )
     }
 }
 
@@ -199,4 +289,18 @@ private fun openLocalPdf(context: android.content.Context, item: HistoryItem) {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     context.startActivity(Intent.createChooser(intent, "Open PDF"))
+}
+
+private fun sharePdf(context: android.content.Context, item: HistoryItem) {
+    val path = item.localUri
+    if (path.isEmpty()) return
+    val file = File(path)
+    if (!file.exists()) return
+    val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "application/pdf"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(intent, "Share PDF"))
 }

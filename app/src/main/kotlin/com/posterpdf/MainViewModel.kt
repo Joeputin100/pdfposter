@@ -43,6 +43,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var errorMessage by mutableStateOf<String?>(null)
     var successMessage by mutableStateOf<String?>(null)
 
+    // Phase H-P3.2: 'paid' | 'auto-delete'. Default 'paid' = keep storing
+    // posters in cloud after the 30-day free window, billed 1¢/month/file.
+    var storageRetentionMode by mutableStateOf("paid")
+        private set
+
+    fun setStorageRetentionMode(mode: String) {
+        if (mode != "paid" && mode != "auto-delete") return
+        storageRetentionMode = mode
+        // TODO(H-P3): persist to users/{uid}.storageRetentionMode in Firestore.
+        // For now this is process-local; the next sign-in will read it from
+        // Firestore when AuthRepository wires through.
+    }
+
     // Reactive inputs
     var selectedImageUri by mutableStateOf<Uri?>(null)
     var posterWidth by mutableStateOf("24")

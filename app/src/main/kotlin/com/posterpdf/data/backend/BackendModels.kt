@@ -15,4 +15,10 @@ data class HistoryItem(
     val metadataJson: String,
     val createdAtMillis: Long? = null,
     val metadata: Map<String, Any?> = emptyMap(),
+    /**
+     * Phase H-P3 cloud-storage retention. Empty string = no cloud copy
+     * (local-only entry); non-empty `gs://...` URI means the PDF is in
+     * cloud storage and subject to the retention/billing policy.
+     */
+    val cloudStorageUri: String = "",
 )
