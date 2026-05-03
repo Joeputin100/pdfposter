@@ -77,7 +77,7 @@ import kotlinx.coroutines.withContext
 
 private enum class CompareSubject(val label: String, val key: String) {
     DiscoChicken("Disco chicken", "disco_chicken"),
-    CatShimmer("Cat shimmer", "cat_shimmer"),
+    CatShimmer("Cat", "cat_shimmer"),
     Gristmill("Gristmill", "gristmill"),
     Earth("Earth poster", "earth"),
 }

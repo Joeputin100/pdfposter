@@ -103,16 +103,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         targetDpi = dpi.coerceIn(75, 1200)
     }
 
+    /** RC4: separate from `isGenerating` (which covers PDF emit) so the UI
+     *  can show a free-upscale-specific progress dialog with cancel button. */
+    var isFreeUpscaling by mutableStateOf(false)
+        private set
+    private var freeUpscaleJob: kotlinx.coroutines.Job? = null
+
     /**
      * RC3 fix: actually run the on-device ESRGAN upscale, save it to cache,
      * point selectedImageUri at the result so the next preview redraw + DPI
-     * calc see the 4× larger image. Previously the modal's "Upscale free"
-     * button just closed the modal and the user got the same low-DPI warning.
+     * calc see the 4× larger image. RC4: now exposes an isFreeUpscaling flag
+     * + a cancellable Job so MainActivity can render a progress dialog.
      */
     fun runFreeUpscale(context: Context) {
         val uri = selectedImageUri ?: return
-        viewModelScope.launch {
-            isGenerating = true
+        freeUpscaleJob?.cancel()
+        freeUpscaleJob = viewModelScope.launch {
+            isFreeUpscaling = true
             try {
                 com.posterpdf.ml.UpscalerOnDevice.init(context)
                 val src = withContext(Dispatchers.IO) {
@@ -121,7 +128,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 } ?: run {
                     errorMessage = "Couldn't open the source image"
-                    isGenerating = false
                     return@launch
                 }
                 val upscaled = com.posterpdf.ml.UpscalerOnDevice.upscale(src)
@@ -139,12 +145,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 successMessage = "Upscaled to ${upscaled.width}×${upscaled.height}"
                 if (src !== upscaled) src.recycle()
                 upscaled.recycle()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // User pressed Cancel; swallow silently.
             } catch (e: Throwable) {
                 errorMessage = "Upscale failed: ${e.message ?: "unknown error"}"
             } finally {
-                isGenerating = false
+                isFreeUpscaling = false
             }
         }
+    }
+
+    fun cancelFreeUpscale() {
+        freeUpscaleJob?.cancel()
+        // Job's finally block clears isFreeUpscaling; redundant set is safe.
+        isFreeUpscaling = false
     }
 
     // Reactive inputs

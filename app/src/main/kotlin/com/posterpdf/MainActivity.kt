@@ -272,6 +272,35 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         )
     }
 
+    // RC4 — free-upscale progress dialog. The on-device ESRGAN runs ~30-90s
+    // on a typical phone; users were tapping "Upscale free" then seeing the
+    // pre-upscale low-DPI warning still on-screen and assuming nothing
+    // happened. This dialog blocks the main UI during the upscale and lets
+    // the user cancel cleanly.
+    if (viewModel.isFreeUpscaling) {
+        AlertDialog(
+            onDismissRequest = { /* not dismissable — must Cancel or wait */ },
+            icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
+            title = { Text("Sharpening your photo") },
+            text = {
+                Column {
+                    Text(
+                        "The free on-device upscaler is running. This usually takes 30–90 seconds, depending on your phone.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { viewModel.cancelFreeUpscale() }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
+    }
+
     if (showPurchaseSheet) {
         PurchaseSheet(
             balance = creditBalance,

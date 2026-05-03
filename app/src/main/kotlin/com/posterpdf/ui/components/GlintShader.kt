@@ -104,11 +104,13 @@ half4 main(float2 fragCoord) {
     float dist = length(uv - lightUV);
     float cone = smoothstep(0.55, 0.0, dist);
 
-    // Spark = roughness raised to a high power × cone × low-frequency
-    // ridge (the second term carves the foil into broad bands that
-    // shimmer past each other as `iTime` advances).
+    // RC4 visibility tune-up: dropped pow exponent 6→3 (sparkles brighten
+    // ~64×) and removed the 0.4 floor on ridge so dark bands stay quiet
+    // between bright bands (more dynamic range), then doubled the
+    // baseline multiplier and lifted the alpha clamp ceiling. Real-device
+    // testing showed the prior values were too subtle to read as "glitter."
     float ridge = 0.5 + 0.5 * sin(uv.x * 18.0 + uv.y * 9.0 + iTime * 1.4 + iTilt.x * 4.0);
-    float spark = pow(roughness, 6.0) * cone * (0.4 + 0.6 * ridge);
+    float spark = pow(roughness, 3.0) * cone * ridge;
 
     // Holographic colour: rainbow shifted by view angle and roughness.
     // The 2.09 / 4.19 offsets (2pi/3 and 4pi/3) give the canonical
@@ -120,11 +122,11 @@ half4 main(float2 fragCoord) {
         0.5 + 0.5 * cos(hue + 4.19)
     );
 
-    // Output is alpha-premultiplied additive — the modifier composes it
-    // on top of the card via BlendMode.Plus so the underlying card art
-    // shows through. Clamping the alpha at 0.7 prevents the brightest
-    // sparkle pixels from looking like specular blowout.
-    float a = clamp(spark * 0.85, 0.0, 0.7);
+    // Output is alpha-premultiplied additive — composed on top of the card
+    // via BlendMode.Plus so the underlying card art shows through. Alpha
+    // clamp at 0.95 lets the brightest sparkles read as near-specular
+    // without blowing out the entire card.
+    float a = clamp(spark * 1.8, 0.0, 0.95);
     return half4(holo * a, a);
 }
 """
@@ -198,24 +200,35 @@ private fun glintAnimatedGradientModifier(): Modifier {
         ),
         label = "glint_phase",
     )
-    return Modifier.background(brush = sweepBrush(phase))
+    // RC4: switched from Modifier.background (which paints BEHIND content
+    // and is invisible under the Card\'s opaque surfaceVariant) to
+    // drawWithCache + onDrawWithContent + BlendMode.Plus, so the sweep
+    // overlays on top — same compositing strategy as the AGSL path.
+    return Modifier.drawWithCache {
+        val brush = sweepBrush(phase)
+        onDrawWithContent {
+            drawContent()
+            drawRect(brush = brush, size = size, blendMode = BlendMode.Plus)
+        }
+    }
 }
 
 private fun sweepBrush(phase: Float): Brush {
-    // Compute a moving start/end pair along the diagonal. 600px window
-    // is roughly 1.5x a typical card so the band fully clears each cycle.
+    // RC4: brighter palette + larger sweep window. The 0x33-alpha pink/cyan
+    // were near-invisible after Plus-blend onto a surfaceVariant card; lifting
+    // to 0x66-0x88 makes the sweep read as a clear holographic band.
     val angle = phase * 2f * Math.PI.toFloat()
     val cx = 300f + 600f * cos(angle)
     val cy = 300f + 600f * sin(angle)
     return Brush.linearGradient(
         colors = listOf(
             Color.Transparent,
-            Color(0x33FFC6FF), // soft pink
-            Color(0x4DFFFFFF), // white centre
-            Color(0x33C6FFFF), // soft cyan
+            Color(0x66FFC6FF), // soft pink
+            Color(0x99FFFFFF), // white centre
+            Color(0x66C6FFFF), // soft cyan
             Color.Transparent,
         ),
-        start = Offset(cx - 200f, cy - 200f),
-        end = Offset(cx + 200f, cy + 200f),
+        start = Offset(cx - 280f, cy - 280f),
+        end = Offset(cx + 280f, cy + 280f),
     )
 }

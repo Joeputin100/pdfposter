@@ -38,69 +38,60 @@ import androidx.compose.ui.unit.dp
 /**
  * H-P2.3 — FAQ screen.
  *
- * Eight questions covering credits, offline use, signing fingerprint, retention
- * grace period, and data deletion. Tap a row to expand its answer.
+ * Seven plain-English questions covering credits, offline use, the credit-
+ * exhaustion case, generation time, custom paper sizes, and data deletion.
+ * Tap a row to expand its answer.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FaqScreen(onBack: () -> Unit) {
     val faqs = listOf(
         "Why does it ask for credits?" to
-            "Credits pay for AI upscale calls — Topaz, Recraft, AuraSR, Magnific. " +
-                "Each provider charges per image, so we charge credits per image. " +
-                "PosterPDF itself (poster generation, on-device upscale, history, " +
-                "30-day cloud storage) is free with any image source. Credits only " +
-                "apply when you choose an AI upscale option.",
+            "Credits pay the AI services that sharpen your photo for big prints. " +
+                "We pass that cost on to you per upscale. Everything else — making " +
+                "posters, the free on-device sharpener, your history, and 30 days " +
+                "of cloud backup — is free, with any photo. You only spend credits " +
+                "when you tap one of the AI upscale options.",
         "Why are my credits worth less than the price I paid?" to
-            "Margin transparency: the underlying AI providers charge us about " +
-                "two-thirds of what you pay. The other third covers Play Store's " +
-                "15% cut, server costs (Cloud Functions + Firestore + Storage), and " +
-                "leaves a small margin to fund development. We aim for ~50% above " +
-                "raw FAL.ai cost — that's enough to keep the lights on, not enough " +
-                "to make us rich. The exact USD-equivalent is shown on every credit " +
-                "pack so there are no surprises.",
+            "Honest answer: most of what you pay goes to the AI service doing the " +
+                "actual work. The rest covers Play Store's cut, our servers, and a " +
+                "small slice that funds ongoing app development. We aim for about " +
+                "50% above the raw AI cost — enough to keep the lights on. Every " +
+                "credit pack shows the equivalent in dollars so you always know " +
+                "what you're buying.",
         "Can I use it offline?" to
-            "Yes for the core flow: image picker, poster generation, on-device " +
-                "free upscale, and View/Save/Share all work without internet. You " +
-                "need internet for: signing in with Google, AI upscale (Topaz, " +
-                "Recraft, etc.), buying credits, and cloud storage syncing. History " +
-                "metadata syncs in the background when you reconnect.",
-        "What's the SHA-1 fingerprint for?" to
-            "Google Sign-In binds the app's APK signing certificate to your " +
-                "Firebase Auth project. The SHA-1 fingerprint of our release " +
-                "keystore is registered with Firebase, so only an APK signed with " +
-                "that exact keystore can use Google Sign-In. This stops bad actors " +
-                "from publishing a counterfeit APK that could phish your Google " +
-                "account. If sign-in fails right after install, the most common " +
-                "cause is an APK signed with a debug or third-party keystore.",
+            "Yes for everything you actually do — picking a photo, making a " +
+                "poster, the free sharpener, and View / Save / Share all work " +
+                "without internet. You need a connection only for: signing in with " +
+                "Google, AI upscales, buying credits, and cloud backup. When you " +
+                "reconnect, your history syncs in the background.",
         "What happens if I run out of credits?" to
-            "Two things, and they're independent. (1) AI upscale options just " +
-                "become unavailable in the modal — the buttons turn into 'Get more " +
-                "credits' prompts. Free upscale and PDF generation keep working. " +
-                "(2) If you also have cloud storage on a paid retention tier, your " +
-                "stored PDFs enter a 30-day grace period: we email a warning, and " +
-                "after 30 days the cloud copies are deleted. Local copies and " +
-                "history entries are not affected.",
-        "Why do PDFs take ~30s to generate?" to
-            "Each tile is rendered separately at the target paper size, with the " +
-                "image cropped and rescaled per-tile. A 4×4 grid means 16 image " +
-                "rescaling operations, each followed by PDF page composition with " +
-                "rulers, labels, crop marks, and the brand footer. We could cache " +
-                "intermediate results, but the per-tile rescale is the honest way " +
-                "to keep printed pixels sharp. Larger posters take longer.",
+            "Two things, and they're separate. (1) AI upscale options become " +
+                "unavailable — the buttons turn into 'Get more credits' prompts. " +
+                "Free poster-making and the free sharpener keep working. (2) If " +
+                "you've paid to keep posters in cloud storage longer than 30 days, " +
+                "we'll email a warning and hold them for 30 more days before " +
+                "deleting. Your local files and history list never go away.",
+        "Why do PDFs take about 30 seconds to make?" to
+            "Each printed page is built separately at the right resolution — your " +
+                "image gets cropped and resharpened for every tile, then dressed " +
+                "up with rulers, page labels, crop marks, and the footer. A 4×4 " +
+                "poster means 16 page builds. We could cache the work, but redoing " +
+                "it each time is the most reliable way to keep edges sharp. Bigger " +
+                "posters take longer.",
         "Can I print at a non-standard paper size?" to
-            "Yes — pick 'Custom' in the paper-size selector. You'll get two " +
-                "additional fields for paper width and height. Use this if your " +
-                "printer takes A5, B5, photo paper, or any size we don't list. The " +
-                "tile math works the same way; we just trust the dimensions you type.",
+            "Yes — pick 'Custom' in the paper-size selector. You'll get fields " +
+                "for paper width and height. Use this if your printer takes A5, " +
+                "B5, photo paper, or anything we don't list. The math works the " +
+                "same way; we just trust the dimensions you type.",
         "What if I want my data deleted?" to
-            "Three paths, depending on scope. Local-only: Settings → Reset to " +
-                "Defaults wipes preferences and resets the app on this device. " +
-                "Per-poster cloud copy: open History, find the row, tap the cloud-" +
-                "off (red) icon. Account-wide deletion (auth record + all Firestore " +
-                "history + all cloud-stored PDFs): email support@joeputin.com from " +
-                "the address tied to your Google sign-in and we'll process the " +
-                "request manually within 7 days.",
+            "Three paths, depending on what you mean. Just this device: " +
+                "Settings → Reset to Defaults clears your preferences and the " +
+                "on-device history. One cloud-stored poster: open History, find " +
+                "the row, tap the red cloud-with-line icon. Everything you've " +
+                "ever done with us (your sign-in, all history, every cloud-stored " +
+                "PDF): email support@joeputin.com from the address you signed in " +
+                "with. We'll process within 7 days.",
     )
 
     Scaffold(

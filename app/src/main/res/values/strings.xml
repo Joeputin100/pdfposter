@@ -219,9 +219,7 @@
     <string name="faq_a_credit_value">Margin transparency: the underlying AI providers charge us about two-thirds of what you pay. The other third covers Play Store\'s 15%% cut, server costs (Cloud Functions + Firestore + Storage), and leaves a small margin to fund development. We aim for ~50%% above raw FAL.ai cost — that\'s enough to keep the lights on, not enough to make us rich. The exact USD-equivalent is shown on every credit pack so there are no surprises.</string>
     <string name="faq_q_offline">Can I use it offline?</string>
     <string name="faq_a_offline">Yes for the core flow: image picker, poster generation, on-device free upscale, and View/Save/Share all work without internet. You need internet for: signing in with Google, AI upscale (Topaz, Recraft, etc.), buying credits, and cloud storage syncing. History metadata syncs in the background when you reconnect.</string>
-    <string name="faq_q_sha1">What\'s the SHA-1 fingerprint for?</string>
-    <string name="faq_a_sha1">Google Sign-In binds the app\'s APK signing certificate to your Firebase Auth project. The SHA-1 fingerprint of our release keystore is registered with Firebase, so only an APK signed with that exact keystore can use Google Sign-In. This stops bad actors from publishing a counterfeit APK that could phish your Google account. If sign-in fails right after install, the most common cause is an APK signed with a debug or third-party keystore.</string>
-    <string name="faq_q_out_of_credits">What happens if I run out of credits?</string>
+<string name="faq_q_out_of_credits">What happens if I run out of credits?</string>
     <string name="faq_a_out_of_credits">Two things, and they\'re independent. (1) AI upscale options just become unavailable in the modal — the buttons turn into \'Get more credits\' prompts. Free upscale and PDF generation keep working. (2) If you also have cloud storage on a paid retention tier, your stored PDFs enter a 30-day grace period: we email a warning, and after 30 days the cloud copies are deleted. Local copies and history entries are not affected.</string>
     <string name="faq_q_pdf_time">Why do PDFs take ~30s to generate?</string>
     <string name="faq_a_pdf_time">Each tile is rendered separately at the target paper size, with the image cropped and rescaled per-tile. A 4×4 grid means 16 image rescaling operations, each followed by PDF page composition with rulers, labels, crop marks, and the brand footer. We could cache intermediate results, but the per-tile rescale is the honest way to keep printed pixels sharp. Larger posters take longer.</string>
@@ -284,7 +282,7 @@
     <string name="compare_subject_label">Subject</string>
     <string name="compare_model_label">Model</string>
     <string name="compare_subject_disco_chicken">Disco chicken</string>
-    <string name="compare_subject_cat_shimmer">Cat shimmer</string>
+    <string name="compare_subject_cat_shimmer">Cat</string>
     <string name="compare_subject_gristmill">Gristmill</string>
     <string name="compare_subject_earth">Earth poster</string>
     <string name="compare_synthesized_fallback">(synthesized fallback — see assets)</string>

@@ -40,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.posterpdf.R
 import com.posterpdf.ui.util.Hapt
 import kotlinx.coroutines.launch
@@ -162,13 +163,19 @@ fun PaperSizeCard(
                         imageVector = Icons.Default.Star,
                         contentDescription = null,
                         tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(12.dp),
+                        modifier = Modifier.size(10.dp),
                     )
                     Spacer(Modifier.size(2.dp))
-                    Text(stringResource(R.string.paper_recommended),
-                        style = MaterialTheme.typography.labelSmall,
+                    // RC4: the 96dp card couldn\'t fit "Recommended" at labelSmall —
+                    // dropped to 9sp + softWrap=false + ellipsis. DE/FR translations
+                    // are similar length so they fit too.
+                    Text(
+                        stringResource(R.string.paper_recommended),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                         color = Color(0xFFB58900),
                         maxLines = 1,
+                        softWrap = false,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     )
                 }
             }
