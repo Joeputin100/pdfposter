@@ -9,15 +9,28 @@
     android:height="180dp"
     android:viewportWidth="180"
     android:viewportHeight="180">
-    <!-- RC5: viewport bumped 136×172 → 180×180 + translateX moved 0 → 4 so the
-         rotated dogcow's tail (which previously extended past viewportHeight=172
-         and got clipped) now fits comfortably inside the bounds. -->
+    <!--
+      RC8 — corrected rotation/translate math. RC5\'s attempt (translateX=4,
+      translateY=22) put the rotated content at final-y up to 198, well past
+      viewportHeight=180 — so the tail still got clipped at y=180. Recomputing:
+
+        Path extents pre-rotation: X ∈ [4, 168], Y ∈ [4, 132].
+        After 90° CW rotation around (90, 90):
+            new_x = 90 + (y - 90)  →  X ∈ [4, 132]
+            new_y = 90 - (x - 90)  →  Y ∈ [12, 176]
+
+      To center inside the 180×180 viewport:
+            translateX = 90 - (4+132)/2 = +22
+            translateY = 90 - (12+176)/2 =  -4
+
+      Final span: X ∈ [26, 154], Y ∈ [8, 172] — fully inside viewport.
+    -->
     <group
         android:pivotX="90.0"
         android:pivotY="90.0"
         android:rotation="90"
-        android:translateX="4.0"
-        android:translateY="22.0">
+        android:translateX="22.0"
+        android:translateY="-4.0">
         <path
             android:fillColor="#FF1F1F1F"
             android:pathData="M28,4h8v4h-8zM52,4h12v4h-12zM24,8h4v16h-4zM36,8h4v4h-4zM36,24h4v4h-4zM36,124h4v4h-4zM48,8h4v4h-4zM60,8h4v8h-4zM60,32h4v4h-4zM60,116h4v8h-4zM36,12h12v4h-12zM160,12h4v4h-4zM160,44h4v4h-4zM52,16h8v16h-8zM52,124h8v4h-8zM160,16h8v8h-8zM20,24h4v4h-4zM156,24h4v4h-4zM156,48h4v8h-4zM156,84h4v32h-4zM164,24h4v20h-4zM16,28h4v4h-4zM152,28h4v4h-4zM152,56h4v28h-4zM152,116h4v8h-4zM8,32h8v4h-8zM144,32h8v4h-8zM144,124h8v4h-8zM4,36h4v12h-4zM64,36h8v8h-8zM140,36h4v8h-4zM72,44h68v4h-68zM8,48h32v4h-32zM88,48h44v4h-44zM40,52h4v12h-4zM40,116h4v8h-4zM92,52h40v4h-40zM100,56h24v8h-24zM44,64h8v4h-8zM44,84h8v4h-8zM44,68h16v16h-16zM44,88h4v28h-4zM68,88h56v4h-56zM64,92h4v24h-4zM124,92h8v4h-8zM124,124h8v4h-8zM132,96h4v8h-4zM132,116h4v8h-4zM136,104h4v12h-4zM40,128h12v4h-12zM132,128h12v4h-12z" />

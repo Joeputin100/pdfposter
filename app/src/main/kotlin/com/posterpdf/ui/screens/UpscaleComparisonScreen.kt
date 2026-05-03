@@ -337,28 +337,38 @@ private fun SlideHandleViewer(
         //   • Otherwise → run a transform loop (pinch zoom + pan) until all
         //     pointers lift.
         //
-        // This avoids the layered-pointerInput dispatch ambiguity: there is
-        // exactly one decision point per gesture.
+        // RC8 — gesture rewrite. Pre-RC8 used a "near handle = drag handle,
+        // far from handle = pan/zoom" arbiter that the user couldn\'t drag-
+        // pan inside (the dispatch was unreliable, and once the handle was
+        // dragged to an edge the user couldn\'t re-grab it without reloading
+        // the screen). Now: every press starts neutral, accumulates movement
+        // until either touchSlop is crossed (→ pan/zoom for the rest of the
+        // gesture) or the finger lifts before slop (→ tap snaps the handle
+        // to the tap x). Tap-anywhere always works, so the "slider only
+        // works once" symptom is gone.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
+                    val slop = viewConfiguration.touchSlop
                     awaitEachGesture {
-                        val firstDown = awaitFirstDown(requireUnconsumed = true)
-                        val nearHandle = abs(firstDown.position.x - handleX) <= handleHitRadiusPx
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        val downPos = down.position
+                        var totalMoved = 0f
+                        var isDragging = false
 
-                        if (nearHandle) {
-                            firstDown.consume()
-                            var pointer: PointerInputChange? = firstDown
-                            while (pointer != null && pointer.pressed) {
-                                onHandleXChange(pointer.position.x.coerceIn(0f, viewportW))
-                                if (pointer.positionChange() != Offset.Zero) pointer.consume()
-                                val event = awaitPointerEvent()
-                                pointer = event.changes.firstOrNull { it.id == firstDown.id }
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id }
+
+                            if (!isDragging && change != null) {
+                                val dx = change.position.x - downPos.x
+                                val dy = change.position.y - downPos.y
+                                totalMoved = kotlin.math.hypot(dx, dy)
+                                if (totalMoved > slop) isDragging = true
                             }
-                        } else {
-                            do {
-                                val event = awaitPointerEvent()
+
+                            if (isDragging) {
                                 val zoomChange = event.calculateZoom()
                                 val panChange = event.calculatePan()
                                 if (zoomChange != 1f || panChange != Offset.Zero) {
@@ -366,9 +376,17 @@ private fun SlideHandleViewer(
                                     onOffsetXChange(offsetX + panChange.x)
                                     onOffsetYChange(offsetY + panChange.y)
                                     clampOffsets()
-                                    event.changes.forEach { if (it.positionChange() != Offset.Zero) it.consume() }
+                                    event.changes.forEach { it.consume() }
                                 }
-                            } while (event.changes.any { it.pressed })
+                            }
+
+                            if (change == null || !change.pressed) {
+                                if (!isDragging) {
+                                    // True tap — snap handle to tap x.
+                                    onHandleXChange(downPos.x.coerceIn(0f, viewportW))
+                                }
+                                break
+                            }
                         }
                     }
                 },
