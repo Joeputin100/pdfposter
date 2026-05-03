@@ -19,13 +19,14 @@ import axios from 'axios';
 
 const FAL_KEY = defineSecret('FAL_KEY');
 
-type Tier = '4x' | '8x';
+// Phase H upscale models — each has its own FAL endpoint + pricing shape.
+// Mirror of the client-side enum in LowDpiUpgradeModal.kt.
+type UpscaleModel = 'topaz_4x' | 'topaz_8x' | 'recraft' | 'aurasr' | 'esrgan';
 
 interface RequestUpscaleInput {
-  tier: Tier;
+  modelId: UpscaleModel;
   inputUrl: string;
-  /** Megapixels of the source image (client-computed). Per Phase G economics
-   *  revision, the credit cost scales with output area, not flat per-tier. */
+  /** Megapixels of the source image (client-computed). */
   inputMp: number;
 }
 
@@ -33,23 +34,64 @@ interface GetStatusInput {
   txId: string;
 }
 
-// 1 credit = 5 MP of FAL output capacity → $0.05/credit cost basis at FAL's
-// $0.01/MP. Keeps the SKU ladder at 50% gross margin. Mirror of the constant
-// in pricing.ts; if either changes, change both. See:
-//   docs/superpowers/plans/2026-05-02-phase-g-economics-revision.md (D1)
-const MP_PER_CREDIT = 5;
+// 1 credit = 1¢ retail. Cost-per-credit budget at 50% margin: $0.00425.
+// Mirror of pricing.ts CREDIT_COST_BUDGET_USD; keep in sync.
+// See docs/superpowers/plans/2026-05-03-phase-h-rc3-polish.md (H-P1.10c).
+const CREDIT_COST_BUDGET_USD = 0.00425;
 
-function creditsForUpscale(inputMp: number, scale: number): number {
-  // output area = input area × scale²
-  const outputMp = inputMp * scale * scale;
-  return Math.ceil(outputMp / MP_PER_CREDIT);
+interface ModelSpec {
+  endpoint: string;          // FAL endpoint slug
+  scale: number;             // linear upscale factor
+  costFn: (outputMp: number) => number;   // returns COGS in USD
+  body: (imageUrl: string) => Record<string, unknown>;
 }
 
-function scaleForTier(tier: Tier): number {
-  return tier === '4x' ? 4 : 8;
+const MODELS: Record<UpscaleModel, ModelSpec> = {
+  topaz_4x: {
+    endpoint: 'fal-ai/topaz/upscale/image',
+    scale: 4,
+    costFn: (mp) => mp * 0.01,                        // $0.01/MP output
+    body: (url) => ({ image_url: url, upscale_factor: 4 }),
+  },
+  topaz_8x: {
+    endpoint: 'fal-ai/topaz/upscale/image',
+    scale: 8,
+    costFn: (mp) => mp * 0.01,
+    body: (url) => ({ image_url: url, upscale_factor: 8 }),
+  },
+  recraft: {
+    endpoint: 'fal-ai/recraft/upscale/crisp',
+    scale: 4,                                         // approx; flat-rate per image
+    costFn: () => 0.004,                              // flat $0.004/image
+    body: (url) => ({ image_url: url }),
+  },
+  aurasr: {
+    endpoint: 'fal-ai/aura-sr',
+    scale: 4,
+    // ~1 second per output MP empirically; $0.00125/sec
+    costFn: (mp) => mp * 0.00125,
+    body: (url) => ({ image_url: url, upscaling_factor: 4 }),
+  },
+  esrgan: {
+    endpoint: 'fal-ai/esrgan',
+    scale: 4,
+    // ~1 second per output MP empirically; $0.00111/sec
+    costFn: (mp) => mp * 0.00111,
+    body: (url) => ({ image_url: url, scale: 4, model: 'RealESRGAN_x4plus' }),
+  },
+};
+
+/**
+ * Charge for a job using the model-specific COGS curve, converted to credits
+ * at the universal $0.00425 cost budget. ceil() so we never under-charge.
+ */
+function computeCreditsForJob(modelId: UpscaleModel, inputMp: number): number {
+  const spec = MODELS[modelId];
+  const outputMp = inputMp * spec.scale * spec.scale;
+  const cogs = spec.costFn(outputMp);
+  return Math.ceil(cogs / CREDIT_COST_BUDGET_USD);
 }
 
-const FAL_QUEUE_URL = 'https://queue.fal.run/fal-ai/topaz/upscale/image';
 const POLL_TIMEOUT_MS = 60_000; // 60s inline poll, then return for client polling
 const POLL_INTERVAL_MS = 2_000;
 
@@ -66,9 +108,13 @@ function assertSignedIn(request: CallableRequest<unknown>): string {
   return auth.uid;
 }
 
-function assertTier(t: unknown): Tier {
-  if (t === '4x' || t === '8x') return t;
-  throw new HttpsError('invalid-argument', 'tier must be "4x" or "8x"');
+function assertModel(m: unknown): UpscaleModel {
+  if (m === 'topaz_4x' || m === 'topaz_8x' || m === 'recraft' ||
+      m === 'aurasr' || m === 'esrgan') return m;
+  throw new HttpsError(
+    'invalid-argument',
+    'modelId must be one of: topaz_4x, topaz_8x, recraft, aurasr, esrgan',
+  );
 }
 
 function assertInputUrl(u: unknown): string {
@@ -98,7 +144,7 @@ function assertInputMp(m: unknown): number {
  */
 async function debitAndCreateTx(
   uid: string,
-  tier: Tier,
+  modelId: UpscaleModel,
   inputUrl: string,
   inputMp: number,
   required: number,
@@ -125,16 +171,14 @@ async function debitAndCreateTx(
     t.set(burnLogRef, {
       type: 'burn',
       amount: -required,
-      upscaleTier: tier,
+      modelId,
       txId: txRef.id,
       timestamp: FieldValue.serverTimestamp(),
     });
     t.set(txRef, {
       uid,
-      tier,
+      modelId,
       inputUrl,
-      // claimedInputMp is what we charged against; reconciliation in TODO 11
-      // (G-R9) will compare against the real output dimensions FAL produced.
       claimedInputMp: inputMp,
       status: 'pending',
       creditsCost: required,
@@ -183,7 +227,7 @@ async function refundAndFail(
     t.set(refundLogRef, {
       type: 'refund',
       amount: required,
-      upscaleTier: txData.tier,
+      modelId: txData.modelId,
       txId,
       timestamp: FieldValue.serverTimestamp(),
       reason: errorMessage.substring(0, 500),
@@ -246,28 +290,28 @@ interface FalStatusResponse {
   error?: string | { message?: string };
 }
 
-// FAL_TODO: verify exact request/response schema before deploy. The Topaz
-// `upscale/image` endpoint accepts `image_url` and `scale` (or sometimes
-// `upscale_factor`). Response on submit returns a request_id + status_url
-// when run via the queue API; sometimes inline result for fast jobs.
+// Submit a FAL job using the per-model spec. Each model has its own endpoint
+// + body shape; see MODELS map above. Verified shapes against live API
+// 2026-05-03 in the disco_chicken bake.
 async function submitFalJob(
+  modelId: UpscaleModel,
   imageUrl: string,
-  tier: Tier,
   apiKey: string,
 ): Promise<FalSubmitResponse> {
-  const body = {
-    image_url: imageUrl,
-    scale: tier === '4x' ? 4 : 8,
-    // FAL_TODO: confirm whether Topaz wants `scale` or `upscale_factor` here.
-  };
-  const resp = await axios.post<FalSubmitResponse>(FAL_QUEUE_URL, body, {
-    headers: {
-      Authorization: `Key ${apiKey}`,
-      'Content-Type': 'application/json',
+  const spec = MODELS[modelId];
+  const body = spec.body(imageUrl);
+  const resp = await axios.post<FalSubmitResponse>(
+    `https://queue.fal.run/${spec.endpoint}`,
+    body,
+    {
+      headers: {
+        Authorization: `Key ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 30_000,
+      validateStatus: () => true,
     },
-    timeout: 30_000,
-    validateStatus: () => true,
-  });
+  );
   if (resp.status >= 400) {
     throw new Error(`FAL submit failed: ${resp.status} ${JSON.stringify(resp.data)}`);
   }
@@ -349,18 +393,18 @@ export const requestUpscale = onCall(
   async (request) => {
     const uid = assertSignedIn(request);
     const data = (request.data ?? {}) as Partial<RequestUpscaleInput>;
-    const tier = assertTier(data.tier);
+    const modelId = assertModel(data.modelId);
     const inputUrl = assertInputUrl(data.inputUrl);
     const inputMp = assertInputMp(data.inputMp);
-    const required = creditsForUpscale(inputMp, scaleForTier(tier));
+    const required = computeCreditsForJob(modelId, inputMp);
 
     // 1. Debit credits + create tx atomically.
-    const txId = await debitAndCreateTx(uid, tier, inputUrl, inputMp, required);
+    const txId = await debitAndCreateTx(uid, modelId, inputUrl, inputMp, required);
 
     // 2. Outside the transaction, kick off FAL.
     try {
       const fetchableUrl = await resolveFetchableUrl(inputUrl);
-      const submit = await submitFalJob(fetchableUrl, tier, FAL_KEY.value());
+      const submit = await submitFalJob(modelId, fetchableUrl, FAL_KEY.value());
 
       // Some quick jobs return inline.
       let resultPayload: FalStatusResponse | FalSubmitResponse | null =

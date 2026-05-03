@@ -87,16 +87,16 @@ class CreditPricing(
         const val CACHE_TTL_MS: Long = 60 * 60 * 1000L
 
         /**
-         * Hardcoded fallback ladder, mirrored from `docs/pricing-policy.md` as of
-         * 2026-05-01. The server is authoritative on actual credit grants via
-         * `/redeemPurchase` — these values are only used to render an SKU list
-         * before the first successful pricing fetch.
+         * Phase H credit denomination (1 credit = 1¢ retail) with tiered bonuses.
+         * Mirrors the SKUS table in backend/functions/src/pricing.ts.
+         * Server is authoritative on actual credit grants via /redeemPurchase;
+         * these values are only the offline-fallback SKU list.
          */
         val DEFAULT_LADDER: List<SkuOffering> = listOf(
-            SkuOffering(productId = "credits_small",  priceDisplay = "$4.99",  credits = 40),
-            SkuOffering(productId = "credits_medium", priceDisplay = "$9.99",  credits = 85),
-            SkuOffering(productId = "credits_large",  priceDisplay = "$19.99", credits = 180),
-            SkuOffering(productId = "credits_jumbo",  priceDisplay = "$39.99", credits = 380),
+            SkuOffering(productId = "credits_starter", priceDisplay = "$1.99",  credits = 199),
+            SkuOffering(productId = "credits_small",   priceDisplay = "$4.99",  credits = 524),
+            SkuOffering(productId = "credits_medium",  priceDisplay = "$9.99",  credits = 1074),
+            SkuOffering(productId = "credits_large",   priceDisplay = "$19.99", credits = 2199),
         )
     }
 }

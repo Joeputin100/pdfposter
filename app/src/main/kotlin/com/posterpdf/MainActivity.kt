@@ -331,7 +331,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     style = MaterialTheme.typography.labelLarge
                 )
                 Text(
-                    "• PNG\n• JPG / JPEG\n• SVG\n• WEBP\n• BMP",
+                    "PNG, JPG / JPEG, SVG, WEBP, BMP",
                     modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -685,12 +685,13 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 context.startActivity(android.content.Intent.createChooser(intent, "Share PDF"))
                                             }
                                         },
-                                        modifier = Modifier.width(64.dp).height(64.dp),
+                                        modifier = Modifier.weight(1f).height(64.dp),
                                         shape = RoundedCornerShape(20.dp),
-                                        contentPadding = PaddingValues(0.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
                                     ) {
                                         Icon(Icons.Default.Share, null)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Share…")
                                     }
                                 }
                             }

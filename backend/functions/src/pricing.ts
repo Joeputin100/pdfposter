@@ -2,109 +2,45 @@ import * as functions from 'firebase-functions/v2';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from 'firebase-functions/v2';
 import { getFirestore } from 'firebase-admin/firestore';
-import { defineSecret } from 'firebase-functions/params';
-import axios from 'axios';
 
-const FAL_KEY = defineSecret('FAL_KEY');
+// Phase H credit denomination: 1 credit = 1¢ retail (always).
+// COGS-per-credit budget at 50% margin = $0.01 × 0.85 (Play fee) × 0.50 = $0.00425.
+// Per-call upscale credit charges happen in upscale.ts using getCogsUsd();
+// pricing.ts is only responsible for writing the SKU table that grants credits
+// at purchase time. Mirror this constant in upscale.ts and LowDpiUpgradeModal.kt.
+//
+// See docs/superpowers/plans/2026-05-03-phase-h-rc3-polish.md (H-P1.10c).
+export const CREDIT_COST_BUDGET_USD = 0.00425;
 
-// Topaz Gigapixel endpoint — same ID hit by upscale.ts (FAL_QUEUE_URL there
-// posts to https://queue.fal.run/<TOPAZ_ENDPOINT_ID>). Keep the two in sync.
-const TOPAZ_ENDPOINT_ID = 'fal-ai/topaz/upscale/image';
-const FAL_PRICING_URL = 'https://api.fal.ai/v1/models/pricing';
-
-// 1 credit = 5 MP of FAL output capacity. Mirror of the constant in
-// upscale.ts; if either changes, change both. See:
-//   docs/superpowers/plans/2026-05-02-phase-g-economics-revision.md (D1)
-const MP_PER_CREDIT = 5;
-
-const SKUS = ['credits_small', 'credits_medium', 'credits_large', 'credits_jumbo'] as const;
-// SKU ladder rescaled upward 2026-05-02 once live FAL pricing showed
-// per-megapixel cost — the original $1.99 entry tier couldn't profitably
-// issue even one credit at realistic Topaz output sizes. New floor: $4.99.
-const SKU_PRICES_USD: Record<string, number> = {
-  credits_small: 4.99, credits_medium: 9.99, credits_large: 19.99, credits_jumbo: 39.99,
-};
-const PLAY_FEE_RATE = 0.15;
-const TARGET_GROSS_MARGIN = 0.50;
+// Tiered SKU ladder with bonus credits — increases cash flow at the high
+// end at the cost of slightly lower per-pack margin.
+interface Sku {
+  id: string;
+  priceUsd: number;
+  baseCredits: number;
+  bonusCredits: number;
+}
+const SKUS: Sku[] = [
+  { id: 'credits_starter', priceUsd: 1.99, baseCredits: 199, bonusCredits: 0 },
+  { id: 'credits_small',   priceUsd: 4.99, baseCredits: 499, bonusCredits: 25 },
+  { id: 'credits_medium',  priceUsd: 9.99, baseCredits: 999, bonusCredits: 75 },
+  { id: 'credits_large',   priceUsd: 19.99, baseCredits: 1999, bonusCredits: 200 },
+];
 
 interface PricingDoc {
   costPerCreditUsd: number;
-  products: Array<{ id: string; credits: number; priceUsd: number }>;
+  products: Array<{
+    id: string;
+    credits: number;       // total = baseCredits + bonusCredits
+    baseCredits: number;
+    bonusCredits: number;
+    priceUsd: number;
+    bonusPct: number;      // for UI display ("+10% bonus")
+  }>;
   updatedAt: FirebaseFirestore.Timestamp;
-  falModelCostUsd: number;
 }
 
-interface FalPriceItem {
-  endpoint_id: string;
-  unit_price: number;
-  unit: string;     // typically "image" for Topaz; could be "megapixel" etc.
-  currency: string; // ISO 4217
-}
-
-interface FalPricingResponse {
-  prices: FalPriceItem[];
-  next_cursor: string | null;
-  has_more: boolean;
-}
-
-async function fetchFalCostPerCredit(falKey: string): Promise<number> {
-  const resp = await axios.get<FalPricingResponse>(FAL_PRICING_URL, {
-    params: { endpoint_id: TOPAZ_ENDPOINT_ID },
-    headers: { Authorization: `Key ${falKey}` },
-    timeout: 15_000,
-    validateStatus: () => true,
-  });
-  if (resp.status >= 400) {
-    throw new Error(`FAL pricing API ${resp.status}: ${JSON.stringify(resp.data)}`);
-  }
-  // Audit log — FAL docs say "output-based pricing with proportional
-  // adjustments for resolution/length", so if `unit` ever shifts off "image"
-  // the credit math will need a multiplier. We want this raw payload in
-  // Cloud Logging to catch that.
-  logger.info('FAL pricing response', { response: resp.data });
-
-  const item = resp.data.prices?.find((p) => p.endpoint_id === TOPAZ_ENDPOINT_ID);
-  if (!item) {
-    throw new Error(`FAL pricing API returned no entry for ${TOPAZ_ENDPOINT_ID}`);
-  }
-  if (item.currency !== 'USD') {
-    throw new Error(`FAL pricing returned currency=${item.currency}, expected USD`);
-  }
-  if (!Number.isFinite(item.unit_price) || item.unit_price <= 0) {
-    throw new Error(`FAL pricing returned invalid unit_price=${item.unit_price}`);
-  }
-  if (item.unit !== 'megapixels') {
-    // After Phase G economics revision (2026-05-02), we expect "megapixels".
-    // Any other unit means FAL changed their pricing model — back to flat
-    // $/image, or to a new dimension we haven't mapped. Surface loudly via
-    // ALERT-level log; refreshPricing's caller will fall back to cached.
-    logger.error(
-      'FAL Topaz pricing unit changed unexpectedly — pricing model needs review',
-      { unit: item.unit, unit_price: item.unit_price, endpoint_id: item.endpoint_id },
-    );
-    throw new Error(
-      `FAL Topaz pricing unit is "${item.unit}" (expected "megapixels"). ` +
-        `See docs/superpowers/plans/2026-05-02-phase-g-economics-revision.md.`,
-    );
-  }
-  // unit_price is $/MP. cost-per-credit = $/MP × MP/credit.
-  return item.unit_price * MP_PER_CREDIT;
-}
-
-async function fetchLastKnownCost(): Promise<number | null> {
-  const snap = await getFirestore().doc('pricing/current').get();
-  if (!snap.exists) return null;
-  const v = snap.data()?.falModelCostUsd;
-  return typeof v === 'number' && v > 0 ? v : null;
-}
-
-function computeCreditsForPrice(priceUsd: number, costPerCredit: number): number {
-  const netRevenue = priceUsd * (1 - PLAY_FEE_RATE);
-  const costBudget = netRevenue * (1 - TARGET_GROSS_MARGIN);
-  return Math.floor(costBudget / costPerCredit);
-}
-
-export const getPricing = functions.https.onRequest(async (req, res) => {
+export const getPricing = functions.https.onRequest(async (_req, res) => {
   const db = getFirestore();
   const doc = await db.doc('pricing/current').get();
   if (!doc.exists) {
@@ -114,39 +50,27 @@ export const getPricing = functions.https.onRequest(async (req, res) => {
   res.json(doc.data());
 });
 
+// refreshPricing now writes the static SKU table. It runs daily so the
+// client always has a fresh copy in Firestore even if app code changes
+// the SKU table; if/when bonus structure changes, this propagates within
+// 24h without a redeploy.
 export const refreshPricing = onSchedule(
-  { schedule: '0 6 * * *', timeZone: 'UTC', secrets: [FAL_KEY] },
+  { schedule: '0 6 * * *', timeZone: 'UTC' },
   async () => {
-    let cost: number;
-    try {
-      cost = await fetchFalCostPerCredit(FAL_KEY.value());
-    } catch (err) {
-      // Don't let a transient FAL outage wipe pricing/current. Reuse the
-      // last value we successfully wrote so the app keeps serving credits
-      // at the established rate; surface a warning for ops to investigate.
-      const cached = await fetchLastKnownCost();
-      if (cached === null) {
-        logger.error('FAL pricing fetch failed and no cached value to fall back on', {
-          err: String(err),
-        });
-        throw err;
-      }
-      logger.warn('FAL pricing fetch failed; reusing cached falModelCostUsd', {
-        err: String(err),
-        cached,
-      });
-      cost = cached;
-    }
-    const products = SKUS.map((id) => ({
-      id,
-      credits: computeCreditsForPrice(SKU_PRICES_USD[id], cost),
-      priceUsd: SKU_PRICES_USD[id],
+    const products = SKUS.map((s) => ({
+      id: s.id,
+      credits: s.baseCredits + s.bonusCredits,
+      baseCredits: s.baseCredits,
+      bonusCredits: s.bonusCredits,
+      priceUsd: s.priceUsd,
+      bonusPct: s.baseCredits === 0 ? 0 :
+        Math.round((s.bonusCredits / s.baseCredits) * 1000) / 10,
     }));
     await getFirestore().doc('pricing/current').set({
-      costPerCreditUsd: cost,
-      falModelCostUsd: cost,
+      costPerCreditUsd: CREDIT_COST_BUDGET_USD,
       products,
       updatedAt: new Date(),
     } as unknown as Partial<PricingDoc>);
+    logger.info('refreshPricing wrote SKU table', { count: products.length });
   }
 );

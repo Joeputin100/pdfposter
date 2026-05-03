@@ -49,10 +49,10 @@ private data class CreditSku(
 )
 
 private val PLACEHOLDER_SKUS = listOf(
-    CreditSku("credits_small", "Small", credits = 40, price = "$4.99"),
-    CreditSku("credits_medium", "Medium", credits = 85, price = "$9.99"),
-    CreditSku("credits_large", "Large", credits = 180, price = "$19.99"),
-    CreditSku("credits_jumbo", "Jumbo", credits = 380, price = "$39.99"),
+    CreditSku("credits_starter", "Starter", credits = 199,  price = "$1.99"),
+    CreditSku("credits_small",   "Small",   credits = 524,  price = "$4.99"),
+    CreditSku("credits_medium",  "Medium",  credits = 1074, price = "$9.99"),
+    CreditSku("credits_large",   "Large",   credits = 2199, price = "$19.99"),
 )
 
 /**
