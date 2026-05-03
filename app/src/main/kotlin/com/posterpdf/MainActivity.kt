@@ -25,7 +25,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -35,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
@@ -555,14 +555,11 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                          )
                                     }
                                     
-                                    viewModel.getDpiWarning()?.let { warning ->
-                                        Text(
-                                            text = warning,
-                                            color = Color(0xFFFFA000),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            modifier = Modifier.padding(horizontal = 4.dp)
-                                        )
-                                    }
+                                    // Low-DPI warning is shown once on the screen — under the
+                                    // construction preview where it's tappable to open the upgrade
+                                    // modal. The duplicate that lived here used to render the same
+                                    // info in static amber text; the under-preview Card is more
+                                    // actionable, so this site stays silent.
                                 }
                             }
                             }
@@ -1179,7 +1176,12 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                 )
                 Spacer(Modifier.height(8.dp))
                 Button(onClick = onSignInClick, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.AutoMirrored.Filled.Login, null)
+                    Icon(
+                        painter = painterResource(id = com.posterpdf.R.drawable.ic_google_g),
+                        contentDescription = null,
+                        tint = androidx.compose.ui.graphics.Color.Unspecified,
+                        modifier = Modifier.size(20.dp),
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text("Sign in with Google")
                 }

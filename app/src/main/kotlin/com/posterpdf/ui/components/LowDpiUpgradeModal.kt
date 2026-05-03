@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.FileUpload
@@ -165,11 +164,18 @@ fun LowDpiUpgradeModal(
             ?: "—"
     }
 
-    // Pre-build the source 256×256 thumbnail once; both the pixelated tile and
-    // the on-device upscale tile derive from it.
+    // Pre-build the source thumbnail — preserve aspect ratio (don't squash to
+    // square) so the rendered card images aren't distorted. ContentScale.Crop
+    // on the Image handles the final 136dp-square fit by center-cropping.
     val sourceThumb: Bitmap = remember(sourceBitmap) {
         val src = sourceBitmap.asAndroidBitmap()
-        Bitmap.createScaledBitmap(src, 256, 256, true)
+        val srcW = src.width
+        val srcH = src.height
+        val target = 384
+        val ratio = target.toFloat() / maxOf(srcW, srcH)
+        val newW = (srcW * ratio).toInt().coerceAtLeast(1)
+        val newH = (srcH * ratio).toInt().coerceAtLeast(1)
+        Bitmap.createScaledBitmap(src, newW, newH, true)
     }
 
     // Pixelated tile: downsample 256→128 nearest-neighbor, then upsample 128→256
@@ -520,8 +526,9 @@ private fun AiUpscaleCard(
                         colors = ButtonDefaults.buttonColors(containerColor = BlueprintBlue700),
                     ) {
                         Icon(
-                            Icons.AutoMirrored.Filled.Login,
+                            painter = painterResource(id = com.posterpdf.R.drawable.ic_google_g),
                             contentDescription = null,
+                            tint = Color.Unspecified,
                             modifier = Modifier.size(14.dp),
                         )
                         Spacer(Modifier.width(4.dp))
@@ -630,7 +637,11 @@ private fun BringYourOwnCard(onPick: () -> Unit) {
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BlueprintBlue700),
             ) {
-                Text("Load file", style = MaterialTheme.typography.labelMedium)
+                // Phase H will replace this onClick with a help-card walkthrough
+                // (Canva / OpenArt / FAL / Topaz Photo AI step-by-step). For
+                // now: rename to be honest that the user is responsible for
+                // upscaling first; tapping still opens the file picker.
+                Text("Show me how to do it…", style = MaterialTheme.typography.labelMedium)
             }
         }
     }

@@ -22,38 +22,29 @@ enum class CapabilityTier { GREEN, YELLOW, RED }
 
 object Capability {
 
-    // We need three buffers in flight during inference (input, output,
-    // intermediate) plus model overhead. Triple the raw output size is a
-    // reasonable working-set estimate for the ESRGAN tile loop.
+    // TFLite already operates tile-by-tile (50×50 → 200×200), so the working
+    // set is bounded by tile size — not output image size. We never RED-block
+    // on RAM; the worst case is just a slow run (YELLOW). Hard RED is reserved
+    // for 32-bit-only ABIs that can't load the TFLite delegate at all.
     private const val WORKING_SET_MULTIPLIER = 3L
-
-    // Above 30% of largeMemoryClass we expect OOM under any GC pressure;
-    // 15-30% is feasible but means tile-by-tile inference and slow runs.
-    private const val RED_THRESHOLD_NUMERATOR = 30L
     private const val YELLOW_THRESHOLD_NUMERATOR = 15L
     private const val THRESHOLD_DENOMINATOR = 100L
 
     /**
-     * Assess whether the current device can locally upscale [inputMp]
-     * megapixels at the given linear [scale] (4 or 8). [ctx] is used to
-     * read the per-app large-heap budget via [ActivityManager].
-     *
-     * The math: output area scales with `scale²`; an RGBA8888 bitmap is
-     * 4 bytes/pixel; we need ~3× the output buffer in RAM during
-     * inference (input + output + working set). Compare that against
-     * 30% / 15% of the app's `largeMemoryClass` to bucket the device.
+     * Assess on-device upscale capability for [inputMp] megapixels at linear
+     * [scale]. We never refuse a job on RAM grounds — the tile loop will
+     * complete eventually on any 64-bit device. Returns YELLOW (slow) or
+     * GREEN (fast); RED only for the 32-bit-ABI case.
      */
     fun assessLocalUpscale(
         inputMp: Int,
         scale: Int,
         ctx: Context,
     ): DeviceCapability {
-        // 32-bit-only devices can't address >2 GB and TFLite's GPU/NNAPI
-        // delegates ship 64-bit-only. Refuse before doing any RAM math.
         if (Build.SUPPORTED_64_BIT_ABIS.isEmpty()) {
             return DeviceCapability(
                 tier = CapabilityTier.RED,
-                reason = "32-bit device — TFLite requires a 64-bit ABI",
+                reason = "Your device can't run on-device AI",
                 recommendedMaxOutputMp = 0,
             )
         }
@@ -63,26 +54,13 @@ object Capability {
         val needBytes = outputBytes * WORKING_SET_MULTIPLIER
 
         val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val largeMemMb = am.largeMemoryClass.toLong()
-        val largeMemBytes = largeMemMb * 1024L * 1024L
-
-        val redLimit = largeMemBytes * RED_THRESHOLD_NUMERATOR / THRESHOLD_DENOMINATOR
+        val largeMemBytes = am.largeMemoryClass.toLong() * 1024L * 1024L
         val yellowLimit = largeMemBytes * YELLOW_THRESHOLD_NUMERATOR / THRESHOLD_DENOMINATOR
 
-        // recommendedMaxOutputMp is what we'd accept on this device:
-        // 30% of large heap / 12 bytes-per-MP-of-output (RGBA × working set).
-        val recommendedMax = (redLimit / (12L * 1_000_000L)).toInt().coerceAtLeast(0)
-
         return when {
-            needBytes > redLimit -> DeviceCapability(
-                tier = CapabilityTier.RED,
-                reason = "Not enough RAM for this size on-device " +
-                    "(${largeMemMb}MB heap; need ~${needBytes / 1024 / 1024}MB)",
-                recommendedMaxOutputMp = recommendedMax,
-            )
             needBytes > yellowLimit -> DeviceCapability(
                 tier = CapabilityTier.YELLOW,
-                reason = "Tight on memory — will use tile mode (slower)",
+                reason = "Will take a few minutes on your device",
                 recommendedMaxOutputMp = outputMp.toInt(),
             )
             else -> DeviceCapability(

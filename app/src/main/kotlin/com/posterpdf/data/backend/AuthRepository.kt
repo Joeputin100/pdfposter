@@ -81,7 +81,14 @@ class AuthRepository private constructor(appContext: Context) {
             .requestIdToken(webClientId)
             .requestEmail()
             .build()
-        return GoogleSignIn.getClient(activity, opts).signInIntent
+        val client = GoogleSignIn.getClient(activity, opts)
+        // Force account picker to appear — without signOut(), Google Sign-In
+        // silently re-uses whichever account was last authenticated, even when
+        // the device has multiple Google accounts the user may want to choose
+        // between. Returning the intent after signOut() puts us back at the
+        // chooser. (signOut() is local-only; doesn't revoke server tokens.)
+        client.signOut()
+        return client.signInIntent
     }
 
     suspend fun handleGoogleSignInResult(data: Intent?): Result<Unit> {
