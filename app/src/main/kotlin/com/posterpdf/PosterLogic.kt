@@ -522,7 +522,7 @@ class PosterLogic {
                 "https://play.google.com/store/apps/details?id=com.posterpdf",
                 sizePx = 320,
             )
-            val qrImage = LosslessFactory.createFromImage(document, qrBmp)
+            val qrImage = LosslessFactory.createFromImage(doc, qrBmp)
             val qrSize = 36f
             val qrX = pgw.toFloat() - qrSize - 50f
             val qrY = 8f
