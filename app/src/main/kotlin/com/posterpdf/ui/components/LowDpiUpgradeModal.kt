@@ -84,7 +84,7 @@ import kotlinx.coroutines.withContext
 
 private const val CREDIT_COST_BUDGET_USD = 0.00425
 
-enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ_4X, TOPAZ_8X, RECRAFT, AURASR, ESRGAN }
+enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN }
 
 private data class UpscaleOption(
     val model: UpscaleModel,
@@ -113,20 +113,14 @@ private val ALL_OPTIONS: List<UpscaleOption> = listOf(
         cogsUsd = { _ -> 0.0 },
     ),
     UpscaleOption(
-        model = UpscaleModel.TOPAZ_4X,
-        displayName = "Topaz 4×",
+        // Topaz Gigapixel — backend now picks the smallest scale factor that
+        // reaches the user's target DPI (default 150). No more 4×/8× split.
+        model = UpscaleModel.TOPAZ,
+        displayName = "Topaz Gigapixel",
         pros = "Cleanest edges, polished output",
-        cons = "Highest cost",
+        cons = "Highest cost per pixel",
         scale = 4,
         cogsUsd = { inputMp -> inputMp * 16.0 * 0.01 },
-    ),
-    UpscaleOption(
-        model = UpscaleModel.TOPAZ_8X,
-        displayName = "Topaz 8×",
-        pros = "Same Topaz quality at 2× the print size",
-        cons = "4× the cost of 4×",
-        scale = 8,
-        cogsUsd = { inputMp -> inputMp * 64.0 * 0.01 },
     ),
     UpscaleOption(
         model = UpscaleModel.RECRAFT,
@@ -166,18 +160,14 @@ private fun usdEquivalent(credits: Int, usdPerCredit: Double): String {
     return "%.2f".format(credits * usdPerCredit)
 }
 
-// Default options shown before "See other AI options" is expanded.
-private val DEFAULT_MODELS = setOf(
+// RC3+: all 5 model cards visible at once (NONE / FREE_LOCAL / TOPAZ /
+// RECRAFT / AURASR / ESRGAN) plus a BringYourOwn sentinel — no more
+// expansion link. Selected card gets a glow ring (see UpscaleOptionCard).
+private val ALL_MODELS = setOf(
     UpscaleModel.NONE,
     UpscaleModel.FREE_LOCAL,
-    UpscaleModel.TOPAZ_4X,
+    UpscaleModel.TOPAZ,
     UpscaleModel.RECRAFT,
-    // BringYourOwn is appended separately as a special card
-)
-
-// Extra options shown when expanded.
-private val EXTRA_MODELS = setOf(
-    UpscaleModel.TOPAZ_8X,
     UpscaleModel.AURASR,
     UpscaleModel.ESRGAN,
 )
@@ -271,16 +261,13 @@ fun LowDpiUpgradeModal(
         onDeviceThumb = Bitmap.createScaledBitmap(result, 256, 256, true).asImageBitmap()
     }
 
-    // Expand/collapse extra AI options.
-    var showExtra by remember { mutableStateOf(false) }
+    // RC3+: tracks user-selected model card for the glow effect. Defaults to
+    // null (nothing selected); user can tap any card to highlight it.
+    var selectedModel by remember { mutableStateOf<UpscaleModel?>(null) }
 
-    // Build the visible option list for the grid (BringYourOwn sentinel appended last).
-    val visibleOptions: List<UpscaleModel?> = remember(showExtra) {
-        val list = mutableListOf<UpscaleModel?>()
-        list += ALL_OPTIONS.filter { it.model in DEFAULT_MODELS }.map { it.model }
-        if (showExtra) list += ALL_OPTIONS.filter { it.model in EXTRA_MODELS }.map { it.model }
-        list += null // sentinel for BringYourOwn
-        list
+    // All 6 model options always visible + BringYourOwn sentinel last.
+    val visibleOptions: List<UpscaleModel?> = remember {
+        ALL_OPTIONS.filter { it.model in ALL_MODELS }.map { it.model } + listOf<UpscaleModel?>(null)
     }
 
     ModalBottomSheet(
@@ -381,19 +368,13 @@ fun LowDpiUpgradeModal(
                     }
                 }
 
-                // Expand / help row
+                // RC3+: dropped expand/collapse — all cards visible above. Just
+                // the "Help me decide…" link remains, anchored right.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = { showExtra = !showExtra }) {
-                        Text(
-                            if (showExtra) "Hide other AI options ▴" else "See other AI options ▾",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = BlueprintBlue700,
-                        )
-                    }
                     TextButton(onClick = onCompareModels) {
                         Text(
                             "Help me decide…",
@@ -448,7 +429,7 @@ fun LowDpiUpgradeModal(
 
 /** Returns the drawable resource id for the model's abstract icon thumbnail. */
 private fun iconForModel(model: UpscaleModel): Int = when (model) {
-    UpscaleModel.TOPAZ_4X, UpscaleModel.TOPAZ_8X -> R.drawable.ic_model_premium
+    UpscaleModel.TOPAZ -> R.drawable.ic_model_premium
     UpscaleModel.RECRAFT -> R.drawable.ic_model_clean
     UpscaleModel.AURASR -> R.drawable.ic_model_swirl
     UpscaleModel.ESRGAN -> R.drawable.ic_model_basic
