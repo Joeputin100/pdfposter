@@ -78,6 +78,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * RC3+ — show ∞ in the credit badge for admin accounts. The Firestore
+     * custom-claim path is set by the admin script; for v1 we additionally
+     * recognize the project owner's email so the badge feels right
+     * immediately after sign-in (the claim takes ~1 hour to refresh in the
+     * client's ID-token cache otherwise).
+     */
+    val isAdmin: Boolean
+        get() = authSession.email == "joeputin100@gmail.com"
+
+    /**
      * RC3 fix: actually run the on-device ESRGAN upscale, save it to cache,
      * point selectedImageUri at the result so the next preview redraw + DPI
      * calc see the 4× larger image. Previously the modal's "Upscale free"

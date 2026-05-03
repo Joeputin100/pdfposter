@@ -240,9 +240,8 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     // Info Dialog states
     var infoDialogContent by remember { mutableStateOf<Pair<String, String>?>(null) }
 
-    // G11 placeholder: live Firestore credit balance + sheet state. Real
-    // observation lands after Firebase setup completes — until then we keep
-    // a local zero so the badge collapses and the anonymous CTA path renders.
+    // RC3+: credit balance — admin shows ∞; non-admin shows the real Firestore
+    // balance (still 0 placeholder until G12 wires the live observer).
     var creditBalance by remember { mutableStateOf(0) }
     var showPurchaseSheet by remember { mutableStateOf(false) }
 
@@ -535,6 +534,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     actions = {
                         CreditBadge(
                             balance = creditBalance,
+                            isAdmin = viewModel.isAdmin,
                             onClick = {
                                 hapt.tap()
                                 viewModel.logEvent(context, "Credit badge tapped", "balance=$creditBalance")

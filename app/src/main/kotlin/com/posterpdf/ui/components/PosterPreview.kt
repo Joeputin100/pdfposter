@@ -1027,8 +1027,8 @@ fun PosterPreview(viewModel: MainViewModel) {
                     // TODO(G12): replace 0.119 with usdPerCredit derived from
                     // pricing/current; 0.119 is the SKU-ladder default at 50% margin.
                     usdPerCredit = 0.119,
-                    // TODO(G12): replace placeholder true with viewModel.isAnonymous.collectAsState().value
-                    isAnonymous = true,
+                    // RC3 fix: derive from actual auth session, not placeholder
+                    isAnonymous = viewModel.authSession.isAnonymous || !viewModel.authSession.signedIn,
                     onDismiss = { showLowDpiModal = false },
                     onFreeUpscale = {
                         showLowDpiModal = false
