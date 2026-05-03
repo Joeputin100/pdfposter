@@ -450,6 +450,39 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                      )
                  }
 
+                 // RC5 — language picker. Drives the per-app locale via
+                 // AppCompatDelegate.setApplicationLocales (API 33+ uses the
+                 // platform LocaleManager under the hood; older Android falls
+                 // back to a Configuration override the AppCompat delegate
+                 // handles internally). Persists across app restarts. Pass an
+                 // empty list tag for "System default".
+                 var showLanguageDialog by remember { mutableStateOf(false) }
+                 NavigationDrawerItem(
+                     label = { Text(stringResource(R.string.drawer_language)) },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "Language picker opened")
+                         showLanguageDialog = true
+                     },
+                     icon = { Icon(Icons.Default.Language, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
+                 if (showLanguageDialog) {
+                     com.posterpdf.ui.components.LanguagePickerDialog(
+                         onDismiss = { showLanguageDialog = false },
+                         onPick = { tag ->
+                             // tag = "" → system default
+                             val locales = if (tag.isEmpty()) {
+                                 androidx.core.os.LocaleListCompat.getEmptyLocaleList()
+                             } else {
+                                 androidx.core.os.LocaleListCompat.forLanguageTags(tag)
+                             }
+                             androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(locales)
+                             showLanguageDialog = false
+                         },
+                     )
+                 }
+
                  // RC3+: target print DPI slider — drives the smallest-scale-
                  // that-meets-target upscale strategy in the backend.
                  Column(
