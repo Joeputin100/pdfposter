@@ -77,6 +77,7 @@ import com.posterpdf.ui.components.preview.AssemblyPhase
 import com.posterpdf.ui.components.preview.DUST_PUFF_AGSL
 import com.posterpdf.ui.components.preview.PRINTER_INK_AGSL
 import com.posterpdf.ui.components.preview.drawDustPuff
+import com.posterpdf.ui.components.preview.drawHand
 import com.posterpdf.ui.components.preview.drawPrinter
 import com.posterpdf.ui.components.preview.drawScissors
 import com.posterpdf.ui.components.preview.drawScotchTape
@@ -92,6 +93,7 @@ import kotlin.math.sin
 private const val WOOD_AGSL = """
 uniform float2 iResolution;
 uniform float iTime;
+uniform float iOriginY;
 
 float hash1(float2 p) {
     p = fract(p * float2(123.34, 456.21));
@@ -119,7 +121,12 @@ float fbm(float2 p) {
     return v;
 }
 half4 main(float2 fragCoord) {
-    float2 uv = fragCoord / iResolution.xy;
+    // RC3: iOriginY shifts the sampled wood-grain origin in pixels so that the
+    // grain scrolls in sync with the camera pan. The viewport pans DOWN the
+    // table during the Panning phase (printer slides up/off-screen); we add
+    // (-cameraOffsetY) to fragCoord.y so wood texture appears to slide too.
+    float2 sampleCoord = float2(fragCoord.x, fragCoord.y - iOriginY);
+    float2 uv = sampleCoord / iResolution.xy;
     float2 grainUV = float2(uv.x * 6.0, uv.y * 2.2);
     float distort = fbm(grainUV * 3.0) * 0.15;
     grainUV.y += distort;
@@ -132,7 +139,10 @@ half4 main(float2 fragCoord) {
     float grain = fbm(grainUV * float2(12.0, 90.0)) * 0.35;
     half3 color = mix(mid, dark, half(rings));
     color = mix(color, light, half(grain * 0.5));
-    float2 center = uv - 0.5;
+    // Vignette uses screen-space uv (not the scrolled sampleCoord) so the
+    // viewport edges stay subtly darker even as the grain scrolls.
+    float2 screenUV = fragCoord / iResolution.xy;
+    float2 center = screenUV - 0.5;
     float vig = 1.0 - dot(center, center) * 0.6;
     color *= half(vig);
     return half4(color, 1.0);
@@ -182,11 +192,11 @@ fun PosterPreview(viewModel: MainViewModel) {
 
     val hapt = Hapt(LocalHapticFeedback.current)
 
-    // One-shot confirm haptic when the cycle enters the Securing phase
-    // (tape + tacks land — the "it's done" beat). H-P1.7/1.8 retiming.
+    // One-shot confirm haptic when the cycle enters the Pinning phase
+    // (tacks land in the corners — the "it's done" beat). RC3 retiming.
     val lastPhase = remember { mutableStateOf<AssemblyPhase?>(null) }
     LaunchedEffect(phase) {
-        if (lastPhase.value != phase && phase == AssemblyPhase.Securing) {
+        if (lastPhase.value != phase && phase == AssemblyPhase.Pinning) {
             hapt.confirm()
         }
         lastPhase.value = phase
@@ -194,6 +204,30 @@ fun PosterPreview(viewModel: MainViewModel) {
 
     var zoom by remember { mutableStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
+
+    // RC3 camera-pan offset (in canvas pixels). 0 during Printing; lerps from
+    // 0 → -panTargetPx during Panning; holds at -panTargetPx through the rest
+    // of the cycle; eases back to 0 during Reset. Applied as a pure Y-translate
+    // to every pane and prop drawn inside the inner Canvas, AND fed to the
+    // wood-grain shader's iOriginY uniform so the table grain scrolls in sync.
+    val cameraOffsetYpx = remember { mutableFloatStateOf(0f) }
+    // Pan target = ~38% of viewport height. Empirically this is enough to push
+    // the printer body fully off-screen but keeps the panes well within view.
+    val panTarget = boxSize.height * 0.38f
+    cameraOffsetYpx.floatValue = if (!cycleEnabled) 0f else when (phase) {
+        AssemblyPhase.Printing -> 0f
+        AssemblyPhase.Panning -> {
+            // Smooth ease-in-out so the pan settles, not jolts.
+            val k = phaseT
+            val eased = if (k < 0.5f) 2f * k * k else 1f - (-2f * k + 2f) * (-2f * k + 2f) / 2f
+            -panTarget * eased
+        }
+        AssemblyPhase.Reset -> {
+            // Pop back up quickly so the next loop starts at the printer.
+            -panTarget * (1f - phaseT)
+        }
+        else -> -panTarget // Hold panned-down through Arranging..Pinning.
+    }
 
     // Per-pane jiggle: tap a specific page to jiggle just that page.
     // paneBounds is filled during Canvas draw and read by the tap handler;
@@ -317,19 +351,68 @@ fun PosterPreview(viewModel: MainViewModel) {
         )
         Spacer(Modifier.height(12.dp))
 
+        // RC3: gesture coverage extends to the WHOLE preview — table + panes +
+        // decorations + hand all pinch-zoom and pan together. The outermost Box
+        // holds the gestures + graphicsLayer; the inner Box draws the wood
+        // background INSIDE that transform so the table scales/pans with the
+        // panes (a fix for the user's "drag and pinch zoom affects the papers
+        // only" complaint).
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
+                .onSizeChanged { boxSize = it }
+                .pointerInput(Unit) {
+                    detectTransformGestures { _, panChange, zoomChange, _ ->
+                        zoom = (zoom * zoomChange).coerceIn(1f, 6f)
+                        pan += panChange
+                    }
+                }
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { rawOffset ->
+                        hapt.tap()
+                        // Invert the graphicsLayer pan/zoom to land in canvas coords.
+                        val pivotX = boxSize.width / 2f
+                        val pivotY = boxSize.height / 2f
+                        val cx = pivotX + (rawOffset.x - pivotX - pan.x) / zoom
+                        val cy = pivotY + (rawOffset.y - pivotY - pan.y) / zoom
+                        val hit = paneBounds.firstOrNull { p ->
+                            cx >= p.left && cx <= p.left + p.width &&
+                                cy >= p.top && cy <= p.top + p.height
+                        }
+                        if (hit != null) {
+                            jiggledPane = hit.row to hit.col
+                            jiggleStartedAt = System.currentTimeMillis()
+                        }
+                    })
+                }
+                .graphicsLayer {
+                    scaleX = zoom
+                    scaleY = zoom
+                    translationX = pan.x
+                    translationY = pan.y
+                }
                 .clip(RoundedCornerShape(24.dp))
                 .drawWithCache {
+                    // Camera-pan offset is supplied by the AssemblyPhase clock
+                    // via the `cameraOffsetYpx` Compose state below. We can't
+                    // read Compose state from inside drawWithCache directly —
+                    // drawBehind closes over the live state lambda, so reads
+                    // happen at draw time.
                     if (woodShader != null) {
-                        woodShader.setFloatUniform("iResolution", size.width, size.height)
-                        // Subtle ambient grain scroll (was hardcoded 0f); ties into the
-                        // existing infinite transition `t`.
-                        woodShader.setFloatUniform("iTime", t * 0.6f)
                         val brush = ShaderBrush(woodShader)
-                        onDrawBehind { drawRect(brush = brush, size = size) }
+                        onDrawBehind {
+                            woodShader.setFloatUniform("iResolution", size.width, size.height)
+                            // Subtle ambient grain scroll (was hardcoded 0f); ties into the
+                            // existing infinite transition `t`.
+                            woodShader.setFloatUniform("iTime", t * 0.6f)
+                            // RC3: scroll the wood-grain origin in lock-step with
+                            // the camera pan. cameraOffsetYpx is negative when
+                            // panning DOWN the table (printer slides up). We
+                            // negate so the grain appears to slide too.
+                            woodShader.setFloatUniform("iOriginY", -cameraOffsetYpx.floatValue)
+                            drawRect(brush = brush, size = size)
+                        }
                     } else {
                         // API <33 fallback: warm three-stop wood gradient (no AGSL).
                         val brush = Brush.linearGradient(
@@ -348,39 +431,7 @@ fun PosterPreview(viewModel: MainViewModel) {
             contentAlignment = Alignment.Center
         ) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .onSizeChanged { boxSize = it }
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, panChange, zoomChange, _ ->
-                            zoom = (zoom * zoomChange).coerceIn(1f, 6f)
-                            pan += panChange
-                        }
-                    }
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = { rawOffset ->
-                            hapt.tap()
-                            // Invert the graphicsLayer pan/zoom to land in canvas coords.
-                            val pivotX = boxSize.width / 2f
-                            val pivotY = boxSize.height / 2f
-                            val cx = pivotX + (rawOffset.x - pivotX - pan.x) / zoom
-                            val cy = pivotY + (rawOffset.y - pivotY - pan.y) / zoom
-                            val hit = paneBounds.firstOrNull { p ->
-                                cx >= p.left && cx <= p.left + p.width &&
-                                    cy >= p.top && cy <= p.top + p.height
-                            }
-                            if (hit != null) {
-                                jiggledPane = hit.row to hit.col
-                                jiggleStartedAt = System.currentTimeMillis()
-                            }
-                        })
-                    }
-                    .graphicsLayer {
-                        scaleX = zoom
-                        scaleY = zoom
-                        translationX = pan.x
-                        translationY = pan.y
-                    }
+                modifier = Modifier.fillMaxSize()
             ) {
             val paneInfo = viewModel.getPaneCount()
             Canvas(modifier = Modifier.fillMaxSize()) {
