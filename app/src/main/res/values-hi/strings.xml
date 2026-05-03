@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ऐप की पहचान -->
+    <string name="app_name">Poster PDF</string>
+    <string name="brand_name">PosterPDF</string>
+
+    <!-- स्प्लैश -->
+    <string name="splash_tap_to_skip">छोड़ने के लिए टैप करें</string>
+
+    <!-- सामान्य बटन / डायलॉग -->
+    <string name="common_ok">ठीक है</string>
+    <string name="common_save">सेव करें</string>
+    <string name="common_cancel">रद्द करें</string>
+    <string name="common_delete">हटाएं</string>
+    <string name="common_back">वापस</string>
+    <string name="common_refresh">रीफ्रेश करें</string>
+    <string name="common_got_it">समझ गया</string>
+
+    <!-- टॉप बार -->
+    <string name="topbar_settings_menu">सेटिंग्स</string>
+    <string name="topbar_credit_badge">AI क्रेडिट</string>
+
+    <!-- ड्रॉअर हेडर + आइटम -->
+    <string name="drawer_settings_header">सेटिंग्स</string>
+    <string name="drawer_units_label">इकाई</string>
+    <string name="drawer_debug_logging_title">डीबग लॉगिंग</string>
+    <string name="drawer_debug_logging_subtitle">Downloads फ़ोल्डर में लॉग लिखें</string>
+    <string name="drawer_posters_generated_title">बने पोस्टर</string>
+    <string name="drawer_posters_generated_subtitle">कुल बनाए गए पोस्टर</string>
+    <string name="drawer_default_paper_size">डिफ़ॉल्ट कागज़ का साइज़</string>
+    <string name="drawer_supported_file_types_label">समर्थित फ़ाइल प्रकार:</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_cloud_storage">क्लाउड स्टोरेज…</string>
+    <string name="drawer_target_dpi_label">टारगेट प्रिंट DPI: %1$d</string>
+    <string name="drawer_target_dpi_help">ज़्यादा DPI → तेज़ प्रिंट, ज़्यादा अपस्केल क्रेडिट खर्च। पोस्टर के लिए 150 सामान्य है; फ़ोटो के लिए 300; फ़ाइन आर्ट के लिए 600+।</string>
+    <string name="drawer_getting_started">शुरुआत कैसे करें</string>
+    <string name="drawer_help">सहायता</string>
+    <string name="drawer_faq">अक्सर पूछे जाने वाले सवाल</string>
+    <string name="drawer_privacy_policy">गोपनीयता नीति</string>
+    <string name="drawer_support">सपोर्ट</string>
+    <string name="drawer_reset_to_defaults">डिफ़ॉल्ट पर रीसेट करें</string>
+    <string name="drawer_no_browser_for_support">सपोर्ट लिंक खोलने के लिए कोई ब्राउज़र नहीं मिला।</string>
+
+    <!-- नैग बैनर -->
+    <string name="nag_title">डेवलपर को सपोर्ट करें</string>
+    <string name="nag_body">आपने %1$d पोस्टर बनाए हैं! कृपया Play Store पर सिर्फ़ $2 में रजिस्टर करके डेवलपमेंट को सपोर्ट करने पर विचार करें।</string>
+    <string name="nag_play_store_url">play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="nag_maybe_later">बाद में</string>
+    <string name="nag_maybe_later_countdown">बाद में (%1$ds)</string>
+    <string name="nag_dismiss">हटाएं</string>
+
+    <!-- ऑनबोर्डिंग -->
+    <string name="onboarding_how_to_get_started">शुरुआत कैसे करें:</string>
+    <string name="onboarding_step1">ऊपर से एक हाई-रेज़ोल्यूशन इमेज चुनें।</string>
+    <string name="onboarding_step2">अपने पोस्टर का अंतिम आकार सेट करें।</string>
+    <string name="onboarding_step3">अपना कागज़ का साइज़ और ओरिएंटेशन चुनें।</string>
+    <string name="onboarding_step4">अपना प्रिंट-रेडी PDF देखें या सेव करें!</string>
+
+    <!-- इमेज जानकारी -->
+    <string name="info_chip_resolution">रेज़ोल्यूशन</string>
+    <string name="info_chip_aspect_ratio">आस्पेक्ट रेशियो</string>
+    <string name="info_dialog_aspect_ratio_title">आस्पेक्ट रेशियो</string>
+    <string name="info_dialog_aspect_ratio_body">यह चौड़ाई और ऊंचाई का अनुपात है। लॉक्ड स्केलिंग यह सुनिश्चित करती है कि आपका पोस्टर इमेज के अनुपात से बिल्कुल मेल खाए।</string>
+
+    <!-- पोस्टर साइज़ कार्ड -->
+    <string name="poster_size_section">पोस्टर का साइज़</string>
+    <string name="poster_width_with_unit">चौड़ाई (%1$s)</string>
+    <string name="poster_height_with_unit">ऊंचाई (%1$s)</string>
+
+    <!-- कागज़ और लेआउट -->
+    <string name="paper_layout_section">कागज़ &amp; लेआउट</string>
+    <string name="paper_size_section">कागज़ का साइज़</string>
+    <string name="orientation_section">ओरिएंटेशन</string>
+    <string name="orientation_best_fit">बेस्ट फ़िट</string>
+    <string name="orientation_portrait">पोर्ट्रेट</string>
+    <string name="orientation_landscape">लैंडस्केप</string>
+    <string name="orientation_portrait_cd">पोर्ट्रेट ओरिएंटेशन (Clarus the Dogcow खड़ा हुआ)</string>
+    <string name="orientation_landscape_cd">लैंडस्केप ओरिएंटेशन (Clarus the Dogcow करवट लिए हुए)</string>
+    <string name="orientation_best_fit_cd">बेस्ट फ़िट ओरिएंटेशन</string>
+    <string name="margin_with_unit">मार्जिन (%1$s)</string>
+    <string name="overlap_with_unit">ओवरलैप (%1$s)</string>
+    <string name="margin_info_title">मार्जिन</string>
+    <string name="margin_info_body">हर पेज के किनारों के आसपास बिना प्रिंट की जगह। अधिकांश होम प्रिंटर को कम से कम 0.25in (0.64cm) की ज़रूरत होती है।</string>
+    <string name="overlap_info_title">ओवरलैप</string>
+    <string name="overlap_info_body">टाइल्स को जोड़ने और चिपकाने में मदद के लिए दोहराया गया हिस्सा। 0.25in से 0.5in की सिफ़ारिश की जाती है।</string>
+    <string name="project_scope">प्रोजेक्ट: %1$d पेज (%2$d पंक्तियाँ × %3$d कॉलम)</string>
+
+    <!-- कागज़ साइज़ कार्ड -->
+    <string name="paper_recommended">अनुशंसित</string>
+    <string name="paper_custom">कस्टम</string>
+
+    <!-- इकाइयाँ -->
+    <string name="units_inches">इंच</string>
+    <string name="units_centimeters">सेंटीमीटर</string>
+
+    <!-- एडवांस्ड स्टाइलिंग -->
+    <string name="advanced_section">एडवांस्ड स्टाइलिंग</string>
+    <string name="advanced_borders_title">पेज बॉर्डर &amp; क्रॉप मार्क्स</string>
+    <string name="advanced_borders_body">प्रिंट के बाद ट्रिम और अलाइन करने में मदद के लिए हर पेज पर प्रिंट होता है। \"Crop Marks\" कोनों पर कट पॉइंट दिखाता है, जैसे प्रो प्रिंट शॉप। Solid/Dashed/Dotted अलग-अलग मोटाई में पूरा बॉर्डर खींचते हैं। साफ किनारे चाहिए तो \"None\" चुनें।</string>
+    <string name="advanced_label_panes">हर पेन को लेबल करें (A1, B2...)</string>
+    <string name="advanced_include_instructions">असेंबली निर्देश शामिल करें</string>
+
+    <!-- आउटलाइन प्रीव्यू -->
+    <string name="outline_none">कोई नहीं</string>
+
+    <!-- एक्शन बटन -->
+    <string name="action_view">देखें</string>
+    <string name="action_save">सेव करें</string>
+    <string name="action_share">शेयर करें…</string>
+    <string name="chooser_open_pdf">PDF खोलें</string>
+    <string name="chooser_share_pdf">PDF शेयर करें</string>
+
+    <!-- लो DPI गेट -->
+    <string name="low_dpi_dialog_title">यह कम रेज़ोल्यूशन पर प्रिंट होगा</string>
+    <string name="low_dpi_dialog_body">आपका पोस्टर फ़िलहाल लगभग %1$d DPI पर है। तेज़ प्रिंट के लिए कम से कम 150 DPI चाहिए। फिर भी जारी रखें, या पहले इमेज अपस्केल करें?</string>
+    <string name="low_dpi_dialog_continue">फिर भी जारी रखें</string>
+    <string name="low_dpi_dialog_upgrade">पहले सोर्स अपग्रेड करें</string>
+
+    <!-- फ़र्स्ट रन विज़ार्ड -->
+    <string name="first_run_title">Poster PDF में आपका स्वागत है!</string>
+    <string name="first_run_intro">चलिए सेटअप करते हैं। ये सेटिंग्स बाद में साइड मेनू से बदली जा सकती हैं।</string>
+    <string name="first_run_units_label">अपनी पसंदीदा माप इकाई चुनें:</string>
+    <string name="first_run_paper_label">डिफ़ॉल्ट कागज़ का साइज़:</string>
+    <string name="first_run_get_started">शुरू करें</string>
+
+    <!-- हिस्ट्री (ड्रॉअर + स्क्रीन) -->
+    <string name="history_section_title">हिस्ट्री</string>
+    <string name="history_refresh_cd">हिस्ट्री रीफ्रेश करें</string>
+    <string name="history_empty_drawer">अभी कोई पोस्टर नहीं। एक बनाएं — यहाँ दिखेगा।</string>
+    <string name="history_view_all">सभी देखें</string>
+    <string name="history_view_all_count">सभी देखें (%1$d)</string>
+    <string name="history_screen_title">हिस्ट्री</string>
+    <string name="history_empty_title">अभी कोई हिस्ट्री नहीं</string>
+    <string name="history_empty_subtitle">एक पोस्टर बनाएं — यहाँ दिखेगा।</string>
+    <string name="history_card_view_cd">देखें</string>
+    <string name="history_card_share_cd">शेयर करें</string>
+    <string name="history_card_download_cd">क्लाउड से डाउनलोड करें</string>
+    <string name="history_card_delete_cloud_cd">क्लाउड कॉपी हटाएं</string>
+    <string name="history_delete_dialog_title">क्लाउड कॉपी हटाएं?</string>
+    <string name="history_delete_dialog_body">इससे पोस्टर क्लाउड स्टोरेज से हट जाएगा। आपकी लोकल कॉपी और हिस्ट्री एंट्री पर कोई असर नहीं — बस आप बाद में क्लाउड से दोबारा डाउनलोड नहीं कर पाएंगे। आपके अकाउंट की स्टोरेज खाली होगी।</string>
+
+    <!-- अकाउंट सेक्शन -->
+    <string name="account_section_title">अकाउंट</string>
+    <string name="account_offline">ऑफ़लाइन — Firebase उपलब्ध नहीं। PDF लोकल तौर पर काम करता रहेगा।</string>
+    <string name="account_anonymous_explainer">गुमनाम रूप से साइन इन है। डिवाइसों में हिस्ट्री सेव रखने के लिए Google से साइन इन करें।</string>
+    <string name="account_sign_in_with_google">Google से साइन इन करें</string>
+    <string name="account_signed_in_fallback">साइन इन हो गए</string>
+    <string name="account_profile_picture_cd">प्रोफ़ाइल फ़ोटो</string>
+    <string name="account_sign_out">साइन आउट करें</string>
+
+    <!-- इमेज पिकर -->
+    <string name="picker_select_image_cd">इमेज चुनें</string>
+    <string name="picker_pick_an_image">अपने पोस्टर के लिए इमेज चुनें</string>
+    <string name="picker_selected_cd">चुनी हुई पोस्टर इमेज</string>
+    <string name="picker_change_image">इमेज बदलें</string>
+
+    <!-- क्रेडिट बैज -->
+    <string name="credit_badge_cd">AI क्रेडिट</string>
+    <string name="credit_badge_admin_infinity">∞</string>
+
+    <!-- खरीद शीट -->
+    <string name="purchase_ai_credits">AI क्रेडिट</string>
+    <string name="purchase_balance">बैलेंस: %1$d</string>
+    <string name="purchase_signin_title">क्रेडिट खरीदने के लिए साइन इन करें</string>
+    <string name="purchase_signin_body">क्रेडिट आपके Google अकाउंट से जुड़े होते हैं ताकि डिवाइस बदलने या री-इंस्टॉल के बाद भी मिलते रहें।</string>
+    <string name="purchase_signin_button">क्रेडिट खरीदने के लिए Google से साइन इन करें</string>
+    <string name="purchase_choose_pack">एक क्रेडिट पैक चुनें</string>
+    <string name="purchase_recent_transactions">हाल के लेनदेन</string>
+    <string name="purchase_no_transactions">अभी कोई लेनदेन नहीं।</string>
+    <string name="purchase_restore">खरीदारी रिस्टोर करें</string>
+    <string name="purchase_sku_starter">स्टार्टर</string>
+    <string name="purchase_sku_small">स्मॉल</string>
+    <string name="purchase_sku_medium">मीडियम</string>
+    <string name="purchase_sku_large">लार्ज</string>
+    <string name="purchase_sku_credits_price">%1$d क्रेडिट  -  %2$s</string>
+    <string name="purchase_buy">खरीदें</string>
+
+    <!-- स्टोरेज रिटेंशन -->
+    <string name="storage_dialog_title">30 दिनों के बाद आपके पोस्टर का क्या होना चाहिए?</string>
+    <string name="storage_dialog_body">आपकी लोकल कॉपी और हिस्ट्री लिस्ट हमेशा के लिए बनी रहती है। यह विकल्प केवल क्लाउड-स्टोर PDF के बारे में है।</string>
+    <string name="storage_auto_delete_title">30 दिनों बाद अपने आप हटाएं</string>
+    <string name="storage_auto_delete_body">आपका स्टोरेज खर्च शून्य रहेगा। 30 दिनों बाद क्लाउड कॉपी हट जाती है; लोकल + हिस्ट्री लिस्ट बनी रहती है।</string>
+    <string name="storage_paid_title">स्टोर करते रहें</string>
+    <string name="storage_paid_body">पहले 30 दिनों के बाद हर पोस्टर के लिए लगभग 1¢ प्रति माह, जो आपके क्रेडिट बैलेंस से कटेगा। क्रेडिट खत्म होने पर फ़ाइल 30 और दिन रखी जाएगी और हटाने से पहले ईमेल किया जाएगा।</string>
+    <string name="storage_decide_later">बाद में तय करें</string>
+
+    <!-- सहायता स्क्रीन -->
+    <string name="screen_help_title">सहायता</string>
+    <string name="help_paper_sizes_title">कागज़ के साइज़</string>
+    <string name="help_paper_sizes_body">PosterPDF Letter (8.5×11 in), Legal (8.5×14 in), Tabloid (11×17 in), A4 (8.27×11.69 in), A3 (11.69×16.54 in), और असामान्य प्रिंटर के लिए एक Custom साइज़ सपोर्ट करता है। Letter उत्तर अमेरिका में होम/ऑफ़िस का डिफ़ॉल्ट है; बाकी जगह A4 मानक है। जो कागज़ आपके प्रिंटर में लगा हो उसे चुनें — ऐप ज़रूरत के अनुसार पेजों में टाइल करेगा।</string>
+    <string name="help_low_dpi_title">लो-DPI चेतावनी</string>
+    <string name="help_low_dpi_body">अगर आपकी इमेज में प्रिंट साइज़ के लिए ज़रूरत से कम पिक्सल हैं, तो हम प्रीव्यू के नीचे पीली चेतावनी और टैप-टू-फ़िक्स बैनर दिखाते हैं। तेज़ प्रिंट के लिए 150 DPI न्यूनतम नियम है। इससे कम होने पर पोस्टर धुंधला या पिक्सलेटेड दिखेगा। अपस्केल मोडल खोलने के लिए बैनर टैप करें — इसमें हर अपस्केल विकल्प पर आउटपुट और क्रेडिट कॉस्ट दिखती है।</string>
+    <string name="help_upscale_title">अपस्केल विकल्प</string>
+    <string name="help_upscale_body">पाँच डिफ़ॉल्ट कार्ड: \'Now (pixelated)\' बिना अपस्केल का नतीजा दिखाता है; \'Free upscale\' आपके फ़ोन पर ESRGAN चलाता है (बिना इंटरनेट, बिना क्रेडिट, ~30s); \'Topaz 4×\' सबसे उच्च-गुणवत्ता वाला पेड विकल्प है; \'Recraft Crisp\' फ़ोटो-फेथफुल है और Topaz से ~40× सस्ता है; \'Bring your own\' से आप कहीं और अपस्केल की गई फ़ाइल (Canva, OpenArt, Magnific, या Topaz desktop) लोड कर सकते हैं। \'See other AI options\' टैप करके Topaz 8×, AuraSR, और ESRGAN देखें।</string>
+    <string name="help_signin_title">साइन-इन</string>
+    <string name="help_signin_body">पहली बार लॉन्च करने पर एक गुमनाम Firebase Auth सेशन बनता है — बिना अकाउंट के आपकी हिस्ट्री तुरंत काम करती है। डिवाइसों में हिस्ट्री रखने (या री-इंस्टॉल के बाद रिस्टोर करने) के लिए साइड मेनू खोलें और \'Google से साइन इन करें\' टैप करें। हम केवल आपका नाम और ईमेल लेते हैं; आपकी ओर से पोस्ट नहीं करते, अन्य Google डेटा नहीं पढ़ते, और किसी तीसरे पक्ष से शेयर नहीं करते।</string>
+    <string name="help_history_title">हिस्ट्री</string>
+    <string name="help_history_body">आपके द्वारा बनाया गया हर पोस्टर हिस्ट्री लिस्ट में दिखता है। हर पंक्ति में 4 बटन हैं: View लोकल PDF खोलता है; Share ईमेल या मेसेजिंग ऐप को देता है; Download (क्लाउड आइकन) क्लाउड स्टोरेज से कॉपी लेता है अगर आपने ऑप्ट इन किया हो; Delete (cloud-off आइकन) आपकी लोकल फ़ाइल या हिस्ट्री एंट्री को बिना छुए क्लाउड कॉपी हटाता है।</string>
+    <string name="help_sharing_title">शेयरिंग</string>
+    <string name="help_sharing_body">मुख्य स्क्रीन पर नया \'Share…\' बटन मौजूदा पोस्टर किसी भी ऐप — Gmail, WhatsApp, Drive, आपके प्रिंटर के ऐप आदि — को भेजने देता है। PDF हर बार नई बनाई जाती है इसलिए हमेशा मौजूदा सेटिंग्स दिखती हैं।</string>
+
+    <!-- FAQ स्क्रीन -->
+    <string name="screen_faq_title">अक्सर पूछे जाने वाले सवाल</string>
+    <string name="faq_q_credits">क्रेडिट क्यों माँगता है?</string>
+    <string name="faq_a_credits">क्रेडिट AI अपस्केल कॉल्स के लिए होते हैं — Topaz, Recraft, AuraSR, Magnific। हर प्रोवाइडर प्रति इमेज चार्ज करता है, इसलिए हम प्रति इमेज क्रेडिट लेते हैं। PosterPDF खुद (पोस्टर जनरेशन, ऑन-डिवाइस अपस्केल, हिस्ट्री, 30-दिन क्लाउड स्टोरेज) किसी भी इमेज सोर्स के साथ मुफ़्त है। क्रेडिट केवल तब लागू होते हैं जब आप AI अपस्केल विकल्प चुनते हैं।</string>
+    <string name="faq_q_credit_value">मेरे क्रेडिट की कीमत चुकाई राशि से कम क्यों है?</string>
+    <string name="faq_a_credit_value">मार्जिन पारदर्शिता: अंतर्निहित AI प्रोवाइडर हमसे आपकी भुगतान राशि का लगभग दो-तिहाई चार्ज करते हैं। बाकी तीसरे हिस्से में Play Store का 15%% कट, सर्वर लागत (Cloud Functions + Firestore + Storage) शामिल है और डेवलपमेंट के लिए एक छोटा मार्जिन बचता है। हम FAL.ai लागत से ~50%% ऊपर रखते हैं — इससे काम चलता है, अमीर नहीं बनते। सटीक USD-equivalent हर क्रेडिट पैक पर दिखाई जाती है ताकि कोई आश्चर्य न हो।</string>
+    <string name="faq_q_offline">क्या इसे ऑफ़लाइन इस्तेमाल किया जा सकता है?</string>
+    <string name="faq_a_offline">मुख्य फ़ीचर के लिए हाँ: इमेज पिकर, पोस्टर जनरेशन, ऑन-डिवाइस फ्री अपस्केल, और View/Save/Share बिना इंटरनेट काम करते हैं। इंटरनेट की ज़रूरत है: Google से साइन इन, AI अपस्केल (Topaz, Recraft, आदि), क्रेडिट खरीदने, और क्लाउड स्टोरेज सिंकिंग के लिए। हिस्ट्री मेटाडेटा फिर से कनेक्ट होने पर बैकग्राउंड में सिंक होती है।</string>
+    <string name="faq_q_sha1">SHA-1 फ़िंगरप्रिंट किस काम का है?</string>
+    <string name="faq_a_sha1">Google Sign-In ऐप के APK साइनिंग सर्टिफ़िकेट को आपके Firebase Auth प्रोजेक्ट से बाँधता है। हमारे रिलीज़ कीस्टोर का SHA-1 फ़िंगरप्रिंट Firebase में रजिस्टर है, इसलिए केवल उसी कीस्टोर से साइन किया APK Google Sign-In इस्तेमाल कर सकता है। यह बुरे लोगों को नकली APK पब्लिश करने से रोकता है जो आपके Google अकाउंट को फ़िश कर सके। इंस्टॉल के तुरंत बाद साइन-इन फ़ेल हो तो सबसे आम कारण debug या तीसरे पक्ष के कीस्टोर से साइन किया APK है।</string>
+    <string name="faq_q_out_of_credits">क्रेडिट खत्म होने पर क्या होता है?</string>
+    <string name="faq_a_out_of_credits">दो चीज़ें होती हैं, और वे अलग-अलग हैं। (1) AI अपस्केल विकल्प मोडल में अनुपलब्ध हो जाते हैं — बटन \'Get more credits\' प्रॉम्प्ट बन जाते हैं। फ्री अपस्केल और PDF जनरेशन चलती रहती है। (2) अगर आपके पास पेड रिटेंशन टियर पर क्लाउड स्टोरेज भी है, तो आपके PDF 30-दिन की ग्रेस पीरियड में चले जाते हैं: हम चेतावनी ईमेल करते हैं, और 30 दिनों के बाद क्लाउड कॉपी हट जाती है। लोकल कॉपी और हिस्ट्री एंट्री पर कोई असर नहीं।</string>
+    <string name="faq_q_pdf_time">PDF बनाने में ~30s क्यों लगते हैं?</string>
+    <string name="faq_a_pdf_time">हर टाइल टारगेट पेपर साइज़ पर अलग से रेंडर होती है, इमेज को प्रति-टाइल क्रॉप और रीस्केल किया जाता है। 4×4 ग्रिड का मतलब 16 इमेज रीस्केलिंग ऑपरेशन हैं, और हर एक के बाद rulers, labels, crop marks और ब्रांड फ़ुटर के साथ PDF पेज कम्पोज़ होता है। हम इंटरमीडिएट रिज़ल्ट कैश कर सकते थे, लेकिन प्रति-टाइल रीस्केल प्रिंटेड पिक्सल तेज़ रखने का सही तरीका है। बड़े पोस्टर में ज़्यादा समय लगता है।</string>
+    <string name="faq_q_custom_paper">क्या नॉन-स्टैंडर्ड पेपर साइज़ पर प्रिंट किया जा सकता है?</string>
+    <string name="faq_a_custom_paper">हाँ — पेपर-साइज़ सेलेक्टर में \'Custom\' चुनें। पेपर चौड़ाई और ऊंचाई के लिए दो अतिरिक्त फ़ील्ड मिलेंगे। इसे तब इस्तेमाल करें जब प्रिंटर A5, B5, फ़ोटो पेपर, या कोई ऐसा साइज़ लेता हो जो हम सूची में न दें। टाइल गणित उसी तरह काम करती है; हम बस आपके टाइप किए आयामों पर भरोसा करते हैं।</string>
+    <string name="faq_q_data_deletion">अगर मैं अपना डेटा हटाना चाहूँ?</string>
+    <string name="faq_a_data_deletion">तीन रास्ते हैं, स्कोप के अनुसार। केवल लोकल: Settings → Reset to Defaults प्राथमिकताएं मिटाता है और इस डिवाइस पर ऐप रीसेट करता है। प्रति-पोस्टर क्लाउड कॉपी: History खोलें, पंक्ति ढूंढें, cloud-off (लाल) आइकन टैप करें। अकाउंट-वाइड डिलीशन (auth record + सभी Firestore history + सभी cloud-stored PDF): अपने Google साइन-इन से जुड़े पते से support@joeputin.com पर ईमेल करें, हम 7 दिनों के भीतर मैन्युअली प्रोसेस करेंगे।</string>
+
+    <!-- गेटिंग स्टार्टेड स्क्रीन -->
+    <string name="screen_getting_started_title">शुरुआत कैसे करें</string>
+    <string name="getting_started_intro">PosterPDF किसी भी इमेज को प्रिंटेबल वॉल पोस्टर में बदलता है, जो Letter या A4 पेजों पर टाइल होती है ताकि आप घर पर असेंबल कर सकें। एक फ़ोटो चुनें, तय करें कि पोस्टर कितना बड़ा चाहिए, और हम एक प्रिंट-रेडी PDF बनाएंगे जिसे सीधे प्रिंटर को भेज सकते हैं।</string>
+    <string name="getting_started_free_section">आपको मुफ़्त में क्या मिलता है</string>
+    <string name="getting_started_feat_poster_title">पोस्टर जनरेशन</string>
+    <string name="getting_started_feat_poster_body">किसी भी इमेज को कई पेजों पर टाइल करें — कोई वॉटरमार्क नहीं, पेज लिमिट नहीं।</string>
+    <string name="getting_started_feat_paper_title">सभी पेपर साइज़</string>
+    <string name="getting_started_feat_paper_body">Letter, Legal, Tabloid, A3, A4, और असामान्य प्रिंटर के लिए Custom साइज़।</string>
+    <string name="getting_started_feat_upscale_title">ऑन-डिवाइस अपस्केल</string>
+    <string name="getting_started_feat_upscale_body">4× अपस्केल आपके फ़ोन पर लोकल चलता है — बिना इंटरनेट, बिना क्रेडिट।</string>
+    <string name="getting_started_feat_storage_title">30-दिन क्लाउड स्टोरेज</string>
+    <string name="getting_started_feat_storage_body">हम आपके बनाए PDF 30 दिनों तक रखते हैं ताकि आप किसी अन्य डिवाइस से फिर डाउनलोड कर सकें।</string>
+    <string name="getting_started_feat_history_title">हमेशा की हिस्ट्री</string>
+    <string name="getting_started_feat_history_body">आपके बनाए हर पोस्टर की लोकल हिस्ट्री इस फ़ोन पर बनी रहती है।</string>
+    <string name="getting_started_paid_explainer">AI अपस्केल (Topaz, Recraft, Magnific…) ऑप्ट-इन है और क्रेडिट इस्तेमाल करता है। हम AI प्रोवाइडर की प्रति-इमेज लागत से इतना ऊपर चार्ज करते हैं कि Play Store फीस और सर्वर कवर हों — सटीक मार्जिन के लिए FAQ देखें।</string>
+    <string name="getting_started_tour_section">3-स्टेप टूर</string>
+    <string name="getting_started_tour1_title">इमेज चुनें</string>
+    <string name="getting_started_tour1_body">ऊपर फ़ोटो कार्ड टैप करें। जितना हाई-रेज़ोल्यूशन हो उतना अच्छा — छोटे फ़ोन स्क्रीनशॉट वॉल-पोस्टर साइज़ पर पिक्सलेटेड दिखेंगे।</string>
+    <string name="getting_started_tour1_screenshot">[स्क्रीनशॉट: इमेज पिकर]</string>
+    <string name="getting_started_tour2_title">साइज़ सेट करें</string>
+    <string name="getting_started_tour2_body">पूरे पोस्टर की चौड़ाई और ऊंचाई टाइप करें। आस्पेक्ट रेशियो लॉक करें (चेन आइकन) ताकि इमेज अनुपात बना रहे, या क्रॉप करने के लिए अनलॉक करें। अपने प्रिंटर के अनुसार पेपर साइज़ चुनें — उत्तर अमेरिका में Letter डिफ़ॉल्ट है; बाकी जगह A4।</string>
+    <string name="getting_started_tour2_screenshot">[स्क्रीनशॉट: साइज़ + पेपर सेलेक्टर]</string>
+    <string name="getting_started_tour3_title">जनरेट करें</string>
+    <string name="getting_started_tour3_body">View, Save, या Share टैप करें। View PDF रीडर में खोलता है; Save फ़ोल्डर चुनने देता है; Share PDF किसी भी ऐप (ईमेल, Drive, प्रिंट) को देता है। अगर चुने साइज़ पर इमेज 150 DPI से कम है, तो हम पहले अपस्केल करने का सुझाव देंगे।</string>
+    <string name="getting_started_tour3_screenshot">[स्क्रीनशॉट: एक्शन बटन]</string>
+
+    <!-- गोपनीयता नीति स्क्रीन -->
+    <string name="screen_privacy_title">गोपनीयता नीति</string>
+    <string name="privacy_intro">प्रभावी: 2026-05-03। हम इसे संक्षिप्त और सटीक रखने की कोशिश करते हैं। नीचे कुछ भी ऐप के वास्तविक व्यवहार से मेल न खाए तो उसे बग समझें और support@joeputin.com पर ईमेल करें।</string>
+    <string name="privacy_sec_collect_first_launch_title">पहली बार लॉन्च पर हम क्या एकत्र करते हैं</string>
+    <string name="privacy_sec_collect_first_launch_body">एक गुमनाम Firebase Auth UID — एक यादृच्छिक अपारदर्शी स्ट्रिंग जिसमें कोई व्यक्तिगत पहचान की जानकारी नहीं। यही आपकी हिस्ट्री को इस डिवाइस पर ऐप रीस्टार्ट के बाद भी बनाए रखता है।</string>
+    <string name="privacy_sec_google_title">Google से साइन इन करने पर हम क्या एकत्र करते हैं</string>
+    <string name="privacy_sec_google_body">आपका Google अकाउंट नाम और ईमेल पता। हम इनका उपयोग यह दिखाने के लिए करते हैं कि कौन साइन इन है, डिवाइसों में हिस्ट्री सिंक करने और अकाउंट-वाइड डिलीशन रिक्वेस्ट प्रोसेस करने के लिए। हम आपका Google पासवर्ड, संपर्क, कैलेंडर, Drive, या अन्य Google डेटा प्राप्त नहीं करते।</string>
+    <string name="privacy_sec_firestore_title">हिस्ट्री मेटाडेटा (Firestore)</string>
+    <string name="privacy_sec_firestore_body">पोस्टर बनाने पर हम रिकॉर्ड करते हैं: पोस्टर की चौड़ाई और ऊंचाई, पेपर साइज़, ओरिएंटेशन, मार्जिन, ओवरलैप, आउटपुट DPI, पेज काउंट, और एक टाइमस्टैंप। यह Firestore में /users/{uid}/history पर जाता है। हम सोर्स इमेज बाइट्स या कोई पिक्सल डेटा Firestore में स्टोर नहीं करते।</string>
+    <string name="privacy_sec_storage_title">PDF ब्लॉब्स (Cloud Storage) — ऑप्ट-इन</string>
+    <string name="privacy_sec_storage_body">अगर आप क्लाउड रिटेंशन (Settings → Cloud storage…) में ऑप्ट इन करते हैं, तो हम बनाए PDF को gs://(project)/user-pdfs/{uid}/ पर Cloud Storage में अपलोड करते हैं। डिफ़ॉल्ट रिटेंशन 30 दिन है; पेड टियर इसे बढ़ाते हैं। डिफ़ॉल्ट सेटिंग्स का विकल्प केवल-लोकल है — जब तक आप ऑप्ट इन न करें, कुछ भी डिवाइस नहीं छोड़ता।</string>
+    <string name="privacy_sec_fal_title">AI अपस्केल (FAL.ai)</string>
+    <string name="privacy_sec_fal_body">जब आप AI अपस्केल विकल्प (Topaz, Recraft, AuraSR, ESRGAN, Magnific) टैप करते हैं, तो सोर्स इमेज प्रोसेसिंग के लिए FAL.ai को भेजी जाती है, और अपस्केल नतीजा वापस आता है। FAL.ai इनपुट और आउटपुट अपनी TOS में निर्धारित अवधि के लिए रखता है — आमतौर पर मिनटों से घंटों तक, लेकिन उनकी पॉलिसी सीधे पढ़ें:</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_sec_retention_title">रिटेंशन</string>
+    <string name="privacy_sec_retention_body">आपकी Settings → Cloud storage… पसंद से तय होता है। फ्री टियर: 30 दिन। पेड टियर: 90 दिन, 1 साल, या अनिश्चितकाल। Firestore में हिस्ट्री मेटाडेटा भी उतने ही समय के लिए। लोकल फ़ाइलें और लोकल हिस्ट्री तब तक बनी रहती है जब तक आप अनइंस्टॉल न करें या Reset to Defaults न टैप करें।</string>
+    <string name="privacy_sec_deletion_title">डिलीशन के रास्ते</string>
+    <string name="privacy_sec_deletion_body">लोकल डेटा: Settings → Reset to Defaults प्राथमिकताएं और ऑन-डिवाइस हिस्ट्री इंडेक्स मिटाता है। प्रति-पोस्टर क्लाउड कॉपी: History खोलें, पंक्ति पर लाल cloud-off बटन टैप करें। अकाउंट-वाइड (auth + सभी Firestore history + सभी cloud PDF): अपने Google साइन-इन से जुड़े पते से support@joeputin.com पर ईमेल करें। हम 7 दिनों के भीतर प्रोसेस करते हैं।</string>
+    <string name="privacy_sec_third_party_title">तीसरे पक्ष की सेवाएं</string>
+    <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (सभी Google Cloud); AI अपस्केल के लिए FAL.ai; क्रेडिट खरीद के लिए Google Play Billing। हम कोई एनालिटिक्स या विज्ञापन SDK नहीं चलाते। आपके फ़ोन पर अन्य ऐप्स तक हमारी कोई पहुँच नहीं है।</string>
+    <string name="privacy_sec_contact_title">संपर्क</string>
+    <string name="privacy_sec_contact_body">किसी भी गोपनीयता प्रश्न या डिलीशन रिक्वेस्ट के लिए support@joeputin.com। सोर्स कोड github.com/Joeputin/pdfposter पर सार्वजनिक है — इस नीति में जो लिखा है वही कोड में है।</string>
+
+    <!-- अपस्केल कम्पेयर स्क्रीन -->
+    <string name="screen_compare_title">AI अपस्केलर्स की तुलना करें</string>
+    <string name="compare_subject_label">विषय</string>
+    <string name="compare_model_label">मॉडल</string>
+    <string name="compare_subject_disco_chicken">डिस्को चिकन</string>
+    <string name="compare_subject_cat_shimmer">चमकती बिल्ली</string>
+    <string name="compare_subject_gristmill">ग्रिस्टमिल</string>
+    <string name="compare_subject_earth">अर्थ पोस्टर</string>
+    <string name="compare_synthesized_fallback">(सिंथेसाइज़्ड फ़ॉलबैक — assets देखें)</string>
+    <string name="compare_source_image_cd">सोर्स इमेज</string>
+    <string name="compare_upscaled_image_cd">अपस्केल्ड इमेज</string>
+    <string name="compare_label_original">मूल</string>
+    <string name="compare_label_upscaled">अपस्केल्ड</string>
+    <string name="compare_credits_attribution">डेमो इमेज: cat_shimmer (CC BY 2.0), gristmill (CC BY-SA 4.0), earth poster (CC BY 2.0, ESO)। disco_chicken Gemini Nano Banana द्वारा जनरेट की गई।</string>
+
+    <!-- लो-DPI अपस्केल मोडल -->
+    <string name="lowdpi_header_svg">वेक्टर सोर्स — अपस्केल की ज़रूरत नहीं</string>
+    <string name="lowdpi_header_warning">यह पोस्टर कम रेज़ोल्यूशन पर प्रिंट होगा</string>
+    <string name="lowdpi_current_dpi">मौजूदा: %1$d DPI  ·  %2$s\" × %3$s\"</string>
+    <string name="lowdpi_poster_size_only">पोस्टर साइज़: %1$s\" × %2$s\"</string>
+    <string name="lowdpi_eta_estimating">अनुमान लगाया जा रहा है…</string>
+    <string name="lowdpi_aim_for_dpi">कम से कम 150 DPI का लक्ष्य रखें। इसके कुछ तरीके हैं:</string>
+    <string name="lowdpi_lever_reduce_title">पोस्टर साइज़ घटाएं</string>
+    <string name="lowdpi_lever_reduce_body">वही सोर्स इमेज, छोटा प्रिंट → ज़्यादा DPI। सबसे तेज़ समाधान, अपलोड की ज़रूरत नहीं।</string>
+    <string name="lowdpi_lever_upgrade_title">सोर्स अपग्रेड करें</string>
+    <string name="lowdpi_lever_upgrade_body">ऑन-डिवाइस अपस्केल करें (मुफ़्त, RAM पर निर्भर) या AI से (प्रति मॉडल क्रेडिट चार्ज)।</string>
+    <string name="lowdpi_lever_byo_title">अपना लाएं</string>
+    <string name="lowdpi_lever_byo_body">Canva, OpenArt, Topaz Photo AI, या Magnific से पहले ही अपस्केल किया? अपस्केल्ड फ़ाइल सीधे लोड करें। PosterPDF किसी भी इमेज सोर्स के साथ मुफ़्त है — AI क्रेडिट केवल इन्फ़रेंस लागत कवर करते हैं।</string>
+    <string name="lowdpi_dismiss_svg">समझ गया</string>
+    <string name="lowdpi_dismiss_warning">इसके बजाय पोस्टर साइज़ घटाएं</string>
+    <string name="lowdpi_help_me_decide">तय करने में मदद करें…</string>
+
+    <!-- अपस्केल मॉडल लेबल (कार्ड + चिप में) -->
+    <string name="upscale_model_none">अभी (पिक्सलेटेड)</string>
+    <string name="upscale_model_none_pros">सबसे तेज़, मुफ़्त, किसी भी डिवाइस पर काम करता है</string>
+    <string name="upscale_model_none_cons">बड़े प्रिंट पर पिक्सलेशन दिखती है</string>
+    <string name="upscale_model_free_local">फ्री अपस्केल</string>
+    <string name="upscale_model_free_local_pros">मुफ़्त, ऑफ़लाइन, बिना इंटरनेट काम करता है</string>
+    <string name="upscale_model_free_local_cons">पुराने फ़ोन पर धीमा; अधिकतम 4×</string>
+    <string name="upscale_model_topaz">Topaz Gigapixel</string>
+    <string name="upscale_model_topaz_pros">सबसे साफ किनारे, पॉलिश्ड आउटपुट</string>
+    <string name="upscale_model_topaz_cons">सबसे ज़्यादा लागत प्रति पिक्सल</string>
+    <string name="upscale_model_recraft">Recraft Crisp</string>
+    <string name="upscale_model_recraft_pros">फ़ोटो-फेथफुल, Topaz से ~40× सस्ता</string>
+    <string name="upscale_model_recraft_cons">Topaz की तुलना में टेक्स्ट/UI पर कम तेज़</string>
+    <string name="upscale_model_aurasr">AuraSR</string>
+    <string name="upscale_model_aurasr_pros">तेज़ और सस्ता (~$0.01/image)</string>
+    <string name="upscale_model_aurasr_cons">स्मूथ ग्रेडिएंट पर कभी-कभी आर्टिफैक्ट</string>
+    <string name="upscale_model_esrgan">ESRGAN</string>
+    <string name="upscale_model_esrgan_pros">ओपन-सोर्स क्लासिक, सबसे सस्ता AI विकल्प</string>
+    <string name="upscale_model_esrgan_cons">Topaz से कम तेज़</string>
+
+    <!-- कम्पेयर मॉडल चिप लेबल -->
+    <string name="compare_model_topaz">Topaz</string>
+    <string name="compare_model_recraft">Recraft</string>
+    <string name="compare_model_aurasr">AuraSR</string>
+    <string name="compare_model_esrgan">ESRGAN</string>
+
+    <!-- अपस्केल ऑप्शन कार्ड -->
+    <string name="upscale_card_pixelated_cd">पिक्सलेटेड प्रीव्यू</string>
+    <string name="upscale_card_on_device_cd">ऑन-डिवाइस अपस्केल प्रीव्यू</string>
+    <string name="upscale_card_model_icon_cd">%1$s आइकन</string>
+    <string name="upscale_card_dpi_estimate">≈ %1$d DPI</string>
+    <string name="upscale_card_credits_only">%1$d क्रेडिट</string>
+    <string name="upscale_card_credits_with_usd">%1$d क्रेडिट · ~$%2$s</string>
+    <string name="upscale_card_eta">ETA %1$s</string>
+    <string name="upscale_card_unavailable">उपलब्ध नहीं</string>
+    <string name="upscale_card_upscale_free">मुफ़्त अपस्केल</string>
+    <string name="upscale_card_sign_in">साइन इन करें</string>
+    <string name="upscale_card_get_more_credits">अधिक क्रेडिट लें</string>
+    <string name="upscale_card_upscale_with_credits">अपस्केल · %1$d cr</string>
+
+    <!-- SVG वेक्टर बैनर -->
+    <string name="svg_banner_title">वेक्टर सोर्स</string>
+    <string name="svg_banner_body">SVG एक वेक्टर इमेज है — यह किसी भी साइज़ पर तेज़ प्रिंट होती है। अपस्केल की ज़रूरत नहीं।</string>
+    <string name="svg_banner_secondary">अगर आप रास्टर इमेज से शुरू करना चाहते हैं, तो नीचे \"Bring your own\" इस्तेमाल करें।</string>
+
+    <!-- Bring your own कार्ड -->
+    <string name="byo_card_title">अपना लाएं</string>
+    <string name="byo_card_free">किसी भी सोर्स के साथ मुफ़्त</string>
+    <string name="byo_card_tools">Canva · OpenArt · Topaz · Magnific</string>
+    <string name="byo_card_pros">किसी भी अपस्केल टूल के साथ काम करता है जो आपके पास पहले से हो</string>
+    <string name="byo_card_cons">फ़ाइल लोड करने से पहले अपस्केलिंग आप करते हैं</string>
+    <string name="byo_card_button">तरीका बताएं…</string>
+
+    <!-- Bring-your-own सहायता डायलॉग -->
+    <string name="byo_dialog_title">अपनी अपस्केल्ड इमेज लाएं</string>
+    <string name="byo_step1_title">अपना टूल चुनें</string>
+    <string name="byo_step1_body">इनमें से कोई भी काम करेगा — जो पहले से हो या जिसकी कीमत पसंद हो उसे चुनें:</string>
+    <string name="byo_tool_canva_name">Canva</string>
+    <string name="byo_tool_canva_price">~$15/mo</string>
+    <string name="byo_tool_canva_note">डिज़ाइनर-फ्रेंडली। Edit Image → Magic Studio में बिल्ट-इन अपस्केलर।</string>
+    <string name="byo_tool_openart_name">OpenArt</string>
+    <string name="byo_tool_openart_price">$10/mo</string>
+    <string name="byo_tool_openart_note">भारी AI लाइब्रेरी; \'Upscaler\' टैब 4× और 8× हैंडल करता है।</string>
+    <string name="byo_tool_fal_name">FAL Topaz</string>
+    <string name="byo_tool_fal_price">~$0.01/MP</string>
+    <string name="byo_tool_fal_note">प्रति-इमेज पेमेंट, कोई सब्सक्रिप्शन नहीं। प्रोफेशनल-ग्रेड क्वालिटी।</string>
+    <string name="byo_tool_magnific_name">Magnific</string>
+    <string name="byo_tool_magnific_price">$30/mo</string>
+    <string name="byo_tool_magnific_note">प्रीमियम क्रिएटिव अपस्केलर। सबसे धीमा पर सबसे स्टाइलाइज़्ड।</string>
+    <string name="byo_step2_title">अपस्केल चलाएं</string>
+    <string name="byo_step2_body">अपना चुना टूल खोलें, मूल इमेज अपलोड करें, और 4× या 8× पर अपस्केल चलाएं। ज़्यादा = तेज़, पर ज़्यादा समय और ज़्यादा लागत।</string>
+    <string name="byo_step3_title">फ़ोन पर सेव करें</string>
+    <string name="byo_step3_body">नतीजा अपने Downloads फ़ोल्डर में डाउनलोड करें (या Android के फ़ाइल पिकर से कहीं भी — Drive, Photos, आदि सब काम करते हैं)।</string>
+    <string name="byo_step4_title">यहाँ जारी रखें</string>
+    <string name="byo_step4_body">नीचे \'Choose file\' टैप करें — अपनी अपस्केल्ड फ़ाइल चुनें। PosterPDF इसे सीधे इस्तेमाल करेगा, अपना अपस्केलर नहीं चलाएगा।</string>
+    <string name="byo_choose_file">फ़ाइल चुनें</string>
+
+    <!-- अपस्केल प्रोग्रेस बार -->
+    <string name="upscale_progress_uploading">अपलोड हो रहा है… %1$d%%</string>
+    <string name="upscale_progress_queued">कतार में प्रतीक्षा…</string>
+    <string name="upscale_progress_inferring">अपस्केल हो रहा है…</string>
+    <string name="upscale_progress_inferring_eta">अपस्केल हो रहा है… ~%1$ds बाकी</string>
+    <string name="upscale_progress_downloading">डाउनलोड हो रहा है… %1$d%%</string>
+
+    <!-- क्षमता संदेश (ऑन-डिवाइस अपस्केल) -->
+    <string name="capability_red_no_64bit">आपका डिवाइस ऑन-डिवाइस AI नहीं चला सकता</string>
+    <string name="capability_yellow_slow">आपके डिवाइस पर कुछ मिनट लगेंगे</string>
+
+    <!-- ETA फ़ॉर्मेटिंग -->
+    <string name="eta_seconds">%1$d–%2$d s</string>
+    <string name="eta_minutes_decimal">%1$.1f–%2$.1f min</string>
+    <string name="eta_minutes">%1$d–%2$d min</string>
+
+    <!-- लाइव प्रीव्यू लेजेंड -->
+    <string name="preview_live_assembly">लाइव असेंबली प्रीव्यू</string>
+    <string name="preview_legend_margin">मार्जिन</string>
+    <string name="preview_legend_overlap">ओवरलैप</string>
+    <string name="preview_low_dpi_card">कम रेज़ोल्यूशन: %1$d DPI · अपस्केल के लिए टैप करें ↑</string>
+
+    <!-- ViewModel एरर/सफलता संदेश -->
+    <string name="vm_error_open_image">सोर्स इमेज नहीं खुली</string>
+    <string name="vm_success_upscaled">%1$d×%2$d पर अपस्केल हुआ</string>
+    <string name="vm_error_upscale_failed">अपस्केल विफल: %1$s</string>
+    <string name="vm_error_unknown">अज्ञात त्रुटि</string>
+    <string name="vm_error_load_image_info">इमेज जानकारी लोड नहीं हुई: %1$s</string>
+    <string name="vm_error_could_not_load_image">इमेज लोड नहीं हो सकी</string>
+    <string name="vm_error_could_not_reopen_svg">टाइल के लिए SVG दोबारा नहीं खुला</string>
+    <string name="vm_success_poster_generated">पोस्टर बन गया: %1$s</string>
+    <string name="vm_error_generation_failed">विफल: %1$s</string>
+    <string name="vm_success_signed_in">साइन इन हो गए</string>
+    <string name="vm_error_signin_failed">साइन-इन विफल: %1$s</string>
+</resources>

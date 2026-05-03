@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- هوية التطبيق -->
+    <string name="app_name">Poster PDF</string>
+    <string name="brand_name">PosterPDF</string>
+
+    <!-- شاشة البداية -->
+    <string name="splash_tap_to_skip">انقر للتخطي</string>
+
+    <!-- أزرار وحوارات شائعة -->
+    <string name="common_ok">حسناً</string>
+    <string name="common_save">حفظ</string>
+    <string name="common_cancel">إلغاء</string>
+    <string name="common_delete">حذف</string>
+    <string name="common_back">رجوع</string>
+    <string name="common_refresh">تحديث</string>
+    <string name="common_got_it">فهمت</string>
+
+    <!-- شريط العنوان -->
+    <string name="topbar_settings_menu">الإعدادات</string>
+    <string name="topbar_credit_badge">أرصدة الذكاء الاصطناعي</string>
+
+    <!-- عناوين وعناصر القائمة الجانبية -->
+    <string name="drawer_settings_header">الإعدادات</string>
+    <string name="drawer_units_label">الوحدات</string>
+    <string name="drawer_debug_logging_title">سجل التصحيح</string>
+    <string name="drawer_debug_logging_subtitle">كتابة السجلات في مجلد التنزيلات</string>
+    <string name="drawer_posters_generated_title">الملصقات المُنشأة</string>
+    <string name="drawer_posters_generated_subtitle">إجمالي الملصقات التي تم إنشاؤها</string>
+    <string name="drawer_default_paper_size">حجم الورق الافتراضي</string>
+    <string name="drawer_supported_file_types_label">أنواع الملفات المدعومة:</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_cloud_storage">التخزين السحابي…</string>
+    <string name="drawer_target_dpi_label">دقة الطباعة المستهدفة: %1$d DPI</string>
+    <string name="drawer_target_dpi_help">كلما زادت الدقة (DPI) كانت الطباعة أوضح، واستُهلك المزيد من أرصدة التكبير. 150 هو المعيار للملصقات؛ 300 للصور الفوتوغرافية؛ 600+ للفنون الدقيقة.</string>
+    <string name="drawer_getting_started">البدء السريع</string>
+    <string name="drawer_help">المساعدة</string>
+    <string name="drawer_faq">الأسئلة الشائعة</string>
+    <string name="drawer_privacy_policy">سياسة الخصوصية</string>
+    <string name="drawer_support">الدعم</string>
+    <string name="drawer_reset_to_defaults">إعادة الضبط الافتراضي</string>
+    <string name="drawer_no_browser_for_support">لا يوجد متصفح مثبَّت لفتح رابط الدعم.</string>
+
+    <!-- لافتة تشجيع الشراء -->
+    <string name="nag_title">ادعم المطوِّر</string>
+    <string name="nag_body">لقد أنشأتَ %1$d ملصقات! يُرجى التفكير في التسجيل على Play Store مقابل $2 فقط لدعم التطوير.</string>
+    <string name="nag_play_store_url">play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="nag_maybe_later">ربما لاحقاً</string>
+    <string name="nag_maybe_later_countdown">ربما لاحقاً (%1$d ث)</string>
+    <string name="nag_dismiss">تجاهل</string>
+
+    <!-- الإعداد الأولي -->
+    <string name="onboarding_how_to_get_started">كيفية البدء:</string>
+    <string name="onboarding_step1">اختر صورة عالية الدقة أعلاه.</string>
+    <string name="onboarding_step2">حدد أبعاد الملصق النهائية.</string>
+    <string name="onboarding_step3">اختر حجم الورق والاتجاه.</string>
+    <string name="onboarding_step4">اعرض ملف PDF الجاهز للطباعة أو احفظه!</string>
+
+    <!-- معلومات الصورة -->
+    <string name="info_chip_resolution">الدقة</string>
+    <string name="info_chip_aspect_ratio">نسبة العرض إلى الارتفاع</string>
+    <string name="info_dialog_aspect_ratio_title">نسبة العرض إلى الارتفاع</string>
+    <string name="info_dialog_aspect_ratio_body">هذه هي نسبة العرض إلى الارتفاع. يضمن القفل على النسبة تطابق الملصق مع تناسب الصورة تماماً.</string>
+
+    <!-- بطاقة حجم الملصق -->
+    <string name="poster_size_section">حجم الملصق</string>
+    <string name="poster_width_with_unit">العرض (%1$s)</string>
+    <string name="poster_height_with_unit">الارتفاع (%1$s)</string>
+
+    <!-- الورق والتخطيط -->
+    <string name="paper_layout_section">الورق والتخطيط</string>
+    <string name="paper_size_section">حجم الورق</string>
+    <string name="orientation_section">الاتجاه</string>
+    <string name="orientation_best_fit">الأنسب تلقائياً</string>
+    <string name="orientation_portrait">عمودي</string>
+    <string name="orientation_landscape">أفقي</string>
+    <string name="orientation_portrait_cd">الاتجاه العمودي (Clarus the Dogcow في وضع الوقوف)</string>
+    <string name="orientation_landscape_cd">الاتجاه الأفقي (Clarus the Dogcow على جانبه)</string>
+    <string name="orientation_best_fit_cd">الاتجاه الأنسب تلقائياً</string>
+    <string name="margin_with_unit">الهامش (%1$s)</string>
+    <string name="overlap_with_unit">التداخل (%1$s)</string>
+    <string name="margin_info_title">الهامش</string>
+    <string name="margin_info_body">المساحة غير المطبوعة على حواف كل صفحة. تتطلب معظم الطابعات المنزلية هامشاً لا يقل عن 0.25 in (0.64 cm).</string>
+    <string name="overlap_info_title">التداخل</string>
+    <string name="overlap_info_body">المنطقة المتكررة بين اللوحات لمساعدتك في محاذاتها ولصقها. يُنصح بما بين 0.25 in و0.5 in.</string>
+    <string name="project_scope">نطاق المشروع: %1$d صفحة (%2$d صف × %3$d عمود)</string>
+
+    <!-- بطاقات حجم الورق -->
+    <string name="paper_recommended">موصى به</string>
+    <string name="paper_custom">مخصص</string>
+
+    <!-- الوحدات -->
+    <string name="units_inches">بوصة</string>
+    <string name="units_centimeters">سنتيمتر</string>
+
+    <!-- التنسيق المتقدم -->
+    <string name="advanced_section">التنسيق المتقدم</string>
+    <string name="advanced_borders_title">حدود الصفحة وعلامات القص</string>
+    <string name="advanced_borders_body">تُطبَع على كل صفحة لمساعدتك في القص والمحاذاة بعد الطباعة. تطبع \"علامات القص\" شُرَّاطات زاوية توضح أماكن القص كما في محلات الطباعة الاحترافية. تُرسم حدود صلبة/متقطعة/منقطة بأوزان مختلفة. اختر \"بلا\" إذا أردت حوافاً نظيفة.</string>
+    <string name="advanced_label_panes">تسمية كل لوحة (A1، B2...)</string>
+    <string name="advanced_include_instructions">تضمين تعليمات التجميع</string>
+
+    <!-- معاينة المخطط التفصيلي -->
+    <string name="outline_none">بلا</string>
+
+    <!-- أزرار الإجراءات -->
+    <string name="action_view">عرض</string>
+    <string name="action_save">حفظ</string>
+    <string name="action_share">مشاركة…</string>
+    <string name="chooser_open_pdf">فتح PDF</string>
+    <string name="chooser_share_pdf">مشاركة PDF</string>
+
+    <!-- تحذير انخفاض الدقة -->
+    <string name="low_dpi_dialog_title">ستتم الطباعة بدقة منخفضة</string>
+    <string name="low_dpi_dialog_body">ملصقك حالياً بحوالي %1$d DPI. للحصول على طباعة واضحة تحتاج إلى 150 DPI على الأقل. هل تريد المتابعة، أم تكبير الصورة أولاً؟</string>
+    <string name="low_dpi_dialog_continue">المتابعة على أي حال</string>
+    <string name="low_dpi_dialog_upgrade">تكبير المصدر أولاً</string>
+
+    <!-- معالج الإعداد الأول -->
+    <string name="first_run_title">مرحباً بك في Poster PDF!</string>
+    <string name="first_run_intro">لنُعِدَّك للانطلاق. يمكنك تغيير هذه الإعدادات لاحقاً من القائمة الجانبية.</string>
+    <string name="first_run_units_label">اختر وحدة القياس المفضلة لديك:</string>
+    <string name="first_run_paper_label">حجم الورق الافتراضي:</string>
+    <string name="first_run_get_started">ابدأ الآن</string>
+
+    <!-- السجل (القائمة الجانبية والشاشة) -->
+    <string name="history_section_title">السجل</string>
+    <string name="history_refresh_cd">تحديث السجل</string>
+    <string name="history_empty_drawer">لا توجد ملصقات بعد. أنشئ واحداً — سيظهر هنا.</string>
+    <string name="history_view_all">عرض الكل</string>
+    <string name="history_view_all_count">عرض الكل (%1$d)</string>
+    <string name="history_screen_title">السجل</string>
+    <string name="history_empty_title">لا يوجد سجل بعد</string>
+    <string name="history_empty_subtitle">أنشئ ملصقاً — سيظهر هنا.</string>
+    <string name="history_card_view_cd">عرض</string>
+    <string name="history_card_share_cd">مشاركة</string>
+    <string name="history_card_download_cd">تنزيل من السحابة</string>
+    <string name="history_card_delete_cloud_cd">حذف النسخة السحابية</string>
+    <string name="history_delete_dialog_title">حذف النسخة السحابية؟</string>
+    <string name="history_delete_dialog_body">سيؤدي هذا إلى إزالة الملصق من التخزين السحابي. نسختك المحلية وإدخال السجل هذا لن يتأثرا — ستفقد فقط القدرة على إعادة التنزيل من السحابة لاحقاً. سيوفر هذا مساحة تخزين في حسابك.</string>
+
+    <!-- قسم الحساب -->
+    <string name="account_section_title">الحساب</string>
+    <string name="account_offline">غير متصل — تعذَّر الوصول إلى Firebase. ملفات PDF تعمل محلياً.</string>
+    <string name="account_anonymous_explainer">تم تسجيل الدخول بشكل مجهول. سجِّل دخولك بحساب Google للاحتفاظ بسجلك عبر الأجهزة.</string>
+    <string name="account_sign_in_with_google">تسجيل الدخول بـ Google</string>
+    <string name="account_signed_in_fallback">تم تسجيل الدخول</string>
+    <string name="account_profile_picture_cd">صورة الملف الشخصي</string>
+    <string name="account_sign_out">تسجيل الخروج</string>
+
+    <!-- منتقي الصور -->
+    <string name="picker_select_image_cd">اختر صورة</string>
+    <string name="picker_pick_an_image">اختر صورة لملصقك</string>
+    <string name="picker_selected_cd">صورة الملصق المختارة</string>
+    <string name="picker_change_image">تغيير الصورة</string>
+
+    <!-- شارة الأرصدة -->
+    <string name="credit_badge_cd">أرصدة الذكاء الاصطناعي</string>
+    <string name="credit_badge_admin_infinity">∞</string>
+
+    <!-- ورقة الشراء -->
+    <string name="purchase_ai_credits">أرصدة الذكاء الاصطناعي</string>
+    <string name="purchase_balance">الرصيد: %1$d</string>
+    <string name="purchase_signin_title">سجِّل دخولك لشراء أرصدة</string>
+    <string name="purchase_signin_body">الأرصدة مرتبطة بحساب Google الخاص بك حتى تحتفظ بها عبر الأجهزة وعمليات إعادة التثبيت.</string>
+    <string name="purchase_signin_button">تسجيل الدخول بـ Google لشراء الأرصدة</string>
+    <string name="purchase_choose_pack">اختر حزمة أرصدة</string>
+    <string name="purchase_recent_transactions">المعاملات الأخيرة</string>
+    <string name="purchase_no_transactions">لا توجد معاملات بعد.</string>
+    <string name="purchase_restore">استعادة المشتريات</string>
+    <string name="purchase_sku_starter">المبتدئ</string>
+    <string name="purchase_sku_small">صغير</string>
+    <string name="purchase_sku_medium">متوسط</string>
+    <string name="purchase_sku_large">كبير</string>
+    <string name="purchase_sku_credits_price">%1$d رصيد  -  %2$s</string>
+    <string name="purchase_buy">شراء</string>
+
+    <!-- الاحتفاظ بالتخزين -->
+    <string name="storage_dialog_title">ماذا يحدث لملصقاتك بعد 30 يوماً؟</string>
+    <string name="storage_dialog_body">نسخك المحلية وقائمة السجل تبقى دائماً. هذا الاختيار يخص فقط ملفات PDF المخزَّنة سحابياً.</string>
+    <string name="storage_auto_delete_title">الحذف التلقائي بعد 30 يوماً</string>
+    <string name="storage_auto_delete_body">يُبقي تكلفة التخزين صفراً. بعد 30 يوماً تُحذف النسخة السحابية؛ تبقى النسخة المحلية والسجل سليمَين.</string>
+    <string name="storage_paid_title">الاحتفاظ بها</string>
+    <string name="storage_paid_body">حوالي 1¢ لكل ملصق شهرياً بعد أول 30 يوماً، تُخصم من رصيدك. إذا نفد رصيدك نحتفظ بالملف 30 يوماً إضافية ونرسل لك بريداً إلكترونياً قبل الحذف.</string>
+    <string name="storage_decide_later">قرر لاحقاً</string>
+
+    <!-- شاشة المساعدة -->
+    <string name="screen_help_title">المساعدة</string>
+    <string name="help_paper_sizes_title">أحجام الورق</string>
+    <string name="help_paper_sizes_body">يدعم PosterPDF أحجام: Letter (8.5×11 in)، Legal (8.5×14 in)، Tabloid (11×17 in)، A4 (8.27×11.69 in)، A3 (11.69×16.54 in)، وحجماً مخصصاً للطابعات غير المعيارية. Letter هو المعيار المنزلي/المكتبي في أمريكا الشمالية؛ A4 هو المعيار في باقي أنحاء العالم. اختر الحجم المطابق للورق الموجود في طابعتك — سيقوم التطبيق بتبليط ملصقك على عدد الصفحات المطلوب.</string>
+    <string name="help_low_dpi_title">تحذير انخفاض الدقة</string>
+    <string name="help_low_dpi_body">إذا كانت صورتك تحتوي على عدد بكسل أقل مما يتطلبه الحجم المطبوع، تظهر لافتة تحذير صفراء قابلة للنقر أسفل المعاينة. 150 DPI هو الحد الأدنى المعياري للطباعة الواضحة. ما دون ذلك سيبدو ملصقك ضبابياً أو مكسَّراً. انقر على اللافتة لفتح نافذة التكبير — ستُظهر كيف سيبدو الناتج مع كل خيار تكبير مع تكلفته بالأرصدة.</string>
+    <string name="help_upscale_title">خيارات التكبير</string>
+    <string name="help_upscale_body">خمس بطاقات افتراضية: \'الآن (مكسَّر)\' يُظهر ما ستحصل عليه بدون تكبير؛ \'تكبير مجاني\' يشغِّل ESRGAN محلياً على هاتفك (بدون إنترنت، بدون أرصدة، ~30 ثانية)؛ \'Topaz 4×\' هو الخيار المدفوع الأعلى جودة؛ \'Recraft Crisp\' أمين للصور وأرخص بـ 40× من Topaz؛ \'أحضر ملفك\' يتيح لك تحميل ملف كبَّرته في مكان آخر (Canva أو OpenArt أو Magnific أو Topaz). انقر \'عرض خيارات ذكاء اصطناعي أخرى\' للتوسع إلى Topaz 8× وAuraSR وESRGAN.</string>
+    <string name="help_signin_title">تسجيل الدخول</string>
+    <string name="help_signin_body">عند أول تشغيل يُنشأ تلقائياً جلسة Firebase Auth مجهولة — يعمل سجلك فوراً دون حاجة لحساب. للاحتفاظ بالسجل عبر الأجهزة (أو استعادته بعد إعادة التثبيت)، افتح القائمة الجانبية وانقر \'تسجيل الدخول بـ Google\'. نجمع فقط اسمك وبريدك الإلكتروني؛ لا ننشر نيابةً عنك، ولا نقرأ بيانات Google الأخرى، ولا نشارك مع أطراف ثالثة.</string>
+    <string name="help_history_title">السجل</string>
+    <string name="help_history_body">كل ملصق تُنشئه يظهر في قائمة السجل. كل صف يحتوي على 4 أزرار: عرض يفتح ملف PDF المحلي؛ مشاركة يرسله إلى تطبيقات البريد أو المراسلة؛ تنزيل (أيقونة السحابة) يجلب نسخة من التخزين السحابي إذا اخترت ذلك؛ حذف (أيقونة السحابة مع خط) يحذف النسخة السحابية دون المساس بملفك المحلي أو إدخال السجل.</string>
+    <string name="help_sharing_title">المشاركة</string>
+    <string name="help_sharing_body">يتيح لك زر \'مشاركة…\' الجديد في الشاشة الرئيسية إرسال الملصق الحالي إلى أي تطبيق — Gmail أو WhatsApp أو Drive أو تطبيق الطابعة وغيرها. يُنشأ ملف PDF في كل مرة ليعكس الإعدادات الحالية دائماً.</string>
+
+    <!-- شاشة الأسئلة الشائعة -->
+    <string name="screen_faq_title">الأسئلة الشائعة</string>
+    <string name="faq_q_credits">لماذا يطلب التطبيق أرصدة؟</string>
+    <string name="faq_a_credits">الأرصدة تغطي تكاليف تكبير الذكاء الاصطناعي — Topaz وRecraft وAuraSR وMagnific. كل مزود يفرض رسوماً لكل صورة، لذا نفرض أرصدة لكل صورة. PosterPDF نفسه (إنشاء الملصقات، التكبير على الجهاز، السجل، التخزين السحابي 30 يوماً) مجاني مع أي مصدر للصور. الأرصدة تُطبَّق فقط عند اختيار تكبير بالذكاء الاصطناعي.</string>
+    <string name="faq_q_credit_value">لماذا تبدو قيمة أرصدتي أقل من المبلغ الذي دفعته؟</string>
+    <string name="faq_a_credit_value">شفافية الهامش: مزودو الذكاء الاصطناعي يفرضون علينا حوالي ثلثَي ما تدفعه. الثلث الآخر يغطي عمولة Play Store بنسبة 15%%، وتكاليف الخوادم (Cloud Functions + Firestore + Storage)، مع هامش ربح صغير لتمويل التطوير. نهدف إلى ~50%% فوق تكلفة FAL.ai الأصلية — وهو ما يكفي للاستمرار لا لجني ثروة. يظهر ما يعادله بالدولار على كل حزمة أرصدة لتجنب المفاجآت.</string>
+    <string name="faq_q_offline">هل يمكنني استخدامه بدون إنترنت؟</string>
+    <string name="faq_a_offline">نعم للوظائف الأساسية: منتقي الصور وإنشاء الملصقات والتكبير المجاني على الجهاز وعرض/حفظ/مشاركة — كلها تعمل بدون إنترنت. تحتاج الإنترنت لـ: تسجيل الدخول بـ Google، وتكبير الذكاء الاصطناعي (Topaz وRecraft وغيرها)، وشراء الأرصدة، ومزامنة التخزين السحابي. بيانات السجل تتزامن في الخلفية عند الاتصال.</string>
+    <string name="faq_q_sha1">ما استخدام بصمة SHA-1؟</string>
+    <string name="faq_a_sha1">يربط Google Sign-In شهادة توقيع APK بمشروع Firebase Auth. بصمة SHA-1 لمخزن المفاتيح مسجَّلة في Firebase، لذا لا يمكن لـ APK استخدام Google Sign-In إلا إذا وُقِّع بذلك المخزن تحديداً. هذا يمنع الجهات الخبيثة من نشر APK مزيف قد يُستخدم لاختراق حسابك على Google. إذا فشل تسجيل الدخول بعد التثبيت مباشرة، فغالباً السبب هو توقيع APK بمخزن مفاتيح debug أو تابع لطرف ثالث.</string>
+    <string name="faq_q_out_of_credits">ماذا يحدث إذا نفدت أرصدتي؟</string>
+    <string name="faq_a_out_of_credits">أمران مستقلان. (1) خيارات تكبير الذكاء الاصطناعي تصبح غير متاحة في النافذة — تتحول الأزرار إلى \'احصل على مزيد من الأرصدة\'. يستمر التكبير المجاني وإنشاء PDF في العمل. (2) إذا كان لديك تخزين سحابي بتيار الاحتفاظ المدفوع، تدخل ملفات PDF المخزَّنة فترة سماح 30 يوماً: نرسل تحذيراً بالبريد الإلكتروني، وبعد 30 يوماً تُحذف النسخ السحابية. النسخ المحلية وإدخالات السجل لا تتأثر.</string>
+    <string name="faq_q_pdf_time">لماذا يستغرق إنشاء PDF ~30 ثانية؟</string>
+    <string name="faq_a_pdf_time">يُعالَج كل مربع بشكل منفصل بحجم الورق المستهدف، مع قص الصورة وإعادة تحجيمها لكل مربع. شبكة 4×4 تعني 16 عملية إعادة تحجيم، يعقب كل منها تركيب صفحة PDF مع المساطر والتسميات وعلامات القص والترويسة. يمكننا تخزين نتائج وسيطة، لكن إعادة التحجيم لكل مربع هي الطريقة الصحيحة للحفاظ على حدة البكسل. الملصقات الأكبر تستغرق وقتاً أطول.</string>
+    <string name="faq_q_custom_paper">هل يمكنني الطباعة بحجم ورق غير معياري؟</string>
+    <string name="faq_a_custom_paper">نعم — اختر \'مخصص\' في منتقي حجم الورق. ستحصل على حقلَي إدخال إضافيَّين لعرض الورق وارتفاعه. استخدم هذا إذا كانت طابعتك تستخدم A5 أو B5 أو ورق صور أو أي حجم غير موجود في قائمتنا. حسابات التبليط تعمل بنفس الطريقة؛ نثق بالأبعاد التي تدخلها.</string>
+    <string name="faq_q_data_deletion">ماذا لو أردت حذف بياناتي؟</string>
+    <string name="faq_a_data_deletion">ثلاثة مسارات حسب النطاق. المحلي فقط: الإعدادات → إعادة الضبط الافتراضي تمسح التفضيلات وتُعيد ضبط التطبيق على هذا الجهاز. نسخة سحابية لملصق معين: افتح السجل، ابحث عن الصف، انقر أيقونة السحابة المشطوبة (الحمراء). الحذف الشامل للحساب (سجل المصادقة + كل سجل Firestore + كل ملفات PDF السحابية): أرسل بريداً إلكترونياً إلى support@joeputin.com من العنوان المرتبط بتسجيل دخول Google وسنعالج الطلب يدوياً خلال 7 أيام.</string>
+
+    <!-- شاشة البدء السريع -->
+    <string name="screen_getting_started_title">البدء السريع</string>
+    <string name="getting_started_intro">يحوِّل PosterPDF أي صورة إلى ملصق جداري قابل للطباعة، مُبلَّط على صفحات Letter أو A4 حتى تتمكن من تجميعه في المنزل. اختر صورة، حدد الحجم النهائي للملصق، وسننشئ ملف PDF جاهزاً للطباعة يمكنك إرساله مباشرة إلى طابعتك.</string>
+    <string name="getting_started_free_section">ما تحصل عليه مجاناً</string>
+    <string name="getting_started_feat_poster_title">إنشاء الملصقات</string>
+    <string name="getting_started_feat_poster_body">بلِّل أي صورة عبر صفحات متعددة — بلا علامات مائية، بلا حد للصفحات.</string>
+    <string name="getting_started_feat_paper_title">جميع أحجام الورق</string>
+    <string name="getting_started_feat_paper_body">Letter وLegal وTabloid وA3 وA4، وحجم مخصص للطابعات غير المعيارية.</string>
+    <string name="getting_started_feat_upscale_title">تكبير على الجهاز</string>
+    <string name="getting_started_feat_upscale_body">تكبير 4× يعمل محلياً على هاتفك — بدون إنترنت، بدون أرصدة.</string>
+    <string name="getting_started_feat_storage_title">تخزين سحابي لمدة 30 يوماً</string>
+    <string name="getting_started_feat_storage_body">نحتفظ بملفات PDF التي تُنشئها 30 يوماً حتى تتمكن من إعادة التنزيل من جهاز آخر.</string>
+    <string name="getting_started_feat_history_title">سجل دائم</string>
+    <string name="getting_started_feat_history_body">كل ملصق تُنشئه يبقى في سجلك المحلي على هذا الهاتف.</string>
+    <string name="getting_started_paid_explainer">تكبير الذكاء الاصطناعي (Topaz وRecraft وMagnific…) اختياري ويستخدم الأرصدة. نتقاضى فوق تكلفة مزود الذكاء الاصطناعي لكل صورة ما يكفي لتغطية رسوم Play Store والخوادم — راجع الأسئلة الشائعة لتفاصيل الهامش.</string>
+    <string name="getting_started_tour_section">جولة من 3 خطوات</string>
+    <string name="getting_started_tour1_title">اختر صورة</string>
+    <string name="getting_started_tour1_body">انقر على بطاقة الصورة في الأعلى. استخدم أعلى دقة متاحة — لقطات الشاشة الصغيرة ستبدو مكسَّرة عند تكبيرها لحجم ملصق جداري.</string>
+    <string name="getting_started_tour1_screenshot">[لقطة شاشة: منتقي الصور]</string>
+    <string name="getting_started_tour2_title">حدد الحجم</string>
+    <string name="getting_started_tour2_body">اكتب عرض وارتفاع الملصق النهائي. قفِّل نسبة العرض إلى الارتفاع (أيقونة السلسلة) للحفاظ على تناسب الصورة، أو افتح القفل للقص. اختر حجم ورق يطابق طابعتك — Letter هو المعيار المنزلي/المكتبي في أمريكا الشمالية؛ A4 في باقي أنحاء العالم.</string>
+    <string name="getting_started_tour2_screenshot">[لقطة شاشة: منتقي الحجم والورق]</string>
+    <string name="getting_started_tour3_title">إنشاء</string>
+    <string name="getting_started_tour3_body">انقر عرض أو حفظ أو مشاركة. عرض يفتح PDF في قارئك؛ حفظ يتيح اختيار مجلد؛ مشاركة يرسل PDF إلى أي تطبيق (بريد إلكتروني أو Drive أو طباعة). إذا كانت صورتك تحت 150 DPI بالحجم المختار، سنطلب منك التكبير أولاً.</string>
+    <string name="getting_started_tour3_screenshot">[لقطة شاشة: أزرار الإجراءات]</string>
+
+    <!-- شاشة سياسة الخصوصية -->
+    <string name="screen_privacy_title">سياسة الخصوصية</string>
+    <string name="privacy_intro">سارية منذ: 2026-05-03. نسعى لإبقاء هذه السياسة موجزة ودقيقة. إذا لم يتطابق أي مما يلي مع ما يفعله التطبيق فعلياً، تعامل مع ذلك كخطأ وأرسل بريداً إلى support@joeputin.com.</string>
+    <string name="privacy_sec_collect_first_launch_title">ما نجمعه عند التشغيل الأول</string>
+    <string name="privacy_sec_collect_first_launch_body">معرِّف Firebase Auth مجهول — سلسلة عشوائية لا تحتوي على معلومات تعريفية شخصية. هذا ما يتيح استمرار سجلك عبر إعادة تشغيل التطبيق على هذا الجهاز.</string>
+    <string name="privacy_sec_google_title">ما نجمعه إذا سجَّلت دخولك بـ Google</string>
+    <string name="privacy_sec_google_body">اسم حساب Google وعنوان بريدك الإلكتروني. نستخدمهما لعرض هويتك، ومزامنة سجلك عبر الأجهزة، ومعالجة طلبات حذف الحساب. لا نحصل على كلمة مرور Google أو جهات اتصالك أو تقويمك أو Drive أو أي بيانات Google أخرى.</string>
+    <string name="privacy_sec_firestore_title">بيانات السجل (Firestore)</string>
+    <string name="privacy_sec_firestore_body">عند إنشاء ملصق، نُسجِّل: عرض وارتفاع الملصق، وحجم الورق، والاتجاه، والهامش، والتداخل، ودقة الإخراج بـ DPI، وعدد الصفحات، وطابع زمني للإنشاء. يذهب هذا إلى Firestore في ‎/users/{uid}/history. لا نُخزِّن بايتات الصورة المصدر أو أي بيانات بكسل في Firestore.</string>
+    <string name="privacy_sec_storage_title">ملفات PDF (Cloud Storage) — اشتراك اختياري</string>
+    <string name="privacy_sec_storage_body">إذا اخترت الاحتفاظ السحابي (الإعدادات → التخزين السحابي…)، نرفع ملفات PDF إلى Cloud Storage في gs://(project)/user-pdfs/{uid}/. الاحتفاظ الافتراضي هو 30 يوماً؛ التيارات المدفوعة تمتد أكثر. الخيار الافتراضي هو التخزين المحلي فقط — لا شيء يغادر جهازك إلا إذا اخترت ذلك.</string>
+    <string name="privacy_sec_fal_title">تكبير الذكاء الاصطناعي (FAL.ai)</string>
+    <string name="privacy_sec_fal_body">عند اختيار خيار تكبير بالذكاء الاصطناعي (Topaz أو Recraft أو AuraSR أو ESRGAN أو Magnific)، تُرسَل الصورة المصدر إلى FAL.ai للمعالجة ويُعاد الناتج المكبَّر. تحتفظ FAL.ai بالمدخلات والمخرجات للمدة المحددة في شروط خدمتها — عادةً دقائق إلى ساعات، لكن اقرأ سياستهم مباشرة:</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_sec_retention_title">الاحتفاظ</string>
+    <string name="privacy_sec_retention_body">يُحدَّد باختيارك في الإعدادات → التخزين السحابي…. التيار المجاني: 30 يوماً. التيارات المدفوعة: 90 يوماً أو سنة أو إلى أجل غير مسمى. بيانات السجل في Firestore تتبع نفس فترة الاحتفاظ. الملفات المحلية والسجل المحلي تبقى على جهازك حتى تُلغي التثبيت أو تنقر إعادة الضبط الافتراضي.</string>
+    <string name="privacy_sec_deletion_title">مسارات الحذف</string>
+    <string name="privacy_sec_deletion_body">البيانات المحلية: الإعدادات → إعادة الضبط الافتراضي تمسح التفضيلات وفهرس السجل على الجهاز. نسخة سحابية لملصق معين: افتح السجل، انقر زر السحابة الأحمر المشطوب في الصف. الحذف الشامل للحساب (المصادقة + كل سجل Firestore + كل ملفات PDF السحابية): أرسل بريداً إلى support@joeputin.com من العنوان المرتبط بتسجيل دخول Google. نعالج خلال 7 أيام.</string>
+    <string name="privacy_sec_third_party_title">خدمات الأطراف الثالثة</string>
+    <string name="privacy_sec_third_party_body">Firebase Auth وCloud Firestore وCloud Storage (جميعها Google Cloud)؛ وFAL.ai لتكبير الذكاء الاصطناعي؛ وGoogle Play Billing لشراء الأرصدة. لا نُشغِّل أي حزمة تحليلات أو إعلانات. لا يمكننا الوصول إلى تطبيقات أخرى على هاتفك.</string>
+    <string name="privacy_sec_contact_title">التواصل</string>
+    <string name="privacy_sec_contact_body">support@joeputin.com لأي سؤال متعلق بالخصوصية أو طلب حذف. الكود المصدري متاح للعموم على github.com/Joeputin/pdfposter — ما تراه في هذه السياسة يطابق ما هو في الكود.</string>
+
+    <!-- شاشة مقارنة أدوات التكبير -->
+    <string name="screen_compare_title">مقارنة أدوات التكبير بالذكاء الاصطناعي</string>
+    <string name="compare_subject_label">الموضوع</string>
+    <string name="compare_model_label">النموذج</string>
+    <string name="compare_subject_disco_chicken">دجاجة ديسكو</string>
+    <string name="compare_subject_cat_shimmer">قطة لامعة</string>
+    <string name="compare_subject_gristmill">مطحنة</string>
+    <string name="compare_subject_earth">ملصق الأرض</string>
+    <string name="compare_synthesized_fallback">(بديل مُركَّب — انظر الأصول)</string>
+    <string name="compare_source_image_cd">الصورة المصدر</string>
+    <string name="compare_upscaled_image_cd">الصورة المكبَّرة</string>
+    <string name="compare_label_original">الأصل</string>
+    <string name="compare_label_upscaled">مكبَّرة</string>
+    <string name="compare_credits_attribution">صور تجريبية: cat_shimmer (CC BY 2.0)، gristmill (CC BY-SA 4.0)، earth poster (CC BY 2.0، ESO). disco_chicken أُنشئت بواسطة Gemini Nano Banana.</string>
+
+    <!-- نافذة التكبير عند انخفاض الدقة -->
+    <string name="lowdpi_header_svg">مصدر متجهي — لا حاجة للتكبير</string>
+    <string name="lowdpi_header_warning">سيُطبع هذا الملصق بدقة منخفضة</string>
+    <string name="lowdpi_current_dpi">الحالية: %1$d DPI  ·  %2$s\" × %3$s\"</string>
+    <string name="lowdpi_poster_size_only">حجم الملصق: %1$s\" × %2$s\"</string>
+    <string name="lowdpi_eta_estimating">جارٍ التقدير…</string>
+    <string name="lowdpi_aim_for_dpi">استهدف 150 DPI على الأقل. لديك عدة طرق للوصول إلى ذلك:</string>
+    <string name="lowdpi_lever_reduce_title">تصغير حجم الملصق</string>
+    <string name="lowdpi_lever_reduce_body">نفس الصورة المصدر، طباعة أصغر → دقة أعلى. الحل الأسرع، لا يحتاج رفعاً.</string>
+    <string name="lowdpi_lever_upgrade_title">ترقية المصدر</string>
+    <string name="lowdpi_lever_upgrade_body">كبِّر على الجهاز (مجاني، مقيَّد بالذاكرة) أو عبر الذكاء الاصطناعي (تُحسب الأرصدة حسب النموذج).</string>
+    <string name="lowdpi_lever_byo_title">أحضر ملفك</string>
+    <string name="lowdpi_lever_byo_body">كبَّرت بالفعل باستخدام Canva أو OpenArt أو Topaz Photo AI أو Magnific؟ حمِّل الملف المكبَّر مباشرة. PosterPDF مجاني مع أي مصدر للصور — الأرصدة تغطي فقط تكلفة الاستنتاج.</string>
+    <string name="lowdpi_dismiss_svg">فهمت</string>
+    <string name="lowdpi_dismiss_warning">تصغير حجم الملصق بدلاً من ذلك</string>
+    <string name="lowdpi_help_me_decide">ساعدني في القرار…</string>
+
+    <!-- تسميات نماذج التكبير (تُستخدم في البطاقات والشرائح) -->
+    <string name="upscale_model_none">الآن (مكسَّر)</string>
+    <string name="upscale_model_none_pros">الأسرع، مجاني، يعمل على أي جهاز</string>
+    <string name="upscale_model_none_cons">تكسير ظاهر عند الطباعة الكبيرة</string>
+    <string name="upscale_model_free_local">تكبير مجاني</string>
+    <string name="upscale_model_free_local_pros">مجاني، بدون إنترنت، يعمل في وضع عدم الاتصال</string>
+    <string name="upscale_model_free_local_cons">أبطأ على الهواتف القديمة؛ 4× كحد أقصى</string>
+    <string name="upscale_model_topaz">Topaz Gigapixel</string>
+    <string name="upscale_model_topaz_pros">أنظف الحواف وأتقن المخرجات</string>
+    <string name="upscale_model_topaz_cons">الأعلى تكلفة لكل بكسل</string>
+    <string name="upscale_model_recraft">Recraft Crisp</string>
+    <string name="upscale_model_recraft_pros">أمين للصور، أرخص بـ 40× من Topaz</string>
+    <string name="upscale_model_recraft_cons">أقل حدةً للنصوص/واجهات المستخدم مقارنةً بـ Topaz</string>
+    <string name="upscale_model_aurasr">AuraSR</string>
+    <string name="upscale_model_aurasr_pros">سريع ورخيص (~$0.01/صورة)</string>
+    <string name="upscale_model_aurasr_cons">أحياناً يُنتج تشوهات في التدرجات الناعمة</string>
+    <string name="upscale_model_esrgan">ESRGAN</string>
+    <string name="upscale_model_esrgan_pros">كلاسيكي مفتوح المصدر، أرخص خيار ذكاء اصطناعي</string>
+    <string name="upscale_model_esrgan_cons">أقل حدةً من Topaz</string>
+
+    <!-- تسميات شرائح نماذج المقارنة -->
+    <string name="compare_model_topaz">Topaz</string>
+    <string name="compare_model_recraft">Recraft</string>
+    <string name="compare_model_aurasr">AuraSR</string>
+    <string name="compare_model_esrgan">ESRGAN</string>
+
+    <!-- بطاقة خيار التكبير -->
+    <string name="upscale_card_pixelated_cd">معاينة مكسَّرة</string>
+    <string name="upscale_card_on_device_cd">معاينة التكبير على الجهاز</string>
+    <string name="upscale_card_model_icon_cd">أيقونة %1$s</string>
+    <string name="upscale_card_dpi_estimate">≈ %1$d DPI</string>
+    <string name="upscale_card_credits_only">%1$d رصيد</string>
+    <string name="upscale_card_credits_with_usd">%1$d رصيد · ~$%2$s</string>
+    <string name="upscale_card_eta">الوقت المتوقع %1$s</string>
+    <string name="upscale_card_unavailable">غير متاح</string>
+    <string name="upscale_card_upscale_free">تكبير مجاني</string>
+    <string name="upscale_card_sign_in">تسجيل الدخول</string>
+    <string name="upscale_card_get_more_credits">احصل على مزيد من الأرصدة</string>
+    <string name="upscale_card_upscale_with_credits">تكبير · %1$d رصيد</string>
+
+    <!-- لافتة SVG المتجهي -->
+    <string name="svg_banner_title">مصدر متجهي</string>
+    <string name="svg_banner_body">SVG صورة متجهية — تُطبع بوضوح بأي حجم. لا حاجة للتكبير.</string>
+    <string name="svg_banner_secondary">إذا أردت البدء من صورة نقطية، استخدم \"أحضر ملفك\" أدناه.</string>
+
+    <!-- بطاقة إحضار الملف -->
+    <string name="byo_card_title">أحضر ملفك</string>
+    <string name="byo_card_free">مجاني مع أي مصدر</string>
+    <string name="byo_card_tools">Canva · OpenArt · Topaz · Magnific</string>
+    <string name="byo_card_pros">يعمل مع أي أداة تكبير لديك بالفعل</string>
+    <string name="byo_card_cons">تتولى عملية التكبير قبل تحميل الملف</string>
+    <string name="byo_card_button">أرني كيف…</string>
+
+    <!-- حوار مساعدة إحضار الملف -->
+    <string name="byo_dialog_title">أحضر صورتك المكبَّرة</string>
+    <string name="byo_step1_title">اختر أداتك</string>
+    <string name="byo_step1_body">أيٌّ من هذه الأدوات سيعمل — اختر ما لديك بالفعل أو ما يناسب ميزانيتك:</string>
+    <string name="byo_tool_canva_name">Canva</string>
+    <string name="byo_tool_canva_price">~$15/شهر</string>
+    <string name="byo_tool_canva_note">مريح للمصممين. أداة تكبير مدمجة تحت تحرير الصورة → Magic Studio.</string>
+    <string name="byo_tool_openart_name">OpenArt</string>
+    <string name="byo_tool_openart_price">$10/شهر</string>
+    <string name="byo_tool_openart_note">مكتبة ذكاء اصطناعي ضخمة؛ تتعامل تبويبة \'Upscaler\' مع تكبير 4× و8×.</string>
+    <string name="byo_tool_fal_name">FAL Topaz</string>
+    <string name="byo_tool_fal_price">~$0.01/MP</string>
+    <string name="byo_tool_fal_note">دفع لكل صورة، بلا اشتراك. جودة احترافية.</string>
+    <string name="byo_tool_magnific_name">Magnific</string>
+    <string name="byo_tool_magnific_price">$30/شهر</string>
+    <string name="byo_tool_magnific_note">أداة تكبير إبداعية متميزة. الأبطأ لكن الأكثر أسلوبية.</string>
+    <string name="byo_step2_title">تشغيل التكبير</string>
+    <string name="byo_step2_body">افتح الأداة المختارة، ارفع الصورة الأصلية، وشغِّل التكبير بـ 4× أو 8×. كلما زاد التكبير كانت الحدة أعلى، لكنه يستغرق وقتاً أطول ويكلف أكثر.</string>
+    <string name="byo_step3_title">احفظ على الهاتف</string>
+    <string name="byo_step3_body">نزِّل الناتج إلى مجلد التنزيلات (أو أي مكان يمكن لمنتقي ملفات Android الوصول إليه — Drive وصور Google وغيرها تعمل جميعاً).</string>
+    <string name="byo_step4_title">تابع هنا</string>
+    <string name="byo_step4_body">انقر \'اختر ملفاً\' أدناه — اختر ملفك المكبَّر. سيستخدمه PosterPDF مباشرةً دون تشغيل أداة التكبير الخاصة به.</string>
+    <string name="byo_choose_file">اختر ملفاً</string>
+
+    <!-- شريط تقدم التكبير -->
+    <string name="upscale_progress_uploading">جارٍ الرفع… %1$d%%</string>
+    <string name="upscale_progress_queued">في قائمة الانتظار…</string>
+    <string name="upscale_progress_inferring">جارٍ التكبير…</string>
+    <string name="upscale_progress_inferring_eta">جارٍ التكبير… ~%1$d ث متبقية</string>
+    <string name="upscale_progress_downloading">جارٍ التنزيل… %1$d%%</string>
+
+    <!-- رسائل الإمكانية (التكبير على الجهاز) -->
+    <string name="capability_red_no_64bit">جهازك لا يدعم تشغيل الذكاء الاصطناعي على الجهاز</string>
+    <string name="capability_yellow_slow">سيستغرق بضع دقائق على جهازك</string>
+
+    <!-- تنسيق الوقت المتوقع -->
+    <string name="eta_seconds">%1$d–%2$d ث</string>
+    <string name="eta_minutes_decimal">%1$.1f–%2$.1f دقيقة</string>
+    <string name="eta_minutes">%1$d–%2$d دقيقة</string>
+
+    <!-- وسيلة إيضاح المعاينة المباشرة -->
+    <string name="preview_live_assembly">معاينة التجميع المباشر</string>
+    <string name="preview_legend_margin">الهامش</string>
+    <string name="preview_legend_overlap">التداخل</string>
+    <string name="preview_low_dpi_card">دقة منخفضة: %1$d DPI · انقر للتكبير ↑</string>
+
+    <!-- رسائل خطأ/نجاح من ViewModel -->
+    <string name="vm_error_open_image">تعذَّر فتح الصورة المصدر</string>
+    <string name="vm_success_upscaled">تم التكبير إلى %1$d×%2$d</string>
+    <string name="vm_error_upscale_failed">فشل التكبير: %1$s</string>
+    <string name="vm_error_unknown">خطأ غير معروف</string>
+    <string name="vm_error_load_image_info">فشل تحميل معلومات الصورة: %1$s</string>
+    <string name="vm_error_could_not_load_image">تعذَّر تحميل الصورة</string>
+    <string name="vm_error_could_not_reopen_svg">تعذَّر إعادة فتح SVG للوحة</string>
+    <string name="vm_success_poster_generated">تم إنشاء الملصق: %1$s</string>
+    <string name="vm_error_generation_failed">فشل: %1$s</string>
+    <string name="vm_success_signed_in">تم تسجيل الدخول</string>
+    <string name="vm_error_signin_failed">فشل تسجيل الدخول: %1$s</string>
+</resources>

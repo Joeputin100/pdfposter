@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -115,8 +116,7 @@ fun PurchaseSheet(
                     }
                 }
                 Column(Modifier.weight(1f)) {
-                    Text(
-                        "AI Credits",
+                    Text(stringResource(R.string.purchase_ai_credits),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = BlueprintBlue700,
@@ -139,13 +139,11 @@ fun PurchaseSheet(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 ) {
-                    Text(
-                        "Sign in to buy credits",
+                    Text(stringResource(R.string.purchase_signin_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
-                    Text(
-                        "Credits are tied to your Google account so you keep them across devices and reinstalls.",
+                    Text(stringResource(R.string.purchase_signin_body),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -157,12 +155,11 @@ fun PurchaseSheet(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Login, null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Sign in with Google to buy credits")
+                        Text(stringResource(R.string.purchase_signin_button))
                     }
                 }
             } else {
-                Text(
-                    "Choose a credit pack",
+                Text(stringResource(R.string.purchase_choose_pack),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                 )
@@ -182,14 +179,12 @@ fun PurchaseSheet(
                     modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(8.dp))
-                Text(
-                    "Recent transactions",
+                Text(stringResource(R.string.purchase_recent_transactions),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                 )
             }
-            Text(
-                "No transactions yet.",
+            Text(stringResource(R.string.purchase_no_transactions),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -202,7 +197,7 @@ fun PurchaseSheet(
             ) {
                 Icon(Icons.Default.Restore, null)
                 Spacer(Modifier.width(8.dp))
-                Text("Restore purchases")
+                Text(stringResource(R.string.purchase_restore))
             }
 
             Spacer(Modifier.height(8.dp))
@@ -251,7 +246,7 @@ private fun SkuRow(item: CreditSku, onBuy: () -> Unit) {
                     contentColor = androidx.compose.ui.graphics.Color.White,
                 ),
             ) {
-                Text("Buy")
+                Text(stringResource(R.string.purchase_buy))
             }
         }
     }

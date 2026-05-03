@@ -41,6 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
@@ -133,8 +134,7 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        "Compare AI upscalers",
+                    Text(stringResource(R.string.screen_compare_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = BlueprintBlue700,
@@ -156,7 +156,7 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Subject picker chip row
-            Text("Subject", style = MaterialTheme.typography.labelMedium, color = BlueprintBlue700)
+            Text(stringResource(R.string.compare_subject_label), style = MaterialTheme.typography.labelMedium, color = BlueprintBlue700)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -177,7 +177,7 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
             }
 
             // Model picker chip row
-            Text("Model", style = MaterialTheme.typography.labelMedium, color = BlueprintBlue700)
+            Text(stringResource(R.string.compare_model_label), style = MaterialTheme.typography.labelMedium, color = BlueprintBlue700)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -198,8 +198,7 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
             }
 
             if (isFallback) {
-                Text(
-                    "(synthesized fallback — see assets)",
+                Text(stringResource(R.string.compare_synthesized_fallback),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -390,8 +389,7 @@ private fun SlideHandleViewer(
                     },
             )
             // RC3+: side labels — "Original" left of handle, "Upscaled" right.
-            Text(
-                "Original",
+            Text(stringResource(R.string.compare_label_original),
                 color = Color.White,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
@@ -401,8 +399,7 @@ private fun SlideHandleViewer(
                     .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(8.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             )
-            Text(
-                "Upscaled",
+            Text(stringResource(R.string.compare_label_upscaled),
                 color = Color.White,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,

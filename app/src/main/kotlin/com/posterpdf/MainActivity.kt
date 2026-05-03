@@ -385,13 +385,11 @@ private fun MainScreenContent(viewModel: MainViewModel) {
 
                 HorizontalDivider(Modifier.padding(vertical = 16.dp))
                 
-                Text(
-                    "Supported File Types:",
+                Text(stringResource(R.string.drawer_supported_file_types_label),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge
                 )
-                Text(
-                    "PNG, JPG / JPEG, SVG, WEBP, BMP",
+                Text(stringResource(R.string.drawer_supported_file_types_value),
                     modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -401,7 +399,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
 
                  var showStorageDialog by remember { mutableStateOf(false) }
                  NavigationDrawerItem(
-                     label = { Text("Cloud storage…") },
+                     label = { Text(stringResource(R.string.drawer_cloud_storage)) },
                      selected = false,
                      onClick = {
                          viewModel.logEvent(context, "Cloud storage settings opened")
@@ -499,7 +497,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
                  NavigationDrawerItem(
-                     label = { Text("Support") },
+                     label = { Text(stringResource(R.string.drawer_support)) },
                      selected = false,
                      onClick = {
                          viewModel.logEvent(context, "Support tapped")
@@ -523,7 +521,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                  )
 
                  NavigationDrawerItem(
-                     label = { Text("Reset to Defaults") },
+                     label = { Text(stringResource(R.string.drawer_reset_to_defaults)) },
                      selected = false,
                      onClick = {
                          viewModel.logEvent(context, "Reset to defaults triggered")
@@ -550,8 +548,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text(
-                            "Poster PDF",
+                        Text(stringResource(R.string.app_name),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.ExtraBold
                         )
@@ -628,8 +625,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(Modifier.weight(1f)) {
-                                Text(
-                                    "Support the Developer",
+                                Text(stringResource(R.string.nag_title),
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.labelLarge,
                                     color = Color.Black
@@ -641,8 +637,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     color = Color.Black
                                 )
                                 Spacer(Modifier.height(4.dp))
-                                Text(
-                                    "play.google.com/store/apps/details?id=com.posterpdf",
+                                Text(stringResource(R.string.nag_play_store_url),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color.Black
                                 )
@@ -701,7 +696,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             EnterStagger(index = 3) {
                             GlassCard {
                                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    Text("Poster Size", style = MaterialTheme.typography.labelLarge)
+                                    Text(stringResource(R.string.poster_size_section), style = MaterialTheme.typography.labelLarge)
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -752,7 +747,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             EnterStagger(index = 4) {
                             GlassCard {
                                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    Text("Paper & Layout", style = MaterialTheme.typography.labelLarge)
+                                    Text(stringResource(R.string.paper_layout_section), style = MaterialTheme.typography.labelLarge)
                                     
                                     PaperSizeSelector(viewModel)
 
@@ -932,7 +927,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             lowDpiPendingAction?.let { action ->
                                 AlertDialog(
                                     onDismissRequest = { lowDpiPendingAction = null },
-                                    title = { Text("This will print at low resolution") },
+                                    title = { Text(stringResource(R.string.low_dpi_dialog_title)) },
                                     text = {
                                         Text(
                                             "Your poster is currently around ${viewModel.computeCurrentDpi().toInt()} DPI. " +
@@ -942,11 +937,11 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     confirmButton = {
                                         TextButton(onClick = {
                                             val a = action; lowDpiPendingAction = null; a()
-                                        }) { Text("Continue anyway") }
+                                        }) { Text(stringResource(R.string.low_dpi_dialog_continue)) }
                                     },
                                     dismissButton = {
                                         TextButton(onClick = { lowDpiPendingAction = null }) {
-                                            Text("Upgrade source first")
+                                            Text(stringResource(R.string.low_dpi_dialog_upgrade))
                                         }
                                     },
                                 )
@@ -970,7 +965,7 @@ fun OnboardingView() {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
-        Text("How to get started:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.onboarding_how_to_get_started), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         
         OnboardingStep(1, "Pick a high-resolution image above.")
         OnboardingStep(2, "Set your final poster dimensions.")
@@ -1025,7 +1020,7 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
     val context = LocalContext.current
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Paper Size", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.paper_size_section), style = MaterialTheme.typography.bodyMedium)
 
         PaperSizeCardRow(
             selectedLabel = viewModel.paperSize,
@@ -1083,7 +1078,7 @@ fun OrientationSelector(viewModel: MainViewModel) {
     val hapt = Hapt(LocalHapticFeedback.current)
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Orientation", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.orientation_section), style = MaterialTheme.typography.bodyMedium)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1206,15 +1201,14 @@ fun AdvancedOptionsSection(viewModel: MainViewModel) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Advanced Styling", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.advanced_section), style = MaterialTheme.typography.labelLarge)
                 Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
             }
             
             AnimatedVisibility(visible = expanded) {
                 Column(Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            "Page borders & crop marks",
+                        Text(stringResource(R.string.advanced_borders_title),
                             style = MaterialTheme.typography.labelLarge,
                         )
                         Text(
@@ -1240,7 +1234,7 @@ fun AdvancedOptionsSection(viewModel: MainViewModel) {
                              viewModel.logEvent(context, "Label panes toggled", "enabled=$it")
                              viewModel.saveAllSettings() 
                          })
-                         Text("Label Each Pane (A1, B2...)")
+                         Text(stringResource(R.string.advanced_label_panes))
                      }
 
                      Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1249,7 +1243,7 @@ fun AdvancedOptionsSection(viewModel: MainViewModel) {
                              viewModel.logEvent(context, "Include instructions toggled", "enabled=$it")
                              viewModel.saveAllSettings() 
                          })
-                         Text("Include Assembly Instructions")
+                         Text(stringResource(R.string.advanced_include_instructions))
                      }
                 }
             }
@@ -1323,8 +1317,7 @@ fun OutlinePreview(selection: String, fullWidth: Boolean = false, compact: Boole
             else Modifier.size(width = 96.dp, height = 28.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(
-                "None",
+            Text(stringResource(R.string.outline_none),
                 style = if (compact) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium,
@@ -1408,12 +1401,12 @@ fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
     
     AlertDialog(
         onDismissRequest = { },
-        title = { Text("Welcome to Poster PDF!") },
+        title = { Text(stringResource(R.string.first_run_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Let's get you set up. You can always change these settings later in the side menu.")
+                Text(stringResource(R.string.first_run_intro))
                 
-                Text("Select your preferred measurement units:", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.first_run_units_label), style = MaterialTheme.typography.labelLarge)
                 // H-P1.2: replaced RadioButton row with the ruler-infographic
                 // UnitsToggleCard. Storage keeps the legacy "Inches" / "Metric"
                 // values so MainViewModel.units and toggleUnits(...) work
@@ -1424,7 +1417,7 @@ fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
                     onSelect = { selectedUnits = it },
                 )
 
-                Text("Default Paper Size:", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.first_run_paper_label), style = MaterialTheme.typography.labelLarge)
                 PaperSizeSelector(viewModel)
             }
         },
@@ -1436,7 +1429,7 @@ fun FirstRunWizard(viewModel: MainViewModel, onDismiss: () -> Unit) {
                 }
                 viewModel.saveAllSettings()
                 onDismiss()
-            }) { Text("Get Started") }
+            }) { Text(stringResource(R.string.first_run_get_started)) }
         }
     )
 }
@@ -1447,7 +1440,7 @@ fun HistorySection(viewModel: MainViewModel, onViewAll: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.History, null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(8.dp))
-            Text("History", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.help_history_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(Modifier.weight(1f))
             IconButton(onClick = { viewModel.refreshHistory() }) {
                 Icon(Icons.Default.Refresh, "Refresh history", modifier = Modifier.size(20.dp))
@@ -1461,8 +1454,7 @@ fun HistorySection(viewModel: MainViewModel, onViewAll: () -> Unit) {
                 }
             }
             viewModel.historyItems.isEmpty() -> {
-                Text(
-                    "No posters yet. Generate one — it'll appear here.",
+                Text(stringResource(R.string.history_empty_drawer),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp)
@@ -1525,18 +1517,16 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.AccountCircle, null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(8.dp))
-            Text("Account", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.account_section_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(8.dp))
         when {
-            !s.signedIn -> Text(
-                "Offline — Firebase not reachable. PDFs still work locally.",
+            !s.signedIn -> Text(stringResource(R.string.account_offline),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             s.isAnonymous -> {
-                Text(
-                    "Signed in anonymously. Sign in with Google to keep your history across devices.",
+                Text(stringResource(R.string.account_anonymous_explainer),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1549,7 +1539,7 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text("Sign in with Google")
+                    Text(stringResource(R.string.account_sign_in_with_google))
                 }
             }
             else -> {
@@ -1586,7 +1576,7 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                 OutlinedButton(onClick = { viewModel.signOut() }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.AutoMirrored.Filled.Logout, null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Sign out")
+                    Text(stringResource(R.string.account_sign_out))
                 }
             }
         }

@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.posterpdf.R
@@ -164,8 +165,7 @@ fun PaperSizeCard(
                         modifier = Modifier.size(12.dp),
                     )
                     Spacer(Modifier.size(2.dp))
-                    Text(
-                        "Recommended",
+                    Text(stringResource(R.string.paper_recommended),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color(0xFFB58900),
                         maxLines = 1,
@@ -272,8 +272,7 @@ private fun CustomPaperCard(
                 )
             }
             Spacer(Modifier.height(6.dp))
-            Text(
-                "Custom",
+            Text(stringResource(R.string.paper_custom),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 color = if (isSelected)

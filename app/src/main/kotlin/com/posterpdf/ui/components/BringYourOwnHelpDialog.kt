@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,8 +52,7 @@ fun BringYourOwnHelpDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(
-                "Bring your own upscaled image",
+            Text(stringResource(R.string.byo_dialog_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
@@ -96,10 +96,10 @@ fun BringYourOwnHelpDialog(
                     onDismiss()
                     onPickAlreadyUpscaled()
                 },
-            ) { Text("Choose file") }
+            ) { Text(stringResource(R.string.byo_choose_file)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
         },
     )
 }

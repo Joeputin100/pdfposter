@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,8 +44,7 @@ fun StorageRetentionDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(
-                "What should happen to your posters after 30 days?",
+            Text(stringResource(R.string.storage_dialog_title),
                 fontWeight = FontWeight.Bold,
             )
         },
@@ -78,7 +78,7 @@ fun StorageRetentionDialog(
             TextButton(onClick = { onConfirm(selected) }) { Text("Save") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Decide later") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.storage_decide_later)) }
         },
     )
 }

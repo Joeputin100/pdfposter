@@ -385,8 +385,7 @@ fun LowDpiUpgradeModal(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(onClick = onCompareModels) {
-                        Text(
-                            "Help me decide…",
+                        Text(stringResource(R.string.lowdpi_help_me_decide),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.secondary,
                         )
@@ -398,8 +397,7 @@ fun LowDpiUpgradeModal(
 
             // Footer levers
             if (!sourceIsSvg) {
-                Text(
-                    "Aim for at least 150 DPI. You have a few ways to get there:",
+                Text(stringResource(R.string.lowdpi_aim_for_dpi),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -760,21 +758,18 @@ private fun SvgVectorBanner() {
                     modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(8.dp))
-                Text(
-                    "Vector source",
+                Text(stringResource(R.string.svg_banner_title),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = BlueprintBlue700,
                 )
             }
             // User's exact words from H-P1.13 spec.
-            Text(
-                "SVG is a vector image — it prints sharp at any size. No upscale needed.",
+            Text(stringResource(R.string.svg_banner_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Text(
-                "If you'd rather start from a raster image, use \"Bring your own\" below.",
+            Text(stringResource(R.string.svg_banner_secondary),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -832,27 +827,23 @@ private fun BringYourOwnCard(onPick: () -> Unit, modifier: Modifier = Modifier) 
                 )
             }
 
-            Text(
-                "Free with any source",
+            Text(stringResource(R.string.byo_card_free),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(
-                "Canva · OpenArt · Topaz · Magnific",
+            Text(stringResource(R.string.byo_card_tools),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
             )
 
             // Pros/cons placeholders keep visual rhythm consistent
-            Text(
-                "Works with any upscale tool you already have",
+            Text(stringResource(R.string.byo_card_pros),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF2E7D32),
                 maxLines = 2,
             )
-            Text(
-                "You handle upscaling before loading the file",
+            Text(stringResource(R.string.byo_card_cons),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF795548),
                 maxLines = 2,
@@ -866,7 +857,7 @@ private fun BringYourOwnCard(onPick: () -> Unit, modifier: Modifier = Modifier) 
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BlueprintBlue700),
             ) {
-                Text("Show me how…", style = MaterialTheme.typography.labelSmall)
+                Text(stringResource(R.string.byo_card_button), style = MaterialTheme.typography.labelSmall)
             }
         }
     }
