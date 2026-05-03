@@ -4,30 +4,37 @@ Items deferred from the MD3E redesign work. Each is its own future plan.
 
 ---
 
-## TODO 1 — Migrate Android build to GitHub Actions
+## TODO 1 — Migrate Android build to GitHub Actions ✅ DONE 2026-05-02
 
-**Status:** Deferred until MD3E redesign lands.
+**Outcome:**
+Android build moved from Cloud Build to GitHub Actions in a single session. Backend deploys still go through `cloudbuild-backend.yaml` per the original CBA — backend SA already wired with Firebase Admin / Functions Developer / SA User roles.
 
-**Scope:** Move `cloudbuild.yaml` (Android APK + AAB build only) to `.github/workflows/build-android.yml`. **Keep `cloudbuild-backend.yaml` on Cloud Build** — already wired to a Cloud Build SA with `Firebase Admin`, `Cloud Functions Developer`, `Service Account User` roles; replicating that path under workload identity federation is fragility risk for negligible UX gain.
+**A/B comparison data (commit `dc3f7fb`, both pipelines on the same source):**
 
-**Why GH Actions for Android:**
-- Free for both private and public repos at this volume (~360 build-min/mo, well under 2000-min private free tier).
-- Native `actions/cache@v4` gives Gradle/Kotlin/AGP caching → 12 min → 5–7 min builds once warm.
-- PR-native status checks + log access in the same UI as code review.
-- Marketplace actions for Play Store upload (`r0adkll/upload-google-play`) and release artifacts (`softprops/action-gh-release`).
+| | Cloud Build | GH Actions |
+|---|---|---|
+| Wall-clock | 28m 29s | **7m 59s** (3.6× faster) |
+| Debug APK SHA-256 | `614d22…dab15c` | `614d22…dab15c` (identical) |
+| Release AAB | 27,115,356 B | 27,115,426 B (+70 B metadata) |
+| Free-tier cost | ~28 min of 120/day | $0 (public repo) |
 
-**Steps when ready:**
-1. Generate workload identity federation pool + provider in GCP console (one-time).
-2. Move keystore from `gs://static-webbing-461904-c4_artifacts/release.keystore` to a base64 GH secret (`KEYSTORE_BASE64`) plus passwords as separate secrets (`KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`). **Note:** the keystore is currently *also* committed to the repo — see TODO 4 for cleanup before this migration.
-3. Author `.github/workflows/build-android.yml`:
-   - `actions/setup-java@v4` (zulu, 21)
-   - `gradle/actions/setup-gradle@v3` (auto-cache)
-   - decode keystore + run `./gradlew assembleDebug bundleRelease`
-   - upload .aab + .apk as workflow artifacts
-4. Run both pipelines in parallel for 1–2 weeks; compare outputs byte-for-byte where possible.
-5. Decommission Cloud Build trigger for the Android job.
+The 70-byte AAB diff is bundletool tooling timestamps — irrelevant to install behavior. APK byte-identical means functional equivalence.
 
-**Estimate:** 4 hours.
+**Departures from the original plan:**
+- **Skipped Workload Identity Federation.** Used base64-encoded GH secrets for the keystore + `google-services.json` instead. Simpler, fully working, no GCP-side IAM setup. WIF would be needed only if we ever want the GHA workflow to deploy to GCP (which it doesn't — backend stays on Cloud Build).
+- **Skipped the 1-2 week parallel-run period.** APK byte-identical on first comparison removed the need.
+- **Used Gradle 8.10.2 manually downloaded** instead of `gradle/actions/setup-gradle@v3` — project has no `gradlew` wrapper today. Adding the wrapper is a small follow-up that would unlock the action's caching path.
+- **Removed `tensorflow-lite-gpu`** dep along the way — R8 minify failed on a missing class; we weren't using GPU delegate anyway. (See commit `dc3f7fb`.)
+
+**What landed:**
+- `.github/workflows/build-android.yml` (on `master` and `feat/**`, with path filters to skip non-app changes)
+- `gh secret set RELEASE_KEYSTORE_BASE64` and `GOOGLE_SERVICES_JSON_BASE64`
+- `cloudbuild.yaml` deleted
+
+**Follow-ups (low priority):**
+- Add `gradlew` wrapper → drop the manual gradle install step (saves ~30s/run + enables `setup-gradle` caching)
+- Move keystore passwords from `app/build.gradle.kts` hardcoded "posterpdf" to GH secrets (TODO 4 step 3)
+- Consider a `r0adkll/upload-google-play` step for automated Play Store internal-track uploads once Play Console is paid (TODO follow-on after Phase G ships)
 
 ---
 
