@@ -638,27 +638,102 @@ fun PosterPreview(viewModel: MainViewModel) {
                     }
                 }
 
-                // Phase D: decoration draws — only on API 33+ (cycleEnabled), only
-                // when there's something to assemble (multi-pane layouts).
+                // ─────────────────────────────────────────────────────────────
+                // H-P1.8 props: printer body, scissors, dust puff.
+                // H-P1.7 gating: tape + tacks ONLY render when phase == Securing
+                // (or fading-out during Reset). They never bleed into Aligning or
+                // earlier phases. All decorations gated to API 33+ (cycleEnabled).
+                // ─────────────────────────────────────────────────────────────
                 if (cycleEnabled) {
-                    val printableWpx2 = layout.printableW.toFloat() * layout.scale
-                    val printableHpx2 = layout.printableH.toFloat() * layout.scale
+                    // ── Printer body — visible during Printing, fades during
+                    //    Stacking, hidden through Cutting/Aligning/Securing,
+                    //    fades back in during Reset (ready for next loop).
+                    val printerAppearT = when (phase) {
+                        AssemblyPhase.Printing -> 1f
+                        AssemblyPhase.Stacking -> (1f - phaseT).coerceIn(0f, 1f)
+                        AssemblyPhase.Reset -> phaseT.coerceIn(0f, 1f)
+                        else -> 0f
+                    }
+                    // inkScanT advances continuously while the printer is visible,
+                    // driving the AGSL streak's leading-edge sweep.
+                    val inkScanT = (cycleSeconds.floatValue / 1.6f) % 1f
+                    if (printerAppearT > 0f) {
+                        drawPrinter(
+                            cx = printerSlotX,
+                            topY = printerTopY,
+                            width = printerWidth,
+                            appearT = printerAppearT,
+                            inkScanT = inkScanT,
+                            inkShader = inkShader,
+                        )
+                    }
 
-                    // Tape strips fade in late-Assemble, hold during Reveal, fade in Reset.
+                    // ── Dust puff at stack-landing — first 30% of Cutting phase
+                    //    (the moment the stack lands at end-of-Stacking). AGSL,
+                    //    API 33+ only (dustShader is null otherwise).
+                    if (dustShader != null && phase == AssemblyPhase.Cutting && phaseT < 0.30f) {
+                        val puffT = (phaseT / 0.30f).coerceIn(0f, 1f)
+                        val puffSize = (max(assembledBlockW, assembledBlockH)) * 1.4f
+                        drawDustPuff(
+                            shader = dustShader,
+                            cx = stackCenterX,
+                            cy = stackCenterY + assembledBlockH * 0.42f,
+                            size = puffSize,
+                            t = puffT,
+                        )
+                    }
+
+                    // ── Scissors prop — sweeps across the stack during Cutting.
+                    //    First half: horizontal slice at stack mid-Y.
+                    //    Second half: vertical slice at stack mid-X (rotated 90°).
+                    //    Only renders for multi-pane layouts (single = nothing to cut).
+                    if (phase == AssemblyPhase.Cutting && (cols > 1 || rows > 1)) {
+                        val scissorsSize = (min(assembledBlockW, assembledBlockH)) * 0.32f
+                        if (phaseT < 0.5f) {
+                            // Horizontal sweep: scissors travel left → right.
+                            val k = (phaseT / 0.5f).coerceIn(0f, 1f)
+                            val left = layout.layoutLeft - scissorsSize * 0.4f
+                            val right = layout.layoutLeft + assembledBlockW + scissorsSize * 0.4f
+                            val sx = left + (right - left) * k
+                            val sy = stackCenterY
+                            drawScissors(
+                                cx = sx, cy = sy,
+                                sizePx = scissorsSize,
+                                rotationDegrees = 0f,
+                                alpha = 1f,
+                            )
+                        } else {
+                            // Vertical sweep: scissors travel top → bottom.
+                            val k = ((phaseT - 0.5f) / 0.5f).coerceIn(0f, 1f)
+                            val top = layout.layoutTop - scissorsSize * 0.4f
+                            val bottom = layout.layoutTop + assembledBlockH + scissorsSize * 0.4f
+                            val sx = stackCenterX
+                            val sy = top + (bottom - top) * k
+                            drawScissors(
+                                cx = sx, cy = sy,
+                                sizePx = scissorsSize,
+                                rotationDegrees = 90f,
+                                alpha = 1f,
+                            )
+                        }
+                    }
+
+                    // ── Tape strips (H-P1.7 gating): fade in during Securing, hold,
+                    //    fade out during the first half of Reset. NEVER visible
+                    //    before Securing — the panes have to land first.
                     val tapeAppearT = when (phase) {
-                        AssemblyPhase.Assemble -> ((phaseT - 0.55f) / 0.45f).coerceIn(0f, 1f)
-                        AssemblyPhase.Reveal -> 1f
-                        AssemblyPhase.Reset -> 1f - phaseT
+                        AssemblyPhase.Securing -> phaseT.coerceIn(0f, 1f)
+                        AssemblyPhase.Reset -> (1f - phaseT * 2f).coerceIn(0f, 1f)
                         else -> 0f
                     }
                     if (tapeAppearT > 0f && (cols > 1 || rows > 1)) {
-                        val tapeLen = printableWpx2 * 0.45f
+                        val tapeLen = printableWpx * 0.45f
                         val tapeH = 14f
-                        // Vertical seams (between cols)
+                        // Vertical seams (between cols).
                         for (rr in 0 until rows) {
                             for (cc in 0 until cols - 1) {
-                                val seamX = layout.layoutLeft + (cc + 1) * (printableWpx2 - overlapPx) - overlapPx / 2f
-                                val seamY = layout.layoutTop + rr * (printableHpx2 - overlapPx) + printableHpx2 / 2f
+                                val seamX = layout.layoutLeft + (cc + 1) * (printableWpx - overlapPx) - overlapPx / 2f
+                                val seamY = layout.layoutTop + rr * (printableHpx - overlapPx) + printableHpx / 2f
                                 drawScotchTape(
                                     centerX = seamX, centerY = seamY,
                                     length = tapeLen, height = tapeH,
@@ -667,11 +742,11 @@ fun PosterPreview(viewModel: MainViewModel) {
                                 )
                             }
                         }
-                        // Horizontal seams (between rows)
+                        // Horizontal seams (between rows).
                         for (rr in 0 until rows - 1) {
                             for (cc in 0 until cols) {
-                                val seamX = layout.layoutLeft + cc * (printableWpx2 - overlapPx) + printableWpx2 / 2f
-                                val seamY = layout.layoutTop + (rr + 1) * (printableHpx2 - overlapPx) - overlapPx / 2f
+                                val seamX = layout.layoutLeft + cc * (printableWpx - overlapPx) + printableWpx / 2f
+                                val seamY = layout.layoutTop + (rr + 1) * (printableHpx - overlapPx) - overlapPx / 2f
                                 drawScotchTape(
                                     centerX = seamX, centerY = seamY,
                                     length = tapeLen, height = tapeH,
@@ -682,17 +757,19 @@ fun PosterPreview(viewModel: MainViewModel) {
                         }
                     }
 
-                    // Four corner pins drop in during Reveal (staggered), fade in Reset.
+                    // ── Thumb tacks (H-P1.7 gating): drop during Securing
+                    //    (staggered), fade out during the first half of Reset.
+                    //    NEVER visible before Securing.
                     val pinT = when (phase) {
-                        AssemblyPhase.Reveal -> phaseT
-                        AssemblyPhase.Reset -> 1f - phaseT
+                        AssemblyPhase.Securing -> phaseT.coerceIn(0f, 1f)
+                        AssemblyPhase.Reset -> (1f - phaseT * 2f).coerceIn(0f, 1f)
                         else -> 0f
                     }
                     if (pinT > 0f) {
                         val assembledLeft = layout.layoutLeft
                         val assembledTop = layout.layoutTop
-                        val assembledRight = layout.layoutLeft + cols * (printableWpx2 - overlapPx) + overlapPx
-                        val assembledBottom = layout.layoutTop + rows * (printableHpx2 - overlapPx) + overlapPx
+                        val assembledRight = layout.layoutLeft + assembledBlockW
+                        val assembledBottom = layout.layoutTop + assembledBlockH
                         val tackR = 9f
                         val inset = 6f
                         drawThumbTack(assembledLeft + inset, assembledTop + inset, tackR, pinT)
