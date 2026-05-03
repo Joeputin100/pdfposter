@@ -78,6 +78,7 @@ import com.posterpdf.ui.components.preview.PRINTER_INK_AGSL
 import com.posterpdf.ui.components.preview.drawHand
 import com.posterpdf.ui.components.preview.drawPrinter
 import com.posterpdf.ui.components.preview.drawScissors
+import com.posterpdf.ui.components.preview.drawTearingBand
 import com.posterpdf.ui.components.preview.drawScotchTape
 import com.posterpdf.ui.components.preview.drawThumbTack
 import com.posterpdf.ui.util.Hapt
@@ -697,7 +698,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                             val rightTear = 1f - borderRightAlpha
                             val bottomTear = 1f - borderBottomAlpha
                             if (leftoverRight > 0f) {
-                                com.posterpdf.ui.components.preview.drawTearingBand(
+                                drawTearingBand(
                                     bandLeft = pane.imageDstLeft + pane.imageContentWidth,
                                     bandTop = pane.imageDstTop,
                                     bandWidth = leftoverRight,
@@ -708,7 +709,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                                 )
                             }
                             if (leftoverBottom > 0f) {
-                                com.posterpdf.ui.components.preview.drawTearingBand(
+                                drawTearingBand(
                                     bandLeft = pane.imageDstLeft,
                                     bandTop = pane.imageDstTop + pane.imageContentHeight,
                                     bandWidth = pane.imageContentWidth,
