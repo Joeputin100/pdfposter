@@ -21,13 +21,20 @@ const FAL_KEY = defineSecret('FAL_KEY');
 
 // Phase H upscale models — each has its own FAL endpoint + pricing shape.
 // Mirror of the client-side enum in LowDpiUpgradeModal.kt.
-type UpscaleModel = 'topaz_4x' | 'topaz_8x' | 'recraft' | 'aurasr' | 'esrgan';
+//
+// RC3+ collapsed topaz_4x/topaz_8x → topaz; backend now picks the smallest
+// scale factor that meets the target DPI (saves 5-10× cost on typical posters).
+type UpscaleModel = 'topaz' | 'recraft' | 'aurasr' | 'esrgan';
 
 interface RequestUpscaleInput {
   modelId: UpscaleModel;
   inputUrl: string;
   /** Megapixels of the source image (client-computed). */
   inputMp: number;
+  /** RC3+ — DPI-aware scale picker inputs. */
+  posterWidthInches: number;
+  posterHeightInches: number;
+  targetDpi: number;
 }
 
 interface GetStatusInput {
@@ -40,41 +47,37 @@ interface GetStatusInput {
 const CREDIT_COST_BUDGET_USD = 0.00425;
 
 interface ModelSpec {
-  endpoint: string;          // FAL endpoint slug
-  scale: number;             // linear upscale factor
+  endpoint: string;
+  /** Supported scale factors in ascending order — backend picks the smallest
+   *  that produces output_mp ≥ target_mp × 1.2 (20% headroom for cropping). */
+  supportedScales: number[];
   costFn: (outputMp: number) => number;   // returns COGS in USD
-  body: (imageUrl: string) => Record<string, unknown>;
+  body: (imageUrl: string, scale: number) => Record<string, unknown>;
 }
 
 const MODELS: Record<UpscaleModel, ModelSpec> = {
-  topaz_4x: {
+  topaz: {
     endpoint: 'fal-ai/topaz/upscale/image',
-    scale: 4,
+    supportedScales: [2, 4, 6, 8],
     costFn: (mp) => mp * 0.01,                        // $0.01/MP output
-    body: (url) => ({ image_url: url, upscale_factor: 4 }),
-  },
-  topaz_8x: {
-    endpoint: 'fal-ai/topaz/upscale/image',
-    scale: 8,
-    costFn: (mp) => mp * 0.01,
-    body: (url) => ({ image_url: url, upscale_factor: 8 }),
+    body: (url, scale) => ({ image_url: url, upscale_factor: scale }),
   },
   recraft: {
     endpoint: 'fal-ai/recraft/upscale/crisp',
-    scale: 4,                                         // approx; flat-rate per image
-    costFn: () => 0.004,                              // flat $0.004/image
+    supportedScales: [4],                             // flat-rate per image
+    costFn: () => 0.004,
     body: (url) => ({ image_url: url }),
   },
   aurasr: {
     endpoint: 'fal-ai/aura-sr',
-    scale: 4,
+    supportedScales: [4],
     // ~1 second per output MP empirically; $0.00125/sec
     costFn: (mp) => mp * 0.00125,
     body: (url) => ({ image_url: url, upscaling_factor: 4 }),
   },
   esrgan: {
     endpoint: 'fal-ai/esrgan',
-    scale: 4,
+    supportedScales: [4],
     // ~1 second per output MP empirically; $0.00111/sec
     costFn: (mp) => mp * 0.00111,
     body: (url) => ({ image_url: url, scale: 4, model: 'RealESRGAN_x4plus' }),
@@ -82,12 +85,42 @@ const MODELS: Record<UpscaleModel, ModelSpec> = {
 };
 
 /**
- * Charge for a job using the model-specific COGS curve, converted to credits
- * at the universal $0.00425 cost budget. ceil() so we never under-charge.
+ * RC3+ — pick smallest scale factor that produces enough pixels for the
+ * target DPI on the user's poster size. Saves 5-10× FAL cost vs. always 4×
+ * for typical phone-shot 12 MP photos printed at 24×19" / 150 DPI.
+ *
+ * targetMp = (posterW × DPI) × (posterH × DPI) / 1e6
+ * outputMp(scale) = inputMp × scale²
+ * Pick smallest scale where outputMp ≥ targetMp × 1.2 (20% crop headroom).
+ * If no scale meets the target, return the largest available (best-effort).
  */
-function computeCreditsForJob(modelId: UpscaleModel, inputMp: number): number {
+function pickScale(
+  modelId: UpscaleModel,
+  inputMp: number,
+  posterW: number,
+  posterH: number,
+  targetDpi: number,
+): number {
+  const targetMp = (posterW * targetDpi) * (posterH * targetDpi) / 1_000_000;
+  const required = targetMp * 1.2;
+  const scales = MODELS[modelId].supportedScales;
+  for (const s of scales) {
+    if (inputMp * s * s >= required) return s;
+  }
+  return scales[scales.length - 1];
+}
+
+/**
+ * Charge for a job using the model-specific COGS curve at the picked scale.
+ * ceil() so we never under-charge.
+ */
+function computeCreditsForJob(
+  modelId: UpscaleModel,
+  inputMp: number,
+  scale: number,
+): number {
   const spec = MODELS[modelId];
-  const outputMp = inputMp * spec.scale * spec.scale;
+  const outputMp = inputMp * scale * scale;
   const cogs = spec.costFn(outputMp);
   return Math.ceil(cogs / CREDIT_COST_BUDGET_USD);
 }
@@ -109,11 +142,10 @@ function assertSignedIn(request: CallableRequest<unknown>): string {
 }
 
 function assertModel(m: unknown): UpscaleModel {
-  if (m === 'topaz_4x' || m === 'topaz_8x' || m === 'recraft' ||
-      m === 'aurasr' || m === 'esrgan') return m;
+  if (m === 'topaz' || m === 'recraft' || m === 'aurasr' || m === 'esrgan') return m;
   throw new HttpsError(
     'invalid-argument',
-    'modelId must be one of: topaz_4x, topaz_8x, recraft, aurasr, esrgan',
+    'modelId must be one of: topaz, recraft, aurasr, esrgan',
   );
 }
 
@@ -296,10 +328,11 @@ interface FalStatusResponse {
 async function submitFalJob(
   modelId: UpscaleModel,
   imageUrl: string,
+  scale: number,
   apiKey: string,
 ): Promise<FalSubmitResponse> {
   const spec = MODELS[modelId];
-  const body = spec.body(imageUrl);
+  const body = spec.body(imageUrl, scale);
   const resp = await axios.post<FalSubmitResponse>(
     `https://queue.fal.run/${spec.endpoint}`,
     body,
@@ -396,7 +429,17 @@ export const requestUpscale = onCall(
     const modelId = assertModel(data.modelId);
     const inputUrl = assertInputUrl(data.inputUrl);
     const inputMp = assertInputMp(data.inputMp);
-    const required = computeCreditsForJob(modelId, inputMp);
+    // RC3+: DPI-aware scale picker. Defaults applied if client omits any of
+    // these — keeps us backwards compatible with older clients that only
+    // sent (modelId, inputUrl, inputMp).
+    const posterW = typeof data.posterWidthInches === 'number' && data.posterWidthInches > 0
+      ? data.posterWidthInches : 24;
+    const posterH = typeof data.posterHeightInches === 'number' && data.posterHeightInches > 0
+      ? data.posterHeightInches : 24;
+    const targetDpi = typeof data.targetDpi === 'number' && data.targetDpi >= 75 && data.targetDpi <= 1200
+      ? data.targetDpi : 150;
+    const scale = pickScale(modelId, inputMp, posterW, posterH, targetDpi);
+    const required = computeCreditsForJob(modelId, inputMp, scale);
 
     // 1. Debit credits + create tx atomically.
     const txId = await debitAndCreateTx(uid, modelId, inputUrl, inputMp, required);
@@ -404,7 +447,7 @@ export const requestUpscale = onCall(
     // 2. Outside the transaction, kick off FAL.
     try {
       const fetchableUrl = await resolveFetchableUrl(inputUrl);
-      const submit = await submitFalJob(modelId, fetchableUrl, FAL_KEY.value());
+      const submit = await submitFalJob(modelId, fetchableUrl, scale, FAL_KEY.value());
 
       // Some quick jobs return inline.
       let resultPayload: FalStatusResponse | FalSubmitResponse | null =
