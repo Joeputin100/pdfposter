@@ -50,7 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -383,23 +383,12 @@ private fun SlideHandleViewer(
 
 /** Apply a uniform scale + translation around the center to an Image. */
 private fun Modifier.graphicsZoomPan(scale: Float, offsetX: Float, offsetY: Float): Modifier =
-    this.then(
-        Modifier.graphicsLayerWrap(scale, offsetX, offsetY),
-    )
-
-/**
- * Inline wrapper around [androidx.compose.ui.graphics.graphicsLayer] so we
- * don't have to import its block lambda DSL at every call site.
- */
-private fun Modifier.graphicsLayerWrap(scale: Float, offsetX: Float, offsetY: Float): Modifier =
-    this.then(
-        androidx.compose.ui.graphics.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-            translationX = offsetX
-            translationY = offsetY
-        },
-    )
+    this.graphicsLayer {
+        scaleX = scale
+        scaleY = scale
+        translationX = offsetX
+        translationY = offsetY
+    }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Asset loading helpers
