@@ -10,13 +10,13 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
-    <!-- Main 4-pointed star (long horizontal + vertical arms) -->
+    <!--
+      RC8: removed the white inner highlight. At 100dp render size in the
+      model card, the small inner star rendered as a tiny white square
+      that the user read as a "white rectangle in the middle of the card."
+      Single-color star is cleaner.
+    -->
     <path
         android:fillColor="#FFF4B400"
         android:pathData="M12,2 L13.5,10.5 L22,12 L13.5,13.5 L12,22 L10.5,13.5 L2,12 L10.5,10.5 Z" />
-
-    <!-- Inner highlight to give depth -->
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M12,8 L12.8,11.2 L16,12 L12.8,12.8 L12,16 L11.2,12.8 L8,12 L11.2,11.2 Z" />
 </vector>

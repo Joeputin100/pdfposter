@@ -548,16 +548,18 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                  // back to a Configuration override the AppCompat delegate
                  // handles internally). Persists across app restarts. Pass an
                  // empty list tag for "System default".
+                 //
+                 // RC8: replaced the plain "Language" label with a FlowRow of
+                 // the word "Language" in all 10 supported locales, with the
+                 // currently active locale rendered larger + accented. The
+                 // user wanted to be able to read what locale is selected
+                 // without opening the dialog.
                  var showLanguageDialog by remember { mutableStateOf(false) }
-                 NavigationDrawerItem(
-                     label = { Text(stringResource(R.string.drawer_language)) },
-                     selected = false,
+                 LanguageDrawerCell(
                      onClick = {
                          viewModel.logEvent(context, "Language picker opened")
                          showLanguageDialog = true
                      },
-                     icon = { Icon(Icons.Default.Language, null) },
-                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
                  if (showLanguageDialog) {
                      com.posterpdf.ui.components.LanguagePickerDialog(
@@ -895,6 +897,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     // modal. The duplicate that lived here used to render the same
                                     // info in static amber text; the under-preview Card is more
                                     // actionable, so this site stays silent.
+
+                                    // RC8: DPI summary row — original / upscaled / target.
+                                    DpiSummaryRow(viewModel = viewModel)
                                 }
                             }
                             }
@@ -1779,6 +1784,177 @@ fun ConfigInput(
             disabledPlaceholderColor = MaterialTheme.colorScheme.outline
         ) else OutlinedTextFieldDefaults.colors()
     )
+}
+
+/**
+ * RC8 — Language picker drawer cell. Shows the word "Language" rendered
+ * natively in every locale we ship strings.xml for; the currently active
+ * locale's word is bigger and primary-colored. Tapping anywhere on the
+ * cell opens the locale picker dialog.
+ *
+ * Uses AppCompatDelegate.getApplicationLocales().toLanguageTags() to
+ * detect the currently active tag (empty = "system default" → fall
+ * back to the device's first matched supported locale).
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun LanguageDrawerCell(onClick: () -> Unit) {
+    val activeTag = remember {
+        val list = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+        if (list.isEmpty) "" else list.toLanguageTags().substringBefore(',')
+    }
+    // Native word for "Language" per locale. Order matches the dialog.
+    val words: List<Pair<String, String>> = listOf(
+        "en" to "Language",
+        "es" to "Idioma",
+        "de" to "Sprache",
+        "fr" to "Langue",
+        "pt-BR" to "Idioma",
+        "ru" to "Язык",
+        "ja" to "言語",
+        "zh-CN" to "语言",
+        "hi" to "भाषा",
+        "ar" to "اللغة",
+    )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 28.dp, vertical = 12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Language, contentDescription = null)
+            Spacer(Modifier.width(16.dp))
+            Text(
+                stringResource(R.string.drawer_language),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        androidx.compose.foundation.layout.FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.Start),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 40.dp),
+        ) {
+            words.forEach { (tag, word) ->
+                val isActive = tag == activeTag
+                Text(
+                    text = word,
+                    style = if (isActive) MaterialTheme.typography.titleMedium
+                    else MaterialTheme.typography.labelSmall,
+                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isActive) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * RC8 — DPI summary row under the Poster Size inputs. Shows three DPI
+ * values: the source image's effective DPI at the chosen poster size
+ * (Original), the post-upscale DPI if a model is queued (Upscaled),
+ * and the user's target DPI from the drawer slider (Target). A trailing
+ * info icon opens a brief explainer dialog.
+ *
+ * Effective DPI = sourcePixelsWide / posterInchesWide. The target is
+ * displayed even if no upscale is queued so the user always sees how
+ * their original compares to where it needs to be.
+ */
+@Composable
+private fun DpiSummaryRow(viewModel: MainViewModel) {
+    val context = LocalContext.current
+    val originalDpi = viewModel.computeCurrentDpi().toInt()
+    val targetDpi = viewModel.targetDpi
+    val pendingLabel = viewModel.pendingUpscaleModelLabel
+    val upscaledDpi = if (pendingLabel != null) originalDpi * 4 else null
+    var showHelp by remember { mutableStateOf(false) }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (originalDpi > 0) {
+            DpiChip(label = "Original", dpi = originalDpi, isWarn = originalDpi < 150)
+        }
+        if (upscaledDpi != null) {
+            DpiChip(label = "Upscaled", dpi = upscaledDpi, isWarn = false, isHighlight = true)
+        }
+        DpiChip(label = "Target", dpi = targetDpi, isWarn = false)
+        Spacer(Modifier.weight(1f))
+        IconButton(onClick = { showHelp = true }) {
+            Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "About DPI")
+        }
+    }
+
+    if (showHelp) {
+        AlertDialog(
+            onDismissRequest = { showHelp = false },
+            icon = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null) },
+            title = { Text("Print resolution") },
+            text = {
+                Text(
+                    "DPI (dots per inch) is how sharp your poster will look at the chosen " +
+                        "size.\n\n" +
+                        "• Original: the source image’s pixels divided by your poster width.\n" +
+                        "• Upscaled: the projected DPI after the queued AI sharpener runs " +
+                        "(usually 4× the original).\n" +
+                        "• Target: your goal, set with the slider in Settings. 150 DPI is the " +
+                        "standard for posters; 300 for photo prints.\n\n" +
+                        "If Original is below Target, the Sharpen-for-print card opens the AI " +
+                        "options to make up the gap.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showHelp = false }) {
+                    Text(stringResource(R.string.common_got_it))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun DpiChip(
+    label: String,
+    dpi: Int,
+    isWarn: Boolean,
+    isHighlight: Boolean = false,
+) {
+    val container = when {
+        isWarn -> MaterialTheme.colorScheme.errorContainer
+        isHighlight -> MaterialTheme.colorScheme.tertiaryContainer
+        else -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    val onContainer = when {
+        isWarn -> MaterialTheme.colorScheme.onErrorContainer
+        isHighlight -> MaterialTheme.colorScheme.onTertiaryContainer
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = container,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = onContainer.copy(alpha = 0.85f),
+            )
+            Text(
+                "$dpi DPI",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = onContainer,
+            )
+        }
+    }
 }
 
 /**
