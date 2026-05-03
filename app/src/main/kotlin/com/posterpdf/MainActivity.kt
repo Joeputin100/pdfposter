@@ -420,6 +420,38 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                      )
                  }
 
+                 // RC3+: target print DPI slider — drives the smallest-scale-
+                 // that-meets-target upscale strategy in the backend.
+                 Column(
+                     modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
+                 ) {
+                     Row(verticalAlignment = Alignment.CenterVertically) {
+                         Icon(
+                             Icons.Default.Print,
+                             null,
+                             tint = MaterialTheme.colorScheme.primary,
+                             modifier = Modifier.size(20.dp),
+                         )
+                         Spacer(Modifier.width(12.dp))
+                         Text(
+                             "Target print DPI: ${viewModel.targetDpi}",
+                             style = MaterialTheme.typography.labelLarge,
+                         )
+                     }
+                     Slider(
+                         value = viewModel.targetDpi.toFloat(),
+                         onValueChange = { viewModel.setTargetDpi(it.toInt()) },
+                         valueRange = 75f..1200f,
+                         steps = 14, // ~75-step increments
+                     )
+                     Text(
+                         "Higher DPI → sharper print, more upscale credits used. " +
+                             "150 is standard for posters; 300 for photos; 600+ for fine art.",
+                         style = MaterialTheme.typography.labelSmall,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                     )
+                 }
+
                  // H-P2.1 / H-P2.2 / H-P2.3 / H-P2.4 / H-P2.5: content drawer entries.
                  NavigationDrawerItem(
                      label = { Text("Getting Started") },

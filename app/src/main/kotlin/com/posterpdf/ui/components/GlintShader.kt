@@ -2,6 +2,7 @@ package com.posterpdf.ui.components
 
 import android.graphics.RuntimeShader
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -152,6 +153,7 @@ fun Modifier.glintEffect(active: Boolean): Modifier {
 
 // ────────────────────── API 33+: AGSL holofoil ──────────────────────
 
+@RequiresApi(33)
 @Composable
 private fun glintAgslModifier(): Modifier = composed {
     val tilt by rememberDeviceTilt()
