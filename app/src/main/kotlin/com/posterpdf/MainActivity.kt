@@ -355,7 +355,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          initialMode = viewModel.storageRetentionMode,
                          onDismiss = { showStorageDialog = false },
                          onConfirm = { mode ->
-                             viewModel.setStorageRetentionMode(mode)
+                             viewModel.chooseStorageRetention(mode)
                              showStorageDialog = false
                          },
                      )

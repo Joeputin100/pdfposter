@@ -48,7 +48,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var storageRetentionMode by mutableStateOf("paid")
         private set
 
-    fun setStorageRetentionMode(mode: String) {
+    /** Validates + applies a new retention mode. The function name avoids
+     *  the Kotlin-generated `setStorageRetentionMode` JVM signature clash. */
+    fun chooseStorageRetention(mode: String) {
         if (mode != "paid" && mode != "auto-delete") return
         storageRetentionMode = mode
         // TODO(H-P3): persist to users/{uid}.storageRetentionMode in Firestore.
