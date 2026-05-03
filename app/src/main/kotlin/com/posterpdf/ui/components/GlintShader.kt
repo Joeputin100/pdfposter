@@ -17,7 +17,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
@@ -155,7 +154,7 @@ fun Modifier.glintEffect(active: Boolean): Modifier {
 
 @RequiresApi(33)
 @Composable
-private fun glintAgslModifier(): Modifier = composed {
+private fun glintAgslModifier(): Modifier {
     val tilt by rememberDeviceTilt()
 
     // Wall-clock ticker for iTime (RuntimeShader needs a real-time clock,
@@ -172,17 +171,14 @@ private fun glintAgslModifier(): Modifier = composed {
 
     val shader = remember { RuntimeShader(GLINT_AGSL) }
 
-    Modifier.drawWithCache {
+    return Modifier.drawWithCache {
         val brush = ShaderBrush(shader)
         onDrawWithContent {
-            // Always draw the underlying card art first.
             drawContent()
             val tSec = ((nowMs - startMs) / 1000f).coerceAtLeast(0f)
             shader.setFloatUniform("iResolution", size.width, size.height)
             shader.setFloatUniform("iTime", tSec)
             shader.setFloatUniform("iTilt", tilt.first, tilt.second)
-            // Plus blend = additive — the holo highlights brighten the card
-            // without darkening it where spark = 0.
             drawRect(brush = brush, size = size, blendMode = BlendMode.Plus)
         }
     }
@@ -191,7 +187,7 @@ private fun glintAgslModifier(): Modifier = composed {
 // ────────────────────── API 26-32: animated gradient sweep ──────────────────────
 
 @Composable
-private fun glintAnimatedGradientModifier(): Modifier = composed {
+private fun glintAnimatedGradientModifier(): Modifier {
     val transition = rememberInfiniteTransition(label = "glint_sweep")
     val phase by transition.animateFloat(
         initialValue = 0f,
@@ -202,13 +198,7 @@ private fun glintAnimatedGradientModifier(): Modifier = composed {
         ),
         label = "glint_phase",
     )
-
-    // Sweep a low-alpha rainbow band diagonally across the card. The
-    // diagonal direction vector rotates by `phase * 2pi` every cycle so
-    // the band moves continuously rather than snapping back at the end.
-    Modifier.background(
-        brush = sweepBrush(phase),
-    )
+    return Modifier.background(brush = sweepBrush(phase))
 }
 
 private fun sweepBrush(phase: Float): Brush {

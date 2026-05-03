@@ -776,8 +776,9 @@ fun PosterPreview(viewModel: MainViewModel) {
                         AssemblyPhase.Arranging -> {
                             // Slide in from below-right, hover over the pane being
                             // placed at this moment, slide out once each pane is placed.
-                            val slice = 1f / paneCount
-                            val activeIndex = (phaseT / slice).toInt().coerceIn(0, paneCount - 1)
+                            val outerPaneCount = layout.panes.size.coerceAtLeast(1)
+                            val slice = 1f / outerPaneCount
+                            val activeIndex = (phaseT / slice).toInt().coerceIn(0, outerPaneCount - 1)
                             val activePane = layout.panes[activeIndex]
                             val targetX = activePane.pageLeft + activePane.pageWidth / 2f +
                                 handSize * 0.30f

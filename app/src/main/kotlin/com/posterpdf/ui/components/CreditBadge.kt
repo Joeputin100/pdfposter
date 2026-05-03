@@ -17,9 +17,14 @@ import androidx.compose.runtime.Composable
  * "buy credits" affordance instead of "you have zero".
  */
 @Composable
-fun CreditBadge(balance: Int, onClick: () -> Unit) {
+fun CreditBadge(balance: Int, isAdmin: Boolean = false, onClick: () -> Unit) {
     IconButton(onClick = onClick) {
-        BadgedBox(badge = { if (balance > 0) Badge { Text(balance.toString()) } }) {
+        BadgedBox(badge = {
+            when {
+                isAdmin -> Badge { Text("∞") }
+                balance > 0 -> Badge { Text(balance.toString()) }
+            }
+        }) {
             Icon(Icons.Default.AutoAwesome, contentDescription = "AI credits")
         }
     }
