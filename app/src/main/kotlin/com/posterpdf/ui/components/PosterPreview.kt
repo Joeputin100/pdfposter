@@ -1139,6 +1139,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                     // RC3 fix: derive from actual auth session, not placeholder
                     isAnonymous = viewModel.authSession.isAnonymous || !viewModel.authSession.signedIn,
                     isAdmin = viewModel.isAdmin,
+                    targetDpi = viewModel.targetDpi,
                     onDismiss = { viewModel.showLowDpiModal = false },
                     onFreeUpscale = {
                         viewModel.showLowDpiModal = false

@@ -55,6 +55,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.posterpdf.ui.components.CreditBadge
 import com.posterpdf.ui.components.GlassCard
+import com.posterpdf.ui.components.glintEffect
 import com.posterpdf.ui.components.ImagePickerHeader
 import com.posterpdf.ui.components.PaperSizeCardRow
 import com.posterpdf.ui.components.PosterPreview
@@ -1803,7 +1804,12 @@ private fun SharpenForPrintCta(onClick: () -> Unit) {
     )
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            // RC8: glintEffect was missing — that\'s why the card was
+            // "just a purple button" with no holofoil sparkle. Now active
+            // unconditionally because this is the headline CTA.
+            .glintEffect(active = true),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
         ),

@@ -98,8 +98,17 @@ private data class UpscaleOption(
     val displayName: String,
     val pros: String,
     val cons: String,
+    /** Default scale for display (used by NONE/FREE_LOCAL only). For paid
+     *  models the actual scale is picked dynamically by [pickScale] using
+     *  the same logic as backend/functions/src/upscale.ts pickScale. */
     val scale: Int,
-    val cogsUsd: (inputMp: Int) -> Double,
+    /** Supported scale factors in ascending order — paid models pick the
+     *  smallest that produces output_mp >= targetMp × 1.2. */
+    val supportedScales: List<Int>,
+    /** USD-per-output-MP. Recraft is flat-rate (set perOutputMp=0 and use
+     *  flatUsd). */
+    val perOutputMp: Double,
+    val flatUsd: Double = 0.0,
 )
 
 private val ALL_OPTIONS: List<UpscaleOption> = listOf(
@@ -109,7 +118,8 @@ private val ALL_OPTIONS: List<UpscaleOption> = listOf(
         pros = "Fastest, free, works on any device",
         cons = "Visible pixelation at large prints",
         scale = 1,
-        cogsUsd = { _ -> 0.0 },
+        supportedScales = listOf(1),
+        perOutputMp = 0.0,
     ),
     UpscaleOption(
         model = UpscaleModel.FREE_LOCAL,
@@ -117,17 +127,17 @@ private val ALL_OPTIONS: List<UpscaleOption> = listOf(
         pros = "Free, offline, works without internet",
         cons = "Slower on older phones; 4× max",
         scale = 4,
-        cogsUsd = { _ -> 0.0 },
+        supportedScales = listOf(4),
+        perOutputMp = 0.0,
     ),
     UpscaleOption(
-        // Topaz Gigapixel — backend now picks the smallest scale factor that
-        // reaches the user's target DPI (default 150). No more 4×/8× split.
         model = UpscaleModel.TOPAZ,
         displayName = "Topaz Gigapixel",
         pros = "Cleanest edges, polished output",
         cons = "Highest cost per pixel",
         scale = 4,
-        cogsUsd = { inputMp -> inputMp * 16.0 * 0.01 },
+        supportedScales = listOf(2, 4, 6, 8),
+        perOutputMp = 0.01,
     ),
     UpscaleOption(
         model = UpscaleModel.RECRAFT,
@@ -135,7 +145,9 @@ private val ALL_OPTIONS: List<UpscaleOption> = listOf(
         pros = "Photo-faithful, 40× cheaper than Topaz",
         cons = "Less crisp on text/UI than Topaz",
         scale = 4,
-        cogsUsd = { _ -> 0.004 },
+        supportedScales = listOf(4),
+        perOutputMp = 0.0,
+        flatUsd = 0.004,
     ),
     UpscaleOption(
         model = UpscaleModel.AURASR,
@@ -143,7 +155,8 @@ private val ALL_OPTIONS: List<UpscaleOption> = listOf(
         pros = "Fast and cheap (~\$0.01/image)",
         cons = "Occasional artifacts on smooth gradients",
         scale = 4,
-        cogsUsd = { inputMp -> inputMp * 16.0 * 0.00125 },
+        supportedScales = listOf(4),
+        perOutputMp = 0.00125,
     ),
     UpscaleOption(
         model = UpscaleModel.ESRGAN,
@@ -151,14 +164,53 @@ private val ALL_OPTIONS: List<UpscaleOption> = listOf(
         pros = "Open-source classic, cheapest AI option",
         cons = "Less crisp than Topaz",
         scale = 4,
-        cogsUsd = { inputMp -> inputMp * 16.0 * 0.00111 },
+        supportedScales = listOf(4),
+        perOutputMp = 0.00111,
     ),
 )
 
+/**
+ * RC8 — DPI-aware scale picker, mirrors backend/functions/src/upscale.ts.
+ * Pick the smallest supported scale that produces enough pixels to hit the
+ * user's target DPI on the chosen poster size, with 20% headroom for crop
+ * marks. Falls back to the largest available scale if no scale meets the
+ * target. Pre-RC8 the client always assumed 4× regardless of target DPI,
+ * so Topaz cost was displayed as $4.52 on an 8MP source × 16 scale-factor
+ * even when only 2× was needed to hit 150 DPI.
+ */
+private fun pickScale(
+    option: UpscaleOption,
+    inputMp: Int,
+    posterWInches: Double,
+    posterHInches: Double,
+    targetDpi: Int,
+): Int {
+    val targetMp = (posterWInches * targetDpi) * (posterHInches * targetDpi) / 1_000_000.0
+    val required = targetMp * 1.2
+    for (s in option.supportedScales) {
+        if (inputMp.toDouble() * s * s >= required) return s
+    }
+    return option.supportedScales.last()
+}
+
+private fun cogsForOption(
+    option: UpscaleOption,
+    inputMp: Int,
+    pickedScale: Int,
+): Double {
+    if (option.flatUsd > 0.0) return option.flatUsd
+    val outputMp = inputMp.toDouble() * pickedScale * pickedScale
+    return outputMp * option.perOutputMp
+}
+
 /** Free options return 0; paid options return ceil(cogs / budget), min 1. */
-private fun creditsForOption(option: UpscaleOption, inputMp: Int): Int {
+private fun creditsForOption(
+    option: UpscaleOption,
+    inputMp: Int,
+    pickedScale: Int,
+): Int {
     if (option.model == UpscaleModel.NONE || option.model == UpscaleModel.FREE_LOCAL) return 0
-    val cogs = option.cogsUsd(inputMp)
+    val cogs = cogsForOption(option, inputMp, pickedScale)
     return ceil(cogs / CREDIT_COST_BUDGET_USD).toInt().coerceAtLeast(1)
 }
 
@@ -204,6 +256,11 @@ fun LowDpiUpgradeModal(
     /** RC7: admin accounts have unlimited credits — short-circuits the
      *  hasEnoughCredits check so admin never sees "Get more credits". */
     isAdmin: Boolean = false,
+    /** RC8: user\'s target print DPI (drawer slider). Used to pick the
+     *  smallest model scale factor that hits the target — mirrors the
+     *  backend\'s pickScale logic so the displayed cost matches what the
+     *  user will actually be charged. */
+    targetDpi: Int = 150,
     /**
      * Phase H-P1.13: when true the source is an SVG (vector) and upscaling
      * makes no sense — the modal hides the 4 raster-upscale cards (NONE,
@@ -352,9 +409,17 @@ fun LowDpiUpgradeModal(
                             BringYourOwnCard(onPick = onShowBringYourOwnHelp)
                         } else {
                             val option = ALL_OPTIONS.first { it.model == modelOrNull }
-                            val credits = remember(inputMp) { creditsForOption(option, inputMp) }
+                            // RC8: pick scale dynamically based on target DPI
+                            // (mirrors backend pickScale). Fixes user-reported
+                            // "$4.52 Topaz cost on a poster that only needs 2×".
+                            val pickedScale = remember(option.model, inputMp, posterWInches, posterHInches, targetDpi) {
+                                pickScale(option, inputMp, posterWInches, posterHInches, targetDpi)
+                            }
+                            val credits = remember(option.model, inputMp, pickedScale) {
+                                creditsForOption(option, inputMp, pickedScale)
+                            }
                             val usdStr = usdEquivalent(credits, usdPerCredit)
-                            val outputDpi = currentDpi * option.scale
+                            val outputDpi = currentDpi * pickedScale
                             val hasEnough = isAdmin || creditBalance >= credits
 
                             UpscaleOptionCard(
