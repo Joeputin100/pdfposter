@@ -294,16 +294,27 @@ Update `docs/superpowers/pricing-policy.md` to reflect:
 **Site:** `BringYourOwnHelpDialog.kt` (new) shown when "Show me how to do it…" is tapped. Then transitions to file picker.
 **Content:** Step-by-step guide for Canva, OpenArt, FAL.ai, Topaz Photo AI: how to upload your image, run upscale, download the output, return to PosterPDF and select the upscaled file. Each step has a screenshot or mockup.
 
-### H-P1.13 — SVG support: rasterize at target poster resolution
+### H-P1.13 — SVG support: rasterize for preview, draw vectors in PDF
 
-**Site:** `PosterPreview.kt` decode path + `PosterLogic.kt` generation path.
+**Site:** `PosterPreview.kt` decode path + `PosterLogic.kt` generation path + `LowDpiUpgradeModal.kt` (gating).
 **Current:** SVG is listed in "Supported File Types" but `BitmapFactory.decodeStream` returns null for SVG. The Coil-based preview shows the SVG correctly (`coil-svg` is on the classpath), but the bitmap state stays null — `Generate Poster` produces a broken/empty PDF, and the upscale modal can't open (gated on `previewBitmap != null`).
-**Target:** When the picked URI's MIME or extension is SVG:
-1. Use `androidsvg-aar` (already in deps) to rasterize at the target poster pixel resolution (`posterWidthInches × 300 DPI` default). This guarantees crisp output regardless of source.
-2. Skip the upscale modal entirely — vector sources don't need upscaling.
-3. The DPI gate I just added (H-P1.9) already handles this correctly because `computeCurrentDpi()` returns `0f` when `sourcePixelDimensions` is null, which is outside the gate range. Once SVG → bitmap rasterization lands, source dims become known and gate behaves normally.
 
-**Estimate:** 1-2 hours (mostly the SVG → Bitmap conversion + plumbing into the existing path). Include a small "Vector source — prints sharp at any size" tooltip near the upscale UI to explain to SVG users why no upscale option appears.
+**Target — three-pronged:**
+
+1. **Preview path** — when MIME/extension is SVG, use `androidsvg-aar` (already in deps) to rasterize at preview thumb size (256–512px). This populates `previewBitmap` so the on-screen construction preview renders normally. Set `viewModel.sourceIsSvg = true` so downstream UI knows the original is vector.
+
+2. **PDF output path** — when `sourceIsSvg`, draw the SVG **directly as vector** in the PDF (no rasterization at output time). Vector posters print arbitrarily sharp at any tile size. `pdfbox-android` doesn't have first-class SVG-in-PDF support, so we'd:
+   - Render via `androidsvg-aar` at extremely high DPI (600+) into a Bitmap, then embed that.
+   - OR convert the SVG to PDF-native paths (more complex; Phase J territory).
+   For Phase H, **pick the high-DPI bitmap path** — gives "vector-quality" output at 600 DPI for typical SVG sources.
+
+3. **Upscale UI gating** — when `sourceIsSvg == true`:
+   - Modal still opens (so user can see why upscale isn't relevant).
+   - All AI option cards (Topaz / Recraft / AuraSR / ESRGAN) and Free upscale are **disabled** (greyed out).
+   - The explanation banner replaces the cards: "SVG is a **vector** image — it prints sharp at any size. No upscale needed."
+   - "Bring your own" card stays enabled (user might want to swap to a raster source).
+
+**Estimate:** 2-3 hours. Use the user's words verbatim in the explanation banner.
 
 ### H-P2.7 — QR code in PDF branding
 
