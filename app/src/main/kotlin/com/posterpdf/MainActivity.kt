@@ -792,6 +792,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                 }
                             } else {
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    // RC3 fix: chips wrap text on narrow phones. Switch to
+                                    // vertical layout (icon above text) + min height that
+                                    // accommodates both lines without truncation.
                                     Button(
                                         onClick = {
                                             runWithDpiGate {
@@ -809,12 +812,15 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).height(64.dp),
-                                        shape = RoundedCornerShape(20.dp)
+                                        modifier = Modifier.weight(1f).height(80.dp),
+                                        shape = RoundedCornerShape(20.dp),
+                                        contentPadding = PaddingValues(8.dp),
                                     ) {
-                                        Icon(Icons.Default.Visibility, null)
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("View")
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(Icons.Default.Visibility, null, Modifier.size(28.dp))
+                                            Spacer(Modifier.height(4.dp))
+                                            Text("View", maxLines = 1)
+                                        }
                                     }
 
                                     Button(
@@ -826,13 +832,16 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).height(64.dp),
+                                        modifier = Modifier.weight(1f).height(80.dp),
                                         shape = RoundedCornerShape(20.dp),
+                                        contentPadding = PaddingValues(8.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
                                     ) {
-                                        Icon(Icons.Default.Save, null)
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("Save")
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(Icons.Default.Save, null, Modifier.size(28.dp))
+                                            Spacer(Modifier.height(4.dp))
+                                            Text("Save", maxLines = 1)
+                                        }
                                     }
 
                                     Button(
@@ -853,13 +862,16 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).height(64.dp),
+                                        modifier = Modifier.weight(1f).height(80.dp),
                                         shape = RoundedCornerShape(20.dp),
+                                        contentPadding = PaddingValues(8.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
                                     ) {
-                                        Icon(Icons.Default.Share, null)
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("Share…")
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(Icons.Default.Share, null, Modifier.size(28.dp))
+                                            Spacer(Modifier.height(4.dp))
+                                            Text("Share…", maxLines = 1)
+                                        }
                                     }
                                 }
                             }
@@ -1081,29 +1093,36 @@ private fun OrientationCard(
                 modifier = Modifier.size(56.dp),
                 contentAlignment = Alignment.Center,
             ) {
+                // Clarus is a single-color trace. Use Icon with onSurface tint
+                // so it reads against both light and dark surfaceVariant backgrounds.
+                val dogcowTint = MaterialTheme.colorScheme.onSurface
                 when (label) {
-                    "Portrait" -> androidx.compose.foundation.Image(
+                    "Portrait" -> Icon(
                         painter = painterResource(id = com.posterpdf.R.drawable.clarus_portrait),
                         contentDescription = "Portrait orientation (Clarus the Dogcow standing)",
+                        tint = dogcowTint,
                         modifier = Modifier.size(56.dp),
                     )
-                    "Landscape" -> androidx.compose.foundation.Image(
+                    "Landscape" -> Icon(
                         painter = painterResource(id = com.posterpdf.R.drawable.clarus_landscape),
                         contentDescription = "Landscape orientation (Clarus the Dogcow on its side)",
+                        tint = dogcowTint,
                         modifier = Modifier.size(56.dp),
                     )
                     else -> Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        androidx.compose.foundation.Image(
+                        Icon(
                             painter = painterResource(id = com.posterpdf.R.drawable.clarus_portrait),
                             contentDescription = null,
+                            tint = dogcowTint,
                             modifier = Modifier.size(28.dp),
                         )
-                        androidx.compose.foundation.Image(
+                        Icon(
                             painter = painterResource(id = com.posterpdf.R.drawable.clarus_landscape),
                             contentDescription = "Best fit orientation",
+                            tint = dogcowTint,
                             modifier = Modifier.size(28.dp),
                         )
                     }
@@ -1281,6 +1300,8 @@ fun OutlinePreview(selection: String, fullWidth: Boolean = false, compact: Boole
         )
         else -> null
     }
+    // Use onSurface so the preview reads against both light and dark surfaceVariant.
+    val strokeColor = MaterialTheme.colorScheme.onSurface
     Canvas(
         modifier = (if (fullWidth) Modifier
             .fillMaxWidth()
@@ -1293,20 +1314,20 @@ fun OutlinePreview(selection: String, fullWidth: Boolean = false, compact: Boole
             val arm = if (compact) 8f else 26f
             val sw = if (compact) 2f else 6f
             // four corner L marks
-            drawLine(Color.Black, Offset(pad, pad + arm), Offset(pad, pad), sw)
-            drawLine(Color.Black, Offset(pad, pad), Offset(pad + arm, pad), sw)
+            drawLine(strokeColor, Offset(pad, pad + arm), Offset(pad, pad), sw)
+            drawLine(strokeColor, Offset(pad, pad), Offset(pad + arm, pad), sw)
 
-            drawLine(Color.Black, Offset(size.width - pad - arm, pad), Offset(size.width - pad, pad), sw)
-            drawLine(Color.Black, Offset(size.width - pad, pad), Offset(size.width - pad, pad + arm), sw)
+            drawLine(strokeColor, Offset(size.width - pad - arm, pad), Offset(size.width - pad, pad), sw)
+            drawLine(strokeColor, Offset(size.width - pad, pad), Offset(size.width - pad, pad + arm), sw)
 
-            drawLine(Color.Black, Offset(pad, size.height - pad - arm), Offset(pad, size.height - pad), sw)
-            drawLine(Color.Black, Offset(pad, size.height - pad), Offset(pad + arm, size.height - pad), sw)
+            drawLine(strokeColor, Offset(pad, size.height - pad - arm), Offset(pad, size.height - pad), sw)
+            drawLine(strokeColor, Offset(pad, size.height - pad), Offset(pad + arm, size.height - pad), sw)
 
-            drawLine(Color.Black, Offset(size.width - pad - arm, size.height - pad), Offset(size.width - pad, size.height - pad), sw)
-            drawLine(Color.Black, Offset(size.width - pad, size.height - pad - arm), Offset(size.width - pad, size.height - pad), sw)
+            drawLine(strokeColor, Offset(size.width - pad - arm, size.height - pad), Offset(size.width - pad, size.height - pad), sw)
+            drawLine(strokeColor, Offset(size.width - pad, size.height - pad - arm), Offset(size.width - pad, size.height - pad), sw)
         } else {
             drawLine(
-                color = Color.Black,
+                color = strokeColor,
                 start = Offset(4f, size.height / 2),
                 end = Offset(size.width - 4f, size.height / 2),
                 strokeWidth = thickness,

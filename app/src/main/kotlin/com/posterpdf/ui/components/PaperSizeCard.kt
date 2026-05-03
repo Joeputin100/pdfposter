@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -50,38 +52,35 @@ import kotlinx.coroutines.launch
 data class PaperOption(
     val label: String,
     val shortName: String,
+    val dimensions: String,
     val drawableRes: Int,
     val isRecommended: Boolean = false,
-    val tooltipText: String? = null,
 )
 
-/**
- * Built-in paper choices rendered as infographic cards. The four cards share
- * a common scale factor (defined in the drawable XML viewports) so users can
- * visually compare sizes. Letter is flagged as the North America default and
- * carries a sparkle star + tooltip.
- */
 val BUILT_IN_PAPER_OPTIONS = listOf(
     PaperOption(
         label = "Letter (8.5x11)",
         shortName = "Letter",
+        dimensions = "8.5 × 11 in",
         drawableRes = R.drawable.paper_letter,
         isRecommended = true,
-        tooltipText = "If you print at home in North America, this is probably the size you want.",
     ),
     PaperOption(
         label = "A4 (8.27x11.69)",
         shortName = "A4",
+        dimensions = "210 × 297 mm",
         drawableRes = R.drawable.paper_a4,
     ),
     PaperOption(
         label = "Legal (8.5x14)",
         shortName = "Legal",
+        dimensions = "8.5 × 14 in",
         drawableRes = R.drawable.paper_legal,
     ),
     PaperOption(
         label = "Tabloid (11x17)",
         shortName = "Tabloid",
+        dimensions = "11 × 17 in",
         drawableRes = R.drawable.paper_tabloid,
     ),
 )
@@ -128,56 +127,48 @@ fun PaperSizeCard(
         color = containerColor,
         shape = RoundedCornerShape(20.dp),
     ) {
-        Box {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Image(
-                    painter = painterResource(id = option.drawableRes),
-                    contentDescription = option.shortName,
-                    modifier = Modifier.size(72.dp),
-                )
-                Text(
-                    option.shortName,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isSelected)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurface,
-                )
-            }
-
-            // Recommended-pick affordance: a small star at top-right that
-            // shows a tooltip on long-press. The star itself is also drawn
-            // inside the paper_letter.xml drawable for emphasis, but only
-            // the tappable star here surfaces the explanatory tooltip.
-            if (option.isRecommended && option.tooltipText != null) {
-                val tooltipState = rememberTooltipState(isPersistent = false)
-                val scope = rememberCoroutineScope()
-                TooltipBox(
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                    tooltip = {
-                        PlainTooltip { Text(option.tooltipText) }
-                    },
-                    state = tooltipState,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp),
-                ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Image(
+                painter = painterResource(id = option.drawableRes),
+                contentDescription = option.shortName,
+                modifier = Modifier.size(64.dp),
+            )
+            Text(
+                option.shortName,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+            )
+            Text(
+                option.dimensions,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+            if (option.isRecommended) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Star,
-                        contentDescription = "Recommended",
+                        contentDescription = null,
                         tint = Color(0xFFFFC107),
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clickable {
-                                scope.launch { tooltipState.show() }
-                            },
+                        modifier = Modifier.size(12.dp),
+                    )
+                    Spacer(Modifier.size(2.dp))
+                    Text(
+                        "Recommended",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFFB58900),
+                        maxLines = 1,
                     )
                 }
             }
@@ -197,25 +188,29 @@ fun PaperSizeCardRow(
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    // Switched from `Row { weight(1f) }` (which squeezes Tabloid + Custom on
+    // narrow phones) to LazyRow with fixed-width cards. Users scroll if
+    // 5 cards don't fit in the viewport.
+    androidx.compose.foundation.lazy.LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp),
     ) {
-        for (option in BUILT_IN_PAPER_OPTIONS) {
+        items(BUILT_IN_PAPER_OPTIONS, key = { it.label }) { option ->
             PaperSizeCard(
                 option = option,
                 isSelected = selectedLabel == option.label,
                 onClick = { onSelect(option.label) },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.width(96.dp),
             )
         }
-        // Trailing "Custom" card — no infographic; the label slot is just
-        // the word "Custom" so the user knows there's an escape hatch.
-        CustomPaperCard(
-            isSelected = selectedLabel == "Custom",
-            onClick = { onSelect("Custom") },
-            modifier = Modifier.weight(1f),
-        )
+        item(key = "custom") {
+            CustomPaperCard(
+                isSelected = selectedLabel == "Custom",
+                onClick = { onSelect("Custom") },
+                modifier = Modifier.width(96.dp),
+            )
+        }
     }
 }
 
