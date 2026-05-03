@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.SdStorage
@@ -91,7 +92,7 @@ fun GettingStartedScreen(onBack: () -> Unit) {
                     modifier = Modifier.padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    FreeFeature(Icons.Default.Verified, "No catch", "No ads, no watermarks, no reduced functionality. Every feature works the same whether you spend a cent or not.")
+                    FreeFeature(Icons.Default.WorkspacePremium, "No catch", "No ads, no watermarks, no reduced functionality. Every feature works the same whether you spend a cent or not.")
                     FreeFeature(Icons.Default.PictureAsPdf, "Poster generation", "Tile any image across multiple pages — no watermarks, no page limit.")
                     FreeFeature(Icons.Default.CheckCircle, "All paper sizes", "Letter, Legal, Tabloid, A3, A4, plus a Custom size for unusual printers.")
                     FreeFeature(Icons.Default.AutoAwesome, "On-device upscale", "4× upscale runs locally on your phone — no internet, no credits.")
