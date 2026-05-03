@@ -91,20 +91,79 @@ Each task has a self-contained spec for subagent execution. P1 and P2 batches ar
 **Target:** If current DPI < 150 and user taps View, Save, or Share, show a confirm modal: "This poster will print at low resolution. Continue anyway?" with options "Continue" and "Upgrade source first" (deeplinks to upgrade modal).
 **Implementation:** Wrap each action's onClick in a DPI-check that shows the modal if < 150. Reuse existing `LowDpiUpgradeModal`'s entrypoint for "Upgrade source first".
 
-### H-P1.10 — Upscale modal: tile grid with 5 cards + per-card pros/cons
+### H-P1.10 — Upscale modal: 2 visible AI options + expandable + comparison demo
 
 **Site:** `LowDpiUpgradeModal.kt` — major rewrite.
 **Current:** 4 cards in a horizontal `LazyRow`: Now / Free / AI / Bring own. AI has a tier toggle (4× / 8×).
-**Target:** Tiled grid (2×3 or 3×2 depending on orientation) with 5 cards:
-1. **None** — "use the source as-is, scale up with built-in Android tools". Pros: fastest, completely free, works on any device. Cons: visible pixelation at large sizes.
-2. **Free upscale (on-device AI)** — ESRGAN x4. Pros: free, offline, works anywhere. Cons: 4× max, slower on older phones.
-3. **AI upscale 4× (Topaz Gigapixel)** — premium. Pros: highest quality. Cons: premium price (~$X for this image).
-4. **AI upscale 8× (Topaz Gigapixel)** — same model, larger output. Pros + cons same plus 4× cost.
-5. **AI upscale (Recraft Crisp)** — cheaper precision option. Pros: $0.004/image flat (vs Topaz $0.01/MP), photo-faithful. Cons: 4× max output.
-6. **Bring your own** — file picker; free with any source.
 
-Every card shows: live credit cost (where applicable), USD equivalent, ETA, and a 1-line pros + 1-line cons. The 4× / 8× radio toggle is removed (each tier becomes its own card).
-**Implementation:** New `UpscaleOptionCard(option: UpscaleOption, ...)` taking a unified data class. Layout in `LazyVerticalGrid` with 2 columns. Substantial.
+**Target — default visible cards (tiled, not horizontal scroll):**
+1. **None** — "use the source as-is, scale up with built-in Android tools". Pros: fastest, completely free, works on any device. Cons: visible pixelation at large sizes.
+2. **Free upscale (on-device AI)** — ESRGAN x4. Pros: free, offline, works anywhere. Cons: 4× max output, slower on older phones.
+3. **AI upscale: Topaz Gigapixel** — premium precision. Pros: cleanest edges, polished output. Cons: highest cost.
+4. **AI upscale: Recraft Crisp** — cheaper precision. Pros: photo-faithful, ~40× cheaper than Topaz. Cons: less crisp on text/UI than Topaz.
+5. **Bring your own** — file picker; free with any source.
+
+**Below the visible cards, two text links:**
+
+- **"See other AI options"** — expands inline to reveal AuraSR + Real-ESRGAN cards. Selected by power users; default-collapsed because user A/B-testing showed AuraSR/ESRGAN clean-up was below acceptable bar.
+- **"Help me decide…"** — opens the comparison demo screen (H-P1.10b).
+
+The 4× / 8× radio toggle is removed; both Topaz tiers become separate cards if/when user reopens "See other AI options" (8× is power-user territory).
+
+**Per-card data:** live credit cost, USD equivalent, ETA, 1-line pros + 1-line cons.
+
+**Implementation:** New `UpscaleOptionCard(option: UpscaleOption, ...)` data class. Layout in `LazyVerticalGrid(columns = 2)`. Expandable section uses `AnimatedVisibility`.
+
+### H-P1.10b — "Help me decide…" comparison demo
+
+**Site:** New `app/src/main/kotlin/com/posterpdf/ui/screens/UpscaleComparisonScreen.kt`.
+
+**Demo subjects (4 baked-in, pulled from GCS at app build time):**
+- `disco_chicken` — face + text + graphics (the user's test image; 1024×1024)
+- `cat_shimmer` — soft fur + black background (Flickr photo `15558064844`, CC BY 2.0)
+- `gristmill` — high-detail building + foliage (Wikimedia `Wayside_Inn_Gristmill.jpg`, CC BY-SA 4.0)
+- `yardsale` — flyer with hand-drawn text + graphics (Flickr photo `4557813089`, CC BY-SA 2.0)
+
+For each subject we ship 5 image assets in `app/src/main/res/raw/`:
+- `<subject>_source.jpg` (the input)
+- `<subject>_topaz.jpg`
+- `<subject>_recraft.jpg`
+- `<subject>_aurasr.jpg`
+- `<subject>_esrgan.jpg`
+
+**Subject picker:** chip row at top of screen, persisted selection.
+
+**Comparison viewport:**
+- Pinch-to-zoom (Compose `transformGesture` with state-saved scale + offset; clamp 1× to 8×)
+- **Sliding handle for before/after**: vertical line draggable horizontally; left of line = source (input), right = upscaled. Dragging is `pointerInput` + `dragGesture`. Reuse the source-vs-upscaled split for any chosen model.
+- Model toggle below the viewport: chip row of `Topaz` / `Recraft` / `AuraSR` / `Real-ESRGAN`. Persists last selection.
+
+**Attribution footer:** mandatory CC license credit per source image (BY, BY-SA, etc.).
+
+**Bake step:** Phase H execution should run all 4 demo subjects through all 4 FAL models (16 jobs), download outputs, downsample to ≤2 MP each (small enough to fit in app raw dir without bloating APK), and commit. ~$0.50 in FAL fees one-time.
+
+### H-P1.10c — Credit denomination granularity refactor
+
+**Why:** With 4 model options at vastly different per-call costs, the current `MP_PER_CREDIT = 5` denomination collapses Recraft / AuraSR / Real-ESRGAN to "1 credit" each — destroys the price differentiation users need to choose. See cost analysis 2026-05-03.
+
+**Target:** `1 credit = $0.005 of FAL cost capacity` (10× more granular than current $0.05/credit). Keeps SKU prices fixed; just gives 10× more credits per pack.
+
+**Math at new denomination:**
+- $4.99 → 424 credits (was 42)
+- $9.99 → 849 credits (was 84)
+- $19.99 → 1,699 credits (was 169)
+- $39.99 → 3,399 credits (was 339)
+
+Per-image cost on disco_chicken at this denomination:
+- Topaz: 79 credits
+- AuraSR: 7 credits
+- Real-ESRGAN: 6 credits
+- Recraft Crisp: 2 credits
+- Free (on-device): 0 credits
+
+**Implementation:** Bump `MP_PER_CREDIT` constant (currently shared between `pricing.ts` / `upscale.ts` / `LowDpiUpgradeModal.kt`) AND introduce per-model COGS lookup (since not all models are per-MP). New `getCogsUsd(model, outputMp): Double` helper that knows each model's pricing shape (per-MP for Topaz, per-image for Recraft, per-compute-second for AuraSR + ESRGAN). Server-side `computeCreditsForJob(model, inputMp, outputMp): Int = ceil(getCogsUsd(model, outputMp) / 0.005)`.
+
+Old `creditsForUpscale(inputMp, scale)` is replaced by this per-model function.
 
 ### H-P1.11 — AI upscale card visuals: model brand image + magic wand + sparkles
 
