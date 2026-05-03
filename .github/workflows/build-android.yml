@@ -1,21 +1,29 @@
-name: Build Android (md3e A/B vs Cloud Build)
+name: Build Android
 
-# Mirrors cloudbuild.yaml's `gradle assembleDebug bundleRelease` so we can
-# compare wall-clock + outputs against Cloud Build for TODO 1 (GH Actions
-# migration). Triggered on push to feat/md3e-redesign and on demand via
-# workflow_dispatch.
+# Primary Android pipeline (replaced cloudbuild.yaml on 2026-05-02 after
+# the A/B run produced byte-identical APKs in 7m59s vs CB's 28m29s).
+# Backend deploys still go through cloudbuild-backend.yaml since that
+# pipeline's SA already has the right Firebase/Functions IAM roles.
 #
-# Secrets required (already provisioned 2026-05-02):
+# Secrets required (set 2026-05-02 via gh secret set):
 #   RELEASE_KEYSTORE_BASE64     - base64 of release.keystore
 #   GOOGLE_SERVICES_JSON_BASE64 - base64 of app/google-services.json
 #
-# Keystore passwords are still hardcoded in app/build.gradle.kts for the
-# A/B test (matches Cloud Build today). TODO 4 step 3 moves them to
-# env vars; do that as a follow-up before promoting this workflow.
+# Keystore passwords are still hardcoded in app/build.gradle.kts for v1
+# (matches Cloud Build behavior). TODO 4 step 3 moves them to env vars
+# as a follow-up; not blocking.
 
 on:
   push:
-    branches: [feat/md3e-redesign]
+    branches: [master, "feat/**"]
+    paths:
+      - 'app/**'
+      - '.github/workflows/build-android.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'app/**'
+      - '.github/workflows/build-android.yml'
   workflow_dispatch:
 
 jobs:
