@@ -142,28 +142,112 @@ For each subject we ship 5 image assets in `app/src/main/res/raw/`:
 
 **Bake step:** Phase H execution should run all 4 demo subjects through all 4 FAL models (16 jobs), download outputs, downsample to ≤2 MP each (small enough to fit in app raw dir without bloating APK), and commit. ~$0.50 in FAL fees one-time.
 
-### H-P1.10c — Credit denomination granularity refactor
+### H-P1.10c — Credit denomination: 1 credit = 1 cent + tiered SKU bonuses
 
-**Why:** With 4 model options at vastly different per-call costs, the current `MP_PER_CREDIT = 5` denomination collapses Recraft / AuraSR / Real-ESRGAN to "1 credit" each — destroys the price differentiation users need to choose. See cost analysis 2026-05-03.
+**Why:** Multi-model lineup needs price differentiation that doesn't collapse to "1 credit" for the cheap models. **And** the user wants the credit-to-cash mental model to be trivial: 1 credit = 1¢.
 
-**Target:** `1 credit = $0.005 of FAL cost capacity` (10× more granular than current $0.05/credit). Keeps SKU prices fixed; just gives 10× more credits per pack.
+**Pricing model:**
+- 1 credit = $0.01 retail (always)
+- Cost-per-credit budget at 50% margin: $0.01 × 0.85 (Play fee) × 0.50 = **$0.00425**
+- All in-app COGS conversions use this constant
 
-**Math at new denomination:**
-- $4.99 → 424 credits (was 42)
-- $9.99 → 849 credits (was 84)
-- $19.99 → 1,699 credits (was 169)
-- $39.99 → 3,399 credits (was 339)
+**SKU ladder with tiered bonuses (cash-flow boost via volume discount):**
 
-Per-image cost on disco_chicken at this denomination:
-- Topaz: 79 credits
-- AuraSR: 7 credits
-- Real-ESRGAN: 6 credits
-- Recraft Crisp: 2 credits
-- Free (on-device): 0 credits
+| SKU | Price | Base credits | Bonus credits | Total | Bonus % |
+|---|---|---|---|---|---|
+| `credits_starter` | $1.99 | 199 | 0 | **199** | 0% |
+| `credits_small` | $4.99 | 499 | 25 | **524** | 5% |
+| `credits_medium` | $9.99 | 999 | 75 | **1,074** | 7.5% |
+| `credits_large` | $19.99 | 1,999 | 200 | **2,199** | 10% |
 
-**Implementation:** Bump `MP_PER_CREDIT` constant (currently shared between `pricing.ts` / `upscale.ts` / `LowDpiUpgradeModal.kt`) AND introduce per-model COGS lookup (since not all models are per-MP). New `getCogsUsd(model, outputMp): Double` helper that knows each model's pricing shape (per-MP for Topaz, per-image for Recraft, per-compute-second for AuraSR + ESRGAN). Server-side `computeCreditsForJob(model, inputMp, outputMp): Int = ceil(getCogsUsd(model, outputMp) / 0.005)`.
+*(NB: this redenominates and renames the SKUs from Phase G — the existing `credits_small` / `medium` / `large` / `jumbo` ladder is replaced with a 4-tier `starter` / `small` / `medium` / `large`. Old purchases keep their grants; only future grants use the new ladder.)*
 
-Old `creditsForUpscale(inputMp, scale)` is replaced by this per-model function.
+**Per-image cost on disco_chicken (16.78 MP output) at new denomination:**
+
+| Model | COGS | Credits charged (ceil COGS/$0.00425) |
+|---|---|---|
+| Topaz Gigapixel | $0.168 | **40 credits** |
+| AuraSR v2 | $0.013 | **4 credits** |
+| Real-ESRGAN | $0.011 | **3 credits** |
+| Recraft Crisp | $0.004 | **1 credit** |
+| Free (on-device) | $0 | 0 credits |
+
+**Implementation:**
+- Replace `MP_PER_CREDIT = 5` with `CREDIT_COST_BUDGET_USD = 0.00425` (same name in `pricing.ts` / `upscale.ts` / `LowDpiUpgradeModal.kt` for cross-file consistency).
+- New `getCogsUsd(model, outputMp, computeSeconds?): Double` helper knowing each model's pricing shape (per-MP for Topaz; per-image flat for Recraft; per-compute-second for AuraSR + ESRGAN).
+- Backend: `computeCreditsForJob(...) = ceil(getCogsUsd(...) / CREDIT_COST_BUDGET_USD)`.
+- For estimating before submit (when compute_seconds not yet known): assume ~1 sec per output MP for AuraSR/ESRGAN. Charge the estimate; refund if actual under-runs by >2 credits.
+- SKU IDs in Play Console need to be created fresh; existing SKUs from Phase G plan are obsolete. Coordinate with Play Console paid setup (G1).
+
+---
+
+## H-P3 — Storage policy + History view + cleanup automation
+
+User-mandated 2026-05-03 to bound cloud storage growth.
+
+### H-P3.1 — Retention policy
+
+**Source-of-truth in `pricing-policy.md`:**
+
+| Tier | Where | Duration | Cost to user |
+|---|---|---|---|
+| History list (metadata) | Firestore `users/{uid}/history/{historyId}` | Indefinite | Free |
+| Local PDF cache | Device storage | Indefinite, until app uninstalled | Free |
+| **Cloud PDF storage (default)** | GCS `gs://.../user-pdfs/{uid}/{historyId}.pdf` | First 30 days free; after that, **1 credit/month** per file | Free → 1 credit/file/month after day 30 |
+| Cloud PDF (grace period) | Same | 30 more days after credit balance hits 0 | Free + email + in-app notification |
+| Cloud PDF (auto-delete opt-in) | Same | 30 days exactly | Free, then deleted with no charge |
+
+The 1-credit-per-file-per-month rate gives the project a 90% margin on storage (typical 20MB PDF costs us ~$0.0004/month at GCS standard rates; 1 credit = $0.00425 cost budget). The user pays roughly **1¢ per file per month** to keep posters stored beyond 30 days.
+
+### H-P3.2 — Account setup question (new flow)
+
+On first sign-in (or in Settings later), present the choice:
+
+> **What should happen to your posters after 30 days?**
+>
+> 🅐 **Auto-delete after 30 days** — keeps your storage bill at zero. Local copies and history list stay forever.
+> 🅑 **Keep storing them** — about **1¢ per poster per month** after the first 30 days. Charged from your credit balance.
+
+Persists to `users/{uid}.storageRetentionMode = 'auto-delete' | 'paid'`. Default if user closes the dialog: `paid` (matches user expectation of "saved == saved").
+
+### H-P3.3 — Backend: retention cron + credit deduction
+
+New `backend/functions/src/storageBilling.ts`:
+
+- **Cron `storageBilling.dailySweep`** at 03:00 UTC daily:
+  1. For each `users/{uid}/history/{historyId}` doc with `cloudStorageUri` set:
+     - If `createdAt > now - 30d`: skip (free tier)
+     - If user.storageRetentionMode = 'auto-delete' AND `createdAt > now - 30d`: delete blob + clear `cloudStorageUri` field, log to `users/{uid}/storageLog`
+     - If user.storageRetentionMode = 'paid': charge 1 credit (atomic Firestore txn). On insufficient credits, set `gracePeriodStartedAt = now`. After `gracePeriodStartedAt + 30d`: delete blob.
+  2. Coalesce notifications: if any deletes happened for a user, send a single email + push notification listing the affected posters.
+
+- **Callable `deleteCloudCopy(historyId)`** — user-initiated cloud deletion from History view.
+
+### H-P3.4 — History view: per-row buttons
+
+In `HistoryScreen.kt`, each row gets four icon buttons:
+
+| Icon | Action | Behaviour |
+|---|---|---|
+| `Visibility` | View | Open the poster preview (existing) |
+| `Share` | Share | System share-sheet with the cloud URL or local URI |
+| `Download` | Download | Pull cloud copy to local Downloads folder |
+| `CloudOff` | Delete from cloud | Confirmation dialog → calls `deleteCloudCopy` callable |
+
+Local-only entries (no `cloudStorageUri`) hide the cloud-delete button.
+
+### H-P3.5 — Notifications
+
+- **Push (Firebase Cloud Messaging)**: 7 days before a free-tier expiry, 24h before a grace-period expiry.
+- **Email**: same triggers, sent via Firebase Auth's default templates or a Cloud Run integration with SendGrid/Mailgun (defer choice; for v1 use Firebase Auth's "custom email handler" path).
+
+### H-P3.6 — Pricing policy doc update
+
+Update `docs/superpowers/pricing-policy.md` to reflect:
+- 1 credit = 1¢ retail at $0.00425 COGS budget (replaces the per-MP model)
+- New 4-tier SKU ladder with bonus credits
+- Cloud storage tier with 30-day free + 1-credit/file/month + grace period
+- Auto-delete vs paid choice in Settings
 
 ### H-P1.11 — AI upscale card visuals: model brand image + magic wand + sparkles
 
@@ -210,6 +294,17 @@ Old `creditsForUpscale(inputMp, scale)` is replaced by this per-model function.
 **Site:** `BringYourOwnHelpDialog.kt` (new) shown when "Show me how to do it…" is tapped. Then transitions to file picker.
 **Content:** Step-by-step guide for Canva, OpenArt, FAL.ai, Topaz Photo AI: how to upload your image, run upscale, download the output, return to PosterPDF and select the upscaled file. Each step has a screenshot or mockup.
 
+### H-P1.13 — SVG support: rasterize at target poster resolution
+
+**Site:** `PosterPreview.kt` decode path + `PosterLogic.kt` generation path.
+**Current:** SVG is listed in "Supported File Types" but `BitmapFactory.decodeStream` returns null for SVG. The Coil-based preview shows the SVG correctly (`coil-svg` is on the classpath), but the bitmap state stays null — `Generate Poster` produces a broken/empty PDF, and the upscale modal can't open (gated on `previewBitmap != null`).
+**Target:** When the picked URI's MIME or extension is SVG:
+1. Use `androidsvg-aar` (already in deps) to rasterize at the target poster pixel resolution (`posterWidthInches × 300 DPI` default). This guarantees crisp output regardless of source.
+2. Skip the upscale modal entirely — vector sources don't need upscaling.
+3. The DPI gate I just added (H-P1.9) already handles this correctly because `computeCurrentDpi()` returns `0f` when `sourcePixelDimensions` is null, which is outside the gate range. Once SVG → bitmap rasterization lands, source dims become known and gate behaves normally.
+
+**Estimate:** 1-2 hours (mostly the SVG → Bitmap conversion + plumbing into the existing path). Include a small "Vector source — prints sharp at any size" tooltip near the upscale UI to explain to SVG users why no upscale option appears.
+
 ### H-P2.7 — QR code in PDF branding
 
 **Site:** PDF generation pipeline (`PosterLogic.kt` or wherever the brand footer is drawn).
@@ -228,11 +323,13 @@ Old `creditsForUpscale(inputMp, scale)` is replaced by this per-model function.
 
 ## Suggested execution order
 
-1. **H-P0** ✅ shipped tonight in commit `[hash]`
-2. **H-P1.4 / H-P1.5 / H-P1.6** (trivial tweaks) — single subagent
-3. **H-P1.10 + H-P1.12** (modal rewrite + per-card DPI) — paired subagent
-4. **H-P1.1 / H-P1.2 / H-P1.3** (asset-heavy: paper, ruler, dogcow) — Vertex pipeline + dispatched subagent
-5. **H-P1.11** (AI brand + AGSL sparkles) — depends on H-P1.10 landing
-6. **H-P1.7 / H-P1.8** (construction preview) — substantial; subagent with focused spec
-7. **H-P1.9** (DPI gate modal on View/Save/Share)
-8. **H-P2** batch — content writing + new screens
+1. **H-P0** ✅ shipped 2026-05-03 in commit `5fb3afd`
+2. **H-P1.10c** (credit denomination → 1 credit = 1¢ + tiered bonus SKUs) — *foundation; everything pricing-related depends on it*
+3. **H-P1.4 / H-P1.5 / H-P1.6** (trivial tweaks: file types comma list, Share button text, page curl removal) — single subagent
+4. **H-P1.10 + H-P1.10b + H-P1.12** (modal rewrite + comparison demo + per-card DPI) — paired subagent. Depends on H-P1.10c.
+5. **H-P3** (storage policy + retention cron + History buttons + account setup question) — substantial; can run in parallel with H-P1.10 since file overlap is minimal. Depends on H-P1.10c (credit math).
+6. **H-P1.1 / H-P1.2 / H-P1.3** (asset-heavy: paper, ruler, dogcow) — Vertex pipeline + dispatched subagent
+7. **H-P1.11** (AI brand + AGSL sparkles) — depends on H-P1.10 landing
+8. **H-P1.7 / H-P1.8** (construction preview rework) — subagent with focused spec
+9. **H-P1.9** (DPI gate modal on View/Save/Share)
+10. **H-P2** batch — content writing + new screens
