@@ -441,7 +441,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                      }
                      Slider(
                          value = viewModel.targetDpi.toFloat(),
-                         onValueChange = { viewModel.setTargetDpi(it.toInt()) },
+                         onValueChange = { viewModel.chooseTargetDpi(it.toInt()) },
                          valueRange = 75f..1200f,
                          steps = 14, // ~75-step increments
                      )
@@ -852,7 +852,15 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Icon(Icons.Default.Visibility, null, Modifier.size(28.dp))
                                             Spacer(Modifier.height(4.dp))
-                                            Text("View", maxLines = 1)
+                                            // Layer 1 i18n hardening: allow 2 lines + ellipsis so DE/FR/RU
+                                            // expansion (e.g. "Anzeigen", "Просмотреть") doesn't overflow.
+                                            Text(
+                                                stringResource(R.string.action_view),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                maxLines = 2,
+                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                            )
                                         }
                                     }
 
@@ -873,7 +881,13 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Icon(Icons.Default.Save, null, Modifier.size(28.dp))
                                             Spacer(Modifier.height(4.dp))
-                                            Text("Save", maxLines = 1)
+                                            Text(
+                                                stringResource(R.string.action_save),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                maxLines = 2,
+                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                            )
                                         }
                                     }
 
@@ -903,7 +917,13 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Icon(Icons.Default.Share, null, Modifier.size(28.dp))
                                             Spacer(Modifier.height(4.dp))
-                                            Text("Share…", maxLines = 1)
+                                            Text(
+                                                stringResource(R.string.action_share),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                maxLines = 2,
+                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                            )
                                         }
                                     }
                                 }

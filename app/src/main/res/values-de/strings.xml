@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App-Identität -->
+    <string name="app_name">Poster PDF</string>
+    <string name="brand_name">PosterPDF</string>
+
+    <!-- Splash -->
+    <string name="splash_tap_to_skip">Zum Überspringen tippen</string>
+
+    <!-- Allgemeine Schaltflächen / Dialoge -->
+    <string name="common_ok">OK</string>
+    <string name="common_save">Speichern</string>
+    <string name="common_cancel">Abbrechen</string>
+    <string name="common_delete">Löschen</string>
+    <string name="common_back">Zurück</string>
+    <string name="common_refresh">Aktualisieren</string>
+    <string name="common_got_it">Verstanden</string>
+
+    <!-- Obere Leiste -->
+    <string name="topbar_settings_menu">Einstellungen</string>
+    <string name="topbar_credit_badge">KI-Credits</string>
+
+    <!-- Navigationsleiste Überschriften + Einträge -->
+    <string name="drawer_settings_header">Einstellungen</string>
+    <string name="drawer_units_label">Einheiten</string>
+    <string name="drawer_debug_logging_title">Debug-Protokoll</string>
+    <string name="drawer_debug_logging_subtitle">Protokolle im Downloads-Ordner speichern</string>
+    <string name="drawer_posters_generated_title">Erstellte Poster</string>
+    <string name="drawer_posters_generated_subtitle">Poster insgesamt erstellt</string>
+    <string name="drawer_default_paper_size">Standard-Papierformat</string>
+    <string name="drawer_supported_file_types_label">Unterstützte Dateitypen:</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_cloud_storage">Cloud-Speicher…</string>
+    <string name="drawer_target_dpi_label">Ziel-DPI: %1$d</string>
+    <string name="drawer_target_dpi_help">Höhere DPI → schärferer Druck, mehr Upscale-Credits verbraucht. 150 ist Standard für Poster; 300 für Fotos; 600+ für Fine Art.</string>
+    <string name="drawer_getting_started">Erste Schritte</string>
+    <string name="drawer_help">Hilfe</string>
+    <string name="drawer_faq">FAQ</string>
+    <string name="drawer_privacy_policy">Datenschutz</string>
+    <string name="drawer_support">Support</string>
+    <string name="drawer_reset_to_defaults">Zurücksetzen</string>
+    <string name="drawer_no_browser_for_support">Kein Browser installiert, um den Support-Link zu öffnen.</string>
+
+    <!-- Hinweis-Banner -->
+    <string name="nag_title">Entwickler unterstützen</string>
+    <string name="nag_body">Sie haben %1$d Poster erstellt! Bitte registrieren Sie sich im Play Store für nur $2, um die Entwicklung zu unterstützen.</string>
+    <string name="nag_play_store_url">play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="nag_maybe_later">Später</string>
+    <string name="nag_maybe_later_countdown">Später (%1$ds)</string>
+    <string name="nag_dismiss">Schließen</string>
+
+    <!-- Einführung -->
+    <string name="onboarding_how_to_get_started">So legen Sie los:</string>
+    <string name="onboarding_step1">Wählen Sie oben ein hochauflösendes Bild.</string>
+    <string name="onboarding_step2">Legen Sie die endgültigen Posterdimensionen fest.</string>
+    <string name="onboarding_step3">Wählen Sie Papierformat und Ausrichtung.</string>
+    <string name="onboarding_step4">Anzeigen oder speichern Sie Ihr druckfertiges PDF!</string>
+
+    <!-- Bildinformationen -->
+    <string name="info_chip_resolution">Auflösung</string>
+    <string name="info_chip_aspect_ratio">Seitenverhältnis</string>
+    <string name="info_dialog_aspect_ratio_title">Seitenverhältnis</string>
+    <string name="info_dialog_aspect_ratio_body">Dies ist das Verhältnis von Breite zu Höhe. Die gesperrte Skalierung stellt sicher, dass Ihr Poster exakt die Bildproportionen beibehält.</string>
+
+    <!-- Postergröße -->
+    <string name="poster_size_section">Postergröße</string>
+    <string name="poster_width_with_unit">Breite (%1$s)</string>
+    <string name="poster_height_with_unit">Höhe (%1$s)</string>
+
+    <!-- Papier &amp; Layout -->
+    <string name="paper_layout_section">Papier &amp; Layout</string>
+    <string name="paper_size_section">Papierformat</string>
+    <string name="orientation_section">Ausrichtung</string>
+    <string name="orientation_best_fit">Optimale Passung</string>
+    <string name="orientation_portrait">Hochformat</string>
+    <string name="orientation_landscape">Querformat</string>
+    <string name="orientation_portrait_cd">Hochformat (Clarus the Dogcow stehend)</string>
+    <string name="orientation_landscape_cd">Querformat (Clarus the Dogcow seitlich)</string>
+    <string name="orientation_best_fit_cd">Optimale Ausrichtung</string>
+    <string name="margin_with_unit">Rand (%1$s)</string>
+    <string name="overlap_with_unit">Überlappung (%1$s)</string>
+    <string name="margin_info_title">Rand</string>
+    <string name="margin_info_body">Der unbedruckte Bereich an den Rändern jeder Seite. Die meisten Heimdrucker benötigen mindestens 0,25 in (0,64 cm).</string>
+    <string name="overlap_info_title">Überlappung</string>
+    <string name="overlap_info_body">Der wiederholte Bereich zwischen den Kacheln, um das Ausrichten und Zusammenkleben zu erleichtern. 0,25 bis 0,5 in wird empfohlen.</string>
+    <string name="project_scope">Projektumfang: %1$d Seiten (%2$d Zeilen × %3$d Spalten)</string>
+
+    <!-- Papierformat-Karten -->
+    <string name="paper_recommended">Empfohlen</string>
+    <string name="paper_custom">Benutzerdefiniert</string>
+
+    <!-- Einheiten -->
+    <string name="units_inches">Zoll</string>
+    <string name="units_centimeters">Zentimeter</string>
+
+    <!-- Erweiterte Gestaltung -->
+    <string name="advanced_section">Erweiterte Gestaltung</string>
+    <string name="advanced_borders_title">Seitenränder &amp; Schnittmarken</string>
+    <string name="advanced_borders_body">Wird auf jeder Seite gedruckt, um das Zuschneiden und Ausrichten nach dem Druck zu erleichtern. \"Schnittmarken\" druckt Eckmarkierungen, wie in einer professionellen Druckerei. Durchgehend/gestrichelt/gepunktet zeichnet einen vollständigen Rahmen in verschiedenen Stärken. Wählen Sie \"Kein\", wenn Sie saubere Kanten möchten.</string>
+    <string name="advanced_label_panes">Jedes Feld beschriften (A1, B2…)</string>
+    <string name="advanced_include_instructions">Montageanleitung einschließen</string>
+
+    <!-- Umrissvorschau -->
+    <string name="outline_none">Kein</string>
+
+    <!-- Aktionsschaltflächen -->
+    <string name="action_view">Anzeigen</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_share">Teilen…</string>
+    <string name="chooser_open_pdf">PDF öffnen</string>
+    <string name="chooser_share_pdf">PDF teilen</string>
+
+    <!-- Niedrige DPI-Warnung -->
+    <string name="low_dpi_dialog_title">Druck in niedriger Auflösung</string>
+    <string name="low_dpi_dialog_body">Ihr Poster hat derzeit ca. %1$d DPI. Für einen scharfen Druck sind mindestens 150 DPI erforderlich. Trotzdem fortfahren oder Bild zuerst hochskalieren?</string>
+    <string name="low_dpi_dialog_continue">Trotzdem fortfahren</string>
+    <string name="low_dpi_dialog_upgrade">Quelle zuerst verbessern</string>
+
+    <!-- Erster-Start-Assistent -->
+    <string name="first_run_title">Willkommen bei Poster PDF!</string>
+    <string name="first_run_intro">Richten Sie die App ein. Sie können diese Einstellungen jederzeit im Seitenmenü ändern.</string>
+    <string name="first_run_units_label">Bevorzugte Maßeinheit wählen:</string>
+    <string name="first_run_paper_label">Standard-Papierformat:</string>
+    <string name="first_run_get_started">Loslegen</string>
+
+    <!-- Verlauf (Navigation + Bildschirm) -->
+    <string name="history_section_title">Verlauf</string>
+    <string name="history_refresh_cd">Verlauf aktualisieren</string>
+    <string name="history_empty_drawer">Noch keine Poster. Erstellen Sie eines — es erscheint hier.</string>
+    <string name="history_view_all">Alle anzeigen</string>
+    <string name="history_view_all_count">Alle anzeigen (%1$d)</string>
+    <string name="history_screen_title">Verlauf</string>
+    <string name="history_empty_title">Noch kein Verlauf</string>
+    <string name="history_empty_subtitle">Erstellen Sie ein Poster — es erscheint hier.</string>
+    <string name="history_card_view_cd">Anzeigen</string>
+    <string name="history_card_share_cd">Teilen</string>
+    <string name="history_card_download_cd">Aus Cloud herunterladen</string>
+    <string name="history_card_delete_cloud_cd">Cloud-Kopie löschen</string>
+    <string name="history_delete_dialog_title">Cloud-Kopie löschen?</string>
+    <string name="history_delete_dialog_body">Dies entfernt das Poster aus dem Cloud-Speicher. Ihre lokale Kopie und dieser Verlaufseintrag bleiben unberührt — Sie verlieren lediglich die Möglichkeit, das Poster später erneut aus der Cloud herunterzuladen. Gibt Speicherplatz auf Ihrem Konto frei.</string>
+
+    <!-- Kontobereich -->
+    <string name="account_section_title">Konto</string>
+    <string name="account_offline">Offline — Firebase nicht erreichbar. PDFs funktionieren weiterhin lokal.</string>
+    <string name="account_anonymous_explainer">Anonym angemeldet. Mit Google anmelden, um den Verlauf geräteübergreifend zu sichern.</string>
+    <string name="account_sign_in_with_google">Mit Google anmelden</string>
+    <string name="account_signed_in_fallback">Angemeldet</string>
+    <string name="account_profile_picture_cd">Profilbild</string>
+    <string name="account_sign_out">Abmelden</string>
+
+    <!-- Bildauswahl -->
+    <string name="picker_select_image_cd">Bild auswählen</string>
+    <string name="picker_pick_an_image">Bild für Ihr Poster wählen</string>
+    <string name="picker_selected_cd">Ausgewähltes Posterbild</string>
+    <string name="picker_change_image">Bild ändern</string>
+
+    <!-- Credit-Badge -->
+    <string name="credit_badge_cd">KI-Credits</string>
+    <string name="credit_badge_admin_infinity">∞</string>
+
+    <!-- Kaufbereich -->
+    <string name="purchase_ai_credits">KI-Credits</string>
+    <string name="purchase_balance">Guthaben: %1$d</string>
+    <string name="purchase_signin_title">Anmelden, um Credits zu kaufen</string>
+    <string name="purchase_signin_body">Credits sind mit Ihrem Google-Konto verknüpft, damit Sie sie auf allen Geräten und nach Neuinstallationen behalten.</string>
+    <string name="purchase_signin_button">Mit Google anmelden</string>
+    <string name="purchase_choose_pack">Credit-Paket wählen</string>
+    <string name="purchase_recent_transactions">Letzte Transaktionen</string>
+    <string name="purchase_no_transactions">Noch keine Transaktionen.</string>
+    <string name="purchase_restore">Käufe wiederherstellen</string>
+    <string name="purchase_sku_starter">Starter</string>
+    <string name="purchase_sku_small">Klein</string>
+    <string name="purchase_sku_medium">Mittel</string>
+    <string name="purchase_sku_large">Groß</string>
+    <string name="purchase_sku_credits_price">%1$d Credits  -  %2$s</string>
+    <string name="purchase_buy">Kaufen</string>
+
+    <!-- Speicheraufbewahrung -->
+    <string name="storage_dialog_title">Was soll nach 30 Tagen mit Ihren Postern geschehen?</string>
+    <string name="storage_dialog_body">Ihre lokalen Kopien und die Verlaufsliste bleiben für immer erhalten. Diese Wahl betrifft nur die in der Cloud gespeicherten Poster-PDFs.</string>
+    <string name="storage_auto_delete_title">Nach 30 Tagen auto. löschen</string>
+    <string name="storage_auto_delete_body">Hält Ihre Speicherkosten bei null. Nach 30 Tagen wird die Cloud-Kopie entfernt; lokale Kopie und Verlaufsliste bleiben erhalten.</string>
+    <string name="storage_paid_title">Weiter speichern</string>
+    <string name="storage_paid_body">Ca. 1 Cent pro Poster pro Monat nach den ersten 30 Tagen, abgezogen vom Credit-Guthaben. Bei aufgebrauchtem Guthaben wird die Datei weitere 30 Tage aufbewahrt und Sie werden vor der Löschung per E-Mail benachrichtigt.</string>
+    <string name="storage_decide_later">Später entscheiden</string>
+
+    <!-- Hilfe-Bildschirm -->
+    <string name="screen_help_title">Hilfe</string>
+    <string name="help_paper_sizes_title">Papierformate</string>
+    <string name="help_paper_sizes_body">PosterPDF unterstützt Letter (8,5×11 in), Legal (8,5×14 in), Tabloid (11×17 in), A4 (8,27×11,69 in), A3 (11,69×16,54 in) sowie ein benutzerdefiniertes Format für ungewöhnliche Drucker. Letter ist der Heimdrucker-Standard in Nordamerika; A4 ist weltweit der Standard. Wählen Sie das Format, das dem Papier in Ihrem Drucker entspricht — die App kachelt Ihr Poster auf so viele Seiten wie nötig.</string>
+    <string name="help_low_dpi_title">Niedrige-DPI-Warnung</string>
+    <string name="help_low_dpi_body">Wenn Ihr Bild weniger Pixel hat, als der Druckgröße entspricht, zeigen wir eine gelbe Warnung und ein Tipp-zum-Beheben-Banner unter der Vorschau. 150 DPI ist die Faustregel für scharfe Drucke. Darunter wird Ihr Poster verschwommen oder pixelig aussehen. Tippen Sie auf das Banner, um das Hochskalierungs-Fenster zu öffnen — es zeigt, wie Ihr Ergebnis mit jeder Upscale-Option aussehen wird, mit Credits-Kosten.</string>
+    <string name="help_upscale_title">Upscale-Optionen</string>
+    <string name="help_upscale_body">Fünf Standardkarten: \'Jetzt (pixelig)\' zeigt das Ergebnis ohne Upscale; \'Kostenlos hochskalieren\' führt ESRGAN lokal auf Ihrem Telefon aus (kein Internet, keine Credits, ~30 s); \'Topaz 4×\' ist die qualitativ hochwertigste kostenpflichtige Option; \'Recraft Crisp\' ist fotogetreu und ~40× günstiger als Topaz; \'Eigenes mitbringen\' ermöglicht das Laden einer Datei, die Sie extern hochskaliert haben (Canva, OpenArt, Magnific oder Topaz Desktop). Tippen Sie auf \'Weitere KI-Optionen\' für Topaz 8×, AuraSR und ESRGAN.</string>
+    <string name="help_signin_title">Anmeldung</string>
+    <string name="help_signin_body">Beim ersten Start wird eine anonyme Firebase Auth-Sitzung erstellt — Ihr Verlauf funktioniert sofort, ohne Konto. Um den Verlauf geräteübergreifend zu behalten (oder nach einer Neuinstallation wiederherzustellen), öffnen Sie das Seitenmenü und tippen Sie auf \'Mit Google anmelden\'. Wir erfassen nur Ihren Namen und Ihre E-Mail-Adresse; wir posten nicht in Ihrem Namen, lesen keine anderen Google-Daten und geben nichts an Dritte weiter.</string>
+    <string name="help_history_title">Verlauf</string>
+    <string name="help_history_body">Jedes generierte Poster erscheint in der Verlaufsliste. Jede Zeile hat 4 Schaltflächen: Anzeigen öffnet das lokale PDF; Teilen übergibt es an E-Mail- oder Messaging-Apps; Herunterladen (Cloud-Symbol) lädt eine Kopie aus dem Cloud-Speicher, falls Sie sich dafür entschieden haben; Löschen (kein-Cloud-Symbol) entfernt die Cloud-Kopie, ohne Ihre lokale Datei oder den Verlaufseintrag zu berühren.</string>
+    <string name="help_sharing_title">Teilen</string>
+    <string name="help_sharing_body">Die neue Schaltfläche \'Teilen…\' auf dem Hauptbildschirm ermöglicht es Ihnen, das aktuelle Poster an beliebige Apps zu senden — Gmail, WhatsApp, Drive, die Drucker-App usw. Das PDF wird jedes Mal neu generiert und spiegelt stets die aktuellen Einstellungen wider.</string>
+
+    <!-- FAQ-Bildschirm -->
+    <string name="screen_faq_title">FAQ</string>
+    <string name="faq_q_credits">Warum werden Credits benötigt?</string>
+    <string name="faq_a_credits">Credits bezahlen KI-Upscale-Aufrufe — Topaz, Recraft, AuraSR, Magnific. Da jeder Anbieter pro Bild berechnet, berechnen wir Credits pro Bild. PosterPDF selbst (Poster-Generierung, Upscale auf dem Gerät, Verlauf, 30-Tage-Cloud-Speicher) ist mit beliebiger Bildquelle kostenlos. Credits gelten nur bei Wahl einer KI-Upscale-Option.</string>
+    <string name="faq_q_credit_value">Warum sind meine Credits weniger wert als der Kaufpreis?</string>
+    <string name="faq_a_credit_value">Transparenz bei der Marge: Die zugrundeliegenden KI-Anbieter berechnen uns etwa zwei Drittel dessen, was Sie zahlen. Das verbleibende Drittel deckt den 15%% Play Store-Anteil, Serverkosten (Cloud Functions + Firestore + Storage) und lässt eine kleine Marge zur Finanzierung der Entwicklung. Wir zielen auf ~50%% über den reinen FAL.ai-Kosten — das reicht, um die Lichter anzulassen, aber nicht um reich zu werden. Der genaue USD-Äquivalent wird für jedes Credit-Paket angezeigt, damit es keine Überraschungen gibt.</string>
+    <string name="faq_q_offline">Kann ich die App offline nutzen?</string>
+    <string name="faq_a_offline">Ja, für den Kernablauf: Bildauswahl, Poster-Generierung, kostenloser Upscale auf dem Gerät sowie Anzeigen/Speichern/Teilen funktionieren ohne Internet. Internet wird benötigt für: Google-Anmeldung, KI-Upscale (Topaz, Recraft usw.), Credit-Kauf und Cloud-Speicher-Synchronisierung. Verlaufsmetadaten werden im Hintergrund synchronisiert, sobald Sie wieder verbunden sind.</string>
+    <string name="faq_q_sha1">Wofür ist der SHA-1-Fingerabdruck?</string>
+    <string name="faq_a_sha1">Google Sign-In verknüpft das APK-Signaturzertifikat der App mit Ihrem Firebase Auth-Projekt. Der SHA-1-Fingerabdruck unseres Release-Keystores ist bei Firebase registriert, sodass nur ein mit genau diesem Keystore signiertes APK Google Sign-In verwenden kann. Dies verhindert, dass böswillige Akteure ein gefälschtes APK veröffentlichen, das Ihr Google-Konto phishen könnte. Schlägt die Anmeldung direkt nach der Installation fehl, ist ein APK mit einem Debug- oder Drittanbieter-Keystore die häufigste Ursache.</string>
+    <string name="faq_q_out_of_credits">Was passiert, wenn meine Credits aufgebraucht sind?</string>
+    <string name="faq_a_out_of_credits">Zwei Dinge, die unabhängig voneinander sind. (1) KI-Upscale-Optionen werden im Fenster einfach nicht verfügbar — die Schaltflächen werden zu \'Credits kaufen\'-Aufforderungen. Kostenloser Upscale und PDF-Generierung funktionieren weiterhin. (2) Wenn Sie außerdem Cloud-Speicher in einem kostenpflichtigen Tarif haben, treten Ihre gespeicherten PDFs in eine 30-tägige Kulanzfrist ein: Wir senden eine Warnung per E-Mail, und nach 30 Tagen werden die Cloud-Kopien gelöscht. Lokale Kopien und Verlaufseinträge sind nicht betroffen.</string>
+    <string name="faq_q_pdf_time">Warum dauert die PDF-Generierung ~30 Sekunden?</string>
+    <string name="faq_a_pdf_time">Jede Kachel wird separat auf der Ziel-Papiergröße gerendert, mit pro-Kachel zugeschnittenem und skaliertem Bild. Ein 4×4-Raster bedeutet 16 Bild-Skalierungsoperationen, jede gefolgt von der PDF-Seitenkomposition mit Linealen, Beschriftungen, Schnittmarken und dem Marken-Footer. Wir könnten Zwischenergebnisse cachen, aber die pro-Kachel-Skalierung ist der ehrliche Weg, um gedruckte Pixel scharf zu halten. Größere Poster brauchen länger.</string>
+    <string name="faq_q_custom_paper">Kann ich auf einem nicht standardmäßigen Papierformat drucken?</string>
+    <string name="faq_a_custom_paper">Ja — wählen Sie \'Benutzerdefiniert\' in der Papierformat-Auswahl. Es erscheinen zwei zusätzliche Felder für Papierbreite und -höhe. Verwenden Sie dies, wenn Ihr Drucker A5, B5, Fotopapier oder ein Format nimmt, das wir nicht auflisten. Die Kachel-Berechnung funktioniert gleich; wir vertrauen einfach den eingegebenen Maßen.</string>
+    <string name="faq_q_data_deletion">Was, wenn ich meine Daten löschen möchte?</string>
+    <string name="faq_a_data_deletion">Drei Wege, je nach Umfang. Nur lokal: Einstellungen → Zurücksetzen löscht Präferenzen und setzt die App auf diesem Gerät zurück. Pro-Poster-Cloud-Kopie: Öffnen Sie den Verlauf, finden Sie die Zeile, tippen Sie auf das rote kein-Cloud-Symbol. Kontoweite Löschung (Auth-Eintrag + alle Firestore-Verlaufsdaten + alle Cloud-gespeicherten PDFs): Senden Sie eine E-Mail an support@joeputin.com von der Adresse, die mit Ihrem Google-Konto verknüpft ist, und wir bearbeiten die Anfrage manuell innerhalb von 7 Tagen.</string>
+
+    <!-- Erste-Schritte-Bildschirm -->
+    <string name="screen_getting_started_title">Erste Schritte</string>
+    <string name="getting_started_intro">PosterPDF verwandelt beliebige Bilder in druckfertige Wandposter, gekachelt auf Letter- oder A4-Seiten, die Sie zu Hause zusammensetzen können. Wählen Sie ein Foto, legen Sie die gewünschte Postergröße fest, und wir generieren ein druckfertiges PDF, das Sie direkt an Ihren Drucker senden können.</string>
+    <string name="getting_started_free_section">Was Sie kostenlos erhalten</string>
+    <string name="getting_started_feat_poster_title">Poster-Generierung</string>
+    <string name="getting_started_feat_poster_body">Jedes Bild auf mehrere Seiten kacheln — ohne Wasserzeichen, ohne Seitenlimit.</string>
+    <string name="getting_started_feat_paper_title">Alle Papierformate</string>
+    <string name="getting_started_feat_paper_body">Letter, Legal, Tabloid, A3, A4 sowie ein benutzerdefiniertes Format für ungewöhnliche Drucker.</string>
+    <string name="getting_started_feat_upscale_title">Upscale auf dem Gerät</string>
+    <string name="getting_started_feat_upscale_body">4×-Upscale läuft lokal auf Ihrem Telefon — kein Internet, keine Credits.</string>
+    <string name="getting_started_feat_storage_title">30-Tage-Cloud-Speicher</string>
+    <string name="getting_started_feat_storage_body">Wir speichern Ihre generierten PDFs 30 Tage, damit Sie sie von einem anderen Gerät erneut herunterladen können.</string>
+    <string name="getting_started_feat_history_title">Verlauf für immer</string>
+    <string name="getting_started_feat_history_body">Jedes erstellte Poster bleibt im lokalen Verlauf auf diesem Telefon.</string>
+    <string name="getting_started_paid_explainer">KI-Upscale (Topaz, Recraft, Magnific…) ist optional und verbraucht Credits. Wir berechnen genug über den Pro-Bild-Kosten des KI-Anbieters, um Play Store-Gebühren und Server zu decken — siehe FAQ für die genaue Margin-Aufschlüsselung.</string>
+    <string name="getting_started_tour_section">3-Schritte-Tour</string>
+    <string name="getting_started_tour1_title">Bild auswählen</string>
+    <string name="getting_started_tour1_body">Tippen Sie auf die Fotokarte oben. Verwenden Sie die höchstauflösende Kopie, die Sie haben — kleine Handy-Screenshots wirken pixelig, wenn sie auf Wandpostergröße vergrößert werden.</string>
+    <string name="getting_started_tour1_screenshot">[Screenshot: Bildauswahl]</string>
+    <string name="getting_started_tour2_title">Größe festlegen</string>
+    <string name="getting_started_tour2_body">Geben Sie Breite und Höhe des fertigen Posters ein. Sperren Sie das Seitenverhältnis (Kettensymbol), um die Bildproportionen zu erhalten, oder entsperren Sie es zum Zuschneiden. Wählen Sie ein Papierformat, das zu Ihrem Drucker passt — Letter ist der Heimdrucker-Standard in Nordamerika; A4 weltweit.</string>
+    <string name="getting_started_tour2_screenshot">[Screenshot: Größen- + Papierauswahl]</string>
+    <string name="getting_started_tour3_title">Generieren</string>
+    <string name="getting_started_tour3_body">Tippen Sie auf Anzeigen, Speichern oder Teilen. Anzeigen öffnet das PDF in Ihrem Reader; Speichern ermöglicht die Ordnerauswahl; Teilen übergibt das PDF an beliebige Apps (E-Mail, Drive, Druck). Wenn Ihr Bild bei der gewählten Größe unter 150 DPI liegt, werden Sie aufgefordert, es zuerst hochzuskalieren.</string>
+    <string name="getting_started_tour3_screenshot">[Screenshot: Aktionsschaltflächen]</string>
+
+    <!-- Datenschutz-Bildschirm -->
+    <string name="screen_privacy_title">Datenschutzrichtlinie</string>
+    <string name="privacy_intro">Gültig ab: 2026-05-03. Wir versuchen, dies kurz und präzise zu halten. Wenn etwas unten nicht mit dem übereinstimmt, was die App tatsächlich tut, behandeln Sie das als Fehler und schreiben Sie an support@joeputin.com.</string>
+    <string name="privacy_sec_collect_first_launch_title">Was wir beim ersten Start erfassen</string>
+    <string name="privacy_sec_collect_first_launch_body">Eine anonyme Firebase Auth-UID — eine zufällige, undurchsichtige Zeichenkette ohne persönlich identifizierbare Informationen. Dies ermöglicht, dass Ihr Verlauf nach App-Neustarts auf diesem Gerät erhalten bleibt.</string>
+    <string name="privacy_sec_google_title">Was wir erfassen, wenn Sie sich mit Google anmelden</string>
+    <string name="privacy_sec_google_body">Ihren Google-Kontonamen und Ihre E-Mail-Adresse. Wir verwenden diese, um anzuzeigen, wer angemeldet ist, Ihren Verlauf geräteübergreifend zu synchronisieren und kontoweite Löschanfragen zu bearbeiten. Wir erhalten NICHT Ihr Google-Passwort, Kontakte, Kalender, Drive oder andere Google-Daten.</string>
+    <string name="privacy_sec_firestore_title">Verlaufsmetadaten (Firestore)</string>
+    <string name="privacy_sec_firestore_body">Wenn Sie ein Poster generieren, speichern wir: Posterbreite und -höhe, Papierformat, Ausrichtung, Rand, Überlappung, Ausgabe-DPI, Seitenanzahl und einen Erstellungszeitstempel. Dies geht in Firestore unter /users/{uid}/history. Wir speichern NICHT die Quellbild-Bytes oder Pixeldaten in Firestore.</string>
+    <string name="privacy_sec_storage_title">PDF-Dateien (Cloud Storage) — optional</string>
+    <string name="privacy_sec_storage_body">Wenn Sie Cloud-Aufbewahrung aktivieren (Einstellungen → Cloud-Speicher…), laden wir generierte PDFs in Cloud Storage unter gs://(Projekt)/user-pdfs/{uid}/ hoch. Die Standard-Aufbewahrungszeit beträgt 30 Tage; kostenpflichtige Tarife verlängern dies. Die Standard-Einstellung ist nur lokal — nichts verlässt Ihr Gerät, sofern Sie sich nicht dafür entscheiden.</string>
+    <string name="privacy_sec_fal_title">KI-Upscale (FAL.ai)</string>
+    <string name="privacy_sec_fal_body">Wenn Sie eine KI-Upscale-Option tippen (Topaz, Recraft, AuraSR, ESRGAN, Magnific), wird das Quellbild zur Verarbeitung an FAL.ai gesendet und das hochskalierte Ergebnis zurückgegeben. FAL.ai behält Ein- und Ausgabe für den in ihren AGB festgelegten Zeitraum — typischerweise Minuten bis Stunden, aber lesen Sie deren Richtlinien direkt:</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_sec_retention_title">Aufbewahrung</string>
+    <string name="privacy_sec_retention_body">Festgelegt durch Ihre Wahl unter Einstellungen → Cloud-Speicher…. Kostenloser Tarif: 30 Tage. Kostenpflichtige Tarife: 90 Tage, 1 Jahr oder unbegrenzt. Verlaufsmetadaten in Firestore folgen derselben Aufbewahrung. Lokale Dateien und der lokale Verlauf verbleiben auf Ihrem Gerät, bis Sie deinstallieren oder Zurücksetzen tippen.</string>
+    <string name="privacy_sec_deletion_title">Löschungsmöglichkeiten</string>
+    <string name="privacy_sec_deletion_body">Lokale Daten: Einstellungen → Zurücksetzen löscht Präferenzen und den lokalen Verlaufsindex. Pro-Poster-Cloud-Kopie: Öffnen Sie den Verlauf, tippen Sie auf die rote kein-Cloud-Schaltfläche in der Zeile. Kontoweite Löschung (Auth + alle Firestore-Verlaufsdaten + alle Cloud-PDFs): Senden Sie eine E-Mail an support@joeputin.com von der Adresse, die mit Ihrem Google-Konto verknüpft ist. Wir bearbeiten die Anfrage innerhalb von 7 Tagen.</string>
+    <string name="privacy_sec_third_party_title">Drittanbieter-Dienste</string>
+    <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (alle Google Cloud); FAL.ai für KI-Upscale; Google Play Billing für Credit-Käufe. Wir verwenden keine Analyse- oder Werbe-SDKs. Wir haben keinen Zugriff auf andere Apps auf Ihrem Telefon.</string>
+    <string name="privacy_sec_contact_title">Kontakt</string>
+    <string name="privacy_sec_contact_body">support@joeputin.com für Datenschutzfragen oder Löschanfragen. Der Quellcode ist öffentlich unter github.com/Joeputin/pdfposter — was in dieser Richtlinie steht, entspricht dem Code.</string>
+
+    <!-- Upscale-Vergleichsbildschirm -->
+    <string name="screen_compare_title">KI-Upscaler vergleichen</string>
+    <string name="compare_subject_label">Motiv</string>
+    <string name="compare_model_label">Modell</string>
+    <string name="compare_subject_disco_chicken">Disco-Hühnchen</string>
+    <string name="compare_subject_cat_shimmer">Katze Schimmer</string>
+    <string name="compare_subject_gristmill">Getreidemühle</string>
+    <string name="compare_subject_earth">Erdposter</string>
+    <string name="compare_synthesized_fallback">(synthetischer Fallback — siehe Assets)</string>
+    <string name="compare_source_image_cd">Quellbild</string>
+    <string name="compare_upscaled_image_cd">Hochskaliertes Bild</string>
+    <string name="compare_label_original">Original</string>
+    <string name="compare_label_upscaled">Hochskaliert</string>
+    <string name="compare_credits_attribution">Demo-Bilder: cat_shimmer (CC BY 2.0), gristmill (CC BY-SA 4.0), earth poster (CC BY 2.0, ESO). disco_chicken generiert von Gemini Nano Banana.</string>
+
+    <!-- Niedrige-DPI-Upscale-Fenster -->
+    <string name="lowdpi_header_svg">Vektorquelle — kein Upscale nötig</string>
+    <string name="lowdpi_header_warning">Dieses Poster wird in niedriger Auflösung gedruckt</string>
+    <string name="lowdpi_current_dpi">Aktuell: %1$d DPI  ·  %2$s\" × %3$s\"</string>
+    <string name="lowdpi_poster_size_only">Postergröße: %1$s\" × %2$s\"</string>
+    <string name="lowdpi_eta_estimating">wird geschätzt…</string>
+    <string name="lowdpi_aim_for_dpi">Mindestens 150 DPI anstreben. Es gibt einige Möglichkeiten:</string>
+    <string name="lowdpi_lever_reduce_title">Postergröße verringern</string>
+    <string name="lowdpi_lever_reduce_body">Gleiches Quellbild, kleinerer Druck → höhere DPI. Schnellste Lösung, kein Upload nötig.</string>
+    <string name="lowdpi_lever_upgrade_title">Quelle verbessern</string>
+    <string name="lowdpi_lever_upgrade_body">Upscale auf dem Gerät (kostenlos, RAM-abhängig) oder per KI (Credits nach Modell berechnet).</string>
+    <string name="lowdpi_lever_byo_title">Eigenes mitbringen</string>
+    <string name="lowdpi_lever_byo_body">Bereits mit Canva, OpenArt, Topaz Photo AI oder Magnific hochskaliert? Laden Sie die hochskalierte Datei direkt. PosterPDF ist kostenlos mit beliebiger Bildquelle — KI-Credits decken nur die Inferenzkosten.</string>
+    <string name="lowdpi_dismiss_svg">Verstanden</string>
+    <string name="lowdpi_dismiss_warning">Stattdessen Postergröße verringern</string>
+    <string name="lowdpi_help_me_decide">Hilf mir entscheiden…</string>
+
+    <!-- Upscale-Modell-Beschriftungen (Karten + Chips) -->
+    <string name="upscale_model_none">Jetzt (pixelig)</string>
+    <string name="upscale_model_none_pros">Schnellste, kostenlos, auf jedem Gerät</string>
+    <string name="upscale_model_none_cons">Sichtbare Pixel bei großen Drucken</string>
+    <string name="upscale_model_free_local">Kostenloser Upscale</string>
+    <string name="upscale_model_free_local_pros">Kostenlos, offline, ohne Internet</string>
+    <string name="upscale_model_free_local_cons">Langsamer auf älteren Geräten; max. 4×</string>
+    <string name="upscale_model_topaz">Topaz Gigapixel</string>
+    <string name="upscale_model_topaz_pros">Schärfste Kanten, poliertes Ergebnis</string>
+    <string name="upscale_model_topaz_cons">Höchste Kosten pro Pixel</string>
+    <string name="upscale_model_recraft">Recraft Crisp</string>
+    <string name="upscale_model_recraft_pros">Fotogetreu, 40× günstiger als Topaz</string>
+    <string name="upscale_model_recraft_cons">Weniger scharf bei Text/UI als Topaz</string>
+    <string name="upscale_model_aurasr">AuraSR</string>
+    <string name="upscale_model_aurasr_pros">Schnell und günstig (~$0,01/Bild)</string>
+    <string name="upscale_model_aurasr_cons">Gelegentliche Artefakte bei glatten Verläufen</string>
+    <string name="upscale_model_esrgan">ESRGAN</string>
+    <string name="upscale_model_esrgan_pros">Open-Source-Klassiker, günstigste KI-Option</string>
+    <string name="upscale_model_esrgan_cons">Weniger scharf als Topaz</string>
+
+    <!-- Vergleich-Modell-Chip-Beschriftungen -->
+    <string name="compare_model_topaz">Topaz</string>
+    <string name="compare_model_recraft">Recraft</string>
+    <string name="compare_model_aurasr">AuraSR</string>
+    <string name="compare_model_esrgan">ESRGAN</string>
+
+    <!-- Upscale-Optionskarte -->
+    <string name="upscale_card_pixelated_cd">Pixelige Vorschau</string>
+    <string name="upscale_card_on_device_cd">Upscale-Vorschau auf dem Gerät</string>
+    <string name="upscale_card_model_icon_cd">%1$s-Symbol</string>
+    <string name="upscale_card_dpi_estimate">≈ %1$d DPI</string>
+    <string name="upscale_card_credits_only">%1$d Credits</string>
+    <string name="upscale_card_credits_with_usd">%1$d Credits · ~$%2$s</string>
+    <string name="upscale_card_eta">ETA %1$s</string>
+    <string name="upscale_card_unavailable">Nicht verfügbar</string>
+    <string name="upscale_card_upscale_free">Kostenlos hochskalieren</string>
+    <string name="upscale_card_sign_in">Anmelden</string>
+    <string name="upscale_card_get_more_credits">Credits kaufen</string>
+    <string name="upscale_card_upscale_with_credits">Upscale · %1$d Cr</string>
+
+    <!-- SVG-Vektor-Banner -->
+    <string name="svg_banner_title">Vektorquelle</string>
+    <string name="svg_banner_body">SVG ist ein Vektorbild — es druckt bei beliebiger Größe scharf. Kein Upscale nötig.</string>
+    <string name="svg_banner_secondary">Wenn Sie lieber mit einem Rasterbild beginnen möchten, verwenden Sie unten \"Eigenes mitbringen\".</string>
+
+    <!-- Eigenes-mitbringen-Karte -->
+    <string name="byo_card_title">Eigenes mitbringen</string>
+    <string name="byo_card_free">Kostenlos mit beliebiger Quelle</string>
+    <string name="byo_card_tools">Canva · OpenArt · Topaz · Magnific</string>
+    <string name="byo_card_pros">Funktioniert mit jedem Upscale-Tool, das Sie bereits haben</string>
+    <string name="byo_card_cons">Sie kümmern sich um das Hochskalieren vor dem Laden der Datei</string>
+    <string name="byo_card_button">Anleitung zeigen…</string>
+
+    <!-- Eigenes-mitbringen-Hilfedialog -->
+    <string name="byo_dialog_title">Eigenes hochskaliertes Bild mitbringen</string>
+    <string name="byo_step1_title">Tool wählen</string>
+    <string name="byo_step1_body">Jedes dieser Tools funktioniert — wählen Sie das, das Sie bereits haben oder dessen Preis Ihnen gefällt:</string>
+    <string name="byo_tool_canva_name">Canva</string>
+    <string name="byo_tool_canva_price">~$15/Monat</string>
+    <string name="byo_tool_canva_note">Designerfreundlich. Integrierter Upscaler unter Bild bearbeiten → Magic Studio.</string>
+    <string name="byo_tool_openart_name">OpenArt</string>
+    <string name="byo_tool_openart_price">$10/Monat</string>
+    <string name="byo_tool_openart_note">Umfangreiche KI-Bibliothek; der Tab \'Upscaler\' unterstützt 4× und 8×.</string>
+    <string name="byo_tool_fal_name">FAL Topaz</string>
+    <string name="byo_tool_fal_price">~$0,01/MP</string>
+    <string name="byo_tool_fal_note">Bezahlung pro Bild, kein Abo. Professionelle Qualität.</string>
+    <string name="byo_tool_magnific_name">Magnific</string>
+    <string name="byo_tool_magnific_price">$30/Monat</string>
+    <string name="byo_tool_magnific_note">Premium-Kreativ-Upscaler. Langsamer, aber am stärksten stilisiert.</string>
+    <string name="byo_step2_title">Upscale durchführen</string>
+    <string name="byo_step2_body">Öffnen Sie Ihr gewähltes Tool, laden Sie das Originalbild hoch und führen Sie den Upscale mit 4× oder 8× durch. Höher = schärfer, dauert aber länger und kostet mehr.</string>
+    <string name="byo_step3_title">Auf Telefon speichern</string>
+    <string name="byo_step3_body">Laden Sie das Ergebnis in Ihren Downloads-Ordner herunter (oder an einen Ort, auf den Android\'s Datei-Picker zugreifen kann — Drive, Fotos usw. funktionieren alle).</string>
+    <string name="byo_step4_title">Hier fortfahren</string>
+    <string name="byo_step4_body">Tippen Sie unten auf \'Datei auswählen\' — wählen Sie Ihre hochskalierte Datei. PosterPDF verwendet sie direkt, ohne einen eigenen Upscaler auszuführen.</string>
+    <string name="byo_choose_file">Datei auswählen</string>
+
+    <!-- Upscale-Fortschrittsbalken -->
+    <string name="upscale_progress_uploading">Hochladen… %1$d%%</string>
+    <string name="upscale_progress_queued">In der Warteschlange…</string>
+    <string name="upscale_progress_inferring">Hochskalieren…</string>
+    <string name="upscale_progress_inferring_eta">Hochskalieren… ~%1$ds verbleibend</string>
+    <string name="upscale_progress_downloading">Herunterladen… %1$d%%</string>
+
+    <!-- Fähigkeitsmeldungen (Upscale auf dem Gerät) -->
+    <string name="capability_red_no_64bit">Ihr Gerät unterstützt kein KI-Upscale auf dem Gerät</string>
+    <string name="capability_yellow_slow">Dauert auf Ihrem Gerät einige Minuten</string>
+
+    <!-- ETA-Formatierung -->
+    <string name="eta_seconds">%1$d–%2$d s</string>
+    <string name="eta_minutes_decimal">%1$.1f–%2$.1f min</string>
+    <string name="eta_minutes">%1$d–%2$d min</string>
+
+    <!-- Live-Vorschau-Legende -->
+    <string name="preview_live_assembly">Live-Montagevorschau</string>
+    <string name="preview_legend_margin">Rand</string>
+    <string name="preview_legend_overlap">Überlappung</string>
+    <string name="preview_low_dpi_card">Niedrige Auflösung: %1$d DPI · Zum Hochskalieren tippen ↑</string>
+
+    <!-- ViewModel-Fehler-/Erfolgsmeldungen -->
+    <string name="vm_error_open_image">Quellbild konnte nicht geöffnet werden</string>
+    <string name="vm_success_upscaled">Auf %1$d×%2$d hochskaliert</string>
+    <string name="vm_error_upscale_failed">Upscale fehlgeschlagen: %1$s</string>
+    <string name="vm_error_unknown">Unbekannter Fehler</string>
+    <string name="vm_error_load_image_info">Bildinformationen konnten nicht geladen werden: %1$s</string>
+    <string name="vm_error_could_not_load_image">Bild konnte nicht geladen werden</string>
+    <string name="vm_error_could_not_reopen_svg">SVG für Kachel konnte nicht erneut geöffnet werden</string>
+    <string name="vm_success_poster_generated">Poster generiert: %1$s</string>
+    <string name="vm_error_generation_failed">Fehlgeschlagen: %1$s</string>
+    <string name="vm_success_signed_in">Angemeldet</string>
+    <string name="vm_error_signin_failed">Anmeldung fehlgeschlagen: %1$s</string>
+</resources>

@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 应用标识 -->
+    <string name="app_name">Poster PDF</string>
+    <string name="brand_name">PosterPDF</string>
+
+    <!-- 启动页 -->
+    <string name="splash_tap_to_skip">点击跳过</string>
+
+    <!-- 通用按钮 / 对话框 -->
+    <string name="common_ok">确定</string>
+    <string name="common_save">保存</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_delete">删除</string>
+    <string name="common_back">返回</string>
+    <string name="common_refresh">刷新</string>
+    <string name="common_got_it">知道了</string>
+
+    <!-- 顶部栏 -->
+    <string name="topbar_settings_menu">设置</string>
+    <string name="topbar_credit_badge">AI 点数</string>
+
+    <!-- 抽屉菜单标题与项目 -->
+    <string name="drawer_settings_header">设置</string>
+    <string name="drawer_units_label">单位</string>
+    <string name="drawer_debug_logging_title">调试日志</string>
+    <string name="drawer_debug_logging_subtitle">将日志写入下载文件夹</string>
+    <string name="drawer_posters_generated_title">已生成海报</string>
+    <string name="drawer_posters_generated_subtitle">累计生成数量</string>
+    <string name="drawer_default_paper_size">默认纸张大小</string>
+    <string name="drawer_supported_file_types_label">支持的文件类型：</string>
+    <string name="drawer_supported_file_types_value">PNG、JPG / JPEG、SVG、WEBP、BMP</string>
+    <string name="drawer_cloud_storage">云存储…</string>
+    <string name="drawer_target_dpi_label">目标打印 DPI：%1$d</string>
+    <string name="drawer_target_dpi_help">DPI 越高 → 打印越清晰，使用的放大点数越多。海报推荐 150，照片推荐 300，艺术精印推荐 600+。</string>
+    <string name="drawer_getting_started">入门指南</string>
+    <string name="drawer_help">帮助</string>
+    <string name="drawer_faq">常见问题</string>
+    <string name="drawer_privacy_policy">隐私政策</string>
+    <string name="drawer_support">支持</string>
+    <string name="drawer_reset_to_defaults">恢复默认设置</string>
+    <string name="drawer_no_browser_for_support">未安装浏览器，无法打开支持链接。</string>
+
+    <!-- 提示横幅 -->
+    <string name="nag_title">支持开发者</string>
+    <string name="nag_body">您已生成 %1$d 张海报！请考虑在 Play Store 以 $2 注册，以支持开发。</string>
+    <string name="nag_play_store_url">play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="nag_maybe_later">稍后再说</string>
+    <string name="nag_maybe_later_countdown">稍后再说（%1$d 秒）</string>
+    <string name="nag_dismiss">忽略</string>
+
+    <!-- 新手引导 -->
+    <string name="onboarding_how_to_get_started">使用步骤：</string>
+    <string name="onboarding_step1">在上方选择一张高分辨率图片。</string>
+    <string name="onboarding_step2">设置海报的最终尺寸。</string>
+    <string name="onboarding_step3">选择纸张大小和方向。</string>
+    <string name="onboarding_step4">预览或保存可打印的 PDF！</string>
+
+    <!-- 图片信息 -->
+    <string name="info_chip_resolution">分辨率</string>
+    <string name="info_chip_aspect_ratio">宽高比</string>
+    <string name="info_dialog_aspect_ratio_title">宽高比</string>
+    <string name="info_dialog_aspect_ratio_body">即宽度与高度的比值。锁定比例可确保海报与图片比例完全一致。</string>
+
+    <!-- 海报尺寸卡片 -->
+    <string name="poster_size_section">海报尺寸</string>
+    <string name="poster_width_with_unit">宽度（%1$s）</string>
+    <string name="poster_height_with_unit">高度（%1$s）</string>
+
+    <!-- 纸张与版面 -->
+    <string name="paper_layout_section">纸张 &amp; 版面</string>
+    <string name="paper_size_section">纸张大小</string>
+    <string name="orientation_section">方向</string>
+    <string name="orientation_best_fit">最佳适配</string>
+    <string name="orientation_portrait">纵向</string>
+    <string name="orientation_landscape">横向</string>
+    <string name="orientation_portrait_cd">纵向（Clarus the Dogcow 直立）</string>
+    <string name="orientation_landscape_cd">横向（Clarus the Dogcow 侧卧）</string>
+    <string name="orientation_best_fit_cd">最佳适配方向</string>
+    <string name="margin_with_unit">边距（%1$s）</string>
+    <string name="overlap_with_unit">重叠（%1$s）</string>
+    <string name="margin_info_title">边距</string>
+    <string name="margin_info_body">每页边缘的不可打印区域。大多数家用打印机至少需要 0.25in（0.64cm）。</string>
+    <string name="overlap_info_title">重叠</string>
+    <string name="overlap_info_body">相邻拼图块之间的重复区域，便于对齐和粘贴。推荐 0.25in 至 0.5in。</string>
+    <string name="project_scope">项目规模：%1$d 页（%2$d 行 × %3$d 列）</string>
+
+    <!-- 纸张大小卡片 -->
+    <string name="paper_recommended">推荐</string>
+    <string name="paper_custom">自定义</string>
+
+    <!-- 单位 -->
+    <string name="units_inches">英寸</string>
+    <string name="units_centimeters">厘米</string>
+
+    <!-- 高级样式 -->
+    <string name="advanced_section">高级样式</string>
+    <string name="advanced_borders_title">页面边框 &amp; 裁切标记</string>
+    <string name="advanced_borders_body">打印在每页上，帮助您打印后裁切和对齐。"裁切标记"在角落打印小刻度线，如专业印刷店。实线/虚线/点线以不同粗细绘制完整边框。如需整洁边缘，请选择"无"。</string>
+    <string name="advanced_label_panes">标记每块拼图（A1、B2…）</string>
+    <string name="advanced_include_instructions">包含拼装说明</string>
+
+    <!-- 轮廓预览 -->
+    <string name="outline_none">无</string>
+
+    <!-- 操作按钮 -->
+    <string name="action_view">预览</string>
+    <string name="action_save">保存</string>
+    <string name="action_share">分享…</string>
+    <string name="chooser_open_pdf">打开 PDF</string>
+    <string name="chooser_share_pdf">分享 PDF</string>
+
+    <!-- 低 DPI 提示 -->
+    <string name="low_dpi_dialog_title">打印分辨率偏低</string>
+    <string name="low_dpi_dialog_body">您的海报当前约为 %1$d DPI。清晰打印至少需要 150 DPI。是否继续，或先对图片进行放大？</string>
+    <string name="low_dpi_dialog_continue">仍然继续</string>
+    <string name="low_dpi_dialog_upgrade">先放大图片</string>
+
+    <!-- 首次运行向导 -->
+    <string name="first_run_title">欢迎使用 Poster PDF！</string>
+    <string name="first_run_intro">让我们完成初始设置。您随时可在侧边菜单中更改这些设置。</string>
+    <string name="first_run_units_label">选择首选计量单位：</string>
+    <string name="first_run_paper_label">默认纸张大小：</string>
+    <string name="first_run_get_started">开始使用</string>
+
+    <!-- 历史记录（抽屉 + 屏幕） -->
+    <string name="history_section_title">历史记录</string>
+    <string name="history_refresh_cd">刷新历史记录</string>
+    <string name="history_empty_drawer">暂无海报。生成一张后将显示在此处。</string>
+    <string name="history_view_all">查看全部</string>
+    <string name="history_view_all_count">查看全部（%1$d）</string>
+    <string name="history_screen_title">历史记录</string>
+    <string name="history_empty_title">暂无历史记录</string>
+    <string name="history_empty_subtitle">生成一张海报后，它将显示在此处。</string>
+    <string name="history_card_view_cd">预览</string>
+    <string name="history_card_share_cd">分享</string>
+    <string name="history_card_download_cd">从云端下载</string>
+    <string name="history_card_delete_cloud_cd">删除云端副本</string>
+    <string name="history_delete_dialog_title">删除云端副本？</string>
+    <string name="history_delete_dialog_body">此操作将从云存储中移除该海报。本地副本和历史记录条目不受影响——您将无法再从云端重新下载。这将释放您账户的存储空间。</string>
+
+    <!-- 账户部分 -->
+    <string name="account_section_title">账户</string>
+    <string name="account_offline">离线——无法连接 Firebase。PDF 仍可在本地使用。</string>
+    <string name="account_anonymous_explainer">已匿名登录。使用 Google 登录可跨设备保留历史记录。</string>
+    <string name="account_sign_in_with_google">使用 Google 登录</string>
+    <string name="account_signed_in_fallback">已登录</string>
+    <string name="account_profile_picture_cd">头像</string>
+    <string name="account_sign_out">退出登录</string>
+
+    <!-- 图片选择器 -->
+    <string name="picker_select_image_cd">选择图片</string>
+    <string name="picker_pick_an_image">为您的海报选择一张图片</string>
+    <string name="picker_selected_cd">已选择的海报图片</string>
+    <string name="picker_change_image">更换图片</string>
+
+    <!-- 点数徽章 -->
+    <string name="credit_badge_cd">AI 点数</string>
+    <string name="credit_badge_admin_infinity">∞</string>
+
+    <!-- 购买页 -->
+    <string name="purchase_ai_credits">AI 点数</string>
+    <string name="purchase_balance">余额：%1$d</string>
+    <string name="purchase_signin_title">登录后购买点数</string>
+    <string name="purchase_signin_body">点数与您的 Google 账户绑定，换设备或重装后仍可保留。</string>
+    <string name="purchase_signin_button">使用 Google 登录以购买点数</string>
+    <string name="purchase_choose_pack">选择点数套餐</string>
+    <string name="purchase_recent_transactions">近期交易</string>
+    <string name="purchase_no_transactions">暂无交易记录。</string>
+    <string name="purchase_restore">恢复购买</string>
+    <string name="purchase_sku_starter">入门版</string>
+    <string name="purchase_sku_small">小型</string>
+    <string name="purchase_sku_medium">中型</string>
+    <string name="purchase_sku_large">大型</string>
+    <string name="purchase_sku_credits_price">%1$d 点数  -  %2$s</string>
+    <string name="purchase_buy">购买</string>
+
+    <!-- 存储保留 -->
+    <string name="storage_dialog_title">30 天后如何处理您的海报？</string>
+    <string name="storage_dialog_body">本地副本和历史列表将永久保留。此选项仅针对云端存储的 PDF 文件。</string>
+    <string name="storage_auto_delete_title">30 天后自动删除</string>
+    <string name="storage_auto_delete_body">存储费用为零。30 天后云端副本将被移除，本地文件和历史列表保持不变。</string>
+    <string name="storage_paid_title">持续存储</string>
+    <string name="storage_paid_body">前 30 天后每张海报每月约 1 美分，从您的点数余额中扣除。若点数不足，文件将再保留 30 天，我们会在删除前发送邮件提醒。</string>
+    <string name="storage_decide_later">稍后决定</string>
+
+    <!-- 帮助页 -->
+    <string name="screen_help_title">帮助</string>
+    <string name="help_paper_sizes_title">纸张大小</string>
+    <string name="help_paper_sizes_body">PosterPDF 支持 Letter（8.5×11 in）、Legal（8.5×14 in）、Tabloid（11×17 in）、A4（8.27×11.69 in）、A3（11.69×16.54 in）以及适用于特殊打印机的自定义尺寸。Letter 是北美家庭/办公室的默认选项，A4 在其他地区通用。请选择与打印机中实际纸张匹配的尺寸——应用会自动将海报分页拼贴。</string>
+    <string name="help_low_dpi_title">低 DPI 警告</string>
+    <string name="help_low_dpi_body">若图片像素不足以满足打印尺寸要求，预览下方将显示黄色警告横幅。清晰打印的最低标准为 150 DPI，低于此值海报将模糊或像素化。点击横幅可打开放大选项，查看各方案的效果预览及点数费用。</string>
+    <string name="help_upscale_title">放大选项</string>
+    <string name="help_upscale_body">默认提供五张卡片："立即使用（像素化）"显示不放大的效果；"免费放大"在手机本地运行 ESRGAN（无需网络和点数，约 30 秒）；"Topaz 4×"为最高质量付费选项；"Recraft Crisp"还原度高，费用约为 Topaz 的 1/40；"自带图片"可加载您在其他工具（Canva、OpenArt、Magnific 或 Topaz 桌面版）中放大好的文件。点击"查看更多 AI 选项"可展开 Topaz 8×、AuraSR 和 ESRGAN。</string>
+    <string name="help_signin_title">登录</string>
+    <string name="help_signin_body">首次启动时会自动创建匿名 Firebase Auth 会话——历史记录立即可用，无需账户。若要跨设备保留历史记录（或重装后恢复），请打开侧边菜单并点击"使用 Google 登录"。我们仅收集您的姓名和邮箱，不会代您发帖、读取其他 Google 数据或与第三方共享。</string>
+    <string name="help_history_title">历史记录</string>
+    <string name="help_history_body">每张生成的海报均会出现在历史列表中。每行有 4 个按钮：预览打开本地 PDF；分享发送至邮件或即时通讯应用；下载（云图标）从云存储拉取副本（需已选择云端保存）；删除（云禁止图标）移除云端副本，不影响本地文件和历史条目。</string>
+    <string name="help_sharing_title">分享</string>
+    <string name="help_sharing_body">主屏幕上的"分享…"按钮可将当前海报发送至任意应用——Gmail、WhatsApp、Drive、打印机配套应用等。每次点击都会重新生成 PDF，始终反映当前设置。</string>
+
+    <!-- 常见问题页 -->
+    <string name="screen_faq_title">常见问题</string>
+    <string name="faq_q_credits">为什么需要点数？</string>
+    <string name="faq_a_credits">点数用于支付 AI 放大调用费用——Topaz、Recraft、AuraSR、Magnific。每家服务商按图片收费，因此我们也按图片收取点数。PosterPDF 本身（海报生成、本机放大、历史记录、30 天云存储）免费，不限图片来源。点数仅在选择 AI 放大选项时消耗。</string>
+    <string name="faq_q_credit_value">为什么我的点数价值低于支付金额？</string>
+    <string name="faq_a_credit_value">透明定价：底层 AI 服务商向我们收取约三分之二的价格，另外三分之一用于覆盖 Play Store 15%% 抽成、服务器成本（Cloud Functions + Firestore + Storage），并留有小额利润用于开发。我们的目标是在 FAL.ai 原始成本上加价约 50%%——足以维持运营，不会暴利。每个点数套餐均标注对应美元金额，无任何隐藏收费。</string>
+    <string name="faq_q_offline">可以离线使用吗？</string>
+    <string name="faq_a_offline">核心流程可离线使用：图片选择、海报生成、本机免费放大，以及预览/保存/分享均无需网络。以下功能需要网络：Google 登录、AI 放大（Topaz、Recraft 等）、购买点数、云存储同步。历史元数据会在恢复网络后自动后台同步。</string>
+    <string name="faq_q_sha1">SHA-1 指纹有什么用？</string>
+    <string name="faq_a_sha1">Google 登录将应用的 APK 签名证书与您的 Firebase Auth 项目绑定。我们发布密钥库的 SHA-1 指纹已在 Firebase 中注册，因此只有使用该密钥库签名的 APK 才能使用 Google 登录。这可防止恶意方发布仿冒 APK 来钓鱼您的 Google 账户。若安装后登录失败，最常见原因是 APK 使用了调试密钥库或第三方密钥库签名。</string>
+    <string name="faq_q_out_of_credits">点数用完怎么办？</string>
+    <string name="faq_a_out_of_credits">两件事，且相互独立。（1）AI 放大选项在弹窗中变为不可用，按钮变为"获取更多点数"提示。免费放大和 PDF 生成仍可正常使用。（2）若您同时开启了付费云存储，已存储的 PDF 进入 30 天宽限期：我们会发送警告邮件，30 天后删除云端副本。本地副本和历史条目不受影响。</string>
+    <string name="faq_q_pdf_time">为什么生成 PDF 需要约 30 秒？</string>
+    <string name="faq_a_pdf_time">每块拼图均按目标纸张大小单独渲染，逐块裁剪和缩放图片。4×4 网格意味着 16 次图片缩放操作，每次之后还需合成带标尺、标签、裁切标记和品牌页脚的 PDF 页面。我们可以缓存中间结果，但逐块缩放才能保证打印像素的真实清晰度。海报越大，耗时越长。</string>
+    <string name="faq_q_custom_paper">可以打印非标准纸张大小吗？</string>
+    <string name="faq_a_custom_paper">可以——在纸张大小选择器中选择"自定义"，即可显示纸张宽度和高度的输入框。适用于 A5、B5、相纸或任何我们未列出的尺寸。拼图计算方式相同，仅使用您输入的尺寸。</string>
+    <string name="faq_q_data_deletion">如何删除我的数据？</string>
+    <string name="faq_a_data_deletion">根据范围分三种方式。仅本地：设置 → 恢复默认设置，清除偏好设置并重置此设备上的应用。单张海报云端副本：打开历史记录，找到对应条目，点击云禁止（红色）图标。账户级删除（Auth 记录 + 所有 Firestore 历史 + 所有云端 PDF）：从绑定 Google 登录的邮箱发送邮件至 support@joeputin.com，我们将在 7 天内手动处理请求。</string>
+
+    <!-- 入门指南页 -->
+    <string name="screen_getting_started_title">入门指南</string>
+    <string name="getting_started_intro">PosterPDF 可将任意图片转为可打印的墙面海报，分页拼贴至 Letter 或 A4 纸张，让您在家自行拼装。选择一张照片，设定海报的最终尺寸，我们将生成可直接发送至打印机的 PDF。</string>
+    <string name="getting_started_free_section">免费功能</string>
+    <string name="getting_started_feat_poster_title">海报生成</string>
+    <string name="getting_started_feat_poster_body">将任意图片分页拼贴——无水印，无页数限制。</string>
+    <string name="getting_started_feat_paper_title">全部纸张大小</string>
+    <string name="getting_started_feat_paper_body">Letter、Legal、Tabloid、A3、A4，以及适用于特殊打印机的自定义尺寸。</string>
+    <string name="getting_started_feat_upscale_title">本机放大</string>
+    <string name="getting_started_feat_upscale_body">4× 放大在手机本地运行——无需网络，无需点数。</string>
+    <string name="getting_started_feat_storage_title">30 天云存储</string>
+    <string name="getting_started_feat_storage_body">生成的 PDF 保存 30 天，可从其他设备重新下载。</string>
+    <string name="getting_started_feat_history_title">永久历史记录</string>
+    <string name="getting_started_feat_history_body">您制作的每张海报都保留在本机的历史记录中。</string>
+    <string name="getting_started_paid_explainer">AI 放大（Topaz、Recraft、Magnific…）为可选功能，需消耗点数。我们在 AI 服务商每张图片成本基础上加价，以覆盖 Play Store 费用和服务器开支——详见常见问题中的利润明细。</string>
+    <string name="getting_started_tour_section">三步上手</string>
+    <string name="getting_started_tour1_title">选择图片</string>
+    <string name="getting_started_tour1_body">点击顶部的照片卡片。请使用分辨率最高的版本——小尺寸手机截图放大至墙面海报尺寸后会出现明显像素化。</string>
+    <string name="getting_started_tour1_screenshot">[截图：图片选择器]</string>
+    <string name="getting_started_tour2_title">设置尺寸</string>
+    <string name="getting_started_tour2_body">输入海报的宽度和高度。锁定宽高比（链条图标）可保持图片比例，解锁则允许裁剪。选择与打印机匹配的纸张大小——北美推荐 Letter，其他地区推荐 A4。</string>
+    <string name="getting_started_tour2_screenshot">[截图：尺寸与纸张选择器]</string>
+    <string name="getting_started_tour3_title">生成</string>
+    <string name="getting_started_tour3_body">点击预览、保存或分享。预览在阅读器中打开 PDF；保存可选择文件夹；分享可将 PDF 发送至任意应用（邮件、Drive、打印）。若图片在所选尺寸下低于 150 DPI，我们会提示您先进行放大。</string>
+    <string name="getting_started_tour3_screenshot">[截图：操作按钮]</string>
+
+    <!-- 隐私政策页 -->
+    <string name="screen_privacy_title">隐私政策</string>
+    <string name="privacy_intro">生效日期：2026-05-03。我们力求简洁准确。若以下内容与应用实际行为不符，请视为错误并发送邮件至 support@joeputin.com。</string>
+    <string name="privacy_sec_collect_first_launch_title">首次启动时收集的数据</string>
+    <string name="privacy_sec_collect_first_launch_body">一个匿名 Firebase Auth UID——一串不含任何个人身份信息的随机字符串。这使得您的历史记录可在本设备重启应用后持久保存。</string>
+    <string name="privacy_sec_google_title">使用 Google 登录后收集的数据</string>
+    <string name="privacy_sec_google_body">您的 Google 账户姓名和邮箱地址。我们用于显示登录信息、跨设备同步历史记录，以及处理账户级删除请求。我们不会获取您的 Google 密码、联系人、日历、云盘或其他 Google 数据。</string>
+    <string name="privacy_sec_firestore_title">历史元数据（Firestore）</string>
+    <string name="privacy_sec_firestore_body">生成海报时，我们记录：海报宽高、纸张大小、方向、边距、重叠、输出 DPI、页数及创建时间戳。数据存储在 Firestore 的 /users/{uid}/history 路径下。我们不在 Firestore 中存储源图片字节或任何像素数据。</string>
+    <string name="privacy_sec_storage_title">PDF 文件（Cloud Storage）——可选加入</string>
+    <string name="privacy_sec_storage_body">若您在设置 → 云存储… 中选择云端保留，生成的 PDF 将上传至 Cloud Storage 的 gs://(project)/user-pdfs/{uid}/ 路径。默认保留期为 30 天，付费方案可延长。默认设置仅保存本地——除非您主动选择，否则数据不会离开您的设备。</string>
+    <string name="privacy_sec_fal_title">AI 放大（FAL.ai）</string>
+    <string name="privacy_sec_fal_body">当您点击 AI 放大选项（Topaz、Recraft、AuraSR、ESRGAN、Magnific）时，源图片将发送至 FAL.ai 进行处理，放大后的结果将返回给您。FAL.ai 按其服务条款规定的期限保留输入和输出——通常为数分钟至数小时，请直接参阅其隐私政策：</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_sec_retention_title">数据保留</string>
+    <string name="privacy_sec_retention_body">由设置 → 云存储… 中的选择决定。免费方案：30 天。付费方案：90 天、1 年或无限期。Firestore 中的历史元数据遵循相同保留策略。本地文件和本地历史记录保存在您的设备上，直到您卸载应用或点击恢复默认设置。</string>
+    <string name="privacy_sec_deletion_title">数据删除方式</string>
+    <string name="privacy_sec_deletion_body">本地数据：设置 → 恢复默认设置，清除偏好设置和设备上的历史索引。单张海报云端副本：打开历史记录，点击对应条目的红色云禁止按钮。账户级删除（Auth + 所有 Firestore 历史 + 所有云端 PDF）：从绑定 Google 登录的邮箱发送邮件至 support@joeputin.com，我们将在 7 天内处理。</string>
+    <string name="privacy_sec_third_party_title">第三方服务</string>
+    <string name="privacy_sec_third_party_body">Firebase Auth、Cloud Firestore、Cloud Storage（均为 Google Cloud）；FAL.ai 用于 AI 放大；Google Play Billing 用于点数购买。我们不集成任何分析或广告 SDK，也无法访问您手机上的其他应用。</string>
+    <string name="privacy_sec_contact_title">联系方式</string>
+    <string name="privacy_sec_contact_body">如有隐私问题或删除请求，请发送邮件至 support@joeputin.com。源代码公开于 github.com/Joeputin/pdfposter——本政策内容与代码保持一致。</string>
+
+    <!-- 放大效果对比页 -->
+    <string name="screen_compare_title">对比 AI 放大效果</string>
+    <string name="compare_subject_label">示例图</string>
+    <string name="compare_model_label">模型</string>
+    <string name="compare_subject_disco_chicken">迪斯科鸡</string>
+    <string name="compare_subject_cat_shimmer">闪光猫</string>
+    <string name="compare_subject_gristmill">磨坊</string>
+    <string name="compare_subject_earth">地球海报</string>
+    <string name="compare_synthesized_fallback">（合成备用图——见 assets）</string>
+    <string name="compare_source_image_cd">原始图片</string>
+    <string name="compare_upscaled_image_cd">放大后图片</string>
+    <string name="compare_label_original">原图</string>
+    <string name="compare_label_upscaled">放大后</string>
+    <string name="compare_credits_attribution">演示图片：cat_shimmer（CC BY 2.0）、gristmill（CC BY-SA 4.0）、earth poster（CC BY 2.0，ESO）。disco_chicken 由 Gemini Nano Banana 生成。</string>
+
+    <!-- 低 DPI 放大弹窗 -->
+    <string name="lowdpi_header_svg">矢量源文件——无需放大</string>
+    <string name="lowdpi_header_warning">此海报将以低分辨率打印</string>
+    <string name="lowdpi_current_dpi">当前：%1$d DPI  ·  %2$s" × %3$s"</string>
+    <string name="lowdpi_poster_size_only">海报尺寸：%1$s" × %2$s"</string>
+    <string name="lowdpi_eta_estimating">估算中…</string>
+    <string name="lowdpi_aim_for_dpi">目标至少 150 DPI。以下是几种解决方式：</string>
+    <string name="lowdpi_lever_reduce_title">缩小海报尺寸</string>
+    <string name="lowdpi_lever_reduce_body">相同源图片，更小的打印尺寸 → 更高 DPI。最快捷的解决方式，无需上传。</string>
+    <string name="lowdpi_lever_upgrade_title">放大源图片</string>
+    <string name="lowdpi_lever_upgrade_body">在设备本地放大（免费，受内存限制）或通过 AI 放大（按模型收取点数）。</string>
+    <string name="lowdpi_lever_byo_title">自带图片</string>
+    <string name="lowdpi_lever_byo_body">已在 Canva、OpenArt、Topaz Photo AI 或 Magnific 中放大好了？直接加载放大后的文件。PosterPDF 对任何图片来源免费——AI 点数仅覆盖推理成本。</string>
+    <string name="lowdpi_dismiss_svg">知道了</string>
+    <string name="lowdpi_dismiss_warning">改为缩小海报尺寸</string>
+    <string name="lowdpi_help_me_decide">帮我决定…</string>
+
+    <!-- 放大模型标签（用于卡片和标签） -->
+    <string name="upscale_model_none">立即使用（像素化）</string>
+    <string name="upscale_model_none_pros">最快，免费，适用于任何设备</string>
+    <string name="upscale_model_none_cons">大尺寸打印时像素化明显</string>
+    <string name="upscale_model_free_local">免费放大</string>
+    <string name="upscale_model_free_local_pros">免费，离线，无需网络</string>
+    <string name="upscale_model_free_local_cons">旧手机较慢，最高 4×</string>
+    <string name="upscale_model_topaz">Topaz Gigapixel</string>
+    <string name="upscale_model_topaz_pros">边缘最清晰，输出精致</string>
+    <string name="upscale_model_topaz_cons">每像素成本最高</string>
+    <string name="upscale_model_recraft">Recraft Crisp</string>
+    <string name="upscale_model_recraft_pros">照片还原度高，比 Topaz 便宜约 40 倍</string>
+    <string name="upscale_model_recraft_cons">文字/界面清晰度不如 Topaz</string>
+    <string name="upscale_model_aurasr">AuraSR</string>
+    <string name="upscale_model_aurasr_pros">速度快，价格低（约 $0.01/张）</string>
+    <string name="upscale_model_aurasr_cons">平滑渐变处偶有瑕疵</string>
+    <string name="upscale_model_esrgan">ESRGAN</string>
+    <string name="upscale_model_esrgan_pros">开源经典，AI 选项中最便宜</string>
+    <string name="upscale_model_esrgan_cons">清晰度不如 Topaz</string>
+
+    <!-- 对比模型标签 -->
+    <string name="compare_model_topaz">Topaz</string>
+    <string name="compare_model_recraft">Recraft</string>
+    <string name="compare_model_aurasr">AuraSR</string>
+    <string name="compare_model_esrgan">ESRGAN</string>
+
+    <!-- 放大选项卡片 -->
+    <string name="upscale_card_pixelated_cd">像素化预览</string>
+    <string name="upscale_card_on_device_cd">本机放大预览</string>
+    <string name="upscale_card_model_icon_cd">%1$s 图标</string>
+    <string name="upscale_card_dpi_estimate">≈ %1$d DPI</string>
+    <string name="upscale_card_credits_only">%1$d 点数</string>
+    <string name="upscale_card_credits_with_usd">%1$d 点数 · ~$%2$s</string>
+    <string name="upscale_card_eta">预计 %1$s</string>
+    <string name="upscale_card_unavailable">不可用</string>
+    <string name="upscale_card_upscale_free">免费放大</string>
+    <string name="upscale_card_sign_in">登录</string>
+    <string name="upscale_card_get_more_credits">获取更多点数</string>
+    <string name="upscale_card_upscale_with_credits">放大 · %1$d 点</string>
+
+    <!-- SVG 矢量横幅 -->
+    <string name="svg_banner_title">矢量源文件</string>
+    <string name="svg_banner_body">SVG 为矢量图——任何尺寸打印均清晰，无需放大。</string>
+    <string name="svg_banner_secondary">若您希望从光栅图片开始，请使用下方的"自带图片"选项。</string>
+
+    <!-- 自带图片卡片 -->
+    <string name="byo_card_title">自带图片</string>
+    <string name="byo_card_free">任意来源免费使用</string>
+    <string name="byo_card_tools">Canva · OpenArt · Topaz · Magnific</string>
+    <string name="byo_card_pros">适用于您已有的任何放大工具</string>
+    <string name="byo_card_cons">需在加载文件前自行完成放大</string>
+    <string name="byo_card_button">告诉我怎么做…</string>
+
+    <!-- 自带图片帮助对话框 -->
+    <string name="byo_dialog_title">使用自行放大的图片</string>
+    <string name="byo_step1_title">选择工具</string>
+    <string name="byo_step1_body">以下工具均可使用——选择您已有或价格合适的一款：</string>
+    <string name="byo_tool_canva_name">Canva</string>
+    <string name="byo_tool_canva_price">约 $15/月</string>
+    <string name="byo_tool_canva_note">设计师友好。内置放大功能，位于编辑图片 → Magic Studio。</string>
+    <string name="byo_tool_openart_name">OpenArt</string>
+    <string name="byo_tool_openart_price">$10/月</string>
+    <string name="byo_tool_openart_note">丰富的 AI 工具库，"Upscaler"标签支持 4× 和 8× 放大。</string>
+    <string name="byo_tool_fal_name">FAL Topaz</string>
+    <string name="byo_tool_fal_price">约 $0.01/MP</string>
+    <string name="byo_tool_fal_note">按图片付费，无需订阅。专业级画质。</string>
+    <string name="byo_tool_magnific_name">Magnific</string>
+    <string name="byo_tool_magnific_price">$30/月</string>
+    <string name="byo_tool_magnific_note">高端创意放大工具，速度最慢但风格化效果最佳。</string>
+    <string name="byo_step2_title">执行放大</string>
+    <string name="byo_step2_body">打开所选工具，上传原始图片，以 4× 或 8× 运行放大。倍数越高越清晰，但耗时更长、费用更高。</string>
+    <string name="byo_step3_title">保存至手机</string>
+    <string name="byo_step3_body">将结果下载至下载文件夹（或 Android 文件选择器可访问的任意位置——Drive、照片等均可）。</string>
+    <string name="byo_step4_title">返回此处</string>
+    <string name="byo_step4_body">点击下方"选择文件"——选取您放大好的文件。PosterPDF 将直接使用该文件，不再运行自身的放大程序。</string>
+    <string name="byo_choose_file">选择文件</string>
+
+    <!-- 放大进度条 -->
+    <string name="upscale_progress_uploading">上传中… %1$d%%</string>
+    <string name="upscale_progress_queued">等待队列…</string>
+    <string name="upscale_progress_inferring">放大中…</string>
+    <string name="upscale_progress_inferring_eta">放大中… 剩余约 %1$d 秒</string>
+    <string name="upscale_progress_downloading">下载中… %1$d%%</string>
+
+    <!-- 设备能力提示（本机放大） -->
+    <string name="capability_red_no_64bit">您的设备不支持本机 AI 运算</string>
+    <string name="capability_yellow_slow">在您的设备上可能需要几分钟</string>
+
+    <!-- 预计时间格式 -->
+    <string name="eta_seconds">%1$d–%2$d 秒</string>
+    <string name="eta_minutes_decimal">%1$.1f–%2$.1f 分钟</string>
+    <string name="eta_minutes">%1$d–%2$d 分钟</string>
+
+    <!-- 实时预览图例 -->
+    <string name="preview_live_assembly">实时拼装预览</string>
+    <string name="preview_legend_margin">边距</string>
+    <string name="preview_legend_overlap">重叠</string>
+    <string name="preview_low_dpi_card">低分辨率：%1$d DPI · 点击放大 ↑</string>
+
+    <!-- ViewModel 错误/成功消息 -->
+    <string name="vm_error_open_image">无法打开源图片</string>
+    <string name="vm_success_upscaled">已放大至 %1$d×%2$d</string>
+    <string name="vm_error_upscale_failed">放大失败：%1$s</string>
+    <string name="vm_error_unknown">未知错误</string>
+    <string name="vm_error_load_image_info">加载图片信息失败：%1$s</string>
+    <string name="vm_error_could_not_load_image">无法加载图片</string>
+    <string name="vm_error_could_not_reopen_svg">无法重新打开 SVG 拼图块</string>
+    <string name="vm_success_poster_generated">海报已生成：%1$s</string>
+    <string name="vm_error_generation_failed">生成失败：%1$s</string>
+    <string name="vm_success_signed_in">已登录</string>
+    <string name="vm_error_signin_failed">登录失败：%1$s</string>
+</resources>

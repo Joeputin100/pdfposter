@@ -96,7 +96,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var targetDpi by mutableStateOf(150)
         private set
 
-    fun setTargetDpi(dpi: Int) {
+    /** Renamed from `setTargetDpi` to avoid JVM signature clash with the
+     *  auto-generated setter on `var targetDpi`. Same pattern as
+     *  `chooseStorageRetention`. */
+    fun chooseTargetDpi(dpi: Int) {
         targetDpi = dpi.coerceIn(75, 1200)
     }
 

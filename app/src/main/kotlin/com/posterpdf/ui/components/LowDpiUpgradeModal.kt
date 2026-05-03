@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.posterpdf.R
@@ -631,7 +632,8 @@ private fun UpscaleOptionCard(
                 maxLines = 2,
             )
 
-            // Action button
+            // Action button (Layer 1 i18n hardening: every label has maxLines=1 +
+            // ellipsis + softWrap=false so DE/RU expansion can\'t reflow the card).
             when {
                 option.model == UpscaleModel.NONE -> {
                     // No button — "now" is the status quo
@@ -646,7 +648,13 @@ private fun UpscaleOptionCard(
                         enabled = freeEnabled && onDeviceThumb != null,
                         colors = ButtonDefaults.buttonColors(containerColor = BlueprintBlue700),
                     ) {
-                        Text("Upscale free", style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            stringResource(R.string.upscale_card_upscale_free),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        )
                     }
                 }
                 isAnonymous -> {
@@ -665,7 +673,13 @@ private fun UpscaleOptionCard(
                             modifier = Modifier.size(14.dp),
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text("Sign in", style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            stringResource(R.string.upscale_card_sign_in),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        )
                     }
                 }
                 !hasEnoughCredits -> {
@@ -677,7 +691,13 @@ private fun UpscaleOptionCard(
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = TrimOrange500),
                     ) {
-                        Text("Get more credits", style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            stringResource(R.string.upscale_card_get_more_credits),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        )
                     }
                 }
                 else -> {
@@ -695,7 +715,13 @@ private fun UpscaleOptionCard(
                             modifier = Modifier.size(14.dp),
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text("Upscale · $credits cr", style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            stringResource(R.string.upscale_card_upscale_with_credits, credits),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        )
                     }
                 }
             }

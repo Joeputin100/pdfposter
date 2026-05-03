@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!--
+  Layer 2a i18n length budgets:
+  - tools:maxLength="N" annotates strings with a translator-facing soft cap.
+    Modern translation pipelines (Lokalise, Crowdin, Android Studio Translator)
+    surface a warning when a translation exceeds the budget. We add it on
+    button labels, chip labels, and badges where +35% German/Russian
+    expansion would break the layout.
+  - Long-form content (banners, dialog body, FAQ answers) has no budget —
+    those flow naturally and Compose handles wrap.
+  - Format placeholders (%1$d, %1$s) count as their *typical* substitution
+    width when assessing budget; the literal "%1$d" itself is 4 chars.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- App identity -->
     <string name="app_name">Poster PDF</string>
-    <string name="brand_name">PosterPDF</string>
+    <string name="brand_name" tools:maxLength="14">PosterPDF</string>
 
     <!-- Splash -->
-    <string name="splash_tap_to_skip">Tap to skip</string>
+    <string name="splash_tap_to_skip" tools:maxLength="18">Tap to skip</string>
 
     <!-- Common buttons / dialogs -->
-    <string name="common_ok">OK</string>
-    <string name="common_save">Save</string>
-    <string name="common_cancel">Cancel</string>
-    <string name="common_delete">Delete</string>
-    <string name="common_back">Back</string>
-    <string name="common_refresh">Refresh</string>
-    <string name="common_got_it">Got it</string>
+    <string name="common_ok" tools:maxLength="6">OK</string>
+    <string name="common_save" tools:maxLength="10">Save</string>
+    <string name="common_cancel" tools:maxLength="10">Cancel</string>
+    <string name="common_delete" tools:maxLength="10">Delete</string>
+    <string name="common_back" tools:maxLength="10">Back</string>
+    <string name="common_refresh" tools:maxLength="12">Refresh</string>
+    <string name="common_got_it" tools:maxLength="12">Got it</string>
 
     <!-- Top bar -->
     <string name="topbar_settings_menu">Settings</string>
@@ -56,9 +68,9 @@
     <string name="onboarding_step3">Select your paper size and orientation.</string>
     <string name="onboarding_step4">View or Save your print-ready PDF!</string>
 
-    <!-- Image info -->
-    <string name="info_chip_resolution">Resolution</string>
-    <string name="info_chip_aspect_ratio">Aspect Ratio</string>
+    <!-- Image info (chips, very tight) -->
+    <string name="info_chip_resolution" tools:maxLength="14">Resolution</string>
+    <string name="info_chip_aspect_ratio" tools:maxLength="14">Aspect Ratio</string>
     <string name="info_dialog_aspect_ratio_title">Aspect Ratio</string>
     <string name="info_dialog_aspect_ratio_body">This is the ratio of width to height. Locked scaling ensures your poster matches the image proportions perfectly.</string>
 
@@ -71,9 +83,9 @@
     <string name="paper_layout_section">Paper &amp; Layout</string>
     <string name="paper_size_section">Paper Size</string>
     <string name="orientation_section">Orientation</string>
-    <string name="orientation_best_fit">Best Fit</string>
-    <string name="orientation_portrait">Portrait</string>
-    <string name="orientation_landscape">Landscape</string>
+    <string name="orientation_best_fit" tools:maxLength="12">Best Fit</string>
+    <string name="orientation_portrait" tools:maxLength="12">Portrait</string>
+    <string name="orientation_landscape" tools:maxLength="12">Landscape</string>
     <string name="orientation_portrait_cd">Portrait orientation (Clarus the Dogcow standing)</string>
     <string name="orientation_landscape_cd">Landscape orientation (Clarus the Dogcow on its side)</string>
     <string name="orientation_best_fit_cd">Best fit orientation</string>
@@ -85,13 +97,13 @@
     <string name="overlap_info_body">The repeated area between tiles to help you align and glue them together. 0.25in to 0.5in is recommended.</string>
     <string name="project_scope">Project scope: %1$d pages (%2$d rows x %3$d columns)</string>
 
-    <!-- Paper size cards -->
-    <string name="paper_recommended">Recommended</string>
-    <string name="paper_custom">Custom</string>
+    <!-- Paper size cards (96dp fixed-width — short name + dimensions stacked) -->
+    <string name="paper_recommended" tools:maxLength="14">Recommended</string>
+    <string name="paper_custom" tools:maxLength="10">Custom</string>
 
-    <!-- Units -->
-    <string name="units_inches">Inches</string>
-    <string name="units_centimeters">Centimeters</string>
+    <!-- Units (segmented toggle — fixed-width segments) -->
+    <string name="units_inches" tools:maxLength="14">Inches</string>
+    <string name="units_centimeters" tools:maxLength="14">Centimeters</string>
 
     <!-- Advanced styling -->
     <string name="advanced_section">Advanced Styling</string>
@@ -103,10 +115,10 @@
     <!-- Outline preview -->
     <string name="outline_none">None</string>
 
-    <!-- Action buttons -->
-    <string name="action_view">View</string>
-    <string name="action_save">Save</string>
-    <string name="action_share">Share…</string>
+    <!-- Action buttons (View/Save/Share trio — 80dp tall × ~88dp wide w/ icon above) -->
+    <string name="action_view" tools:maxLength="14">View</string>
+    <string name="action_save" tools:maxLength="14">Save</string>
+    <string name="action_share" tools:maxLength="14">Share…</string>
     <string name="chooser_open_pdf">Open PDF</string>
     <string name="chooser_share_pdf">Share PDF</string>
 
@@ -319,25 +331,25 @@
     <string name="upscale_model_esrgan_pros">Open-source classic, cheapest AI option</string>
     <string name="upscale_model_esrgan_cons">Less crisp than Topaz</string>
 
-    <!-- Compare model chip labels -->
-    <string name="compare_model_topaz">Topaz</string>
-    <string name="compare_model_recraft">Recraft</string>
-    <string name="compare_model_aurasr">AuraSR</string>
-    <string name="compare_model_esrgan">ESRGAN</string>
+    <!-- Compare model chip labels (chips have tight horizontal budget) -->
+    <string name="compare_model_topaz" tools:maxLength="10">Topaz</string>
+    <string name="compare_model_recraft" tools:maxLength="10">Recraft</string>
+    <string name="compare_model_aurasr" tools:maxLength="10">AuraSR</string>
+    <string name="compare_model_esrgan" tools:maxLength="10">ESRGAN</string>
 
-    <!-- Upscale option card -->
+    <!-- Upscale option card (~140dp wide buttons inside a 36dp-tall row) -->
     <string name="upscale_card_pixelated_cd">Pixelated preview</string>
     <string name="upscale_card_on_device_cd">On-device upscale preview</string>
     <string name="upscale_card_model_icon_cd">%1$s icon</string>
-    <string name="upscale_card_dpi_estimate">≈ %1$d DPI</string>
-    <string name="upscale_card_credits_only">%1$d credits</string>
-    <string name="upscale_card_credits_with_usd">%1$d credits · ~$%2$s</string>
-    <string name="upscale_card_eta">ETA %1$s</string>
-    <string name="upscale_card_unavailable">Unavailable</string>
-    <string name="upscale_card_upscale_free">Upscale free</string>
-    <string name="upscale_card_sign_in">Sign in</string>
-    <string name="upscale_card_get_more_credits">Get more credits</string>
-    <string name="upscale_card_upscale_with_credits">Upscale · %1$d cr</string>
+    <string name="upscale_card_dpi_estimate" tools:maxLength="14">≈ %1$d DPI</string>
+    <string name="upscale_card_credits_only" tools:maxLength="20">%1$d credits</string>
+    <string name="upscale_card_credits_with_usd" tools:maxLength="28">%1$d credits · ~$%2$s</string>
+    <string name="upscale_card_eta" tools:maxLength="16">ETA %1$s</string>
+    <string name="upscale_card_unavailable" tools:maxLength="14">Unavailable</string>
+    <string name="upscale_card_upscale_free" tools:maxLength="16">Upscale free</string>
+    <string name="upscale_card_sign_in" tools:maxLength="14">Sign in</string>
+    <string name="upscale_card_get_more_credits" tools:maxLength="20">Get more credits</string>
+    <string name="upscale_card_upscale_with_credits" tools:maxLength="20">Upscale · %1$d cr</string>
 
     <!-- SVG vector banner -->
     <string name="svg_banner_title">Vector source</string>

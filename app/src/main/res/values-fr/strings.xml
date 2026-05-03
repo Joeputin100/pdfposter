@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Identité de l\'application -->
+    <string name="app_name">Poster PDF</string>
+    <string name="brand_name">PosterPDF</string>
+
+    <!-- Écran de démarrage -->
+    <string name="splash_tap_to_skip">Appuyer pour ignorer</string>
+
+    <!-- Boutons / dialogues communs -->
+    <string name="common_ok">OK</string>
+    <string name="common_save">Enregistrer</string>
+    <string name="common_cancel">Annuler</string>
+    <string name="common_delete">Supprimer</string>
+    <string name="common_back">Retour</string>
+    <string name="common_refresh">Actualiser</string>
+    <string name="common_got_it">Compris</string>
+
+    <!-- Barre supérieure -->
+    <string name="topbar_settings_menu">Paramètres</string>
+    <string name="topbar_credit_badge">Crédits IA</string>
+
+    <!-- En-têtes et éléments du tiroir -->
+    <string name="drawer_settings_header">Paramètres</string>
+    <string name="drawer_units_label">Unités</string>
+    <string name="drawer_debug_logging_title">Journal de débogage</string>
+    <string name="drawer_debug_logging_subtitle">Écrire les journaux dans le dossier Téléchargements</string>
+    <string name="drawer_posters_generated_title">Affiches générées</string>
+    <string name="drawer_posters_generated_subtitle">Total des affiches créées</string>
+    <string name="drawer_default_paper_size">Format de papier par défaut</string>
+    <string name="drawer_supported_file_types_label">Formats de fichiers pris en charge :</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_cloud_storage">Stockage cloud…</string>
+    <string name="drawer_target_dpi_label">DPI d\'impression cible : %1$d</string>
+    <string name="drawer_target_dpi_help">DPI plus élevé → impression plus nette, plus de crédits d\'agrandissement utilisés. 150 est la norme pour les affiches ; 300 pour les photos ; 600+ pour les beaux-arts.</string>
+    <string name="drawer_getting_started">Démarrage rapide</string>
+    <string name="drawer_help">Aide</string>
+    <string name="drawer_faq">FAQ</string>
+    <string name="drawer_privacy_policy">Politique de confidentialité</string>
+    <string name="drawer_support">Assistance</string>
+    <string name="drawer_reset_to_defaults">Rétablir les valeurs par défaut</string>
+    <string name="drawer_no_browser_for_support">Aucun navigateur installé pour ouvrir le lien d\'assistance.</string>
+
+    <!-- Bannière de sollicitation -->
+    <string name="nag_title">Soutenez le développeur</string>
+    <string name="nag_body">Vous avez créé %1$d affiches ! Envisagez de vous inscrire sur le Play Store pour seulement $2 afin de soutenir le développement.</string>
+    <string name="nag_play_store_url">play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="nag_maybe_later">Plus tard</string>
+    <string name="nag_maybe_later_countdown">Plus tard (%1$ds)</string>
+    <string name="nag_dismiss">Ignorer</string>
+
+    <!-- Intégration -->
+    <string name="onboarding_how_to_get_started">Comment démarrer :</string>
+    <string name="onboarding_step1">Choisissez une image haute résolution ci-dessus.</string>
+    <string name="onboarding_step2">Définissez les dimensions finales de votre affiche.</string>
+    <string name="onboarding_step3">Sélectionnez le format et l\'orientation du papier.</string>
+    <string name="onboarding_step4">Affichez ou enregistrez votre PDF prêt à imprimer !</string>
+
+    <!-- Informations sur l\'image -->
+    <string name="info_chip_resolution">Résolution</string>
+    <string name="info_chip_aspect_ratio">Format d\'image</string>
+    <string name="info_dialog_aspect_ratio_title">Format d\'image</string>
+    <string name="info_dialog_aspect_ratio_body">C\'est le rapport largeur/hauteur. Le verrouillage de l\'échelle garantit que votre affiche correspond parfaitement aux proportions de l\'image.</string>
+
+    <!-- Carte de taille d\'affiche -->
+    <string name="poster_size_section">Taille de l\'affiche</string>
+    <string name="poster_width_with_unit">Largeur (%1$s)</string>
+    <string name="poster_height_with_unit">Hauteur (%1$s)</string>
+
+    <!-- Papier et mise en page -->
+    <string name="paper_layout_section">Papier &amp; mise en page</string>
+    <string name="paper_size_section">Format de papier</string>
+    <string name="orientation_section">Orientation</string>
+    <string name="orientation_best_fit">Meilleur ajustement</string>
+    <string name="orientation_portrait">Portrait</string>
+    <string name="orientation_landscape">Paysage</string>
+    <string name="orientation_portrait_cd">Orientation portrait (Clarus the Dogcow debout)</string>
+    <string name="orientation_landscape_cd">Orientation paysage (Clarus the Dogcow sur le côté)</string>
+    <string name="orientation_best_fit_cd">Meilleure orientation d\'ajustement</string>
+    <string name="margin_with_unit">Marge (%1$s)</string>
+    <string name="overlap_with_unit">Chevauchement (%1$s)</string>
+    <string name="margin_info_title">Marge</string>
+    <string name="margin_info_body">L\'espace non imprimé autour des bords de chaque page. La plupart des imprimantes domestiques nécessitent au moins 0.25in (0.64cm).</string>
+    <string name="overlap_info_title">Chevauchement</string>
+    <string name="overlap_info_body">La zone répétée entre les tuiles pour vous aider à les aligner et les coller. Un chevauchement de 0.25in à 0.5in est recommandé.</string>
+    <string name="project_scope">Portée du projet : %1$d pages (%2$d rangées × %3$d colonnes)</string>
+
+    <!-- Cartes de format de papier -->
+    <string name="paper_recommended">Recommandé</string>
+    <string name="paper_custom">Personnalisé</string>
+
+    <!-- Unités -->
+    <string name="units_inches">Pouces</string>
+    <string name="units_centimeters">Centimètres</string>
+
+    <!-- Mise en page avancée -->
+    <string name="advanced_section">Mise en page avancée</string>
+    <string name="advanced_borders_title">Bordures &amp; repères de coupe</string>
+    <string name="advanced_borders_body">Imprimés sur chaque page pour vous aider à découper et aligner après impression. « Repères de coupe » imprime des croix aux coins indiquant où couper, comme dans une imprimerie pro. Continu/pointillé/tireté dessine une bordure complète à différentes épaisseurs. Choisissez « Aucun » pour des bords nets.</string>
+    <string name="advanced_label_panes">Numéroter chaque panneau (A1, B2…)</string>
+    <string name="advanced_include_instructions">Inclure les instructions d\'assemblage</string>
+
+    <!-- Aperçu du contour -->
+    <string name="outline_none">Aucun</string>
+
+    <!-- Boutons d\'action -->
+    <string name="action_view">Afficher</string>
+    <string name="action_save">Enregistrer</string>
+    <string name="action_share">Partager…</string>
+    <string name="chooser_open_pdf">Ouvrir le PDF</string>
+    <string name="chooser_share_pdf">Partager le PDF</string>
+
+    <!-- Avertissement de faible DPI -->
+    <string name="low_dpi_dialog_title">L\'impression sera en basse résolution</string>
+    <string name="low_dpi_dialog_body">Votre affiche est actuellement d\'environ %1$d DPI. Pour une impression nette, visez au moins 150 DPI. Continuer quand même, ou agrandir l\'image d\'abord ?</string>
+    <string name="low_dpi_dialog_continue">Continuer quand même</string>
+    <string name="low_dpi_dialog_upgrade">Améliorer la source d\'abord</string>
+
+    <!-- Assistant de premier lancement -->
+    <string name="first_run_title">Bienvenue dans Poster PDF !</string>
+    <string name="first_run_intro">Configurons l\'application. Vous pourrez toujours modifier ces paramètres dans le menu latéral.</string>
+    <string name="first_run_units_label">Sélectionnez vos unités de mesure préférées :</string>
+    <string name="first_run_paper_label">Format de papier par défaut :</string>
+    <string name="first_run_get_started">Démarrer</string>
+
+    <!-- Historique (tiroir + écran) -->
+    <string name="history_section_title">Historique</string>
+    <string name="history_refresh_cd">Actualiser l\'historique</string>
+    <string name="history_empty_drawer">Aucune affiche pour l\'instant. Générez-en une — elle apparaîtra ici.</string>
+    <string name="history_view_all">Tout afficher</string>
+    <string name="history_view_all_count">Tout afficher (%1$d)</string>
+    <string name="history_screen_title">Historique</string>
+    <string name="history_empty_title">Aucun historique</string>
+    <string name="history_empty_subtitle">Générez une affiche — elle apparaîtra ici.</string>
+    <string name="history_card_view_cd">Afficher</string>
+    <string name="history_card_share_cd">Partager</string>
+    <string name="history_card_download_cd">Télécharger depuis le cloud</string>
+    <string name="history_card_delete_cloud_cd">Supprimer la copie cloud</string>
+    <string name="history_delete_dialog_title">Supprimer la copie cloud ?</string>
+    <string name="history_delete_dialog_body">Cela supprime l\'affiche du stockage cloud. Votre copie locale et cette entrée d\'historique ne sont pas affectées — vous perdrez uniquement la possibilité de retélécharger depuis le cloud. Libère de l\'espace sur votre compte.</string>
+
+    <!-- Section compte -->
+    <string name="account_section_title">Compte</string>
+    <string name="account_offline">Hors ligne — Firebase inaccessible. Les PDF fonctionnent toujours localement.</string>
+    <string name="account_anonymous_explainer">Connecté anonymement. Connectez-vous avec Google pour conserver votre historique sur tous vos appareils.</string>
+    <string name="account_sign_in_with_google">Se connecter avec Google</string>
+    <string name="account_signed_in_fallback">Connecté</string>
+    <string name="account_profile_picture_cd">Photo de profil</string>
+    <string name="account_sign_out">Se déconnecter</string>
+
+    <!-- Sélecteur d\'image -->
+    <string name="picker_select_image_cd">Sélectionner une image</string>
+    <string name="picker_pick_an_image">Choisissez une image pour votre affiche</string>
+    <string name="picker_selected_cd">Image d\'affiche sélectionnée</string>
+    <string name="picker_change_image">Changer l\'image</string>
+
+    <!-- Badge de crédits -->
+    <string name="credit_badge_cd">Crédits IA</string>
+    <string name="credit_badge_admin_infinity">∞</string>
+
+    <!-- Feuille d\'achat -->
+    <string name="purchase_ai_credits">Crédits IA</string>
+    <string name="purchase_balance">Solde : %1$d</string>
+    <string name="purchase_signin_title">Connectez-vous pour acheter des crédits</string>
+    <string name="purchase_signin_body">Les crédits sont liés à votre compte Google afin que vous les conserviez sur tous vos appareils et après réinstallation.</string>
+    <string name="purchase_signin_button">Se connecter avec Google pour acheter</string>
+    <string name="purchase_choose_pack">Choisissez un forfait de crédits</string>
+    <string name="purchase_recent_transactions">Transactions récentes</string>
+    <string name="purchase_no_transactions">Aucune transaction pour l\'instant.</string>
+    <string name="purchase_restore">Restaurer les achats</string>
+    <string name="purchase_sku_starter">Débutant</string>
+    <string name="purchase_sku_small">Petit</string>
+    <string name="purchase_sku_medium">Moyen</string>
+    <string name="purchase_sku_large">Grand</string>
+    <string name="purchase_sku_credits_price">%1$d crédits  -  %2$s</string>
+    <string name="purchase_buy">Acheter</string>
+
+    <!-- Conservation du stockage -->
+    <string name="storage_dialog_title">Que faire de vos affiches après 30 jours ?</string>
+    <string name="storage_dialog_body">Vos copies locales et la liste d\'historique sont conservées indéfiniment. Ce choix concerne uniquement les PDF d\'affiches stockés dans le cloud.</string>
+    <string name="storage_auto_delete_title">Suppression automatique après 30 jours</string>
+    <string name="storage_auto_delete_body">Maintient votre facture de stockage à zéro. Après 30 jours, la copie cloud est supprimée ; la copie locale et la liste d\'historique restent intactes.</string>
+    <string name="storage_paid_title">Conserver le stockage</string>
+    <string name="storage_paid_body">Environ 1¢ par affiche par mois après les 30 premiers jours, déduit de votre solde de crédits. Si vous manquez de crédits, le fichier est conservé 30 jours supplémentaires et vous recevrez un e-mail avant la suppression.</string>
+    <string name="storage_decide_later">Décider plus tard</string>
+
+    <!-- Écran d\'aide -->
+    <string name="screen_help_title">Aide</string>
+    <string name="help_paper_sizes_title">Formats de papier</string>
+    <string name="help_paper_sizes_body">PosterPDF prend en charge Letter (8.5×11 in), Legal (8.5×14 in), Tabloid (11×17 in), A4 (8.27×11.69 in), A3 (11.69×16.54 in) et un format Personnalisé pour les imprimantes inhabituelles. Letter est le format par défaut en Amérique du Nord ; A4 est la norme partout ailleurs. Choisissez le format correspondant au papier chargé dans votre imprimante — l\'application répartira votre affiche sur autant de pages que nécessaire.</string>
+    <string name="help_low_dpi_title">Avertissement DPI faible</string>
+    <string name="help_low_dpi_body">Si votre image contient moins de pixels que la taille imprimée l\'exige, nous affichons un avertissement jaune et une bannière sous l\'aperçu. 150 DPI est la limite minimale recommandée pour des impressions nettes. En dessous, votre affiche semblera floue ou pixelisée. Appuyez sur la bannière pour ouvrir le menu d\'agrandissement — il montre le résultat réel pour chaque option, avec le coût en crédits.</string>
+    <string name="help_upscale_title">Options d\'agrandissement</string>
+    <string name="help_upscale_body">Cinq cartes par défaut : « Maintenant (pixelisé) » montre le résultat sans agrandissement ; « Agrandissement gratuit » exécute ESRGAN localement sur votre téléphone (sans internet, sans crédits, ~30s) ; « Topaz 4× » est l\'option payante de la meilleure qualité ; « Recraft Crisp » est fidèle aux photos et ~40× moins cher que Topaz ; « Apporter le vôtre » vous permet de charger un fichier agrandi ailleurs (Canva, OpenArt, Magnific ou Topaz desktop). Appuyez sur « Voir d\'autres options IA » pour accéder à Topaz 8×, AuraSR et ESRGAN.</string>
+    <string name="help_signin_title">Connexion</string>
+    <string name="help_signin_body">Le premier lancement crée une session Firebase Auth anonyme — votre historique fonctionne immédiatement, sans compte. Pour conserver l\'historique sur tous vos appareils (ou après réinstallation), ouvrez le menu latéral et appuyez sur « Se connecter avec Google ». Nous collectons uniquement votre nom et votre e-mail ; nous ne publions pas en votre nom, ne lisons pas vos autres données Google, et ne les partageons pas avec des tiers.</string>
+    <string name="help_history_title">Historique</string>
+    <string name="help_history_body">Chaque affiche que vous générez apparaît dans la liste Historique. Chaque ligne comporte 4 boutons : Afficher ouvre le PDF local ; Partager l\'envoie vers des applications de messagerie ou d\'e-mail ; Télécharger (icône cloud) récupère une copie depuis le stockage cloud si vous avez activé cette option ; Supprimer (icône cloud barré) supprime la copie cloud sans toucher à votre fichier local ni à l\'entrée d\'historique.</string>
+    <string name="help_sharing_title">Partage</string>
+    <string name="help_sharing_body">Le nouveau bouton « Partager… » sur l\'écran principal vous permet d\'envoyer l\'affiche actuelle vers n\'importe quelle application — Gmail, WhatsApp, Drive, l\'application compagnon de votre imprimante, etc. Le PDF est généré à chaque fois pour refléter toujours les paramètres actuels.</string>
+
+    <!-- Écran FAQ -->
+    <string name="screen_faq_title">FAQ</string>
+    <string name="faq_q_credits">Pourquoi des crédits sont-ils demandés ?</string>
+    <string name="faq_a_credits">Les crédits paient les appels d\'agrandissement IA — Topaz, Recraft, AuraSR, Magnific. Chaque fournisseur facture par image, donc nous facturons des crédits par image. PosterPDF lui-même (génération d\'affiches, agrandissement sur l\'appareil, historique, stockage cloud 30 jours) est gratuit quelle que soit la source d\'image. Les crédits s\'appliquent uniquement lorsque vous choisissez une option d\'agrandissement IA.</string>
+    <string name="faq_q_credit_value">Pourquoi mes crédits valent-ils moins que le prix payé ?</string>
+    <string name="faq_a_credit_value">Transparence sur la marge : les fournisseurs IA sous-jacents nous facturent environ les deux tiers de ce que vous payez. Le tiers restant couvre la commission de 15%% du Play Store, les coûts serveur (Cloud Functions + Firestore + Storage), et laisse une petite marge pour financer le développement. Nous visons ~50%% au-dessus du coût brut FAL.ai — suffisant pour couvrir nos frais, pas pour s\'enrichir. L\'équivalent en USD est affiché sur chaque forfait de crédits, sans mauvaise surprise.</string>
+    <string name="faq_q_offline">Peut-on l\'utiliser hors ligne ?</string>
+    <string name="faq_a_offline">Oui pour le flux principal : sélecteur d\'images, génération d\'affiches, agrandissement gratuit sur l\'appareil, et Afficher/Enregistrer/Partager fonctionnent sans internet. Vous avez besoin d\'internet pour : se connecter avec Google, l\'agrandissement IA (Topaz, Recraft, etc.), l\'achat de crédits et la synchronisation du stockage cloud. Les métadonnées de l\'historique se synchronisent en arrière-plan lors de la reconnexion.</string>
+    <string name="faq_q_sha1">À quoi sert l\'empreinte SHA-1 ?</string>
+    <string name="faq_a_sha1">Google Sign-In lie le certificat de signature de l\'APK à votre projet Firebase Auth. L\'empreinte SHA-1 de notre magasin de clés de version est enregistrée auprès de Firebase, de sorte que seul un APK signé avec ce magasin de clés exact peut utiliser Google Sign-In. Cela empêche des acteurs malveillants de publier un APK contrefait susceptible de phisher votre compte Google. Si la connexion échoue après l\'installation, la cause la plus courante est un APK signé avec un magasin de clés de débogage ou tiers.</string>
+    <string name="faq_q_out_of_credits">Que se passe-t-il si je manque de crédits ?</string>
+    <string name="faq_a_out_of_credits">Deux choses, indépendantes l\'une de l\'autre. (1) Les options d\'agrandissement IA deviennent simplement indisponibles dans le menu — les boutons se transforment en invites « Obtenir plus de crédits ». L\'agrandissement gratuit et la génération de PDF continuent de fonctionner. (2) Si vous avez également un stockage cloud sur un niveau de conservation payant, vos PDF stockés entrent dans une période de grâce de 30 jours : nous envoyons un avertissement par e-mail, et après 30 jours les copies cloud sont supprimées. Les copies locales et les entrées d\'historique ne sont pas affectées.</string>
+    <string name="faq_q_pdf_time">Pourquoi les PDF prennent-ils ~30s à générer ?</string>
+    <string name="faq_a_pdf_time">Chaque tuile est rendue séparément à la taille du papier cible, avec l\'image recadrée et redimensionnée par tuile. Une grille 4×4 représente 16 opérations de redimensionnement d\'image, chacune suivie de la composition d\'une page PDF avec règles, étiquettes, repères de coupe et pied de page de marque. Nous pourrions mettre en cache des résultats intermédiaires, mais le redimensionnement par tuile est la méthode honnête pour garder les pixels imprimés nets. Les affiches plus grandes prennent plus de temps.</string>
+    <string name="faq_q_custom_paper">Puis-je imprimer sur un format de papier non standard ?</string>
+    <string name="faq_a_custom_paper">Oui — choisissez « Personnalisé » dans le sélecteur de format de papier. Deux champs supplémentaires apparaîtront pour la largeur et la hauteur du papier. Utilisez cette option si votre imprimante utilise du A5, B5, du papier photo, ou tout format non listé. Le calcul des tuiles fonctionne de la même façon ; nous faisons confiance aux dimensions que vous saisissez.</string>
+    <string name="faq_q_data_deletion">Comment faire supprimer mes données ?</string>
+    <string name="faq_a_data_deletion">Trois méthodes selon la portée souhaitée. Local uniquement : Paramètres → Rétablir les valeurs par défaut efface les préférences et réinitialise l\'application sur cet appareil. Copie cloud par affiche : ouvrez l\'Historique, trouvez la ligne, appuyez sur l\'icône cloud barré (rouge). Suppression du compte complet (enregistrement d\'authentification + tout l\'historique Firestore + tous les PDF stockés dans le cloud) : envoyez un e-mail à support@joeputin.com depuis l\'adresse liée à votre connexion Google et nous traiterons la demande manuellement dans les 7 jours.</string>
+
+    <!-- Écran de démarrage rapide -->
+    <string name="screen_getting_started_title">Démarrage rapide</string>
+    <string name="getting_started_intro">PosterPDF transforme n\'importe quelle image en affiche murale imprimable, répartie sur des pages Letter ou A4 pour un assemblage à domicile. Choisissez une photo, définissez la taille souhaitée de l\'affiche finale, et nous générerons un PDF prêt à imprimer à envoyer directement à votre imprimante.</string>
+    <string name="getting_started_free_section">Ce que vous obtenez gratuitement</string>
+    <string name="getting_started_feat_poster_title">Génération d\'affiches</string>
+    <string name="getting_started_feat_poster_body">Répartissez n\'importe quelle image sur plusieurs pages — sans filigrane, sans limite de pages.</string>
+    <string name="getting_started_feat_paper_title">Tous les formats de papier</string>
+    <string name="getting_started_feat_paper_body">Letter, Legal, Tabloid, A3, A4, plus un format Personnalisé pour les imprimantes inhabituelles.</string>
+    <string name="getting_started_feat_upscale_title">Agrandissement sur l\'appareil</string>
+    <string name="getting_started_feat_upscale_body">Agrandissement 4× exécuté localement sur votre téléphone — sans internet, sans crédits.</string>
+    <string name="getting_started_feat_storage_title">Stockage cloud 30 jours</string>
+    <string name="getting_started_feat_storage_body">Vos PDF générés sont conservés 30 jours pour que vous puissiez les retélécharger depuis un autre appareil.</string>
+    <string name="getting_started_feat_history_title">Historique permanent</string>
+    <string name="getting_started_feat_history_body">Chaque affiche créée reste dans votre historique local sur ce téléphone.</string>
+    <string name="getting_started_paid_explainer">L\'agrandissement IA (Topaz, Recraft, Magnific…) est optionnel et utilise des crédits. Nous facturons suffisamment au-dessus du coût par image du fournisseur IA pour couvrir les frais du Play Store et les serveurs — consultez la FAQ pour la répartition exacte de la marge.</string>
+    <string name="getting_started_tour_section">Visite en 3 étapes</string>
+    <string name="getting_started_tour1_title">Choisir une image</string>
+    <string name="getting_started_tour1_body">Appuyez sur la carte photo en haut. Utilisez la copie en plus haute résolution disponible — les petites captures d\'écran seront pixelisées une fois agrandies à la taille d\'une affiche murale.</string>
+    <string name="getting_started_tour1_screenshot">[capture d\'écran : sélecteur d\'image]</string>
+    <string name="getting_started_tour2_title">Définir la taille</string>
+    <string name="getting_started_tour2_body">Saisissez la largeur et la hauteur de l\'affiche finale. Verrouillez le format d\'image (l\'icône chaîne) pour conserver les proportions, ou déverrouillez pour recadrer. Choisissez un format de papier correspondant à votre imprimante — Letter est le format par défaut en Amérique du Nord ; A4 ailleurs.</string>
+    <string name="getting_started_tour2_screenshot">[capture d\'écran : sélecteur de taille + papier]</string>
+    <string name="getting_started_tour3_title">Générer</string>
+    <string name="getting_started_tour3_body">Appuyez sur Afficher, Enregistrer ou Partager. Afficher ouvre le PDF dans votre lecteur ; Enregistrer vous permet de choisir un dossier ; Partager envoie le PDF vers n\'importe quelle application (e-mail, Drive, impression). Si votre image est en dessous de 150 DPI à la taille choisie, nous vous inviterons à l\'agrandir d\'abord.</string>
+    <string name="getting_started_tour3_screenshot">[capture d\'écran : boutons d\'action]</string>
+
+    <!-- Écran de politique de confidentialité -->
+    <string name="screen_privacy_title">Politique de confidentialité</string>
+    <string name="privacy_intro">En vigueur : 2026-05-03. Nous essayons de rester concis et précis. Si quelque chose ci-dessous ne correspond pas à ce que fait réellement l\'application, traitez cela comme un bogue et envoyez un e-mail à support@joeputin.com.</string>
+    <string name="privacy_sec_collect_first_launch_title">Ce que nous collectons au premier lancement</string>
+    <string name="privacy_sec_collect_first_launch_body">Un UID Firebase Auth anonyme — une chaîne opaque aléatoire sans information personnellement identifiable. C\'est ce qui permet à votre historique de persister entre les redémarrages de l\'application sur cet appareil.</string>
+    <string name="privacy_sec_google_title">Ce que nous collectons si vous vous connectez avec Google</string>
+    <string name="privacy_sec_google_body">Votre nom de compte Google et votre adresse e-mail. Nous les utilisons pour afficher qui est connecté, synchroniser votre historique sur tous vos appareils et traiter les demandes de suppression de compte. Nous ne recevons PAS votre mot de passe Google, vos contacts, votre agenda, votre Drive ni d\'autres données Google.</string>
+    <string name="privacy_sec_firestore_title">Métadonnées de l\'historique (Firestore)</string>
+    <string name="privacy_sec_firestore_body">Lorsque vous générez une affiche, nous enregistrons : la largeur et la hauteur de l\'affiche, le format de papier, l\'orientation, la marge, le chevauchement, le DPI de sortie, le nombre de pages et un horodatage de création. Ces données sont envoyées à Firestore à /users/{uid}/history. Nous ne stockons PAS les octets de l\'image source ni aucune donnée de pixels dans Firestore.</string>
+    <string name="privacy_sec_storage_title">Blobs PDF (Cloud Storage) — opt-in</string>
+    <string name="privacy_sec_storage_body">Si vous activez la conservation cloud (Paramètres → Stockage cloud…), nous téléversons les PDF générés vers Cloud Storage à gs://(projet)/user-pdfs/{uid}/. La conservation par défaut est de 30 jours ; les niveaux payants prolongent cette durée. Le choix par défaut dans Paramètres est local uniquement — rien ne quitte votre appareil sauf si vous activez l\'option.</string>
+    <string name="privacy_sec_fal_title">Agrandissement IA (FAL.ai)</string>
+    <string name="privacy_sec_fal_body">Lorsque vous appuyez sur une option d\'agrandissement IA (Topaz, Recraft, AuraSR, ESRGAN, Magnific), l\'image source est envoyée à FAL.ai pour traitement, et le résultat agrandi est renvoyé. FAL.ai conserve les entrées et sorties pendant la période définie dans leurs CGU — généralement de quelques minutes à quelques heures, mais lisez directement leur politique :</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_sec_retention_title">Conservation</string>
+    <string name="privacy_sec_retention_body">Définie par votre choix dans Paramètres → Stockage cloud…. Niveau gratuit : 30 jours. Niveaux payants : 90 jours, 1 an ou indéfini. Les métadonnées d\'historique dans Firestore suivent la même conservation. Les fichiers locaux et l\'historique local restent sur votre appareil jusqu\'à la désinstallation ou jusqu\'à ce que vous appuyiez sur Rétablir les valeurs par défaut.</string>
+    <string name="privacy_sec_deletion_title">Méthodes de suppression</string>
+    <string name="privacy_sec_deletion_body">Données locales : Paramètres → Rétablir les valeurs par défaut efface les préférences et l\'index d\'historique local. Copie cloud par affiche : ouvrez l\'Historique, appuyez sur le bouton cloud barré rouge sur la ligne. Suppression du compte complet (authentification + tout l\'historique Firestore + tous les PDF cloud) : envoyez un e-mail à support@joeputin.com depuis l\'adresse liée à votre connexion Google. Nous traitons la demande dans les 7 jours.</string>
+    <string name="privacy_sec_third_party_title">Services tiers</string>
+    <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (tous Google Cloud) ; FAL.ai pour l\'agrandissement IA ; Google Play Billing pour les achats de crédits. Nous n\'exécutons aucun SDK d\'analyse ou de publicité. Nous n\'avons pas accès aux autres applications de votre téléphone.</string>
+    <string name="privacy_sec_contact_title">Contact</string>
+    <string name="privacy_sec_contact_body">support@joeputin.com pour toute question de confidentialité ou demande de suppression. Le code source est public sur github.com/Joeputin/pdfposter — ce que vous voyez dans cette politique correspond à ce qui est dans le code.</string>
+
+    <!-- Écran de comparaison des agrandisseurs IA -->
+    <string name="screen_compare_title">Comparer les agrandisseurs IA</string>
+    <string name="compare_subject_label">Sujet</string>
+    <string name="compare_model_label">Modèle</string>
+    <string name="compare_subject_disco_chicken">Poulet disco</string>
+    <string name="compare_subject_cat_shimmer">Chat scintillant</string>
+    <string name="compare_subject_gristmill">Moulin</string>
+    <string name="compare_subject_earth">Affiche de la Terre</string>
+    <string name="compare_synthesized_fallback">(remplacement synthétisé — voir les ressources)</string>
+    <string name="compare_source_image_cd">Image source</string>
+    <string name="compare_upscaled_image_cd">Image agrandie</string>
+    <string name="compare_label_original">Original</string>
+    <string name="compare_label_upscaled">Agrandi</string>
+    <string name="compare_credits_attribution">Images de démo : cat_shimmer (CC BY 2.0), gristmill (CC BY-SA 4.0), affiche de la Terre (CC BY 2.0, ESO). disco_chicken généré par Gemini Nano Banana.</string>
+
+    <!-- Modal d\'agrandissement DPI faible -->
+    <string name="lowdpi_header_svg">Source vectorielle — aucun agrandissement nécessaire</string>
+    <string name="lowdpi_header_warning">Cette affiche s\'imprimera en basse résolution</string>
+    <string name="lowdpi_current_dpi">Actuel : %1$d DPI  ·  %2$s\" × %3$s\"</string>
+    <string name="lowdpi_poster_size_only">Taille de l\'affiche : %1$s\" × %2$s\"</string>
+    <string name="lowdpi_eta_estimating">estimation en cours…</string>
+    <string name="lowdpi_aim_for_dpi">Visez au moins 150 DPI. Plusieurs solutions s\'offrent à vous :</string>
+    <string name="lowdpi_lever_reduce_title">Réduire la taille de l\'affiche</string>
+    <string name="lowdpi_lever_reduce_body">Même image source, impression plus petite → DPI plus élevé. Solution la plus rapide, sans téléversement.</string>
+    <string name="lowdpi_lever_upgrade_title">Améliorer la source</string>
+    <string name="lowdpi_lever_upgrade_body">Agrandissement sur l\'appareil (gratuit, limité par la RAM) ou via IA (crédits facturés par modèle).</string>
+    <string name="lowdpi_lever_byo_title">Apporter le vôtre</string>
+    <string name="lowdpi_lever_byo_body">Déjà agrandi avec Canva, OpenArt, Topaz Photo AI ou Magnific ? Chargez directement le fichier agrandi. PosterPDF est gratuit avec n\'importe quelle source d\'image — les crédits IA couvrent uniquement le coût d\'inférence.</string>
+    <string name="lowdpi_dismiss_svg">Compris</string>
+    <string name="lowdpi_dismiss_warning">Réduire la taille de l\'affiche</string>
+    <string name="lowdpi_help_me_decide">Aidez-moi à choisir…</string>
+
+    <!-- Étiquettes des modèles d\'agrandissement (utilisées dans les cartes + puces) -->
+    <string name="upscale_model_none">Maintenant (pixelisé)</string>
+    <string name="upscale_model_none_pros">Le plus rapide, gratuit, fonctionne sur n\'importe quel appareil</string>
+    <string name="upscale_model_none_cons">Pixelisation visible sur les grandes impressions</string>
+    <string name="upscale_model_free_local">Agrandissement gratuit</string>
+    <string name="upscale_model_free_local_pros">Gratuit, hors ligne, sans internet</string>
+    <string name="upscale_model_free_local_cons">Plus lent sur les anciens téléphones ; 4× max</string>
+    <string name="upscale_model_topaz">Topaz Gigapixel</string>
+    <string name="upscale_model_topaz_pros">Bords les plus nets, résultat soigné</string>
+    <string name="upscale_model_topaz_cons">Coût par pixel le plus élevé</string>
+    <string name="upscale_model_recraft">Recraft Crisp</string>
+    <string name="upscale_model_recraft_pros">Fidèle aux photos, ~40× moins cher que Topaz</string>
+    <string name="upscale_model_recraft_cons">Moins net sur le texte/UI que Topaz</string>
+    <string name="upscale_model_aurasr">AuraSR</string>
+    <string name="upscale_model_aurasr_pros">Rapide et économique (~$0.01/image)</string>
+    <string name="upscale_model_aurasr_cons">Artefacts occasionnels sur les dégradés lisses</string>
+    <string name="upscale_model_esrgan">ESRGAN</string>
+    <string name="upscale_model_esrgan_pros">Classique open-source, option IA la moins chère</string>
+    <string name="upscale_model_esrgan_cons">Moins net que Topaz</string>
+
+    <!-- Étiquettes des puces de modèles de comparaison -->
+    <string name="compare_model_topaz">Topaz</string>
+    <string name="compare_model_recraft">Recraft</string>
+    <string name="compare_model_aurasr">AuraSR</string>
+    <string name="compare_model_esrgan">ESRGAN</string>
+
+    <!-- Carte d\'option d\'agrandissement -->
+    <string name="upscale_card_pixelated_cd">Aperçu pixelisé</string>
+    <string name="upscale_card_on_device_cd">Aperçu d\'agrandissement sur l\'appareil</string>
+    <string name="upscale_card_model_icon_cd">Icône %1$s</string>
+    <string name="upscale_card_dpi_estimate">≈ %1$d DPI</string>
+    <string name="upscale_card_credits_only">%1$d crédits</string>
+    <string name="upscale_card_credits_with_usd">%1$d crédits · ~$%2$s</string>
+    <string name="upscale_card_eta">ETA %1$s</string>
+    <string name="upscale_card_unavailable">Indisponible</string>
+    <string name="upscale_card_upscale_free">Agrandir gratuitement</string>
+    <string name="upscale_card_sign_in">Se connecter</string>
+    <string name="upscale_card_get_more_credits">Obtenir des crédits</string>
+    <string name="upscale_card_upscale_with_credits">Agrandir · %1$d cr</string>
+
+    <!-- Bannière vectorielle SVG -->
+    <string name="svg_banner_title">Source vectorielle</string>
+    <string name="svg_banner_body">SVG est une image vectorielle — elle s\'imprime nette quelle que soit la taille. Aucun agrandissement nécessaire.</string>
+    <string name="svg_banner_secondary">Si vous préférez partir d\'une image matricielle, utilisez « Apporter le vôtre » ci-dessous.</string>
+
+    <!-- Carte Apporter le vôtre -->
+    <string name="byo_card_title">Apporter le vôtre</string>
+    <string name="byo_card_free">Gratuit avec n\'importe quelle source</string>
+    <string name="byo_card_tools">Canva · OpenArt · Topaz · Magnific</string>
+    <string name="byo_card_pros">Fonctionne avec n\'importe quel outil d\'agrandissement que vous utilisez déjà</string>
+    <string name="byo_card_cons">Vous gérez l\'agrandissement avant de charger le fichier</string>
+    <string name="byo_card_button">Comment faire…</string>
+
+    <!-- Dialogue d\'aide Apporter le vôtre -->
+    <string name="byo_dialog_title">Apporter votre propre image agrandie</string>
+    <string name="byo_step1_title">Choisissez votre outil</string>
+    <string name="byo_step1_body">N\'importe lequel de ces outils fonctionnera — choisissez celui que vous utilisez déjà ou dont le prix vous convient :</string>
+    <string name="byo_tool_canva_name">Canva</string>
+    <string name="byo_tool_canva_price">~$15/mois</string>
+    <string name="byo_tool_canva_note">Convivial pour les designers. Agrandisseur intégré sous Modifier l\'image → Magic Studio.</string>
+    <string name="byo_tool_openart_name">OpenArt</string>
+    <string name="byo_tool_openart_price">$10/mois</string>
+    <string name="byo_tool_openart_note">Vaste bibliothèque IA ; l\'onglet « Upscaler » gère le 4× et le 8×.</string>
+    <string name="byo_tool_fal_name">FAL Topaz</string>
+    <string name="byo_tool_fal_price">~$0.01/MP</string>
+    <string name="byo_tool_fal_note">Paiement par image, sans abonnement. Qualité professionnelle.</string>
+    <string name="byo_tool_magnific_name">Magnific</string>
+    <string name="byo_tool_magnific_price">$30/mois</string>
+    <string name="byo_tool_magnific_note">Agrandisseur créatif premium. Le plus lent mais le plus stylisé.</string>
+    <string name="byo_step2_title">Exécuter l\'agrandissement</string>
+    <string name="byo_step2_body">Ouvrez l\'outil choisi, téléversez l\'image originale et lancez l\'agrandissement à 4× ou 8×. Plus grand = plus net, mais plus long et plus coûteux.</string>
+    <string name="byo_step3_title">Enregistrer sur le téléphone</string>
+    <string name="byo_step3_body">Téléchargez le résultat dans votre dossier Téléchargements (ou tout emplacement accessible par le sélecteur de fichiers Android — Drive, Photos, etc. fonctionnent tous).</string>
+    <string name="byo_step4_title">Continuer ici</string>
+    <string name="byo_step4_body">Appuyez sur « Choisir un fichier » ci-dessous — sélectionnez votre fichier agrandi. PosterPDF l\'utilisera directement sans exécuter son propre agrandisseur.</string>
+    <string name="byo_choose_file">Choisir un fichier</string>
+
+    <!-- Barre de progression de l\'agrandissement -->
+    <string name="upscale_progress_uploading">Téléversement… %1$d%%</string>
+    <string name="upscale_progress_queued">En attente dans la file…</string>
+    <string name="upscale_progress_inferring">Agrandissement…</string>
+    <string name="upscale_progress_inferring_eta">Agrandissement… ~%1$ds restantes</string>
+    <string name="upscale_progress_downloading">Téléchargement… %1$d%%</string>
+
+    <!-- Messages de capacité (agrandissement sur l\'appareil) -->
+    <string name="capability_red_no_64bit">Votre appareil ne peut pas exécuter l\'IA sur l\'appareil</string>
+    <string name="capability_yellow_slow">Prendra quelques minutes sur votre appareil</string>
+
+    <!-- Formatage du temps estimé -->
+    <string name="eta_seconds">%1$d–%2$d s</string>
+    <string name="eta_minutes_decimal">%1$.1f–%2$.1f min</string>
+    <string name="eta_minutes">%1$d–%2$d min</string>
+
+    <!-- Légende de l\'aperçu en direct -->
+    <string name="preview_live_assembly">Aperçu d\'assemblage en direct</string>
+    <string name="preview_legend_margin">Marge</string>
+    <string name="preview_legend_overlap">Chevauchement</string>
+    <string name="preview_low_dpi_card">Basse résolution : %1$d DPI · Appuyer pour agrandir ↑</string>
+
+    <!-- Messages d\'erreur/succès du ViewModel -->
+    <string name="vm_error_open_image">Impossible d\'ouvrir l\'image source</string>
+    <string name="vm_success_upscaled">Agrandi à %1$d×%2$d</string>
+    <string name="vm_error_upscale_failed">Agrandissement échoué : %1$s</string>
+    <string name="vm_error_unknown">erreur inconnue</string>
+    <string name="vm_error_load_image_info">Échec du chargement des informations d\'image : %1$s</string>
+    <string name="vm_error_could_not_load_image">Impossible de charger l\'image</string>
+    <string name="vm_error_could_not_reopen_svg">Impossible de rouvrir le SVG pour la tuile</string>
+    <string name="vm_success_poster_generated">Affiche générée : %1$s</string>
+    <string name="vm_error_generation_failed">Échec : %1$s</string>
+    <string name="vm_success_signed_in">Connecté</string>
+    <string name="vm_error_signin_failed">Échec de la connexion : %1$s</string>
+</resources>

@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Идентификация приложения -->
+    <string name="app_name">Poster PDF</string>
+    <string name="brand_name">PosterPDF</string>
+
+    <!-- Заставка -->
+    <string name="splash_tap_to_skip">Нажмите, чтобы пропустить</string>
+
+    <!-- Общие кнопки / диалоги -->
+    <string name="common_ok">ОК</string>
+    <string name="common_save">Сохранить</string>
+    <string name="common_cancel">Отмена</string>
+    <string name="common_delete">Удалить</string>
+    <string name="common_back">Назад</string>
+    <string name="common_refresh">Обновить</string>
+    <string name="common_got_it">Понятно</string>
+
+    <!-- Верхняя панель -->
+    <string name="topbar_settings_menu">Настройки</string>
+    <string name="topbar_credit_badge">AI-кредиты</string>
+
+    <!-- Заголовки и элементы боковой панели -->
+    <string name="drawer_settings_header">Настройки</string>
+    <string name="drawer_units_label">Единицы измерения</string>
+    <string name="drawer_debug_logging_title">Журнал отладки</string>
+    <string name="drawer_debug_logging_subtitle">Записывать журналы в папку «Загрузки»</string>
+    <string name="drawer_posters_generated_title">Создано постеров</string>
+    <string name="drawer_posters_generated_subtitle">Всего постеров создано</string>
+    <string name="drawer_default_paper_size">Формат бумаги по умолчанию</string>
+    <string name="drawer_supported_file_types_label">Поддерживаемые форматы:</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_cloud_storage">Облачное хранилище…</string>
+    <string name="drawer_target_dpi_label">Целевое DPI печати: %1$d</string>
+    <string name="drawer_target_dpi_help">Выше DPI → чётче печать, больше кредитов на масштабирование. 150 — стандарт для постеров; 300 — для фото; 600+ — для изобразительного искусства.</string>
+    <string name="drawer_getting_started">С чего начать</string>
+    <string name="drawer_help">Помощь</string>
+    <string name="drawer_faq">Вопросы и ответы</string>
+    <string name="drawer_privacy_policy">Политика конфиденциальности</string>
+    <string name="drawer_support">Поддержка</string>
+    <string name="drawer_reset_to_defaults">Сбросить настройки</string>
+    <string name="drawer_no_browser_for_support">Браузер не установлен — не удаётся открыть ссылку поддержки.</string>
+
+    <!-- Баннер поддержки разработчика -->
+    <string name="nag_title">Поддержите разработчика</string>
+    <string name="nag_body">Вы создали %1$d постеров! Подумайте о регистрации в Play Store за $2 — это помогает развитию проекта.</string>
+    <string name="nag_play_store_url">play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="nag_maybe_later">Позже</string>
+    <string name="nag_maybe_later_countdown">Позже (%1$d с)</string>
+    <string name="nag_dismiss">Закрыть</string>
+
+    <!-- Первоначальная настройка -->
+    <string name="onboarding_how_to_get_started">Как начать работу:</string>
+    <string name="onboarding_step1">Выберите изображение высокого разрешения выше.</string>
+    <string name="onboarding_step2">Задайте итоговые размеры постера.</string>
+    <string name="onboarding_step3">Выберите формат бумаги и ориентацию.</string>
+    <string name="onboarding_step4">Просмотрите или сохраните PDF, готовый к печати!</string>
+
+    <!-- Информация об изображении -->
+    <string name="info_chip_resolution">Разрешение</string>
+    <string name="info_chip_aspect_ratio">Соотношение сторон</string>
+    <string name="info_dialog_aspect_ratio_title">Соотношение сторон</string>
+    <string name="info_dialog_aspect_ratio_body">Это отношение ширины к высоте. Фиксированное масштабирование гарантирует, что постер точно сохранит пропорции изображения.</string>
+
+    <!-- Карточка размера постера -->
+    <string name="poster_size_section">Размер постера</string>
+    <string name="poster_width_with_unit">Ширина (%1$s)</string>
+    <string name="poster_height_with_unit">Высота (%1$s)</string>
+
+    <!-- Бумага и макет -->
+    <string name="paper_layout_section">Бумага &amp; макет</string>
+    <string name="paper_size_section">Формат бумаги</string>
+    <string name="orientation_section">Ориентация</string>
+    <string name="orientation_best_fit">Наилучшее соответствие</string>
+    <string name="orientation_portrait">Книжная</string>
+    <string name="orientation_landscape">Альбомная</string>
+    <string name="orientation_portrait_cd">Книжная ориентация (Clarus the Dogcow стоит вертикально)</string>
+    <string name="orientation_landscape_cd">Альбомная ориентация (Clarus the Dogcow на боку)</string>
+    <string name="orientation_best_fit_cd">Ориентация «наилучшее соответствие»</string>
+    <string name="margin_with_unit">Поле (%1$s)</string>
+    <string name="overlap_with_unit">Перекрытие (%1$s)</string>
+    <string name="margin_info_title">Поле</string>
+    <string name="margin_info_body">Незапечатанный отступ по краям каждой страницы. Большинство домашних принтеров требуют не менее 0,25 дюйма (0,64 см).</string>
+    <string name="overlap_info_title">Перекрытие</string>
+    <string name="overlap_info_body">Повторяющаяся область между плитками — помогает совместить и склеить их. Рекомендуется 0,25–0,5 дюйма.</string>
+    <string name="project_scope">Объём проекта: %1$d страниц (%2$d строк × %3$d столбцов)</string>
+
+    <!-- Карточки формата бумаги -->
+    <string name="paper_recommended">Рекомендуемый</string>
+    <string name="paper_custom">Произвольный</string>
+
+    <!-- Единицы измерения -->
+    <string name="units_inches">Дюймы</string>
+    <string name="units_centimeters">Сантиметры</string>
+
+    <!-- Расширенное оформление -->
+    <string name="advanced_section">Расширенное оформление</string>
+    <string name="advanced_borders_title">Рамки &amp; метки обрезки</string>
+    <string name="advanced_borders_body">Печатаются на каждой странице, чтобы облегчить обрезку и совмещение. «Метки обрезки» — угловые маркеры, как в профессиональной типографии. Сплошная / пунктирная / точечная линия образует полную рамку разной толщины. Выберите «Нет», если хотите чистые края.</string>
+    <string name="advanced_label_panes">Нумеровать фрагменты (A1, B2…)</string>
+    <string name="advanced_include_instructions">Включить инструкцию по сборке</string>
+
+    <!-- Предпросмотр контура -->
+    <string name="outline_none">Нет</string>
+
+    <!-- Кнопки действий -->
+    <string name="action_view">Просмотр</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_share">Поделиться…</string>
+    <string name="chooser_open_pdf">Открыть PDF</string>
+    <string name="chooser_share_pdf">Поделиться PDF</string>
+
+    <!-- Предупреждение о низком DPI -->
+    <string name="low_dpi_dialog_title">Печать будет низкого разрешения</string>
+    <string name="low_dpi_dialog_body">Сейчас ваш постер — около %1$d DPI. Для чёткой печати нужно не менее 150 DPI. Продолжить или сначала масштабировать изображение?</string>
+    <string name="low_dpi_dialog_continue">Всё равно продолжить</string>
+    <string name="low_dpi_dialog_upgrade">Сначала улучшить источник</string>
+
+    <!-- Мастер первого запуска -->
+    <string name="first_run_title">Добро пожаловать в Poster PDF!</string>
+    <string name="first_run_intro">Давайте настроим приложение. Эти параметры всегда можно изменить в боковом меню.</string>
+    <string name="first_run_units_label">Выберите предпочтительные единицы измерения:</string>
+    <string name="first_run_paper_label">Формат бумаги по умолчанию:</string>
+    <string name="first_run_get_started">Начать</string>
+
+    <!-- История (боковая панель + экран) -->
+    <string name="history_section_title">История</string>
+    <string name="history_refresh_cd">Обновить историю</string>
+    <string name="history_empty_drawer">Постеров пока нет. Создайте один — он появится здесь.</string>
+    <string name="history_view_all">Смотреть все</string>
+    <string name="history_view_all_count">Смотреть все (%1$d)</string>
+    <string name="history_screen_title">История</string>
+    <string name="history_empty_title">История пуста</string>
+    <string name="history_empty_subtitle">Создайте постер — он появится здесь.</string>
+    <string name="history_card_view_cd">Просмотр</string>
+    <string name="history_card_share_cd">Поделиться</string>
+    <string name="history_card_download_cd">Загрузить из облака</string>
+    <string name="history_card_delete_cloud_cd">Удалить облачную копию</string>
+    <string name="history_delete_dialog_title">Удалить облачную копию?</string>
+    <string name="history_delete_dialog_body">Постер будет удалён из облачного хранилища. Локальная копия и запись в истории останутся нетронутыми — вы просто потеряете возможность повторно скачать его из облака. Освобождает место в хранилище вашего аккаунта.</string>
+
+    <!-- Раздел аккаунта -->
+    <string name="account_section_title">Аккаунт</string>
+    <string name="account_offline">Нет подключения — Firebase недоступен. PDF работают локально.</string>
+    <string name="account_anonymous_explainer">Вы вошли анонимно. Войдите через Google, чтобы сохранить историю на всех устройствах.</string>
+    <string name="account_sign_in_with_google">Войти через Google</string>
+    <string name="account_signed_in_fallback">Вход выполнен</string>
+    <string name="account_profile_picture_cd">Фото профиля</string>
+    <string name="account_sign_out">Выйти</string>
+
+    <!-- Выбор изображения -->
+    <string name="picker_select_image_cd">Выбрать изображение</string>
+    <string name="picker_pick_an_image">Выберите изображение для постера</string>
+    <string name="picker_selected_cd">Выбранное изображение постера</string>
+    <string name="picker_change_image">Сменить изображение</string>
+
+    <!-- Значок кредитов -->
+    <string name="credit_badge_cd">AI-кредиты</string>
+    <string name="credit_badge_admin_infinity">∞</string>
+
+    <!-- Экран покупки -->
+    <string name="purchase_ai_credits">AI-кредиты</string>
+    <string name="purchase_balance">Баланс: %1$d</string>
+    <string name="purchase_signin_title">Войдите, чтобы купить кредиты</string>
+    <string name="purchase_signin_body">Кредиты привязаны к вашему Google-аккаунту — так они сохраняются при смене устройства или переустановке.</string>
+    <string name="purchase_signin_button">Войти через Google и купить кредиты</string>
+    <string name="purchase_choose_pack">Выберите пакет кредитов</string>
+    <string name="purchase_recent_transactions">Последние транзакции</string>
+    <string name="purchase_no_transactions">Транзакций пока нет.</string>
+    <string name="purchase_restore">Восстановить покупки</string>
+    <string name="purchase_sku_starter">Стартовый</string>
+    <string name="purchase_sku_small">Малый</string>
+    <string name="purchase_sku_medium">Средний</string>
+    <string name="purchase_sku_large">Большой</string>
+    <string name="purchase_sku_credits_price">%1$d кредитов  —  %2$s</string>
+    <string name="purchase_buy">Купить</string>
+
+    <!-- Хранение данных -->
+    <string name="storage_dialog_title">Что делать с постерами через 30 дней?</string>
+    <string name="storage_dialog_body">Локальные копии и список истории хранятся бессрочно. Этот выбор касается только PDF-файлов в облачном хранилище.</string>
+    <string name="storage_auto_delete_title">Автоудаление через 30 дней</string>
+    <string name="storage_auto_delete_body">Хранилище остаётся бесплатным. Через 30 дней облачная копия удаляется; локальные файлы и список истории сохраняются.</string>
+    <string name="storage_paid_title">Хранить без ограничений</string>
+    <string name="storage_paid_body">Около 1¢ за постер в месяц после первых 30 дней — списывается с баланса кредитов. При нулевом балансе файл хранится ещё 30 дней, и мы пришлём предупреждение перед удалением.</string>
+    <string name="storage_decide_later">Решить позже</string>
+
+    <!-- Экран помощи -->
+    <string name="screen_help_title">Помощь</string>
+    <string name="help_paper_sizes_title">Форматы бумаги</string>
+    <string name="help_paper_sizes_body">PosterPDF поддерживает Letter (8,5×11 дюймов), Legal (8,5×14 дюймов), Tabloid (11×17 дюймов), A4 (8,27×11,69 дюймов), A3 (11,69×16,54 дюймов) и произвольный формат для нестандартных принтеров. Letter — стандарт для дома и офиса в Северной Америке; A4 — везде в остальном мире. Выберите тот, что загружен в ваш принтер — приложение разложит постер на нужное количество страниц.</string>
+    <string name="help_low_dpi_title">Предупреждение о низком DPI</string>
+    <string name="help_low_dpi_body">Если пикселей в изображении меньше, чем требует размер печати, под предпросмотром появится жёлтое предупреждение. 150 DPI — минимум для чёткой печати. При меньшем значении постер будет размытым или пикселизированным. Нажмите на баннер, чтобы открыть окно масштабирования — там показывается результат для каждого варианта с указанием стоимости в кредитах.</string>
+    <string name="help_upscale_title">Варианты масштабирования</string>
+    <string name="help_upscale_body">Пять стандартных карточек: «Сейчас (пикселизация)» — результат без масштабирования; «Бесплатное масштабирование» — ESRGAN на устройстве (без интернета, без кредитов, ~30 с); «Topaz 4×» — лучшее качество среди платных; «Recraft Crisp» — точная передача фото, примерно в 40 раз дешевле Topaz; «Загрузить своё» — файл, обработанный в другом сервисе (Canva, OpenArt, Magnific или Topaz desktop). Нажмите «Другие AI-варианты», чтобы увидеть Topaz 8×, AuraSR и ESRGAN.</string>
+    <string name="help_signin_title">Вход в аккаунт</string>
+    <string name="help_signin_body">При первом запуске создаётся анонимная сессия Firebase Auth — история работает сразу, без регистрации. Чтобы сохранить историю на всех устройствах (или восстановить после переустановки), откройте боковое меню и нажмите «Войти через Google». Мы получаем только ваше имя и email; мы не публикуем ничего от вашего имени, не читаем другие данные Google и не передаём информацию третьим лицам.</string>
+    <string name="help_history_title">История</string>
+    <string name="help_history_body">Каждый созданный постер появляется в списке истории. У каждой строки 4 кнопки: «Просмотр» открывает локальный PDF; «Поделиться» — отправляет через email или мессенджеры; «Загрузить» (значок облака) — скачивает копию из облака, если вы подключили эту функцию; «Удалить» (значок «облако с крестом») — удаляет облачную копию, не затрагивая локальный файл и запись в истории.</string>
+    <string name="help_sharing_title">Отправка</string>
+    <string name="help_sharing_body">Новая кнопка «Поделиться…» на главном экране позволяет отправить текущий постер в любое приложение — Gmail, WhatsApp, Drive, приложение принтера и др. PDF формируется заново при каждой отправке, поэтому всегда отражает текущие настройки.</string>
+
+    <!-- Экран вопросов и ответов -->
+    <string name="screen_faq_title">Вопросы и ответы</string>
+    <string name="faq_q_credits">Зачем нужны кредиты?</string>
+    <string name="faq_a_credits">Кредиты оплачивают AI-масштабирование — Topaz, Recraft, AuraSR, Magnific. Каждый провайдер берёт плату за изображение, поэтому мы тоже взимаем кредиты за изображение. Сам PosterPDF (генерация постеров, масштабирование на устройстве, история, 30-дневное облачное хранение) бесплатен при любом источнике. Кредиты применяются только при выборе AI-масштабирования.</string>
+    <string name="faq_q_credit_value">Почему мои кредиты стоят меньше, чем я заплатил?</string>
+    <string name="faq_a_credit_value">Открытая маржа: базовые AI-провайдеры берут с нас около двух третей от вашей оплаты. Оставшаяся треть покрывает комиссию Play Store (15%%), расходы на серверы (Cloud Functions + Firestore + Storage) и оставляет небольшую маржу на развитие. Наша наценка — около 50%% сверх стоимости FAL.ai: этого хватает, чтобы держаться на плаву, но не обогатиться. Точный эквивалент в USD показывается для каждого пакета кредитов — никаких сюрпризов.</string>
+    <string name="faq_q_offline">Можно ли пользоваться без интернета?</string>
+    <string name="faq_a_offline">Да, основные функции работают офлайн: выбор изображения, генерация постера, бесплатное масштабирование на устройстве, а также «Просмотр», «Сохранить» и «Поделиться». Интернет нужен для: входа через Google, AI-масштабирования (Topaz, Recraft и др.), покупки кредитов и синхронизации с облачным хранилищем. Метаданные истории синхронизируются в фоне при восстановлении соединения.</string>
+    <string name="faq_q_sha1">Для чего нужен SHA-1 отпечаток?</string>
+    <string name="faq_a_sha1">Google Sign-In привязывает сертификат подписи APK к вашему проекту Firebase Auth. SHA-1 отпечаток нашего release-хранилища ключей зарегистрирован в Firebase, поэтому только APK, подписанный этим хранилищем, может использовать Google Sign-In. Это защищает от поддельных APK, которые могут перехватить ваш Google-аккаунт. Если вход не работает сразу после установки — скорее всего, APK подписан debug- или сторонним хранилищем ключей.</string>
+    <string name="faq_q_out_of_credits">Что будет, если кредиты закончатся?</string>
+    <string name="faq_a_out_of_credits">Два независимых последствия. (1) AI-масштабирование станет недоступным в модальном окне — кнопки заменятся на «Купить кредиты». Бесплатное масштабирование и генерация PDF продолжают работать. (2) Если у вас также подключено платное облачное хранение, для сохранённых PDF начнётся 30-дневный льготный период: мы пришлём предупреждение, и через 30 дней облачные копии будут удалены. Локальные файлы и записи истории не пострадают.</string>
+    <string name="faq_q_pdf_time">Почему генерация PDF занимает ~30 с?</string>
+    <string name="faq_a_pdf_time">Каждый фрагмент рендерится отдельно в целевом размере бумаги — изображение обрезается и масштабируется для каждого. Сетка 4×4 означает 16 операций масштабирования, за каждой из которых следует компоновка страницы PDF с линейками, метками, маркерами обрезки и подвалом. Можно было бы кэшировать промежуточные результаты, но пофрагментное масштабирование — честный способ сохранить чёткость при печати. Более крупные постеры создаются дольше.</string>
+    <string name="faq_q_custom_paper">Можно ли печатать на нестандартном формате бумаги?</string>
+    <string name="faq_a_custom_paper">Да — выберите «Произвольный» в выборе формата бумаги. Появятся два дополнительных поля для ширины и высоты. Это удобно, если ваш принтер работает с A5, B5, фотобумагой или любым другим форматом. Разбивка на плитки работает так же; мы просто используем введённые вами размеры.</string>
+    <string name="faq_q_data_deletion">Как удалить свои данные?</string>
+    <string name="faq_a_data_deletion">Три варианта в зависимости от объёма. Только локально: Настройки → Сбросить настройки — сбрасывает параметры и историю на этом устройстве. Облачная копия одного постера: откройте Историю, найдите строку, нажмите значок «облако с крестом» (красный). Удаление аккаунта целиком (запись Auth + вся история Firestore + все PDF в облаке): напишите на support@joeputin.com с адреса, привязанного к вашему Google-аккаунту, — мы обработаем запрос вручную в течение 7 дней.</string>
+
+    <!-- Экран «С чего начать» -->
+    <string name="screen_getting_started_title">С чего начать</string>
+    <string name="getting_started_intro">PosterPDF превращает любое изображение в настенный постер, разложенный на листы Letter или A4 для домашней сборки. Выберите фото, задайте размер готового постера — и мы создадим PDF, готовый к отправке на принтер.</string>
+    <string name="getting_started_free_section">Что доступно бесплатно</string>
+    <string name="getting_started_feat_poster_title">Генерация постеров</string>
+    <string name="getting_started_feat_poster_body">Разбивка любого изображения на несколько страниц — без водяных знаков и ограничений по числу страниц.</string>
+    <string name="getting_started_feat_paper_title">Все форматы бумаги</string>
+    <string name="getting_started_feat_paper_body">Letter, Legal, Tabloid, A3, A4 и произвольный формат для нестандартных принтеров.</string>
+    <string name="getting_started_feat_upscale_title">Масштабирование на устройстве</string>
+    <string name="getting_started_feat_upscale_body">Увеличение в 4× выполняется локально на вашем телефоне — без интернета и кредитов.</string>
+    <string name="getting_started_feat_storage_title">30-дневное облачное хранение</string>
+    <string name="getting_started_feat_storage_body">Мы храним созданные PDF 30 дней, чтобы вы могли скачать их на другом устройстве.</string>
+    <string name="getting_started_feat_history_title">История навсегда</string>
+    <string name="getting_started_feat_history_body">Каждый созданный постер остаётся в локальной истории на этом телефоне.</string>
+    <string name="getting_started_paid_explainer">AI-масштабирование (Topaz, Recraft, Magnific…) — опциональная функция, требующая кредитов. Мы берём немного больше стоимости AI-провайдера, чтобы покрыть комиссию Play Store и серверные расходы — точную разбивку маржи смотрите в разделе «Вопросы и ответы».</string>
+    <string name="getting_started_tour_section">3 шага для начала</string>
+    <string name="getting_started_tour1_title">Выберите изображение</string>
+    <string name="getting_started_tour1_body">Нажмите на карточку фото вверху. Используйте копию наибольшего доступного разрешения — небольшие скриншоты с телефона будут выглядеть пикселизированными при увеличении до размера настенного постера.</string>
+    <string name="getting_started_tour1_screenshot">[скриншот: выбор изображения]</string>
+    <string name="getting_started_tour2_title">Задайте размер</string>
+    <string name="getting_started_tour2_body">Введите ширину и высоту готового постера. Зафиксируйте соотношение сторон (значок цепочки), чтобы сохранить пропорции, или снимите блокировку для кадрирования. Выберите формат бумаги, совпадающий с вашим принтером — Letter стандартен в Северной Америке; A4 — везде в остальном мире.</string>
+    <string name="getting_started_tour2_screenshot">[скриншот: выбор размера и формата бумаги]</string>
+    <string name="getting_started_tour3_title">Создать</string>
+    <string name="getting_started_tour3_body">Нажмите «Просмотр», «Сохранить» или «Поделиться». «Просмотр» открывает PDF в программе для чтения; «Сохранить» позволяет выбрать папку; «Поделиться» отправляет PDF в любое приложение (email, Drive, принтер). Если разрешение изображения ниже 150 DPI при выбранном размере, мы предложим сначала выполнить масштабирование.</string>
+    <string name="getting_started_tour3_screenshot">[скриншот: кнопки действий]</string>
+
+    <!-- Экран политики конфиденциальности -->
+    <string name="screen_privacy_title">Политика конфиденциальности</string>
+    <string name="privacy_intro">Действует с 2026-05-03. Мы стараемся быть краткими и точными. Если что-то ниже не соответствует реальному поведению приложения, считайте это ошибкой и сообщите на support@joeputin.com.</string>
+    <string name="privacy_sec_collect_first_launch_title">Что мы собираем при первом запуске</string>
+    <string name="privacy_sec_collect_first_launch_body">Анонимный Firebase Auth UID — случайная непрозрачная строка без каких-либо персональных данных. Именно он позволяет сохранять историю между перезапусками приложения на этом устройстве.</string>
+    <string name="privacy_sec_google_title">Что мы собираем при входе через Google</string>
+    <string name="privacy_sec_google_body">Имя вашего Google-аккаунта и email-адрес. Мы используем их, чтобы показывать, кто вошёл в систему, синхронизировать историю между устройствами и обрабатывать запросы на удаление аккаунта. Мы НЕ получаем доступ к вашему паролю Google, контактам, календарю, Drive или другим данным Google.</string>
+    <string name="privacy_sec_firestore_title">Метаданные истории (Firestore)</string>
+    <string name="privacy_sec_firestore_body">При генерации постера мы сохраняем: ширину и высоту постера, формат бумаги, ориентацию, поле, перекрытие, выходное DPI, количество страниц и метку времени создания. Данные хранятся в Firestore по пути /users/{uid}/history. Мы НЕ храним в Firestore исходные байты изображения или пиксельные данные.</string>
+    <string name="privacy_sec_storage_title">PDF-файлы (Cloud Storage) — по выбору</string>
+    <string name="privacy_sec_storage_body">Если вы включили облачное хранение (Настройки → Облачное хранилище…), созданные PDF загружаются в Cloud Storage по пути gs://(проект)/user-pdfs/{uid}/. По умолчанию срок хранения — 30 дней; платные тарифы увеличивают его. По умолчанию выбрано локальное хранение — данные не покидают устройство, пока вы не включите эту функцию.</string>
+    <string name="privacy_sec_fal_title">AI-масштабирование (FAL.ai)</string>
+    <string name="privacy_sec_fal_body">При выборе AI-масштабирования (Topaz, Recraft, AuraSR, ESRGAN, Magnific) исходное изображение отправляется на FAL.ai для обработки, после чего возвращается масштабированный результат. FAL.ai хранит входные и выходные данные в течение срока, указанного в их пользовательском соглашении — обычно от минут до часов; ознакомьтесь с их политикой напрямую:</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_sec_retention_title">Сроки хранения</string>
+    <string name="privacy_sec_retention_body">Определяются вашим выбором в Настройки → Облачное хранилище…. Бесплатный тариф: 30 дней. Платные тарифы: 90 дней, 1 год или бессрочно. Метаданные истории в Firestore хранятся так же. Локальные файлы и локальная история остаются на устройстве до удаления приложения или сброса настроек.</string>
+    <string name="privacy_sec_deletion_title">Способы удаления данных</string>
+    <string name="privacy_sec_deletion_body">Локальные данные: Настройки → Сбросить настройки — удаляет параметры и локальный индекс истории. Облачная копия одного постера: откройте Историю, нажмите красную кнопку «облако с крестом» на нужной строке. Удаление аккаунта целиком (Auth + вся история Firestore + все PDF в облаке): напишите на support@joeputin.com с адреса, привязанного к вашему Google-аккаунту. Мы обработаем запрос в течение 7 дней.</string>
+    <string name="privacy_sec_third_party_title">Сторонние сервисы</string>
+    <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (все — Google Cloud); FAL.ai для AI-масштабирования; Google Play Billing для покупки кредитов. Мы не используем никакие аналитические или рекламные SDK. У нас нет доступа к другим приложениям на вашем телефоне.</string>
+    <string name="privacy_sec_contact_title">Контакт</string>
+    <string name="privacy_sec_contact_body">support@joeputin.com — для любых вопросов о конфиденциальности или запросов на удаление. Исходный код опубликован на github.com/Joeputin/pdfposter — то, что описано в этой политике, соответствует коду.</string>
+
+    <!-- Экран сравнения AI-масштабировщиков -->
+    <string name="screen_compare_title">Сравнить AI-масштабировщики</string>
+    <string name="compare_subject_label">Сюжет</string>
+    <string name="compare_model_label">Модель</string>
+    <string name="compare_subject_disco_chicken">Disco chicken</string>
+    <string name="compare_subject_cat_shimmer">Cat shimmer</string>
+    <string name="compare_subject_gristmill">Gristmill</string>
+    <string name="compare_subject_earth">Earth poster</string>
+    <string name="compare_synthesized_fallback">(синтетический запасной вариант — см. ресурсы)</string>
+    <string name="compare_source_image_cd">Исходное изображение</string>
+    <string name="compare_upscaled_image_cd">Масштабированное изображение</string>
+    <string name="compare_label_original">Оригинал</string>
+    <string name="compare_label_upscaled">Масштабировано</string>
+    <string name="compare_credits_attribution">Демо-изображения: cat_shimmer (CC BY 2.0), gristmill (CC BY-SA 4.0), earth poster (CC BY 2.0, ESO). disco_chicken создан с помощью Gemini Nano Banana.</string>
+
+    <!-- Модальное окно масштабирования при низком DPI -->
+    <string name="lowdpi_header_svg">Векторный источник — масштабирование не требуется</string>
+    <string name="lowdpi_header_warning">Постер будет напечатан с низким разрешением</string>
+    <string name="lowdpi_current_dpi">Сейчас: %1$d DPI  ·  %2$s\" × %3$s\"</string>
+    <string name="lowdpi_poster_size_only">Размер постера: %1$s\" × %2$s\"</string>
+    <string name="lowdpi_eta_estimating">оценка…</string>
+    <string name="lowdpi_aim_for_dpi">Стремитесь к не менее 150 DPI. Есть несколько способов достичь этого:</string>
+    <string name="lowdpi_lever_reduce_title">Уменьшить размер постера</string>
+    <string name="lowdpi_lever_reduce_body">То же изображение, меньший формат печати → выше DPI. Самый быстрый способ, загрузка не нужна.</string>
+    <string name="lowdpi_lever_upgrade_title">Улучшить источник</string>
+    <string name="lowdpi_lever_upgrade_body">Масштабирование на устройстве (бесплатно, ограничено ОЗУ) или через AI (кредиты списываются за каждую модель).</string>
+    <string name="lowdpi_lever_byo_title">Загрузить своё</string>
+    <string name="lowdpi_lever_byo_body">Уже масштабировали через Canva, OpenArt, Topaz Photo AI или Magnific? Загрузите готовый файл напрямую. PosterPDF бесплатен с любым источником — AI-кредиты покрывают только стоимость обработки.</string>
+    <string name="lowdpi_dismiss_svg">Понятно</string>
+    <string name="lowdpi_dismiss_warning">Вместо этого уменьшить размер постера</string>
+    <string name="lowdpi_help_me_decide">Помогите выбрать…</string>
+
+    <!-- Метки моделей масштабирования (карточки и чипы) -->
+    <string name="upscale_model_none">Сейчас (пикселизация)</string>
+    <string name="upscale_model_none_pros">Максимально быстро, бесплатно, работает на любом устройстве</string>
+    <string name="upscale_model_none_cons">Заметная пикселизация при крупной печати</string>
+    <string name="upscale_model_free_local">Бесплатное масштабирование</string>
+    <string name="upscale_model_free_local_pros">Бесплатно, офлайн, без интернета</string>
+    <string name="upscale_model_free_local_cons">Медленнее на старых телефонах; максимум 4×</string>
+    <string name="upscale_model_topaz">Topaz Gigapixel</string>
+    <string name="upscale_model_topaz_pros">Чистейшие края, отличный результат</string>
+    <string name="upscale_model_topaz_cons">Самая высокая стоимость за пиксель</string>
+    <string name="upscale_model_recraft">Recraft Crisp</string>
+    <string name="upscale_model_recraft_pros">Точная передача фото, примерно в 40 раз дешевле Topaz</string>
+    <string name="upscale_model_recraft_cons">Текст и интерфейсы — чуть хуже, чем у Topaz</string>
+    <string name="upscale_model_aurasr">AuraSR</string>
+    <string name="upscale_model_aurasr_pros">Быстро и недорого (~$0,01 за изображение)</string>
+    <string name="upscale_model_aurasr_cons">Иногда артефакты на плавных градиентах</string>
+    <string name="upscale_model_esrgan">ESRGAN</string>
+    <string name="upscale_model_esrgan_pros">Классика с открытым кодом, самый дешёвый AI-вариант</string>
+    <string name="upscale_model_esrgan_cons">Чёткость уступает Topaz</string>
+
+    <!-- Чипы моделей в сравнении -->
+    <string name="compare_model_topaz">Topaz</string>
+    <string name="compare_model_recraft">Recraft</string>
+    <string name="compare_model_aurasr">AuraSR</string>
+    <string name="compare_model_esrgan">ESRGAN</string>
+
+    <!-- Карточка варианта масштабирования -->
+    <string name="upscale_card_pixelated_cd">Предпросмотр с пикселизацией</string>
+    <string name="upscale_card_on_device_cd">Предпросмотр масштабирования на устройстве</string>
+    <string name="upscale_card_model_icon_cd">Значок %1$s</string>
+    <string name="upscale_card_dpi_estimate">≈ %1$d DPI</string>
+    <string name="upscale_card_credits_only">%1$d кредитов</string>
+    <string name="upscale_card_credits_with_usd">%1$d кредитов · ~$%2$s</string>
+    <string name="upscale_card_eta">ETA %1$s</string>
+    <string name="upscale_card_unavailable">Недоступно</string>
+    <string name="upscale_card_upscale_free">Масштабировать бесплатно</string>
+    <string name="upscale_card_sign_in">Войти</string>
+    <string name="upscale_card_get_more_credits">Получить кредиты</string>
+    <string name="upscale_card_upscale_with_credits">Масштабировать · %1$d кр</string>
+
+    <!-- Баннер SVG-вектора -->
+    <string name="svg_banner_title">Векторный источник</string>
+    <string name="svg_banner_body">SVG — векторное изображение, которое чётко печатается в любом размере. Масштабирование не требуется.</string>
+    <string name="svg_banner_secondary">Если вы предпочитаете растровое изображение, используйте «Загрузить своё» ниже.</string>
+
+    <!-- Карточка «Загрузить своё» -->
+    <string name="byo_card_title">Загрузить своё</string>
+    <string name="byo_card_free">Бесплатно с любым источником</string>
+    <string name="byo_card_tools">Canva · OpenArt · Topaz · Magnific</string>
+    <string name="byo_card_pros">Работает с любым инструментом масштабирования</string>
+    <string name="byo_card_cons">Масштабирование нужно выполнить до загрузки файла</string>
+    <string name="byo_card_button">Как это сделать…</string>
+
+    <!-- Диалог помощи «Загрузить своё» -->
+    <string name="byo_dialog_title">Загрузить собственное масштабированное изображение</string>
+    <string name="byo_step1_title">Выберите инструмент</string>
+    <string name="byo_step1_body">Подойдёт любой из этих вариантов — выбирайте тот, что у вас уже есть или который подходит по цене:</string>
+    <string name="byo_tool_canva_name">Canva</string>
+    <string name="byo_tool_canva_price">~$15/мес</string>
+    <string name="byo_tool_canva_note">Удобно для дизайнеров. Встроенный масштабировщик: Редактировать изображение → Magic Studio.</string>
+    <string name="byo_tool_openart_name">OpenArt</string>
+    <string name="byo_tool_openart_price">$10/мес</string>
+    <string name="byo_tool_openart_note">Богатая AI-библиотека; вкладка «Upscaler» поддерживает 4× и 8×.</string>
+    <string name="byo_tool_fal_name">FAL Topaz</string>
+    <string name="byo_tool_fal_price">~$0,01/МП</string>
+    <string name="byo_tool_fal_note">Оплата за изображение, без подписки. Профессиональное качество.</string>
+    <string name="byo_tool_magnific_name">Magnific</string>
+    <string name="byo_tool_magnific_price">$30/мес</string>
+    <string name="byo_tool_magnific_note">Премиум творческий масштабировщик. Самый медленный, но с наибольшим стилизованным эффектом.</string>
+    <string name="byo_step2_title">Выполнить масштабирование</string>
+    <string name="byo_step2_body">Откройте выбранный инструмент, загрузите оригинал и запустите масштабирование на 4× или 8×. Больше = чётче, но дольше и дороже.</string>
+    <string name="byo_step3_title">Сохранить на телефон</string>
+    <string name="byo_step3_body">Скачайте результат в папку «Загрузки» (или любое место, доступное в проводнике Android — Drive, Photos и др. тоже подойдут).</string>
+    <string name="byo_step4_title">Продолжить здесь</string>
+    <string name="byo_step4_body">Нажмите «Выбрать файл» ниже — выберите масштабированный файл. PosterPDF будет использовать его напрямую, без собственного масштабирования.</string>
+    <string name="byo_choose_file">Выбрать файл</string>
+
+    <!-- Индикатор прогресса масштабирования -->
+    <string name="upscale_progress_uploading">Загрузка… %1$d%%</string>
+    <string name="upscale_progress_queued">Ожидание в очереди…</string>
+    <string name="upscale_progress_inferring">Масштабирование…</string>
+    <string name="upscale_progress_inferring_eta">Масштабирование… ~%1$d с осталось</string>
+    <string name="upscale_progress_downloading">Скачивание… %1$d%%</string>
+
+    <!-- Сообщения о возможностях (масштабирование на устройстве) -->
+    <string name="capability_red_no_64bit">Ваше устройство не поддерживает AI на устройстве</string>
+    <string name="capability_yellow_slow">На вашем устройстве это займёт несколько минут</string>
+
+    <!-- Форматирование времени ожидания -->
+    <string name="eta_seconds">%1$d–%2$d с</string>
+    <string name="eta_minutes_decimal">%1$.1f–%2$.1f мин</string>
+    <string name="eta_minutes">%1$d–%2$d мин</string>
+
+    <!-- Легенда интерактивного предпросмотра -->
+    <string name="preview_live_assembly">Предпросмотр сборки в реальном времени</string>
+    <string name="preview_legend_margin">Поле</string>
+    <string name="preview_legend_overlap">Перекрытие</string>
+    <string name="preview_low_dpi_card">Низкое разрешение: %1$d DPI · Нажмите для масштабирования ↑</string>
+
+    <!-- Сообщения об ошибках и успехе ViewModel -->
+    <string name="vm_error_open_image">Не удалось открыть исходное изображение</string>
+    <string name="vm_success_upscaled">Масштабировано до %1$d×%2$d</string>
+    <string name="vm_error_upscale_failed">Ошибка масштабирования: %1$s</string>
+    <string name="vm_error_unknown">неизвестная ошибка</string>
+    <string name="vm_error_load_image_info">Не удалось загрузить информацию об изображении: %1$s</string>
+    <string name="vm_error_could_not_load_image">Не удалось загрузить изображение</string>
+    <string name="vm_error_could_not_reopen_svg">Не удалось повторно открыть SVG для фрагмента</string>
+    <string name="vm_success_poster_generated">Постер создан: %1$s</string>
+    <string name="vm_error_generation_failed">Ошибка: %1$s</string>
+    <string name="vm_success_signed_in">Вход выполнен</string>
+    <string name="vm_error_signin_failed">Ошибка входа: %1$s</string>
+</resources>

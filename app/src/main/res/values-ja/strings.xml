@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- アプリのアイデンティティ -->
+    <string name="app_name">Poster PDF</string>
+    <string name="brand_name">PosterPDF</string>
+
+    <!-- スプラッシュ -->
+    <string name="splash_tap_to_skip">タップしてスキップ</string>
+
+    <!-- 共通ボタン／ダイアログ -->
+    <string name="common_ok">OK</string>
+    <string name="common_save">保存</string>
+    <string name="common_cancel">キャンセル</string>
+    <string name="common_delete">削除</string>
+    <string name="common_back">戻る</string>
+    <string name="common_refresh">更新</string>
+    <string name="common_got_it">了解</string>
+
+    <!-- トップバー -->
+    <string name="topbar_settings_menu">設定</string>
+    <string name="topbar_credit_badge">AIクレジット</string>
+
+    <!-- ドロワーのヘッダー＋項目 -->
+    <string name="drawer_settings_header">設定</string>
+    <string name="drawer_units_label">単位</string>
+    <string name="drawer_debug_logging_title">デバッグログ</string>
+    <string name="drawer_debug_logging_subtitle">Downloadsフォルダにログを保存</string>
+    <string name="drawer_posters_generated_title">作成したポスター数</string>
+    <string name="drawer_posters_generated_subtitle">ポスターの合計作成数</string>
+    <string name="drawer_default_paper_size">デフォルト用紙サイズ</string>
+    <string name="drawer_supported_file_types_label">対応ファイル形式：</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_cloud_storage">クラウドストレージ…</string>
+    <string name="drawer_target_dpi_label">目標印刷DPI：%1$d</string>
+    <string name="drawer_target_dpi_help">DPIが高いほど鮮明な印刷になりますが、アップスケールクレジットを多く消費します。ポスターは150が標準、写真は300、アート印刷は600以上が目安です。</string>
+    <string name="drawer_getting_started">はじめかた</string>
+    <string name="drawer_help">ヘルプ</string>
+    <string name="drawer_faq">よくある質問</string>
+    <string name="drawer_privacy_policy">プライバシーポリシー</string>
+    <string name="drawer_support">サポート</string>
+    <string name="drawer_reset_to_defaults">デフォルトに戻す</string>
+    <string name="drawer_no_browser_for_support">サポートリンクを開くブラウザがインストールされていません。</string>
+
+    <!-- ナグバナー -->
+    <string name="nag_title">開発者を支援する</string>
+    <string name="nag_body">%1$d枚のポスターを作成しました！Play Storeで$2の登録をご検討ください。開発継続の大きな支えになります。</string>
+    <string name="nag_play_store_url">play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="nag_maybe_later">後で</string>
+    <string name="nag_maybe_later_countdown">後で（%1$d秒）</string>
+    <string name="nag_dismiss">閉じる</string>
+
+    <!-- オンボーディング -->
+    <string name="onboarding_how_to_get_started">はじめかた：</string>
+    <string name="onboarding_step1">上で高解像度の画像を選びます。</string>
+    <string name="onboarding_step2">完成ポスターのサイズを設定します。</string>
+    <string name="onboarding_step3">用紙サイズと向きを選びます。</string>
+    <string name="onboarding_step4">印刷用PDFを表示または保存！</string>
+
+    <!-- 画像情報 -->
+    <string name="info_chip_resolution">解像度</string>
+    <string name="info_chip_aspect_ratio">アスペクト比</string>
+    <string name="info_dialog_aspect_ratio_title">アスペクト比</string>
+    <string name="info_dialog_aspect_ratio_body">横と縦の比率です。縦横比をロックすると、ポスターが画像の比率に正確に合わせられます。</string>
+
+    <!-- ポスターサイズカード -->
+    <string name="poster_size_section">ポスターサイズ</string>
+    <string name="poster_width_with_unit">幅（%1$s）</string>
+    <string name="poster_height_with_unit">高さ（%1$s）</string>
+
+    <!-- 用紙とレイアウト -->
+    <string name="paper_layout_section">用紙とレイアウト</string>
+    <string name="paper_size_section">用紙サイズ</string>
+    <string name="orientation_section">向き</string>
+    <string name="orientation_best_fit">最適な向き</string>
+    <string name="orientation_portrait">縦向き</string>
+    <string name="orientation_landscape">横向き</string>
+    <string name="orientation_portrait_cd">縦向き（Clarus the Dogcow 立っている）</string>
+    <string name="orientation_landscape_cd">横向き（Clarus the Dogcow 横になっている）</string>
+    <string name="orientation_best_fit_cd">最適な向き</string>
+    <string name="margin_with_unit">マージン（%1$s）</string>
+    <string name="overlap_with_unit">重なり（%1$s）</string>
+    <string name="margin_info_title">マージン</string>
+    <string name="margin_info_body">各ページの端に設ける印刷されない余白です。ほとんどの家庭用プリンターは最低0.25インチ（0.64cm）が必要です。</string>
+    <string name="overlap_info_title">重なり</string>
+    <string name="overlap_info_body">タイルを合わせて貼り合わせる際の位置合わせに使う重複部分です。0.25インチ〜0.5インチが推奨です。</string>
+    <string name="project_scope">合計：%1$dページ（%2$d行 × %3$d列）</string>
+
+    <!-- 用紙サイズカード -->
+    <string name="paper_recommended">おすすめ</string>
+    <string name="paper_custom">カスタム</string>
+
+    <!-- 単位 -->
+    <string name="units_inches">インチ</string>
+    <string name="units_centimeters">センチメートル</string>
+
+    <!-- 高度なスタイル設定 -->
+    <string name="advanced_section">高度なスタイル設定</string>
+    <string name="advanced_borders_title">ページ枠・トリムマーク</string>
+    <string name="advanced_borders_body">各ページに印刷され、カットや位置合わせを補助します。「トリムマーク」はプロの印刷店のように切り取り位置に角マークを印刷します。実線・破線・点線は太さを変えた全縁を描きます。きれいな縁にしたい場合は「なし」を選んでください。</string>
+    <string name="advanced_label_panes">各パネルにラベルを付ける（A1、B2…）</string>
+    <string name="advanced_include_instructions">組み立て手順を含める</string>
+
+    <!-- アウトラインプレビュー -->
+    <string name="outline_none">なし</string>
+
+    <!-- アクションボタン -->
+    <string name="action_view">表示</string>
+    <string name="action_save">保存</string>
+    <string name="action_share">共有…</string>
+    <string name="chooser_open_pdf">PDFを開く</string>
+    <string name="chooser_share_pdf">PDFを共有</string>
+
+    <!-- 低DPIゲート -->
+    <string name="low_dpi_dialog_title">低解像度で印刷されます</string>
+    <string name="low_dpi_dialog_body">現在のポスターは約%1$d DPIです。鮮明な印刷には最低150 DPIが必要です。そのまま続けますか、先に画像をアップスケールしますか？</string>
+    <string name="low_dpi_dialog_continue">このまま続ける</string>
+    <string name="low_dpi_dialog_upgrade">先にアップスケール</string>
+
+    <!-- 初回起動ウィザード -->
+    <string name="first_run_title">Poster PDFへようこそ！</string>
+    <string name="first_run_intro">まず初期設定を行いましょう。設定はいつでもサイドメニューから変更できます。</string>
+    <string name="first_run_units_label">使用する単位を選んでください：</string>
+    <string name="first_run_paper_label">デフォルト用紙サイズ：</string>
+    <string name="first_run_get_started">始める</string>
+
+    <!-- 履歴（ドロワー＋画面） -->
+    <string name="history_section_title">履歴</string>
+    <string name="history_refresh_cd">履歴を更新</string>
+    <string name="history_empty_drawer">ポスターがまだありません。作成するとここに表示されます。</string>
+    <string name="history_view_all">すべて表示</string>
+    <string name="history_view_all_count">すべて表示（%1$d件）</string>
+    <string name="history_screen_title">履歴</string>
+    <string name="history_empty_title">履歴がありません</string>
+    <string name="history_empty_subtitle">ポスターを作成するとここに表示されます。</string>
+    <string name="history_card_view_cd">表示</string>
+    <string name="history_card_share_cd">共有</string>
+    <string name="history_card_download_cd">クラウドからダウンロード</string>
+    <string name="history_card_delete_cloud_cd">クラウドコピーを削除</string>
+    <string name="history_delete_dialog_title">クラウドコピーを削除しますか？</string>
+    <string name="history_delete_dialog_body">クラウドストレージからポスターを削除します。ローカルコピーとこの履歴エントリはそのまま残りますが、後でクラウドから再ダウンロードはできなくなります。アカウントのストレージが解放されます。</string>
+
+    <!-- アカウントセクション -->
+    <string name="account_section_title">アカウント</string>
+    <string name="account_offline">オフライン — Firebaseに接続できません。PDFはローカルで使用できます。</string>
+    <string name="account_anonymous_explainer">匿名でサインイン中です。Googleでサインインすると、デバイス間で履歴を引き継げます。</string>
+    <string name="account_sign_in_with_google">Googleでサインイン</string>
+    <string name="account_signed_in_fallback">サインイン済み</string>
+    <string name="account_profile_picture_cd">プロフィール写真</string>
+    <string name="account_sign_out">サインアウト</string>
+
+    <!-- 画像ピッカー -->
+    <string name="picker_select_image_cd">画像を選択</string>
+    <string name="picker_pick_an_image">ポスターの画像を選んでください</string>
+    <string name="picker_selected_cd">選択中のポスター画像</string>
+    <string name="picker_change_image">画像を変更</string>
+
+    <!-- クレジットバッジ -->
+    <string name="credit_badge_cd">AIクレジット</string>
+    <string name="credit_badge_admin_infinity">∞</string>
+
+    <!-- 購入シート -->
+    <string name="purchase_ai_credits">AIクレジット</string>
+    <string name="purchase_balance">残高：%1$d</string>
+    <string name="purchase_signin_title">クレジット購入にはサインインが必要</string>
+    <string name="purchase_signin_body">クレジットはGoogleアカウントに紐づくため、デバイスの変更や再インストール後も引き継がれます。</string>
+    <string name="purchase_signin_button">Googleでサインインしてクレジットを購入</string>
+    <string name="purchase_choose_pack">クレジットパックを選択</string>
+    <string name="purchase_recent_transactions">最近の取引</string>
+    <string name="purchase_no_transactions">取引履歴はありません。</string>
+    <string name="purchase_restore">購入を復元</string>
+    <string name="purchase_sku_starter">スターター</string>
+    <string name="purchase_sku_small">スモール</string>
+    <string name="purchase_sku_medium">ミディアム</string>
+    <string name="purchase_sku_large">ラージ</string>
+    <string name="purchase_sku_credits_price">%1$dクレジット  -  %2$s</string>
+    <string name="purchase_buy">購入</string>
+
+    <!-- ストレージ保持設定 -->
+    <string name="storage_dialog_title">30日後にポスターをどうしますか？</string>
+    <string name="storage_dialog_body">ローカルコピーと履歴リストは常に永続保存されます。この選択はクラウドに保存されたポスターPDFのみに適用されます。</string>
+    <string name="storage_auto_delete_title">30日後に自動削除</string>
+    <string name="storage_auto_delete_body">ストレージ料金を0に抑えます。30日後にクラウドコピーが削除されますが、ローカルと履歴リストはそのまま残ります。</string>
+    <string name="storage_paid_title">保存し続ける</string>
+    <string name="storage_paid_body">最初の30日経過後、1ポスターあたり月約1¢がクレジット残高から差し引かれます。クレジットが不足した場合、30日間ファイルを保留し、削除前にメールでお知らせします。</string>
+    <string name="storage_decide_later">後で決める</string>
+
+    <!-- ヘルプ画面 -->
+    <string name="screen_help_title">ヘルプ</string>
+    <string name="help_paper_sizes_title">用紙サイズ</string>
+    <string name="help_paper_sizes_body">PosterPDFはLetter（8.5×11インチ）、Legal（8.5×14インチ）、Tabloid（11×17インチ）、A4（8.27×11.69インチ）、A3（11.69×16.54インチ）、および特殊プリンター向けのカスタムサイズに対応しています。Letterは北米の家庭・オフィス向けの標準、A4はその他の地域で標準的です。プリンターに実際にセットしている用紙に合わせて選択してください。アプリが必要なページ数に自動でタイリングします。</string>
+    <string name="help_low_dpi_title">低DPI警告</string>
+    <string name="help_low_dpi_body">画像のピクセル数が印刷サイズに対して不足している場合、プレビュー下部に黄色の警告バナーが表示されます。150 DPIが鮮明な印刷の最低目安です。それ以下だとぼやけた印刷になります。バナーをタップするとアップスケールモーダルが開き、各オプションの仕上がりとクレジットコストを確認できます。</string>
+    <string name="help_upscale_title">アップスケールの選択肢</string>
+    <string name="help_upscale_body">5つのデフォルトカード：「今すぐ（ピクセル化）」はアップスケールなしの結果を表示、「無料アップスケール」は端末上でESRGANをローカル実行（インターネット不要・クレジット不要・約30秒）、「Topaz 4×」は最高品質の有料オプション、「Recraft Crisp」は写実的でTopazの約40倍安価、「持ち込み」は他のツール（Canva、OpenArt、Magnific、Topazデスクトップ）でアップスケール済みのファイルを読み込みます。「他のAIオプションを見る」をタップすると、Topaz 8×・AuraSR・ESRGANも表示されます。</string>
+    <string name="help_signin_title">サインイン</string>
+    <string name="help_signin_body">初回起動時に匿名のFirebase Authセッションが作成されます。アカウント不要でそのまま履歴が使えます。デバイス間での引き継ぎや再インストール後の復元には、サイドメニューから「Googleでサインイン」をタップしてください。収集するのはお名前とメールアドレスのみで、投稿・他のGoogle情報へのアクセス・第三者への提供は一切行いません。</string>
+    <string name="help_history_title">履歴</string>
+    <string name="help_history_body">作成したポスターはすべて履歴リストに表示されます。各行に4つのボタンがあります：「表示」はローカルPDFを開きます、「共有」はメールやメッセージアプリに渡します、「ダウンロード（クラウドアイコン）」はクラウドストレージからコピーを取得します、「削除（クラウドオフアイコン）」はローカルファイルと履歴エントリを残したままクラウドコピーを削除します。</string>
+    <string name="help_sharing_title">共有</string>
+    <string name="help_sharing_body">メイン画面の「共有…」ボタンで、現在のポスターをGmail・WhatsApp・Drive・プリンターのアプリなど任意のアプリに送れます。PDFはタップのたびに現在の設定で生成されます。</string>
+
+    <!-- よくある質問画面 -->
+    <string name="screen_faq_title">よくある質問</string>
+    <string name="faq_q_credits">なぜクレジットが必要なのですか？</string>
+    <string name="faq_a_credits">クレジットはAIアップスケール（Topaz、Recraft、AuraSR、Magnific）の利用料に充てられます。各プロバイダーが画像ごとに課金するため、クレジットも画像単位で消費されます。PosterPDF本体（ポスター生成・端末内アップスケール・履歴・30日間クラウドストレージ）はどの画像ソースでも無料です。クレジットはAIアップスケールを選んだ場合のみ必要です。</string>
+    <string name="faq_q_credit_value">支払った金額よりクレジットの価値が低いのはなぜですか？</string>
+    <string name="faq_a_credit_value">料金の内訳を開示します：AIプロバイダーへの支払いは受取額の約3分の2です。残りの3分の1はPlay Storeの15%%手数料、サーバーコスト（Cloud Functions + Firestore + Storage）、そして開発資金としてのわずかなマージンです。FAL.aiの原価に対して約50%%上乗せを目標としており、運営を維持できる程度で、大きな利益にはなりません。各クレジットパックにはドル換算が表示されるため、価格は明確です。</string>
+    <string name="faq_q_offline">オフラインで使えますか？</string>
+    <string name="faq_a_offline">基本機能はオフラインで使用できます：画像ピッカー・ポスター生成・端末内無料アップスケール・表示／保存／共有はインターネット不要です。インターネットが必要な機能：Googleサインイン・AIアップスケール（Topaz、Recraftなど）・クレジット購入・クラウドストレージ同期。履歴のメタデータは再接続時にバックグラウンドで同期されます。</string>
+    <string name="faq_q_sha1">SHA-1フィンガープリントとは何ですか？</string>
+    <string name="faq_a_sha1">Google Sign-InはアプリのAPK署名証明書をFirebase Authプロジェクトに紐づけます。リリースキーストアのSHA-1フィンガープリントがFirebaseに登録されており、その署名のAPKのみがGoogle Sign-Inを使用できます。これにより偽造APKによるGoogleアカウントへのフィッシングを防ぎます。インストール直後にサインインが失敗する場合、最も多い原因はデバッグまたは第三者のキーストアで署名されたAPKです。</string>
+    <string name="faq_q_out_of_credits">クレジットがなくなるとどうなりますか？</string>
+    <string name="faq_a_out_of_credits">2つの独立した影響があります。（1）AIアップスケールオプションはモーダルで利用不可になり、ボタンが「クレジットを追加」に変わります。無料アップスケールとPDF生成は引き続き使えます。（2）有料保持プランでクラウドストレージをご利用の場合、保存中のPDFは30日間の猶予期間に入ります。警告メールをお送りし、30日後にクラウドコピーが削除されます。ローカルコピーと履歴エントリは影響を受けません。</string>
+    <string name="faq_q_pdf_time">PDFの生成に約30秒かかるのはなぜですか？</string>
+    <string name="faq_a_pdf_time">各タイルは目標の用紙サイズで個別にレンダリングされ、タイルごとに画像を切り取ってリサイズします。4×4グリッドの場合は16回の画像リサイズが行われ、それぞれにルーラー・ラベル・トリムマーク・ブランドフッターを含むPDFページが続きます。中間結果をキャッシュすることもできますが、印刷ピクセルの品質を保つためタイルごとのリサイズを行っています。ポスターが大きいほど時間がかかります。</string>
+    <string name="faq_q_custom_paper">非標準の用紙サイズで印刷できますか？</string>
+    <string name="faq_a_custom_paper">はい。用紙サイズの選択で「カスタム」を選ぶと、用紙の幅と高さを入力する項目が表示されます。A5・B5・フォト用紙など、リストにないサイズのプリンターでご利用ください。タイル計算のロジックは同じで、入力したサイズを使用します。</string>
+    <string name="faq_q_data_deletion">データを削除したい場合はどうすればいいですか？</string>
+    <string name="faq_a_data_deletion">3つの方法があります。ローカルのみ：設定 → デフォルトに戻す で、この端末の設定とアプリがリセットされます。ポスターごとのクラウドコピー：履歴を開き、該当行のクラウドオフ（赤）アイコンをタップします。アカウント全体の削除（認証記録＋全Firestore履歴＋全クラウドPDF）：Googleサインインに紐づいたメールアドレスからsupport@joeputin.comにメールをお送りください。7日以内に手動で処理します。</string>
+
+    <!-- はじめかた画面 -->
+    <string name="screen_getting_started_title">はじめかた</string>
+    <string name="getting_started_intro">PosterPDFは任意の画像を印刷可能な壁掛けポスターに変換し、LETTERまたはA4用紙にタイリングして自宅で組み立てられるようにします。写真を選んで完成ポスターのサイズを設定すると、プリンターにそのまま送れる印刷用PDFを生成します。</string>
+    <string name="getting_started_free_section">無料でできること</string>
+    <string name="getting_started_feat_poster_title">ポスター生成</string>
+    <string name="getting_started_feat_poster_body">任意の画像を複数ページにタイリング。透かしなし、ページ数制限なし。</string>
+    <string name="getting_started_feat_paper_title">全用紙サイズ対応</string>
+    <string name="getting_started_feat_paper_body">Letter、Legal、Tabloid、A3、A4、および特殊プリンター向けカスタムサイズ。</string>
+    <string name="getting_started_feat_upscale_title">端末内アップスケール</string>
+    <string name="getting_started_feat_upscale_body">4×アップスケールをお使いの端末でローカル実行。インターネット・クレジット不要。</string>
+    <string name="getting_started_feat_storage_title">30日間クラウドストレージ</string>
+    <string name="getting_started_feat_storage_body">生成したPDFを30日間保存し、別の端末から再ダウンロードできます。</string>
+    <string name="getting_started_feat_history_title">履歴は永続保存</string>
+    <string name="getting_started_feat_history_body">作成したポスターはすべてこの端末のローカル履歴に残ります。</string>
+    <string name="getting_started_paid_explainer">AIアップスケール（Topaz、Recraft、Magnific…）はオプションでクレジットを使用します。AIプロバイダーの画像単価に対して、Play Store手数料とサーバーコストを賄う分だけ上乗せしています。詳細な料金内訳はよくある質問をご覧ください。</string>
+    <string name="getting_started_tour_section">3ステップで使う</string>
+    <string name="getting_started_tour1_title">画像を選ぶ</string>
+    <string name="getting_started_tour1_body">上部の写真カードをタップします。可能な限り高解像度の画像を使ってください。小さなスクリーンショットは壁掛けポスターサイズに拡大するとピクセル化して見えます。</string>
+    <string name="getting_started_tour1_screenshot">[スクリーンショット：画像ピッカー]</string>
+    <string name="getting_started_tour2_title">サイズを設定する</string>
+    <string name="getting_started_tour2_body">完成ポスターの幅と高さを入力します。アスペクト比のロック（鎖アイコン）で画像の縦横比を維持するか、解除してトリミングします。プリンターに合った用紙サイズを選んでください。Letterは北米の家庭・オフィスの標準、A4はその他の地域で標準的です。</string>
+    <string name="getting_started_tour2_screenshot">[スクリーンショット：サイズ＋用紙セレクター]</string>
+    <string name="getting_started_tour3_title">生成する</string>
+    <string name="getting_started_tour3_body">「表示」「保存」「共有」をタップします。「表示」はPDFリーダーで開きます、「保存」はフォルダを選んで保存できます、「共有」はPDFをメール・Drive・印刷など任意のアプリに渡します。選択したサイズで150 DPI未満の場合、アップスケールを促すメッセージが表示されます。</string>
+    <string name="getting_started_tour3_screenshot">[スクリーンショット：アクションボタン]</string>
+
+    <!-- プライバシーポリシー画面 -->
+    <string name="screen_privacy_title">プライバシーポリシー</string>
+    <string name="privacy_intro">発効日：2026-05-03。できる限り簡潔かつ正確に記載しています。アプリの実際の動作と異なる点があれば、バグとしてsupport@joeputin.comまでご連絡ください。</string>
+    <string name="privacy_sec_collect_first_launch_title">初回起動時に収集する情報</string>
+    <string name="privacy_sec_collect_first_launch_body">匿名のFirebase Auth UID（個人を特定する情報を含まないランダムな不透明文字列）のみです。これにより、この端末でのアプリ再起動後も履歴が維持されます。</string>
+    <string name="privacy_sec_google_title">Googleサインイン時に収集する情報</string>
+    <string name="privacy_sec_google_body">Googleアカウントの氏名とメールアドレスです。サインイン中のユーザー表示、デバイス間の履歴同期、アカウント全体の削除依頼の処理に使用します。Googleパスワード・連絡先・カレンダー・Driveなど他のGoogleデータは収集しません。</string>
+    <string name="privacy_sec_firestore_title">履歴メタデータ（Firestore）</string>
+    <string name="privacy_sec_firestore_body">ポスター生成時に記録されるのは、ポスターの幅と高さ・用紙サイズ・向き・マージン・重なり・出力DPI・ページ数・作成タイムスタンプです。/users/{uid}/history にFirestoreへ保存されます。元画像のバイトデータやピクセルデータはFirestoreに保存しません。</string>
+    <string name="privacy_sec_storage_title">PDFデータ（Cloud Storage）— オプトイン</string>
+    <string name="privacy_sec_storage_body">クラウド保持（設定 → クラウドストレージ…）を選択した場合、生成されたPDFはCloud StorageのBucket（gs://(project)/user-pdfs/{uid}/）にアップロードされます。デフォルトの保持期間は30日で、有料プランでは延長できます。デフォルト設定はローカル保存のみで、オプトインしない限りデータは端末外に送信されません。</string>
+    <string name="privacy_sec_fal_title">AIアップスケール（FAL.ai）</string>
+    <string name="privacy_sec_fal_body">AIアップスケール（Topaz、Recraft、AuraSR、ESRGAN、Magnific）を選択すると、元画像が処理のためFAL.aiに送信され、アップスケール結果が返されます。FAL.aiは入出力データをTOSに定められた期間（通常は数分〜数時間）保持します。FAL.aiのポリシーは直接ご確認ください：</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_sec_retention_title">保持期間</string>
+    <string name="privacy_sec_retention_body">設定 → クラウドストレージ… の選択によって異なります。無料プラン：30日。有料プラン：90日、1年、または無期限。FirestoreのメタデータもFirestoreの履歴も同じ保持期間に従います。ローカルファイルとローカル履歴はアンインストールまたは「デフォルトに戻す」を実行するまで端末上に残ります。</string>
+    <string name="privacy_sec_deletion_title">削除方法</string>
+    <string name="privacy_sec_deletion_body">ローカルデータ：設定 → デフォルトに戻す で設定と端末上の履歴インデックスが消去されます。ポスターごとのクラウドコピー：履歴を開き、該当行の赤いクラウドオフボタンをタップします。アカウント全体（認証＋全Firestore履歴＋全クラウドPDF）：Googleサインインに紐づいたメールアドレスからsupport@joeputin.comにご連絡ください。7日以内に処理します。</string>
+    <string name="privacy_sec_third_party_title">サードパーティサービス</string>
+    <string name="privacy_sec_third_party_body">Firebase Auth・Cloud Firestore・Cloud Storage（すべてGoogle Cloud）、AIアップスケール向けのFAL.ai、クレジット購入向けのGoogle Play Billingを使用しています。アナリティクスや広告SDKは一切使用していません。他のアプリへのアクセスもありません。</string>
+    <string name="privacy_sec_contact_title">お問い合わせ</string>
+    <string name="privacy_sec_contact_body">プライバシーに関するご質問や削除依頼はsupport@joeputin.comまで。ソースコードはgithub.com/Joeputin/pdfposterで公開しており、このポリシーの内容はコードと一致しています。</string>
+
+    <!-- アップスケール比較画面 -->
+    <string name="screen_compare_title">AIアップスケーラーを比較</string>
+    <string name="compare_subject_label">被写体</string>
+    <string name="compare_model_label">モデル</string>
+    <string name="compare_subject_disco_chicken">ディスコチキン</string>
+    <string name="compare_subject_cat_shimmer">キラキラ猫</string>
+    <string name="compare_subject_gristmill">水車小屋</string>
+    <string name="compare_subject_earth">地球ポスター</string>
+    <string name="compare_synthesized_fallback">（合成フォールバック — アセットを参照）</string>
+    <string name="compare_source_image_cd">元画像</string>
+    <string name="compare_upscaled_image_cd">アップスケール後の画像</string>
+    <string name="compare_label_original">オリジナル</string>
+    <string name="compare_label_upscaled">アップスケール後</string>
+    <string name="compare_credits_attribution">デモ画像：cat_shimmer（CC BY 2.0）、gristmill（CC BY-SA 4.0）、earth poster（CC BY 2.0、ESO）。disco_chickenはGemini Nano Bananaが生成。</string>
+
+    <!-- 低DPIアップスケールモーダル -->
+    <string name="lowdpi_header_svg">ベクター画像 — アップスケール不要</string>
+    <string name="lowdpi_header_warning">このポスターは低解像度で印刷されます</string>
+    <string name="lowdpi_current_dpi">現在：%1$d DPI  ·  %2$s\" × %3$s\"</string>
+    <string name="lowdpi_poster_size_only">ポスターサイズ：%1$s\" × %2$s\"</string>
+    <string name="lowdpi_eta_estimating">計算中…</string>
+    <string name="lowdpi_aim_for_dpi">最低150 DPIを目指してください。いくつかの方法があります：</string>
+    <string name="lowdpi_lever_reduce_title">ポスターサイズを縮小</string>
+    <string name="lowdpi_lever_reduce_body">同じ画像で印刷サイズを小さくするとDPIが上がります。最も手軽な方法で、アップロード不要です。</string>
+    <string name="lowdpi_lever_upgrade_title">元画像をアップスケール</string>
+    <string name="lowdpi_lever_upgrade_body">端末内でアップスケール（無料・RAM依存）またはAI経由（モデルごとにクレジット消費）。</string>
+    <string name="lowdpi_lever_byo_title">持ち込み</string>
+    <string name="lowdpi_lever_byo_body">Canva・OpenArt・Topaz Photo AI・Magnificで既にアップスケール済みですか？そのファイルを直接読み込めます。PosterPDFはどの画像ソースでも無料です。AIクレジットは推論コストのみに適用されます。</string>
+    <string name="lowdpi_dismiss_svg">了解</string>
+    <string name="lowdpi_dismiss_warning">ポスターサイズを縮小する</string>
+    <string name="lowdpi_help_me_decide">選び方を教えて…</string>
+
+    <!-- アップスケールモデルラベル（カード＋チップで使用） -->
+    <string name="upscale_model_none">今すぐ（ピクセル化）</string>
+    <string name="upscale_model_none_pros">最速・無料・どの端末でも動作</string>
+    <string name="upscale_model_none_cons">大判印刷でピクセル化が目立つ</string>
+    <string name="upscale_model_free_local">無料アップスケール</string>
+    <string name="upscale_model_free_local_pros">無料・オフライン・インターネット不要</string>
+    <string name="upscale_model_free_local_cons">旧端末では遅い・最大4×</string>
+    <string name="upscale_model_topaz">Topaz Gigapixel</string>
+    <string name="upscale_model_topaz_pros">最も鮮明なエッジ・仕上がりが美しい</string>
+    <string name="upscale_model_topaz_cons">ピクセルあたりのコストが最も高い</string>
+    <string name="upscale_model_recraft">Recraft Crisp</string>
+    <string name="upscale_model_recraft_pros">写真に忠実・Topazの約40倍安価</string>
+    <string name="upscale_model_recraft_cons">テキスト・UIはTopazより鮮明さが劣る</string>
+    <string name="upscale_model_aurasr">AuraSR</string>
+    <string name="upscale_model_aurasr_pros">高速・低コスト（約$0.01/枚）</string>
+    <string name="upscale_model_aurasr_cons">滑らかなグラデーションでアーチファクトが出ることがある</string>
+    <string name="upscale_model_esrgan">ESRGAN</string>
+    <string name="upscale_model_esrgan_pros">オープンソースの定番・AIオプション中最安</string>
+    <string name="upscale_model_esrgan_cons">Topazより鮮明さが劣る</string>
+
+    <!-- 比較モデルチップラベル -->
+    <string name="compare_model_topaz">Topaz</string>
+    <string name="compare_model_recraft">Recraft</string>
+    <string name="compare_model_aurasr">AuraSR</string>
+    <string name="compare_model_esrgan">ESRGAN</string>
+
+    <!-- アップスケールオプションカード -->
+    <string name="upscale_card_pixelated_cd">ピクセル化プレビュー</string>
+    <string name="upscale_card_on_device_cd">端末内アップスケールプレビュー</string>
+    <string name="upscale_card_model_icon_cd">%1$sのアイコン</string>
+    <string name="upscale_card_dpi_estimate">≈ %1$d DPI</string>
+    <string name="upscale_card_credits_only">%1$dクレジット</string>
+    <string name="upscale_card_credits_with_usd">%1$dクレジット · ~$%2$s</string>
+    <string name="upscale_card_eta">目安 %1$s</string>
+    <string name="upscale_card_unavailable">利用不可</string>
+    <string name="upscale_card_upscale_free">無料でアップスケール</string>
+    <string name="upscale_card_sign_in">サインイン</string>
+    <string name="upscale_card_get_more_credits">クレジットを追加</string>
+    <string name="upscale_card_upscale_with_credits">アップスケール · %1$d cr</string>
+
+    <!-- SVGベクターバナー -->
+    <string name="svg_banner_title">ベクター画像</string>
+    <string name="svg_banner_body">SVGはベクター画像のため、どのサイズでも鮮明に印刷されます。アップスケール不要です。</string>
+    <string name="svg_banner_secondary">ラスター画像に切り替えたい場合は、下の「持ち込み」をご利用ください。</string>
+
+    <!-- 持ち込みカード -->
+    <string name="byo_card_title">持ち込み</string>
+    <string name="byo_card_free">どの画像ソースでも無料</string>
+    <string name="byo_card_tools">Canva · OpenArt · Topaz · Magnific</string>
+    <string name="byo_card_pros">お使いのアップスケールツールをそのまま利用できます</string>
+    <string name="byo_card_cons">ファイルを読み込む前に自分でアップスケールが必要</string>
+    <string name="byo_card_button">やり方を見る…</string>
+
+    <!-- 持ち込みヘルプダイアログ -->
+    <string name="byo_dialog_title">アップスケール済み画像を持ち込む</string>
+    <string name="byo_step1_title">ツールを選ぶ</string>
+    <string name="byo_step1_body">以下のいずれも使用できます。既にお使いのもの、または価格の合うものを選んでください：</string>
+    <string name="byo_tool_canva_name">Canva</string>
+    <string name="byo_tool_canva_price">~$15/月</string>
+    <string name="byo_tool_canva_note">デザイン向け。「画像を編集」→「Magic Studio」でアップスケール可能。</string>
+    <string name="byo_tool_openart_name">OpenArt</string>
+    <string name="byo_tool_openart_price">$10/月</string>
+    <string name="byo_tool_openart_note">豊富なAI機能。「Upscaler」タブで4×・8×に対応。</string>
+    <string name="byo_tool_fal_name">FAL Topaz</string>
+    <string name="byo_tool_fal_price">~$0.01/MP</string>
+    <string name="byo_tool_fal_note">画像ごとの従量課金・サブスクなし。プロ品質。</string>
+    <string name="byo_tool_magnific_name">Magnific</string>
+    <string name="byo_tool_magnific_price">$30/月</string>
+    <string name="byo_tool_magnific_note">プレミアムクリエイティブ向け。最も時間がかかるが最もスタイリッシュ。</string>
+    <string name="byo_step2_title">アップスケールを実行</string>
+    <string name="byo_step2_body">選んだツールを開き、元画像をアップロードして4×または8×でアップスケールします。数値が大きいほど鮮明になりますが、時間とコストが増えます。</string>
+    <string name="byo_step3_title">端末に保存</string>
+    <string name="byo_step3_body">結果をDownloadsフォルダ（またはAndroidのファイルピッカーでアクセスできる場所 — Drive・写真など）にダウンロードします。</string>
+    <string name="byo_step4_title">ここで続ける</string>
+    <string name="byo_step4_body">下の「ファイルを選択」をタップし、アップスケール済みのファイルを選びます。PosterPDFはそのファイルを直接使用し、独自のアップスケールは実行しません。</string>
+    <string name="byo_choose_file">ファイルを選択</string>
+
+    <!-- アップスケールプログレスバー -->
+    <string name="upscale_progress_uploading">アップロード中… %1$d%%</string>
+    <string name="upscale_progress_queued">キュー待機中…</string>
+    <string name="upscale_progress_inferring">アップスケール中…</string>
+    <string name="upscale_progress_inferring_eta">アップスケール中… 残り約%1$d秒</string>
+    <string name="upscale_progress_downloading">ダウンロード中… %1$d%%</string>
+
+    <!-- 端末内アップスケールの対応状況メッセージ -->
+    <string name="capability_red_no_64bit">この端末は端末内AIに対応していません</string>
+    <string name="capability_yellow_slow">この端末では数分かかる場合があります</string>
+
+    <!-- ETA（所要時間）のフォーマット -->
+    <string name="eta_seconds">%1$d〜%2$d秒</string>
+    <string name="eta_minutes_decimal">%1$.1f〜%2$.1f分</string>
+    <string name="eta_minutes">%1$d〜%2$d分</string>
+
+    <!-- ライブプレビュー凡例 -->
+    <string name="preview_live_assembly">ライブ組み立てプレビュー</string>
+    <string name="preview_legend_margin">マージン</string>
+    <string name="preview_legend_overlap">重なり</string>
+    <string name="preview_low_dpi_card">低解像度：%1$d DPI · タップしてアップスケール ↑</string>
+
+    <!-- ViewModelのエラー／成功メッセージ -->
+    <string name="vm_error_open_image">元画像を開けませんでした</string>
+    <string name="vm_success_upscaled">%1$d×%2$dにアップスケールしました</string>
+    <string name="vm_error_upscale_failed">アップスケール失敗：%1$s</string>
+    <string name="vm_error_unknown">不明なエラー</string>
+    <string name="vm_error_load_image_info">画像情報の読み込み失敗：%1$s</string>
+    <string name="vm_error_could_not_load_image">画像を読み込めませんでした</string>
+    <string name="vm_error_could_not_reopen_svg">タイル用のSVGを再度開けませんでした</string>
+    <string name="vm_success_poster_generated">ポスターを生成しました：%1$s</string>
+    <string name="vm_error_generation_failed">失敗：%1$s</string>
+    <string name="vm_success_signed_in">サインインしました</string>
+    <string name="vm_error_signin_failed">サインイン失敗：%1$s</string>
+</resources>
