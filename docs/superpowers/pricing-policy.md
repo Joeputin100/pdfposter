@@ -33,41 +33,70 @@ On-device upscaling (TFLite ESRGAN x4) is **always free**, no limits, no waterma
 
 ## SKU ladder
 
-Four consumable SKUs published once in Play Console:
+Four consumable SKUs published once in Play Console (Phase H redenomination 2026-05-03):
 
-| SKU ID | Price (USD) |
-|---|---|
-| `credits_small` | $4.99 |
-| `credits_medium` | $9.99 |
-| `credits_large` | $19.99 |
-| `credits_jumbo` | $39.99 |
+| SKU ID | Price (USD) | Base credits | Bonus credits | Total | Bonus % |
+|---|---|---|---|---|---|
+| `credits_starter` | $1.99 | 199 | 0 | **199** | 0% |
+| `credits_small` | $4.99 | 499 | 25 | **524** | 5% |
+| `credits_medium` | $9.99 | 999 | 75 | **1,074** | 7.5% |
+| `credits_large` | $19.99 | 1,999 | 200 | **2,199** | 10% |
 
-These prices **never change**. Local-currency conversions handled by Play Store automatically.
+These prices **never change**. Bonus credits are explicitly designed to nudge cash flow (incentivise larger packs at lower per-credit cost) at the deliberate trade-off of slightly lower margin on the top tier.
 
-> **Rescale note (2026-05-02):** Original ladder was $1.99 / $4.99 / $9.99 / $19.99. Live check of FAL's `/v1/models/pricing` revealed Topaz Gigapixel is `$0.01/megapixel`, not `$0.05/image` as the original plan assumed. A 12 MP source upscaled 4× produces ~192 MP of output → ~$1.92 in FAL cost per single upscale. The $1.99 entry tier couldn't profitably issue even one credit; rescaled upward to $4.99 floor. The per-megapixel credit-cost model itself is still tracked as a Phase G economics revision (TODO 10) before the `refreshPricing` cron is unblocked.
+> **History — denomination revisions:**
+> - **2026-05-02 (Phase G economics revision):** scrapped the original `$0.05/credit` placeholder once live FAL pricing showed Topaz at `$0.01/MP`. Briefly used a 4-tier `small/medium/large/jumbo` ladder at $4.99/$9.99/$19.99/$39.99 with credits derived from per-MP cost.
+> - **2026-05-03 (Phase H credit denomination):** redenominated to `1 credit = 1¢` retail with tiered bonus structure. Replaced the per-MP credit math with per-model COGS lookup (Topaz, Recraft Crisp, AuraSR, ESRGAN) since the multi-model lineup needed differentiation that the per-MP model couldn't provide. Re-introduced the $1.99 entry tier as `credits_starter`.
 
 ## Credit grant formula
 
-For revenue `R` (post-tax, pre-Play-fee), Google takes 15% (or 30% above $1M annual). Server-side cost-per-credit `C` is derived from FAL's per-megapixel rate × `MP_PER_CREDIT` (currently 5):
-
 ```
-C              = fal_unit_price_per_mp × MP_PER_CREDIT   # = $0.01 × 5 = $0.05/credit
-revenue_net    = R × 0.85
-target_profit  = revenue_net × 0.50    # 50% gross margin
-cost_budget    = revenue_net × 0.50
-credits        = floor(cost_budget / C)
+1 credit                = $0.01 retail (always)
+revenue_net (Play 15%)  = $0.0085 per credit
+COGS budget (50% margin)= $0.00425 per credit  ← server-side constant CREDIT_COST_BUDGET_USD
+credits granted         = base + bonus (table above; not derived from FAL pricing)
 ```
 
-50% gross margin holds at every output size because both revenue (SKU $/credit) and cost (FAL $/credit) are proportional to credits.
+Per-call upscale credits are computed at submit time using the per-model COGS curve:
 
-**Worked example** at `C = $0.05/credit` (FAL `$0.01/MP × MP_PER_CREDIT=5`):
+```
+credits_charged = ceil(model.cogs(input_mp) / 0.00425)
+```
 
-| SKU | Price | Math | Credits granted | Effective $/credit |
-|---|---|---|---|---|
-| `credits_small` | $4.99 | floor(4.99 × 0.85 × 0.50 / 0.05) = floor(42.4) | **42** | $0.119 |
-| `credits_medium` | $9.99 | floor(84.9) | **84** | $0.119 |
-| `credits_large` | $19.99 | floor(169.9) | **169** | $0.118 |
-| `credits_jumbo` | $39.99 | floor(339.9) | **339** | $0.118 |
+where `model.cogs(input_mp)` reads from the `MODELS` map in `backend/functions/src/upscale.ts`:
+- **Topaz 4×**: `output_mp × $0.01` (= input_mp × 16 × $0.01)
+- **Topaz 8×**: `output_mp × $0.01` (= input_mp × 64 × $0.01)
+- **Recraft Crisp**: `$0.004` flat per image
+- **AuraSR**: `output_mp × $0.00125` (≈ 1 sec/MP × $0.00125/sec)
+- **ESRGAN**: `output_mp × $0.00111` (≈ 1 sec/MP × $0.00111/sec)
+
+**Worked example — disco_chicken (1024² → 4× = 4096²):**
+
+| Model | COGS | Credits charged | Effective retail |
+|---|---|---|---|
+| Topaz 4× | $0.168 | **40 credits** | $0.40 |
+| AuraSR | $0.013 | 4 credits | $0.04 |
+| ESRGAN | $0.011 | 3 credits | $0.03 |
+| Recraft Crisp | $0.004 | 1 credit | $0.01 |
+| Free (on-device) | $0 | 0 credits | $0 |
+
+50% gross margin holds at every output size because credits are charged proportionally to FAL cost.
+
+## Cloud storage retention
+
+Phase H-P3 — bounds storage growth at the cost of a tiny per-file fee.
+
+| Tier | Where | Duration | Cost to user |
+|---|---|---|---|
+| History list (metadata) | Firestore `users/{uid}/history/{historyId}` | Indefinite | Free |
+| Local PDF cache | Device storage | Until app uninstalled | Free |
+| Cloud PDF (default — paid mode) | GCS `gs://.../user-pdfs/{uid}/{historyId}.pdf` | First 30 days free | Free, then 1 credit/file/month (~1¢) |
+| Cloud PDF (grace period) | Same | 30 more days after credit balance hits 0 | Free + email + push warning |
+| Cloud PDF (auto-delete opt-in) | Same | 30 days exactly | Free, then deleted with no charge |
+
+Auto-delete vs paid is set per-user via the **Cloud storage…** entry in the Settings hamburger (`storageRetentionMode` field on `users/{uid}`; default `paid`).
+
+The 1-credit-per-file-per-month rate is an honest 50% margin: a typical 20 MB PDF costs us ~$0.0004/month at GCS standard rates; the 1-credit charge nets $0.00425 cost budget. Egress + index overhead easily fit inside the buffer.
 
 The fallbacks in `CreditPricing.kt` / `PurchaseSheet.kt` carry slightly rounder numbers (40 / 85 / 180 / 380) for offline display; production grants come from the `refreshPricing` cron writing `/pricing/current` daily.
 
