@@ -52,7 +52,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.StrokeCap
@@ -74,9 +73,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.posterpdf.MainViewModel
 import com.posterpdf.ui.components.preview.AssemblyPhase
-import com.posterpdf.ui.components.preview.DUST_PUFF_AGSL
 import com.posterpdf.ui.components.preview.PRINTER_INK_AGSL
-import com.posterpdf.ui.components.preview.drawDustPuff
 import com.posterpdf.ui.components.preview.drawHand
 import com.posterpdf.ui.components.preview.drawPrinter
 import com.posterpdf.ui.components.preview.drawScissors
@@ -205,30 +202,6 @@ fun PosterPreview(viewModel: MainViewModel) {
     var zoom by remember { mutableStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
 
-    // RC3 camera-pan offset (in canvas pixels). 0 during Printing; lerps from
-    // 0 → -panTargetPx during Panning; holds at -panTargetPx through the rest
-    // of the cycle; eases back to 0 during Reset. Applied as a pure Y-translate
-    // to every pane and prop drawn inside the inner Canvas, AND fed to the
-    // wood-grain shader's iOriginY uniform so the table grain scrolls in sync.
-    val cameraOffsetYpx = remember { mutableFloatStateOf(0f) }
-    // Pan target = ~38% of viewport height. Empirically this is enough to push
-    // the printer body fully off-screen but keeps the panes well within view.
-    val panTarget = boxSize.height * 0.38f
-    cameraOffsetYpx.floatValue = if (!cycleEnabled) 0f else when (phase) {
-        AssemblyPhase.Printing -> 0f
-        AssemblyPhase.Panning -> {
-            // Smooth ease-in-out so the pan settles, not jolts.
-            val k = phaseT
-            val eased = if (k < 0.5f) 2f * k * k else 1f - (-2f * k + 2f) * (-2f * k + 2f) / 2f
-            -panTarget * eased
-        }
-        AssemblyPhase.Reset -> {
-            // Pop back up quickly so the next loop starts at the printer.
-            -panTarget * (1f - phaseT)
-        }
-        else -> -panTarget // Hold panned-down through Arranging..Pinning.
-    }
-
     // Per-pane jiggle: tap a specific page to jiggle just that page.
     // paneBounds is filled during Canvas draw and read by the tap handler;
     // using a plain MutableList (not state) to avoid recompositions on every frame.
@@ -236,6 +209,32 @@ fun PosterPreview(viewModel: MainViewModel) {
     var jiggledPane by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var jiggleStartedAt by remember { mutableLongStateOf(0L) }
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
+
+    // RC3 camera-pan offset (in canvas pixels). 0 during Printing; lerps from
+    // 0 → -panTargetPx during Panning; holds at -panTargetPx through the rest
+    // of the cycle; eases back to 0 during Reset. Applied as a pure Y-translate
+    // to every pane and prop drawn inside the inner Canvas, AND fed to the
+    // wood-grain shader's iOriginY uniform so the table grain scrolls in sync.
+    // Pan target = ~38% of viewport height. Empirically this is enough to push
+    // the printer body fully off-screen but keeps the panes well within view.
+    val cameraOffsetYpx = remember { mutableFloatStateOf(0f) }
+    androidx.compose.runtime.SideEffect {
+        val panTarget = boxSize.height * 0.38f
+        val newValue = if (!cycleEnabled) 0f else when (phase) {
+            AssemblyPhase.Printing -> 0f
+            AssemblyPhase.Panning -> {
+                val k = phaseT
+                val eased = if (k < 0.5f) 2f * k * k
+                    else 1f - (-2f * k + 2f) * (-2f * k + 2f) / 2f
+                -panTarget * eased
+            }
+            AssemblyPhase.Reset -> -panTarget * (1f - phaseT)
+            else -> -panTarget // Hold panned-down through Arranging..Pinning.
+        }
+        if (cameraOffsetYpx.floatValue != newValue) {
+            cameraOffsetYpx.floatValue = newValue
+        }
+    }
     val jiggleDurationMs = 600f
     val jigglePhase = if (jiggledPane == null) 0f else {
         val elapsed = (now - jiggleStartedAt).toFloat()
@@ -327,14 +326,11 @@ fun PosterPreview(viewModel: MainViewModel) {
     val woodShader = remember(cycleEnabled) {
         if (cycleEnabled) RuntimeShader(WOOD_AGSL) else null
     }
-    // H-P1.8: dot-matrix printer ink streak + landing dust puff. Both AGSL,
-    // both gated to API 33+; null on older devices (drawPrinter handles the
-    // fallback path; drawDustPuff is simply skipped).
+    // H-P1.8: dot-matrix printer ink streak — AGSL, gated to API 33+; null on
+    // older devices (drawPrinter handles the fallback path). The RC3 redesign
+    // dropped the dust puff (no more "stack lands on desk" beat).
     val inkShader = remember(cycleEnabled) {
         if (cycleEnabled) RuntimeShader(PRINTER_INK_AGSL) else null
-    }
-    val dustShader = remember(cycleEnabled) {
-        if (cycleEnabled) RuntimeShader(DUST_PUFF_AGSL) else null
     }
 
     Column(
@@ -478,10 +474,10 @@ fun PosterPreview(viewModel: MainViewModel) {
                 }
 
                 // ─────────────────────────────────────────────────────────────
-                // H-P1.8 construction-arc geometry. Computed once per Canvas frame
+                // RC3 construction-arc geometry. Computed once per Canvas frame
                 // and read by every pane below + the prop draws further down.
                 //  stack center  = where pages collapse onto the desk during
-                //                  Stacking + Cutting.
+                //                  Panning + Arranging-start.
                 //  printer slot  = where pages emerge during Printing / fall back
                 //                  during Reset.
                 // API <33 devices skip every per-phase offset and render the static
@@ -498,6 +494,34 @@ fun PosterPreview(viewModel: MainViewModel) {
                 val printerSlotX = size.width / 2f
                 val stackCenterX = layout.layoutLeft + assembledBlockW / 2f
                 val stackCenterY = layout.layoutTop + assembledBlockH / 2f
+                val cameraOff = cameraOffsetYpx.floatValue
+
+                // RC3: scissors trace the assembled block's PERIMETER during
+                // Cutting (top → right → bottom → left). Each edge gets ~25% of
+                // the phase. As the scissors pass each edge, that edge's white
+                // border alpha fades to 0.
+                fun edgeAlpha(start: Float, end: Float): Float {
+                    if (phase != AssemblyPhase.Cutting) {
+                        return when {
+                            phase.ordinal() <= AssemblyPhase.Arranging.ordinal() -> 1f
+                            else -> 0f
+                        }
+                    }
+                    return (1f - ((phaseT - start) / (end - start))).coerceIn(0f, 1f)
+                }
+                val borderTopAlpha    = edgeAlpha(0.00f, 0.25f)
+                val borderRightAlpha  = edgeAlpha(0.25f, 0.50f)
+                val borderBottomAlpha = edgeAlpha(0.50f, 0.75f)
+                val borderLeftAlpha   = edgeAlpha(0.75f, 1.00f)
+
+                // RC3: every pane + every prop is drawn inside ONE outer
+                // translate(0, cameraOff). The wood-grain background (drawn
+                // behind, in the parent Modifier) takes its iOriginY uniform
+                // from the same cameraOffsetYpx state, so the table appears to
+                // scroll in lock-step with what's drawn here.
+                withTransform({
+                    if (cameraOff != 0f) translate(0f, cameraOff)
+                }) {
 
                 for (pane in layout.panes) {
                     val r = pane.row
@@ -507,7 +531,9 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val pageW = pane.pageWidth
                     val pageH = pane.pageHeight
 
-                    paneBounds.add(PaneBounds(r, c, dx, dy, pageW, pageH))
+                    // Tap-bounds (canvas coords) — include cameraOff so taps land
+                    // on the visually-displayed pane regardless of camera-pan.
+                    paneBounds.add(PaneBounds(r, c, dx, dy + cameraOff, pageW, pageH))
 
                     val isJiggled = jiggledPane?.let { it.first == r && it.second == c } == true
                     val paneJiggleAngle = if (isJiggled) jiggleSwing * 4.5f else 0f
@@ -516,21 +542,18 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val paneCenter = Offset(dx + pageW / 2f, dy + pageH / 2f)
 
                     val paneIndex = r * cols + c
+                    val paneCount = (rows * cols).coerceAtLeast(1)
 
-                    // Vector from pane home to the stack center (Stacking/Cutting target).
-                    val toStackDx = (stackCenterX - pageW / 2f) - dx
-                    val toStackDy = (stackCenterY - pageH / 2f) - dy
-                    // Vector from pane home to the printer slot (Printing start, Reset end).
+                    // Pane home stays at (dx, dy); printer-emerge / arrange / tighten
+                    // / etc are expressed as offsets from home.
                     val toPrinterDx = (printerSlotX - pageW / 2f) - dx
                     val toPrinterDy = (printerSlotY - pageH / 2f) - dy
+                    // Gap-closing offset for Tightening: shift each pane toward
+                    // layout center by the inter-pane gap so panes butt up.
+                    val tightenDx = -((c - (cols - 1) / 2f) * gap)
+                    val tightenDy = -((r - (rows - 1) / 2f) * gap)
 
-                    // Per-phase pane offset relative to home (the assembled position).
-                    //  Printing  pages emerge from the printer slot, staggered.
-                    //  Stacking  lerp from print-end-pos → stack-center, gravity ease.
-                    //  Cutting   panes hold at stack-center while scissors sweep.
-                    //  Aligning  lerp from stack-center → home with cubic ease-out.
-                    //  Securing  at home (offset 0) — tape + tacks land on top.
-                    //  Reset    drift home → stack → printer (mirror of arc, fading).
+                    // Per-phase pane offset relative to home.
                     var paneOffX: Float
                     var paneOffY: Float
                     var paneAlpha = 1f
@@ -545,95 +568,83 @@ fun PosterPreview(viewModel: MainViewModel) {
                             val staggerStart = paneIndex * 0.20f
                             val tInPhase = cycleSeconds.floatValue - staggerStart
                             val emergeT = (tInPhase / 1.8f).coerceIn(0f, 1f)
-                            // Mechanical (printer) jitter — small, 8 Hz, decays as page emerges.
                             val jitterX = sin(tInPhase.toDouble() * Math.PI * 8.0)
                                 .toFloat() * 1.6f * (1f - emergeT)
-                            // Where the pane lands at end-of-Printing — just below the
-                            // printer body, slightly offset per-pane so pages pile up.
                             val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
                                 paneIndex * 6f
-                            // Mechanical ease-out (slight initial pause then steady drop).
                             val easeOut = 1f - (1f - emergeT) * (1f - emergeT)
                             paneOffX = toPrinterDx + jitterX
                             paneOffY = toPrinterDy + (emergedY - toPrinterDy) * easeOut
-                            // Hide panes that haven't started emerging yet.
                             paneAlpha = if (emergeT <= 0f) 0f else 1f
                         }
 
-                        AssemblyPhase.Stacking -> {
-                            // Pages collapse from below-printer → stack center on the
-                            // desk. Gravity easing (t^2 accel) + slight tumble per pane.
-                            val gravity = phaseT * phaseT
+                        AssemblyPhase.Panning -> {
+                            // Panes hold at the printer-emerged position; the CAMERA
+                            // moves around them (cameraOff handled by outer transform).
                             val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
                                 paneIndex * 6f
-                            val startX = toPrinterDx
-                            val startY = emergedY
-                            val endX = toStackDx + ((paneIndex % 3) - 1) * 2f
-                            val endY = toStackDy + (paneIndex % 4) * 1.5f
-                            paneOffX = startX + (endX - startX) * gravity
-                            paneOffY = startY + (endY - startY) * gravity
+                            paneOffX = toPrinterDx
+                            paneOffY = emergedY
+                        }
+
+                        AssemblyPhase.Arranging -> {
+                            // Hand picks panes one at a time. Each pane is staggered
+                            // across the phase; before its slice it stays at the
+                            // print-stack pile, after its slice it sits at home (with
+                            // white borders intact — pre-cut).
+                            val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
+                                paneIndex * 6f
+                            val slice = 1f / paneCount
+                            val sliceStart = paneIndex * slice
+                            val k = ((phaseT - sliceStart) / slice).coerceIn(0f, 1f)
+                            // Smooth ease-in-out for the lift-and-place arc.
+                            val eased = if (k < 0.5f) 2f * k * k
+                                else 1f - (-2f * k + 2f) * (-2f * k + 2f) / 2f
+                            paneOffX = toPrinterDx + (0f - toPrinterDx) * eased
+                            paneOffY = emergedY + (0f - emergedY) * eased
                         }
 
                         AssemblyPhase.Cutting -> {
-                            // Hold at stack center; the scissors prop sweeps above.
-                            // Tiny per-pane jitter so the stack feels alive when cut.
-                            val jitter = sin(
-                                (cycleSeconds.floatValue + paneIndex * 0.7f).toDouble() * 4.0
-                            ).toFloat() * 0.6f
-                            paneOffX = toStackDx + ((paneIndex % 3) - 1) * 2f + jitter
-                            paneOffY = toStackDy + (paneIndex % 4) * 1.5f
-                        }
-
-                        AssemblyPhase.Aligning -> {
-                            // Smooth ease-out + tiny overshoot, from stack-center to home.
-                            val springT = 1f - (1f - phaseT) * (1f - phaseT) * (1f - phaseT)
-                            val overshoot = sin(phaseT * Math.PI * 1.4)
-                                .toFloat() * 0.06f * (1f - phaseT)
-                            val effT = (springT + overshoot).coerceIn(0f, 1.06f)
-                            paneOffX = toStackDx * (1f - effT)
-                            paneOffY = toStackDy * (1f - effT)
-                        }
-
-                        AssemblyPhase.Securing -> {
-                            // At home; tape + tacks land on top.
+                            // Holds at home; scissors trace the perimeter and the
+                            // page borders fade per edge (handled in drawPaperFill
+                            // path below via per-edge alpha rects).
                             paneOffX = 0f
                             paneOffY = 0f
                         }
 
+                        AssemblyPhase.Tightening -> {
+                            // Lerp from home → tightened-home (gaps removed).
+                            val springT = 1f - (1f - phaseT) * (1f - phaseT) * (1f - phaseT)
+                            paneOffX = tightenDx * springT
+                            paneOffY = tightenDy * springT
+                        }
+
+                        AssemblyPhase.Taping,
+                        AssemblyPhase.Pinning -> {
+                            // Hold at tightened-home through tape + pin.
+                            paneOffX = tightenDx
+                            paneOffY = tightenDy
+                        }
+
                         AssemblyPhase.Reset -> {
-                            // Quick drift back: home → stack → printer slot, fading.
-                            val rt = phaseT
-                            if (rt < 0.5f) {
-                                val k = rt / 0.5f
-                                paneOffX = toStackDx * k
-                                paneOffY = toStackDy * k
-                            } else {
-                                val k = (rt - 0.5f) / 0.5f
-                                paneOffX = toStackDx + (toPrinterDx - toStackDx) * k
-                                paneOffY = toStackDy + (toPrinterDy - toStackDy) * k
-                            }
-                            paneAlpha = (1f - rt).coerceIn(0f, 1f)
+                            // Brief hold then quick fade-out.
+                            paneOffX = tightenDx
+                            paneOffY = tightenDy
+                            paneAlpha = (1f - phaseT).coerceIn(0f, 1f)
                         }
                     }
 
                     if (paneAlpha <= 0.01f) continue
 
-                    // Margin tint + alpha — gray the gutter during Cutting (so the user
-                    // reads "this falls away"), fade it during Aligning, gone for
-                    // Securing/Reset, full during Printing/Stacking.
-                    val marginTintT = if (!cycleEnabled) 0f else when (phase) {
-                        AssemblyPhase.Cutting -> phaseT
-                        AssemblyPhase.Aligning -> 1f - phaseT
-                        else -> 0f
-                    }
-                    val paperColor = lerp(
-                        Color(0xFFFAFAF7),
-                        Color(0xFFC9C2B0), // muted "this falls away" gray
-                        marginTintT.coerceAtMost(0.7f),
-                    )
+                    // Margin-guide alpha — visible while panes have white borders,
+                    // gone once the borders are cut.
                     val marginAlpha = if (!cycleEnabled) 1f else when (phase) {
-                        AssemblyPhase.Aligning -> (1f - phaseT).coerceIn(0f, 1f)
-                        AssemblyPhase.Securing -> 0f
+                        AssemblyPhase.Cutting ->
+                            (borderTopAlpha + borderRightAlpha +
+                                borderBottomAlpha + borderLeftAlpha) / 4f
+                        AssemblyPhase.Tightening,
+                        AssemblyPhase.Taping,
+                        AssemblyPhase.Pinning,
                         AssemblyPhase.Reset -> 0f
                         else -> 1f
                     }
@@ -645,7 +656,41 @@ fun PosterPreview(viewModel: MainViewModel) {
                         }
                         if (paneOffX != 0f || paneOffY != 0f) translate(paneOffX, paneOffY)
                     }) {
-                        drawPaperFill(dx, dy, pageW, pageH, paperColor = paperColor)
+                        // RC3: paper "border" = the margin band around the printable
+                        // area. Before Cutting, full page is paper. During Cutting,
+                        // each edge fades independently. After Cutting, only the
+                        // printable rect remains as paper.
+                        val showFullPaper = !cycleEnabled ||
+                            phase.ordinal() <= AssemblyPhase.Arranging.ordinal()
+                        if (showFullPaper) {
+                            drawPaperFill(dx, dy, pageW, pageH, paperColor = Color(0xFFFAFAF7))
+                        } else if (phase == AssemblyPhase.Cutting) {
+                            drawPaperFill(
+                                pageLeft = dx + marginPx,
+                                pageTop = dy + marginPx,
+                                pageWidth = pageW - 2f * marginPx,
+                                pageHeight = pageH - 2f * marginPx,
+                                paperColor = Color(0xFFFAFAF7),
+                            )
+                            drawBorderBands(
+                                pageLeft = dx, pageTop = dy,
+                                pageWidth = pageW, pageHeight = pageH,
+                                marginPx = marginPx,
+                                topAlpha = borderTopAlpha,
+                                rightAlpha = borderRightAlpha,
+                                bottomAlpha = borderBottomAlpha,
+                                leftAlpha = borderLeftAlpha,
+                            )
+                        } else {
+                            drawPaperFill(
+                                pageLeft = dx + marginPx,
+                                pageTop = dy + marginPx,
+                                pageWidth = pageW - 2f * marginPx,
+                                pageHeight = pageH - 2f * marginPx,
+                                paperColor = Color(0xFFFAFAF7),
+                            )
+                        }
+
                         if (src != null) {
                             val srcW = src.width
                             val srcH = src.height
@@ -669,17 +714,13 @@ fun PosterPreview(viewModel: MainViewModel) {
                             overlapPx = overlapPx,
                             row = r, col = c, rows = rows, cols = cols,
                         )
-                        // Margin guide draws faint blue lines at the printable-area boundary.
-                        // The page (paperFill) is already the white "paper", so no overlay needed.
                         drawPaneMarginGuide(dx, dy, pageW, pageH, marginPx, alpha = marginAlpha)
-                        // Cut marks / outline live inside the printable area (image dst rect).
                         drawCutLineOrOutline(
                             viewModel,
                             pane.imageDstLeft, pane.imageDstTop,
                             pane.imageDstWidth, pane.imageDstHeight,
                             overlapPx, outlinePx, outlineEffect,
                         )
-                        // Label is positioned inside the printable area.
                         drawPaneLabel(
                             viewModel,
                             pane.imageDstLeft, pane.imageDstTop,
@@ -690,23 +731,19 @@ fun PosterPreview(viewModel: MainViewModel) {
                 }
 
                 // ─────────────────────────────────────────────────────────────
-                // H-P1.8 props: printer body, scissors, dust puff.
-                // H-P1.7 gating: tape + tacks ONLY render when phase == Securing
-                // (or fading-out during Reset). They never bleed into Aligning or
-                // earlier phases. All decorations gated to API 33+ (cycleEnabled).
+                // RC3 props — printer, scissors (perimeter trace), hand 👌,
+                // tape, thumb tacks. All gated to API 33+ (cycleEnabled).
                 // ─────────────────────────────────────────────────────────────
                 if (cycleEnabled) {
                     // ── Printer body — visible during Printing, fades during
-                    //    Stacking, hidden through Cutting/Aligning/Securing,
-                    //    fades back in during Reset (ready for next loop).
+                    //    Panning (camera leaves it behind), hidden through the
+                    //    rest, fades back in during Reset (ready for next loop).
                     val printerAppearT = when (phase) {
                         AssemblyPhase.Printing -> 1f
-                        AssemblyPhase.Stacking -> (1f - phaseT).coerceIn(0f, 1f)
+                        AssemblyPhase.Panning -> (1f - phaseT).coerceIn(0f, 1f)
                         AssemblyPhase.Reset -> phaseT.coerceIn(0f, 1f)
                         else -> 0f
                     }
-                    // inkScanT advances continuously while the printer is visible,
-                    // driving the AGSL streak's leading-edge sweep.
                     val inkScanT = (cycleSeconds.floatValue / 1.6f) % 1f
                     if (printerAppearT > 0f) {
                         drawPrinter(
@@ -719,116 +756,212 @@ fun PosterPreview(viewModel: MainViewModel) {
                         )
                     }
 
-                    // ── Dust puff at stack-landing — first 30% of Cutting phase
-                    //    (the moment the stack lands at end-of-Stacking). AGSL,
-                    //    API 33+ only (dustShader is null otherwise).
-                    if (dustShader != null && phase == AssemblyPhase.Cutting && phaseT < 0.30f) {
-                        val puffT = (phaseT / 0.30f).coerceIn(0f, 1f)
-                        val puffSize = (max(assembledBlockW, assembledBlockH)) * 1.4f
-                        drawDustPuff(
-                            shader = dustShader,
-                            cx = stackCenterX,
-                            cy = stackCenterY + assembledBlockH * 0.42f,
-                            size = puffSize,
-                            t = puffT,
+                    // Tightened assembled-rect (post-Tightening), reused by
+                    // Taping/Pinning + the hand draws below.
+                    val tCenterX = stackCenterX
+                    val tCenterY = stackCenterY
+                    val tightenedW = assembledBlockW - (cols - 1) * gap
+                    val tightenedH = assembledBlockH - (rows - 1) * gap
+                    val tLeft = tCenterX - tightenedW / 2f
+                    val tTop = tCenterY - tightenedH / 2f
+                    val tRight = tCenterX + tightenedW / 2f
+                    val tBottom = tCenterY + tightenedH / 2f
+
+                    // ── Hand 👌 — drives Arranging, Tightening, Taping, Pinning.
+                    val handSize = (min(printableWpx, printableHpx)) * 0.45f
+                    val handOffFrameY = size.height - cameraOff + handSize
+                    val handOffFrameX = size.width + handSize
+
+                    when (phase) {
+                        AssemblyPhase.Arranging -> {
+                            // Slide in from below-right, hover over the pane being
+                            // placed at this moment, slide out once each pane is placed.
+                            val slice = 1f / paneCount
+                            val activeIndex = (phaseT / slice).toInt().coerceIn(0, paneCount - 1)
+                            val activePane = layout.panes[activeIndex]
+                            val targetX = activePane.pageLeft + activePane.pageWidth / 2f +
+                                handSize * 0.30f
+                            val targetY = activePane.pageTop + activePane.pageHeight / 2f +
+                                handSize * 0.30f
+                            val sliceStart = activeIndex * slice
+                            val sliceLocal = ((phaseT - sliceStart) / slice).coerceIn(0f, 1f)
+                            val approachK = (sliceLocal / 0.3f).coerceIn(0f, 1f)
+                            val retractK = ((sliceLocal - 0.7f) / 0.3f).coerceIn(0f, 1f)
+                            val hx = handOffFrameX +
+                                (targetX - handOffFrameX) * approachK -
+                                (targetX - handOffFrameX) * retractK
+                            val hy = handOffFrameY +
+                                (targetY - handOffFrameY) * approachK -
+                                (targetY - handOffFrameY) * retractK
+                            drawHand(hx, hy, handSize, alpha = 1f - retractK * 0.85f)
+                        }
+
+                        AssemblyPhase.Tightening -> {
+                            // Hand sweeps over the assembly center, "pushing" panes in.
+                            val approachK = (phaseT / 0.3f).coerceIn(0f, 1f)
+                            val retractK = ((phaseT - 0.7f) / 0.3f).coerceIn(0f, 1f)
+                            val cx0 = tCenterX + handSize * 0.30f
+                            val cy0 = tCenterY + handSize * 0.30f
+                            val hx = handOffFrameX +
+                                (cx0 - handOffFrameX) * approachK -
+                                (cx0 - handOffFrameX) * retractK
+                            val hy = handOffFrameY +
+                                (cy0 - handOffFrameY) * approachK -
+                                (cy0 - handOffFrameY) * retractK
+                            drawHand(hx, hy, handSize, alpha = 1f - retractK * 0.85f)
+                        }
+
+                        AssemblyPhase.Taping -> {
+                            // Hand orbits the assembly center as the strips fall in.
+                            val angle = (phaseT * Math.PI * 2.0).toFloat()
+                            val orbitR = (min(tightenedW, tightenedH)) * 0.30f
+                            val hx = tCenterX + kotlin.math.cos(angle) * orbitR +
+                                handSize * 0.20f
+                            val hy = tCenterY + kotlin.math.sin(angle) * orbitR +
+                                handSize * 0.20f
+                            drawHand(hx, hy, handSize, alpha = 0.95f)
+                        }
+
+                        AssemblyPhase.Pinning -> {
+                            // Hand visits each of the 4 corners in turn (TL, TR, BL, BR).
+                            val corners = listOf(
+                                tLeft to tTop, tRight to tTop,
+                                tLeft to tBottom, tRight to tBottom,
+                            )
+                            val cornerSlice = 1f / 4f
+                            val cornerIdx = (phaseT / cornerSlice).toInt().coerceIn(0, 3)
+                            val (tx, ty) = corners[cornerIdx]
+                            val sliceLocal = ((phaseT - cornerIdx * cornerSlice) / cornerSlice)
+                                .coerceIn(0f, 1f)
+                            val approachK = (sliceLocal / 0.5f).coerceIn(0f, 1f)
+                            val targetX = tx + handSize * 0.20f
+                            val targetY = ty + handSize * 0.20f
+                            val hx = handOffFrameX + (targetX - handOffFrameX) * approachK
+                            val hy = handOffFrameY + (targetY - handOffFrameY) * approachK
+                            drawHand(hx, hy, handSize, alpha = 0.95f)
+                        }
+
+                        else -> { /* no hand */ }
+                    }
+
+                    // ── Scissors prop — RC3: trace the perimeter of the assembled
+                    //    block (NOT slice through panes). Top L→R, right T→B,
+                    //    bottom R→L, left B→T. Each edge gets ~25% of the phase.
+                    if (phase == AssemblyPhase.Cutting) {
+                        val scissorsSize = (min(assembledBlockW, assembledBlockH)) * 0.30f
+                        val left = layout.layoutLeft
+                        val top = layout.layoutTop
+                        val right = layout.layoutLeft + assembledBlockW
+                        val bottom = layout.layoutTop + assembledBlockH
+                        val sx: Float
+                        val sy: Float
+                        val rotDeg: Float
+                        when {
+                            phaseT < 0.25f -> {
+                                val k = phaseT / 0.25f
+                                sx = left + (right - left) * k
+                                sy = top
+                                rotDeg = 0f
+                            }
+                            phaseT < 0.50f -> {
+                                val k = (phaseT - 0.25f) / 0.25f
+                                sx = right
+                                sy = top + (bottom - top) * k
+                                rotDeg = 90f
+                            }
+                            phaseT < 0.75f -> {
+                                val k = (phaseT - 0.50f) / 0.25f
+                                sx = right - (right - left) * k
+                                sy = bottom
+                                rotDeg = 180f
+                            }
+                            else -> {
+                                val k = (phaseT - 0.75f) / 0.25f
+                                sx = left
+                                sy = bottom - (bottom - top) * k
+                                rotDeg = 270f
+                            }
+                        }
+                        drawScissors(
+                            cx = sx, cy = sy,
+                            sizePx = scissorsSize,
+                            rotationDegrees = rotDeg,
+                            alpha = 1f,
                         )
                     }
 
-                    // ── Scissors prop — sweeps across the stack during Cutting.
-                    //    First half: horizontal slice at stack mid-Y.
-                    //    Second half: vertical slice at stack mid-X (rotated 90°).
-                    //    Only renders for multi-pane layouts (single = nothing to cut).
-                    if (phase == AssemblyPhase.Cutting && (cols > 1 || rows > 1)) {
-                        val scissorsSize = (min(assembledBlockW, assembledBlockH)) * 0.32f
-                        if (phaseT < 0.5f) {
-                            // Horizontal sweep: scissors travel left → right.
-                            val k = (phaseT / 0.5f).coerceIn(0f, 1f)
-                            val left = layout.layoutLeft - scissorsSize * 0.4f
-                            val right = layout.layoutLeft + assembledBlockW + scissorsSize * 0.4f
-                            val sx = left + (right - left) * k
-                            val sy = stackCenterY
-                            drawScissors(
-                                cx = sx, cy = sy,
-                                sizePx = scissorsSize,
-                                rotationDegrees = 0f,
-                                alpha = 1f,
-                            )
-                        } else {
-                            // Vertical sweep: scissors travel top → bottom.
-                            val k = ((phaseT - 0.5f) / 0.5f).coerceIn(0f, 1f)
-                            val top = layout.layoutTop - scissorsSize * 0.4f
-                            val bottom = layout.layoutTop + assembledBlockH + scissorsSize * 0.4f
-                            val sx = stackCenterX
-                            val sy = top + (bottom - top) * k
-                            drawScissors(
-                                cx = sx, cy = sy,
-                                sizePx = scissorsSize,
-                                rotationDegrees = 90f,
-                                alpha = 1f,
-                            )
-                        }
-                    }
-
-                    // ── Tape strips (H-P1.7 gating): fade in during Securing, hold,
-                    //    fade out during the first half of Reset. NEVER visible
-                    //    before Securing — the panes have to land first.
+                    // ── Tape strips — RC3: applied during Taping phase, staggered
+                    //    one strip at a time. NEVER visible before Taping. Strip
+                    //    coords use the TIGHTENED layout (post-gap-close), so the
+                    //    tape sits exactly on the seams between adjacent printable
+                    //    rects.
                     val tapeAppearT = when (phase) {
-                        AssemblyPhase.Securing -> phaseT.coerceIn(0f, 1f)
-                        AssemblyPhase.Reset -> (1f - phaseT * 2f).coerceIn(0f, 1f)
+                        AssemblyPhase.Taping -> phaseT.coerceIn(0f, 1f)
+                        AssemblyPhase.Pinning -> 1f
+                        AssemblyPhase.Reset -> (1f - phaseT).coerceIn(0f, 1f)
                         else -> 0f
                     }
                     if (tapeAppearT > 0f && (cols > 1 || rows > 1)) {
+                        val seamStepX = printableWpx - overlapPx
+                        val seamStepY = printableHpx - overlapPx
                         val tapeLen = printableWpx * 0.45f
                         val tapeH = 14f
-                        // Vertical seams (between cols).
+                        val verticalSeamCount = rows * (cols - 1)
+                        val horizontalSeamCount = (rows - 1) * cols
+                        val totalStrips = (verticalSeamCount + horizontalSeamCount).coerceAtLeast(1)
+                        var stripIdx = 0
                         for (rr in 0 until rows) {
                             for (cc in 0 until cols - 1) {
-                                val seamX = layout.layoutLeft + (cc + 1) * (printableWpx - overlapPx) - overlapPx / 2f
-                                val seamY = layout.layoutTop + rr * (printableHpx - overlapPx) + printableHpx / 2f
+                                val seamX = tLeft + (cc + 1) * seamStepX - overlapPx / 2f
+                                val seamY = tTop + rr * seamStepY + printableHpx / 2f
+                                val stripT = stripStaggerT(tapeAppearT, stripIdx, totalStrips)
                                 drawScotchTape(
                                     centerX = seamX, centerY = seamY,
                                     length = tapeLen, height = tapeH,
                                     rotationDegrees = 90f + ((rr * 13 + cc * 7) % 9 - 4).toFloat(),
-                                    appearT = tapeAppearT,
+                                    appearT = stripT,
                                 )
+                                stripIdx++
                             }
                         }
-                        // Horizontal seams (between rows).
                         for (rr in 0 until rows - 1) {
                             for (cc in 0 until cols) {
-                                val seamX = layout.layoutLeft + cc * (printableWpx - overlapPx) + printableWpx / 2f
-                                val seamY = layout.layoutTop + (rr + 1) * (printableHpx - overlapPx) - overlapPx / 2f
+                                val seamX = tLeft + cc * seamStepX + printableWpx / 2f
+                                val seamY = tTop + (rr + 1) * seamStepY - overlapPx / 2f
+                                val stripT = stripStaggerT(tapeAppearT, stripIdx, totalStrips)
                                 drawScotchTape(
                                     centerX = seamX, centerY = seamY,
                                     length = tapeLen, height = tapeH,
                                     rotationDegrees = ((rr * 11 + cc * 5) % 9 - 4).toFloat(),
-                                    appearT = tapeAppearT,
+                                    appearT = stripT,
                                 )
+                                stripIdx++
                             }
                         }
                     }
 
-                    // ── Thumb tacks (H-P1.7 gating): drop during Securing
-                    //    (staggered), fade out during the first half of Reset.
-                    //    NEVER visible before Securing.
+                    // ── Thumb tacks — RC3: drop during Pinning phase (each corner
+                    //    on its own 25% slice), fade out during Reset.
                     val pinT = when (phase) {
-                        AssemblyPhase.Securing -> phaseT.coerceIn(0f, 1f)
-                        AssemblyPhase.Reset -> (1f - phaseT * 2f).coerceIn(0f, 1f)
+                        AssemblyPhase.Pinning -> phaseT.coerceIn(0f, 1f)
+                        AssemblyPhase.Reset -> (1f - phaseT).coerceIn(0f, 1f)
                         else -> 0f
                     }
                     if (pinT > 0f) {
-                        val assembledLeft = layout.layoutLeft
-                        val assembledTop = layout.layoutTop
-                        val assembledRight = layout.layoutLeft + assembledBlockW
-                        val assembledBottom = layout.layoutTop + assembledBlockH
                         val tackR = 9f
                         val inset = 6f
-                        drawThumbTack(assembledLeft + inset, assembledTop + inset, tackR, pinT)
-                        drawThumbTack(assembledRight - inset, assembledTop + inset, tackR, ((pinT - 0.10f) / 0.90f).coerceIn(0f, 1f))
-                        drawThumbTack(assembledLeft + inset, assembledBottom - inset, tackR, ((pinT - 0.20f) / 0.80f).coerceIn(0f, 1f))
-                        drawThumbTack(assembledRight - inset, assembledBottom - inset, tackR, ((pinT - 0.30f) / 0.70f).coerceIn(0f, 1f))
+                        val tlT = (pinT / 0.25f).coerceIn(0f, 1f)
+                        val trT = ((pinT - 0.25f) / 0.25f).coerceIn(0f, 1f)
+                        val blT = ((pinT - 0.50f) / 0.25f).coerceIn(0f, 1f)
+                        val brT = ((pinT - 0.75f) / 0.25f).coerceIn(0f, 1f)
+                        drawThumbTack(tLeft + inset, tTop + inset, tackR, tlT)
+                        drawThumbTack(tRight - inset, tTop + inset, tackR, trT)
+                        drawThumbTack(tLeft + inset, tBottom - inset, tackR, blT)
+                        drawThumbTack(tRight - inset, tBottom - inset, tackR, brT)
                     }
                 }
+
+                } // end withTransform(camera-pan)
             }
             }
         }
@@ -1105,4 +1238,80 @@ private fun DrawScope.drawPaneLabel(
             },
         )
     }
+}
+
+/**
+ * RC3: per-edge fading "white border" bands around a page during the Cutting
+ * phase. Each band is the margin region on one side of the page; alpha 1 =
+ * fully visible (uncut), 0 = invisible (scissors have just passed). When all
+ * four hit zero, only the printable rect remains as paper.
+ *
+ * Layout:
+ *  ┌──────────────────────────────┐
+ *  │            top               │
+ *  ├───┬──────────────────────┬───┤
+ *  │ l │  printable (handled  │ r │
+ *  │ e │  by the caller's     │ i │
+ *  │ f │  drawPaperFill on    │ g │
+ *  │ t │  the inset rect)     │ h │
+ *  │   │                      │ t │
+ *  ├───┴──────────────────────┴───┤
+ *  │           bottom             │
+ *  └──────────────────────────────┘
+ */
+private fun DrawScope.drawBorderBands(
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    marginPx: Float,
+    topAlpha: Float,
+    rightAlpha: Float,
+    bottomAlpha: Float,
+    leftAlpha: Float,
+) {
+    if (marginPx <= 0.5f) return
+    val paper = Color(0xFFFAFAF7)
+    if (topAlpha > 0.01f) {
+        drawRect(
+            color = paper.copy(alpha = topAlpha),
+            topLeft = Offset(pageLeft, pageTop),
+            size = Size(pageWidth, marginPx),
+        )
+    }
+    if (bottomAlpha > 0.01f) {
+        drawRect(
+            color = paper.copy(alpha = bottomAlpha),
+            topLeft = Offset(pageLeft, pageTop + pageHeight - marginPx),
+            size = Size(pageWidth, marginPx),
+        )
+    }
+    if (leftAlpha > 0.01f) {
+        drawRect(
+            color = paper.copy(alpha = leftAlpha),
+            topLeft = Offset(pageLeft, pageTop + marginPx),
+            size = Size(marginPx, pageHeight - 2f * marginPx),
+        )
+    }
+    if (rightAlpha > 0.01f) {
+        drawRect(
+            color = paper.copy(alpha = rightAlpha),
+            topLeft = Offset(pageLeft + pageWidth - marginPx, pageTop + marginPx),
+            size = Size(marginPx, pageHeight - 2f * marginPx),
+        )
+    }
+}
+
+/**
+ * Stagger helper for tape-strip reveals. Given the phase's overall progress
+ * [tapeAppearT] and an integer [stripIdx] of [totalStrips], returns the
+ * individual strip's 0..1 appearT. Each strip lights up at idx/total with a
+ * 30% ramp window — produces a clean one-after-another reveal.
+ */
+private fun stripStaggerT(
+    tapeAppearT: Float,
+    stripIdx: Int,
+    totalStrips: Int,
+): Float {
+    if (totalStrips <= 0) return tapeAppearT
+    val start = stripIdx.toFloat() / totalStrips.toFloat()
+    val window = (1f / totalStrips.toFloat()).coerceAtLeast(0.05f)
+    return ((tapeAppearT - start) / window).coerceIn(0f, 1f)
 }

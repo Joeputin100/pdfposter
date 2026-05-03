@@ -312,6 +312,54 @@ private fun DrawScope.drawInkStreakAGSL(
 }
 
 /**
+ * Hand 👌 emoji rendered via native canvas at (cx, cy). The "OK" hand reads as
+ * a positioning gesture — used in the RC3 redesign for the Arranging,
+ * Tightening, Taping, and Pinning phases. The hand glides into frame, attaches
+ * briefly to whatever it's holding (a pane / a tape strip / a thumb tack),
+ * then glides out.
+ *
+ * The emoji renders in full color via the system emoji font, so it has its own
+ * contrast against the wood texture. We add a subtle white halo behind it to
+ * keep it legible on the dark theme — onSurface tone at 30% alpha is too dim
+ * here; a soft white drop-glow works better against the brown wood.
+ */
+fun DrawScope.drawHand(
+    cx: Float,
+    cy: Float,
+    sizePx: Float,
+    rotationDegrees: Float = 0f,
+    alpha: Float = 1f,
+) {
+    if (alpha <= 0f) return
+    val a = alpha.coerceIn(0f, 1f)
+    drawIntoCanvas { canvas ->
+        val nc = canvas.nativeCanvas
+        val checkpoint = nc.save()
+        nc.rotate(rotationDegrees, cx, cy)
+        // Soft white halo for contrast on the dark wood-grain background.
+        // Sized slightly bigger than the emoji body so a faint glow leaks past
+        // its silhouette. Two passes of decreasing alpha give a diffuse edge.
+        val haloPaint = Paint().apply {
+            this.isAntiAlias = true
+        }
+        haloPaint.color = android.graphics.Color.argb((110 * a).toInt(), 255, 255, 255)
+        canvas.nativeCanvas.drawCircle(cx, cy, sizePx * 0.55f, haloPaint)
+        haloPaint.color = android.graphics.Color.argb((70 * a).toInt(), 255, 255, 255)
+        canvas.nativeCanvas.drawCircle(cx, cy, sizePx * 0.72f, haloPaint)
+
+        val paint = Paint().apply {
+            this.textSize = sizePx
+            this.isAntiAlias = true
+            this.textAlign = Paint.Align.CENTER
+            this.alpha = (a * 255f).toInt()
+        }
+        val baseline = cy - (paint.descent() + paint.ascent()) / 2f
+        nc.drawText("👌", cx, baseline, paint)
+        nc.restoreToCount(checkpoint)
+    }
+}
+
+/**
  * Scissors emoji rendered via native canvas, positioned at (cx, cy) and
  * rotated. Used during Cutting phase as the sweeping prop. Native text draw
  * keeps it simple and emoji-color-aware on every device.
