@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
@@ -430,7 +431,13 @@ fun PosterPreview(viewModel: MainViewModel) {
                 modifier = Modifier.fillMaxSize()
             ) {
             val paneInfo = viewModel.getPaneCount()
-            Canvas(modifier = Modifier.fillMaxSize()) {
+            // RC5: clipToBounds prevents the camera-pan transform from
+            // letting page content (top 2 rows) bleed above the viewport.
+            // Without it, the cameraOff translate pushes content up and
+            // Canvas itself doesn\'t auto-clip — only the parent Compose
+            // layout would, but the way this nests, top overflow was
+            // visible to the user.
+            Canvas(modifier = Modifier.fillMaxSize().clipToBounds()) {
                 if (paneInfo == null) {
                     paneBounds.clear()
                     return@Canvas
@@ -768,7 +775,11 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val tBottom = tCenterY + tightenedH / 2f
 
                     // ── Hand 👌 — drives Arranging, Tightening, Taping, Pinning.
-                    val handSize = (min(printableWpx, printableHpx)) * 0.45f
+                    // RC5: bumped 0.45 → 0.65 of the smaller printable axis so
+                    // the hand reads as a real human-scale instrument rather
+                    // than a cursor. Still relative to paper size, so a bigger
+                    // poster gets a proportionally bigger hand.
+                    val handSize = (min(printableWpx, printableHpx)) * 0.65f
                     val handOffFrameY = size.height - cameraOff + handSize
                     val handOffFrameX = size.width + handSize
 
