@@ -274,12 +274,28 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         )
     }
 
-    // RC4 — free-upscale progress dialog. The on-device ESRGAN runs ~30-90s
-    // on a typical phone; users were tapping "Upscale free" then seeing the
-    // pre-upscale low-DPI warning still on-screen and assuming nothing
-    // happened. This dialog blocks the main UI during the upscale and lets
-    // the user cancel cleanly.
+    // RC4/RC7 — free-upscale progress dialog. RC7 added a live elapsed
+    // counter + estimated-time-remaining + a determinate progress bar so
+    // the user has feedback (was a spinner-only dialog with no ETA).
+    // Estimate uses the device-capability benchmark when available; falls
+    // back to a 60s baseline (midpoint of the original 30-90s range).
     if (viewModel.isFreeUpscaling) {
+        val startMs = remember(viewModel.isFreeUpscaling) { System.currentTimeMillis() }
+        var elapsedMs by remember { mutableLongStateOf(0L) }
+        LaunchedEffect(viewModel.isFreeUpscaling) {
+            while (viewModel.isFreeUpscaling) {
+                elapsedMs = System.currentTimeMillis() - startMs
+                kotlinx.coroutines.delay(200)
+            }
+        }
+        val outputMp = remember(viewModel.sourcePixelDimensions) {
+            val (w, h) = viewModel.sourcePixelDimensions ?: (1 to 1)
+            (w.toLong() * h * 16L / 1_000_000L).coerceAtLeast(1L)
+        }
+        val msPerMp = remember { com.posterpdf.ml.cachedMsPerMegapixel(context) ?: 4_000L }
+        val expectedMs = (msPerMp * outputMp).coerceAtLeast(20_000L)
+        val progress = (elapsedMs.toFloat() / expectedMs.toFloat()).coerceIn(0f, 0.99f)
+        val remainingSec = ((expectedMs - elapsedMs) / 1000L).coerceAtLeast(0L)
         AlertDialog(
             onDismissRequest = { /* not dismissable — must Cancel or wait */ },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
@@ -287,11 +303,17 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             text = {
                 Column {
                     Text(
-                        "The free on-device upscaler is running. This usually takes 30–90 seconds, depending on your phone.",
+                        text = if (remainingSec > 0)
+                            "About $remainingSec s left · ${(progress * 100).toInt()}%"
+                        else
+                            "Almost done… (${elapsedMs / 1000} s elapsed)",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(12.dp))
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             },
             confirmButton = {},

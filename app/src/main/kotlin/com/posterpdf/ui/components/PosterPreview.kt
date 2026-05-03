@@ -1020,6 +1020,38 @@ fun PosterPreview(viewModel: MainViewModel) {
 
                 } // end withTransform(camera-pan)
             }
+            // RC7: phase caption at the bottom of the construction preview
+            // viewport. Narrates each step in plain English (already wired
+            // to stringResource so the locale-switch on RC7 also localizes
+            // the captions). Hidden during Reset.
+            if (cycleEnabled && phase != AssemblyPhase.Reset) {
+                val captionRes = when (phase) {
+                    AssemblyPhase.Printing -> R.string.preview_caption_printing
+                    AssemblyPhase.Panning -> R.string.preview_caption_panning
+                    AssemblyPhase.Arranging -> R.string.preview_caption_arranging
+                    AssemblyPhase.Cutting -> R.string.preview_caption_cutting
+                    AssemblyPhase.Tightening -> R.string.preview_caption_tightening
+                    AssemblyPhase.Taping -> R.string.preview_caption_taping
+                    AssemblyPhase.Pinning -> R.string.preview_caption_pinning
+                    AssemblyPhase.Reset -> null
+                }
+                if (captionRes != null) {
+                    androidx.compose.material3.Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color.Black.copy(alpha = 0.55f),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 12.dp, start = 16.dp, end = 16.dp),
+                    ) {
+                        androidx.compose.material3.Text(
+                            text = androidx.compose.ui.res.stringResource(captionRes),
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        )
+                    }
+                }
+            }
             }
         }
 
@@ -1038,24 +1070,41 @@ fun PosterPreview(viewModel: MainViewModel) {
         val posterHInchesD = viewModel.posterHeight.toDoubleOrNull() ?: 0.0
         val currentDpi = if (posterWInchesD > 0) (sourcePixelW / posterWInchesD).toFloat() else 0f
         val isLowDpi = currentDpi in 1f..149.99f
-        if (isLowDpi && previewBitmap != null) {
+        val pendingLabel = viewModel.pendingUpscaleModelLabel
+        if ((isLowDpi || pendingLabel != null) && previewBitmap != null) {
             // RC4: showLowDpiModal lives on viewModel so the new MainActivity
             // "Sharpen for print" CTA can also drive the modal. We read/write
             // it directly here — no local alias.
             var showBringYourOwnHelp by remember { mutableStateOf(false) }
             Spacer(Modifier.height(8.dp))
+            // RC7: when an upscale model is queued, swap the warning Card
+            // for an "Upscaling with X to Y DPI" Card on tertiaryContainer
+            // so it no longer reads as an error. Tap still opens the modal.
+            val cardContainer = if (pendingLabel != null)
+                MaterialTheme.colorScheme.tertiaryContainer
+            else
+                MaterialTheme.colorScheme.errorContainer
+            val cardOnContainer = if (pendingLabel != null)
+                MaterialTheme.colorScheme.onTertiaryContainer
+            else
+                MaterialTheme.colorScheme.onErrorContainer
             Card(
                 onClick = { viewModel.showLowDpiModal = true },
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                ),
+                colors = CardDefaults.cardColors(containerColor = cardContainer),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Text(
-                    "Low resolution: ${currentDpi.toInt()} DPI · Tap to upscale ↑",
+                    text = if (pendingLabel != null) {
+                        val targetDpi = (currentDpi * 4f).toInt()
+                        androidx.compose.ui.res.stringResource(
+                            R.string.preview_upscaling_card, pendingLabel, targetDpi,
+                        )
+                    } else {
+                        "Low resolution: ${currentDpi.toInt()} DPI · Tap to upscale ↑"
+                    },
                     modifier = Modifier.padding(12.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    color = cardOnContainer,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -1092,10 +1141,20 @@ fun PosterPreview(viewModel: MainViewModel) {
                     onDismiss = { viewModel.showLowDpiModal = false },
                     onFreeUpscale = {
                         viewModel.showLowDpiModal = false
+                        viewModel.pendingUpscaleModelLabel = "Free upscale"
                         viewModel.runFreeUpscale(context)
                     },
                     // TODO(G12): wire to viewModel.runAiUpscale(modelId, inputMpInt)
-                    onAiUpscale = { _ -> viewModel.showLowDpiModal = false },
+                    onAiUpscale = { modelId ->
+                        viewModel.showLowDpiModal = false
+                        viewModel.pendingUpscaleModelLabel = when (modelId) {
+                            "topaz" -> "Topaz Gigapixel"
+                            "recraft" -> "Recraft Crisp"
+                            "aurasr" -> "AuraSR"
+                            "esrgan" -> "ESRGAN"
+                            else -> modelId
+                        }
+                    },
                     // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
                     onPickAlreadyUpscaled = { viewModel.showLowDpiModal = false },
                     // H-P2.6: BringYourOwn card now opens the walkthrough dialog

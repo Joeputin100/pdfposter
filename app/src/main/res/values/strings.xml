@@ -421,6 +421,19 @@
     <string name="preview_legend_margin">Margin</string>
     <string name="preview_legend_overlap">Overlap</string>
     <string name="preview_low_dpi_card">Low resolution: %1$d DPI · Tap to upscale ↑</string>
+    <!-- RC7: replaces the Low-DPI warning when the user has selected an
+         AI upscale model (the source image will be sharpened, so the
+         DPI warning would be misleading). -->
+    <string name="preview_upscaling_card">Upscaling with %1$s to %2$d DPI</string>
+
+    <!-- Construction-preview captions (RC7) — narrate each phase. -->
+    <string name="preview_caption_printing">Printing the pages…</string>
+    <string name="preview_caption_panning">Bringing them to the table</string>
+    <string name="preview_caption_arranging">Arranging into a poster</string>
+    <string name="preview_caption_cutting">Cutting the margins away</string>
+    <string name="preview_caption_tightening">Closing the gaps</string>
+    <string name="preview_caption_taping">Taping the seams</string>
+    <string name="preview_caption_pinning">Pinning the corners</string>
 
     <!-- ViewModel error/success messages -->
     <string name="vm_error_open_image">Couldn\'t open the source image</string>

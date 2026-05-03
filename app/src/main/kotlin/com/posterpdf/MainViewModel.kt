@@ -116,6 +116,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *  true. Hoisted to ViewModel to keep both call sites in sync. */
     var showLowDpiModal by mutableStateOf(false)
 
+    /** RC7: tracks the user\'s upscale-model selection so the under-preview
+     *  warning Card can swap from "Low resolution: NN DPI" to
+     *  "Upscaling with <model> to <NN> DPI" once a model is queued. Cleared
+     *  back to null when the upscale completes or the user picks a new
+     *  source image. Display label only — not the wire id. */
+    var pendingUpscaleModelLabel by mutableStateOf<String?>(null)
+
     /**
      * RC3 fix: actually run the on-device ESRGAN upscale, save it to cache,
      * point selectedImageUri at the result so the next preview redraw + DPI
@@ -150,6 +157,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 selectedImageUri = Uri.fromFile(outFile)
                 sourcePixelDimensions = upscaled.width to upscaled.height
                 successMessage = "Upscaled to ${upscaled.width}×${upscaled.height}"
+                // RC7: image is now sharper — clear the "Upscaling with X" card.
+                pendingUpscaleModelLabel = null
                 if (src !== upscaled) src.recycle()
                 upscaled.recycle()
             } catch (e: kotlinx.coroutines.CancellationException) {
@@ -166,6 +175,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         freeUpscaleJob?.cancel()
         // Job's finally block clears isFreeUpscaling; redundant set is safe.
         isFreeUpscaling = false
+        pendingUpscaleModelLabel = null
     }
 
     // Reactive inputs
