@@ -25,6 +25,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.LiveHelp
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -50,9 +52,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.posterpdf.ui.components.CreditBadge
 import com.posterpdf.ui.components.GlassCard
 import com.posterpdf.ui.components.ImagePickerHeader
+import com.posterpdf.ui.components.PaperSizeCardRow
 import com.posterpdf.ui.components.PosterPreview
 import com.posterpdf.ui.components.PurchaseSheet
+import com.posterpdf.ui.components.UnitsToggleCard
+import com.posterpdf.ui.screens.FaqScreen
+import com.posterpdf.ui.screens.GettingStartedScreen
+import com.posterpdf.ui.screens.HelpScreen
 import com.posterpdf.ui.screens.HistoryScreen
+import com.posterpdf.ui.screens.PrivacyPolicyScreen
 import com.posterpdf.ui.theme.PDFPosterTheme
 import com.posterpdf.ui.util.Hapt
 import kotlinx.coroutines.launch
@@ -119,10 +127,34 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     // Hoisted out of transitionSpec because that lambda is not @Composable —
     // MaterialTheme.motionScheme reads a CompositionLocal so it must be captured here.
     val swapSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
+    // Encode three mutually-exclusive screen states as a single key for the
+    // AnimatedContent so any transition crossfades cleanly.
+    val screenKey = when {
+        viewModel.showUpscaleComparison -> "compare"
+        viewModel.showHistoryScreen -> "history"
+        viewModel.showGettingStarted -> "getting_started"
+        viewModel.showHelp -> "help"
+        viewModel.showFaq -> "faq"
+        viewModel.showPrivacy -> "privacy"
+        else -> "main"
+    }
     AnimatedContent(
-        targetState = viewModel.showHistoryScreen,
+        targetState = screenKey,
         transitionSpec = {
-            if (targetState) {
+            // History is "to the right" of main; compare is "to the right" of history.
+            // Slide direction picks based on the lexical screen ordering.
+            val order = mapOf(
+                "main" to 0,
+                "history" to 1,
+                "compare" to 2,
+                "getting_started" to 3,
+                "help" to 4,
+                "faq" to 5,
+                "privacy" to 6,
+            )
+            val from = order[initialState] ?: 0
+            val to = order[targetState] ?: 0
+            if (to > from) {
                 (slideInHorizontally(swapSpec) { it } + fadeIn())
                     .togetherWith(slideOutHorizontally(swapSpec) { -it / 4 } + fadeOut())
             } else {
@@ -131,12 +163,35 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             }
         },
         label = "screen-swap",
-    ) { showHistory ->
-        if (showHistory) {
-            BackHandler { viewModel.showHistoryScreen = false }
-            HistoryScreen(viewModel = viewModel, onBack = { viewModel.showHistoryScreen = false })
-        } else {
-            MainScreenContent(viewModel = viewModel)
+    ) { key ->
+        when (key) {
+            "compare" -> {
+                BackHandler { viewModel.showUpscaleComparison = false }
+                com.posterpdf.ui.screens.UpscaleComparisonScreen(
+                    onBack = { viewModel.showUpscaleComparison = false },
+                )
+            }
+            "history" -> {
+                BackHandler { viewModel.showHistoryScreen = false }
+                HistoryScreen(viewModel = viewModel, onBack = { viewModel.showHistoryScreen = false })
+            }
+            "getting_started" -> {
+                BackHandler { viewModel.showGettingStarted = false }
+                GettingStartedScreen(onBack = { viewModel.showGettingStarted = false })
+            }
+            "help" -> {
+                BackHandler { viewModel.showHelp = false }
+                HelpScreen(onBack = { viewModel.showHelp = false })
+            }
+            "faq" -> {
+                BackHandler { viewModel.showFaq = false }
+                FaqScreen(onBack = { viewModel.showFaq = false })
+            }
+            "privacy" -> {
+                BackHandler { viewModel.showPrivacy = false }
+                PrivacyPolicyScreen(onBack = { viewModel.showPrivacy = false })
+            }
+            else -> MainScreenContent(viewModel = viewModel)
         }
     }
 }
@@ -360,6 +415,75 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          },
                      )
                  }
+
+                 // H-P2.1 / H-P2.2 / H-P2.3 / H-P2.4 / H-P2.5: content drawer entries.
+                 NavigationDrawerItem(
+                     label = { Text("Getting Started") },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "Getting Started opened")
+                         viewModel.showGettingStarted = true
+                         scope.launch { drawerState.close() }
+                     },
+                     icon = { Icon(Icons.Default.RocketLaunch, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
+                 NavigationDrawerItem(
+                     label = { Text("Help") },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "Help opened")
+                         viewModel.showHelp = true
+                         scope.launch { drawerState.close() }
+                     },
+                     icon = { Icon(Icons.AutoMirrored.Filled.HelpOutline, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
+                 NavigationDrawerItem(
+                     label = { Text("FAQ") },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "FAQ opened")
+                         viewModel.showFaq = true
+                         scope.launch { drawerState.close() }
+                     },
+                     icon = { Icon(Icons.AutoMirrored.Filled.LiveHelp, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
+                 NavigationDrawerItem(
+                     label = { Text("Privacy Policy") },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "Privacy Policy opened")
+                         viewModel.showPrivacy = true
+                         scope.launch { drawerState.close() }
+                     },
+                     icon = { Icon(Icons.Default.PrivacyTip, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
+                 NavigationDrawerItem(
+                     label = { Text("Support") },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "Support tapped")
+                         val intent = android.content.Intent(
+                             android.content.Intent.ACTION_VIEW,
+                             android.net.Uri.parse("https://github.com/Joeputin/pdfposter/issues/new/choose"),
+                         )
+                         try {
+                             context.startActivity(intent)
+                         } catch (e: android.content.ActivityNotFoundException) {
+                             android.widget.Toast.makeText(
+                                 context,
+                                 "No browser installed to open the Support link.",
+                                 android.widget.Toast.LENGTH_SHORT,
+                             ).show()
+                         }
+                         scope.launch { drawerState.close() }
+                     },
+                     icon = { Icon(Icons.Default.Forum, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
 
                  NavigationDrawerItem(
                      label = { Text("Reset to Defaults") },

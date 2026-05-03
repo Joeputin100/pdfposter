@@ -63,6 +63,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // View/Save/Share at < 150 DPI.
     var sourcePixelDimensions by mutableStateOf<Pair<Int, Int>?>(null)
 
+    // Phase H-P1.13: true when the active source URI is an SVG (vector). The
+    // preview rasterizes it for display, but the PDF generation path renders
+    // each tile fresh via androidsvg at high DPI for vector-quality output.
+    // The upscale modal also uses this flag to gray out raster-upscale options.
+    var sourceIsSvg by mutableStateOf(false)
+
     /** Current effective DPI = sourceWidthPx / posterWidthInches.  0f when unknown. */
     fun computeCurrentDpi(): Float {
         val (w, _) = sourcePixelDimensions ?: return 0f
@@ -133,6 +139,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var isHistoryLoading by mutableStateOf(false)
         private set
     var showHistoryScreen by mutableStateOf(false)
+    var showUpscaleComparison by mutableStateOf(false)
+
+    // H-P2: content screens reachable from the hamburger drawer.
+    var showGettingStarted by mutableStateOf(false)
+    var showHelp by mutableStateOf(false)
+    var showFaq by mutableStateOf(false)
+    var showPrivacy by mutableStateOf(false)
 
     private var ignoreFlowUpdates = false
 
@@ -263,9 +276,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val imageBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             currentImageHash = imageBytes?.let { computeSha256(it) }
 
+            // Phase H-P1.13: robust SVG detection — MIME first, extension second,
+            // magic-byte sniff third. Cache the result on the ViewModel so the
+            // preview / PDF / modal paths all agree.
+            val isSvg = detectIsSvg(context, uri, imageBytes)
+            sourceIsSvg = isSvg
+
             context.contentResolver.openInputStream(uri)?.use { input ->
-                val bitmap = if (uri.toString().lowercase(Locale.US).endsWith(".svg") || 
-                    context.contentResolver.getType(uri)?.contains("svg") == true) {
+                val bitmap = if (isSvg) {
                     val svg = SVG.getFromInputStream(input)
                     val width = svg.documentWidth.toInt().takeIf { it > 0 } ?: 1024
                     val height = svg.documentHeight.toInt().takeIf { it > 0 } ?: 1024
@@ -288,7 +306,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         aspectRatioString = String.format(Locale.US, "%.1f:1.0", ar),
                         resolution = "${w}x${h}px"
                     )
-                    
+
                     if (isAspectRatioLocked) {
                         val currentW = posterWidth.toDoubleOrNull() ?: (if (units == "Metric") 60.96 else 24.0)
                         posterHeight = formatWithSamePrecision(currentW / ar, posterWidth)
@@ -299,6 +317,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             errorMessage = "Failed to load image info: ${e.message}"
         }
+    }
+
+    /**
+     * Phase H-P1.13: Robust SVG detection. ContentResolver.getType() is the
+     * authoritative answer when the provider sets it, but content:// URIs from
+     * SAF / Downloads sometimes return application/octet-stream. So:
+     *   1) MIME starts with "image/svg" → SVG
+     *   2) URI path ends with .svg / .svgz → SVG
+     *   3) First non-whitespace bytes look like XML or "<svg" → SVG
+     * The byte sniff handles SVGs that are gzipped (.svgz) too — the
+     * androidsvg library auto-detects gzip via its own magic-byte check.
+     */
+    private fun detectIsSvg(context: Context, uri: Uri, headBytes: ByteArray?): Boolean {
+        val mime = context.contentResolver.getType(uri)?.lowercase(Locale.US)
+        if (mime != null && mime.startsWith("image/svg")) return true
+        val path = uri.toString().lowercase(Locale.US)
+        if (path.endsWith(".svg") || path.endsWith(".svgz")) return true
+        if (headBytes == null || headBytes.isEmpty()) return false
+        // Inspect up to first 256 bytes for XML/SVG markers.
+        val sniff = headBytes.copyOfRange(0, kotlin.math.min(headBytes.size, 256))
+        val asString = try {
+            String(sniff, Charsets.UTF_8).trimStart()
+        } catch (_: Exception) {
+            return false
+        }
+        return asString.startsWith("<?xml") ||
+            asString.startsWith("<svg") ||
+            asString.startsWith("<!DOCTYPE svg")
     }
 
     fun updatePosterWidth(width: String) {
@@ -452,9 +498,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) {
                     PDFBoxResourceLoader.init(context)
 
+                    // Phase H-P1.13: re-detect SVG defensively (also set in
+                    // updateImage). Same bytes feed both detection and decode.
+                    val headBytesForDetect = try {
+                        context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    } catch (_: Exception) {
+                        null
+                    }
+                    val isSvgSource = detectIsSvg(context, uri, headBytesForDetect)
+                    sourceIsSvg = isSvgSource
+
                     val bitmap = context.contentResolver.openInputStream(uri)?.use { input ->
-                        if (uri.toString().lowercase(Locale.US).endsWith(".svg") || 
-                            context.contentResolver.getType(uri)?.contains("svg") == true) {
+                        if (isSvgSource) {
                             val svg = SVG.getFromInputStream(input)
                             val renderWidth = (svg.documentWidth.takeIf { it > 0 } ?: 2048f).toInt()
                             val renderHeight = (svg.documentHeight.takeIf { it > 0 } ?: 2048f).toInt()
@@ -490,6 +545,51 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         null
                     }
 
+                    // Phase H-P1.13: per-tile SVG renderer for vector-quality
+                    // PDF output. PosterLogic invokes this once per tile with
+                    // (tilePxW, tilePxH, srcLeft01, srcTop01, srcRight01, srcBottom01)
+                    // — the last four are the slice of the poster (in 0..1
+                    // poster-fraction coords) that this tile should show. The
+                    // callback returns a Bitmap of (tilePxW × tilePxH) showing
+                    // exactly that slice rendered straight from the SVG (no
+                    // intermediate full-poster raster). Returns null for raster
+                    // sources.
+                    val svgTileRenderer: ((Int, Int, Float, Float, Float, Float) -> Bitmap)? =
+                        if (isSvgSource) { tilePxW: Int, tilePxH: Int,
+                                           srcLeft01: Float, srcTop01: Float,
+                                           srcRight01: Float, srcBottom01: Float ->
+                            // Re-open the URI per tile; SVG.getFromInputStream
+                            // consumes the stream, and re-parsing the XML is
+                            // cheap compared to rendering.
+                            val svg = context.contentResolver.openInputStream(uri)
+                                ?.use { SVG.getFromInputStream(it) }
+                                ?: throw Exception("Could not reopen SVG for tile")
+
+                            // Force the doc to render at the full poster's
+                            // pixel size, then we render with an offset Canvas
+                            // so only the tile slice lands in the bitmap.
+                            // We pick "full poster pixel size" as
+                            // tilePx / sliceFraction → keeps SVG geometry
+                            // proportional regardless of intrinsic dims.
+                            val sliceW = (srcRight01 - srcLeft01).coerceAtLeast(1e-4f)
+                            val sliceH = (srcBottom01 - srcTop01).coerceAtLeast(1e-4f)
+                            val fullPosterPxW = tilePxW / sliceW
+                            val fullPosterPxH = tilePxH / sliceH
+                            svg.setDocumentWidth(fullPosterPxW)
+                            svg.setDocumentHeight(fullPosterPxH)
+
+                            val tileBmp = Bitmap.createBitmap(
+                                tilePxW.coerceAtLeast(1),
+                                tilePxH.coerceAtLeast(1),
+                                Bitmap.Config.ARGB_8888,
+                            )
+                            val canvas = Canvas(tileBmp)
+                            // Translate so that the tile-slice origin lands at (0,0).
+                            canvas.translate(-srcLeft01 * fullPosterPxW, -srcTop01 * fullPosterPxH)
+                            svg.renderToCanvas(canvas)
+                            tileBmp
+                        } else null
+
                     posterLogic.createTiledPoster(
                         bitmap = bitmap,
                         posterW = pw * unitScale,
@@ -506,7 +606,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         includeInstructions = includeInstructions,
                         logoBitmap = logoBitmap,
                         sourcePixelW = imageMetadata?.width ?: bitmap.width,
-                        sourcePixelH = imageMetadata?.height ?: bitmap.height
+                        sourcePixelH = imageMetadata?.height ?: bitmap.height,
+                        svgTileRenderer = svgTileRenderer,
                     )
                     
                      withContext(Dispatchers.Main) {

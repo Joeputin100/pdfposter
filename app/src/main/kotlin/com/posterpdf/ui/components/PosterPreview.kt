@@ -1,9 +1,12 @@
 package com.posterpdf.ui.components
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas as AndroidCanvas
 import android.graphics.Paint
 import android.graphics.RuntimeShader
 import android.os.Build
+import com.caverock.androidsvg.SVG
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -71,6 +74,11 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.posterpdf.MainViewModel
 import com.posterpdf.ui.components.preview.AssemblyPhase
+import com.posterpdf.ui.components.preview.DUST_PUFF_AGSL
+import com.posterpdf.ui.components.preview.PRINTER_INK_AGSL
+import com.posterpdf.ui.components.preview.drawDustPuff
+import com.posterpdf.ui.components.preview.drawPrinter
+import com.posterpdf.ui.components.preview.drawScissors
 import com.posterpdf.ui.components.preview.drawScotchTape
 import com.posterpdf.ui.components.preview.drawThumbTack
 import com.posterpdf.ui.util.Hapt
@@ -174,10 +182,11 @@ fun PosterPreview(viewModel: MainViewModel) {
 
     val hapt = Hapt(LocalHapticFeedback.current)
 
-    // One-shot confirm haptic when the cycle enters the Reveal phase.
+    // One-shot confirm haptic when the cycle enters the Securing phase
+    // (tape + tacks land — the "it's done" beat). H-P1.7/1.8 retiming.
     val lastPhase = remember { mutableStateOf<AssemblyPhase?>(null) }
     LaunchedEffect(phase) {
-        if (lastPhase.value != phase && phase == AssemblyPhase.Reveal) {
+        if (lastPhase.value != phase && phase == AssemblyPhase.Securing) {
             hapt.confirm()
         }
         lastPhase.value = phase
@@ -206,7 +215,70 @@ fun PosterPreview(viewModel: MainViewModel) {
         val uri = viewModel.selectedImageUri ?: return@LaunchedEffect
         val bitmap = withContext(Dispatchers.IO) {
             try {
-                context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
+                // Phase H-P1.13: branch on SVG. Three-pronged detection
+                // (MIME → extension → magic-byte sniff) keeps us robust to
+                // providers that mis-report content-type. SVG renders into
+                // a 512px-target bitmap (preview-sized; PDF path renders
+                // fresh per tile at 300 DPI).
+                val resolver = context.contentResolver
+                val mime = resolver.getType(uri)?.lowercase()
+                val path = uri.toString().lowercase()
+                val mimeSaysSvg = mime != null && mime.startsWith("image/svg")
+                val pathSaysSvg = path.endsWith(".svg") || path.endsWith(".svgz")
+                val isSvg = if (mimeSaysSvg || pathSaysSvg) {
+                    true
+                } else {
+                    // Magic-byte sniff: read up to 256 bytes and look for
+                    // the standard XML/SVG markers. Keeps us safe against
+                    // octet-stream providers.
+                    val sniff = try {
+                        resolver.openInputStream(uri)?.use { input ->
+                            val buf = ByteArray(256)
+                            val n = input.read(buf)
+                            if (n <= 0) null else String(buf, 0, n, Charsets.UTF_8).trimStart()
+                        }
+                    } catch (_: Exception) {
+                        null
+                    }
+                    sniff != null && (
+                        sniff.startsWith("<?xml") ||
+                            sniff.startsWith("<svg") ||
+                            sniff.startsWith("<!DOCTYPE svg")
+                        )
+                }
+                viewModel.sourceIsSvg = isSvg
+                if (isSvg) {
+                    resolver.openInputStream(uri)?.use { input ->
+                        val svg = SVG.getFromInputStream(input)
+                        // Pick a render target: SVG intrinsic size if present,
+                        // else 1024 — gives the preview enough resolution for
+                        // the construction-preview Canvas. Cap to 1024 to keep
+                        // memory bounded; the live-preview canvas itself is
+                        // ~300dp tall, so we don't need more pixels than that.
+                        val intrinsicW = svg.documentWidth
+                        val intrinsicH = svg.documentHeight
+                        val targetMax = 1024
+                        val (w, h) = if (intrinsicW > 0f && intrinsicH > 0f) {
+                            val s = (targetMax / kotlin.math.max(intrinsicW, intrinsicH))
+                                .coerceAtMost(1f)
+                            (intrinsicW * s).toInt().coerceAtLeast(1) to
+                                (intrinsicH * s).toInt().coerceAtLeast(1)
+                        } else {
+                            // Edge case: SVG with no intrinsic dims (e.g. a
+                            // viewBox-only document). Render square.
+                            targetMax to targetMax
+                        }
+                        // Force the doc to render at our target size even if
+                        // it had no intrinsic dims.
+                        svg.setDocumentWidth(w.toFloat())
+                        svg.setDocumentHeight(h.toFloat())
+                        val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                        svg.renderToCanvas(AndroidCanvas(b))
+                        b
+                    }
+                } else {
+                    resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
+                }
             } catch (_: Exception) {
                 null
             }
@@ -220,6 +292,15 @@ fun PosterPreview(viewModel: MainViewModel) {
     // RuntimeShader is API 33+. On older devices we fall back to a static gradient.
     val woodShader = remember(cycleEnabled) {
         if (cycleEnabled) RuntimeShader(WOOD_AGSL) else null
+    }
+    // H-P1.8: dot-matrix printer ink streak + landing dust puff. Both AGSL,
+    // both gated to API 33+; null on older devices (drawPrinter handles the
+    // fallback path; drawDustPuff is simply skipped).
+    val inkShader = remember(cycleEnabled) {
+        if (cycleEnabled) RuntimeShader(PRINTER_INK_AGSL) else null
+    }
+    val dustShader = remember(cycleEnabled) {
+        if (cycleEnabled) RuntimeShader(DUST_PUFF_AGSL) else null
     }
 
     Column(
@@ -549,6 +630,7 @@ fun PosterPreview(viewModel: MainViewModel) {
         val isLowDpi = currentDpi in 1f..149.99f
         if (isLowDpi && previewBitmap != null) {
             var showLowDpiModal by remember { mutableStateOf(false) }
+            var showBringYourOwnHelp by remember { mutableStateOf(false) }
             Spacer(Modifier.height(8.dp))
             Card(
                 onClick = { showLowDpiModal = true },
@@ -583,6 +665,10 @@ fun PosterPreview(viewModel: MainViewModel) {
                     currentDpi = currentDpi,
                     posterWInches = posterWInchesD,
                     posterHInches = posterHInchesD,
+                    // Phase H-P1.13: when the source is SVG, the modal swaps
+                    // the upscale grid for a vector-explainer banner and keeps
+                    // only the BringYourOwn card enabled.
+                    sourceIsSvg = viewModel.sourceIsSvg,
                     // TODO(G12): replace placeholder 0 with viewModel.creditBalance.collectAsState().value
                     creditBalance = 0,
                     // TODO(G12): replace 0.119 with usdPerCredit derived from
@@ -597,10 +683,32 @@ fun PosterPreview(viewModel: MainViewModel) {
                     onAiUpscale = { _ -> showLowDpiModal = false },
                     // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
                     onPickAlreadyUpscaled = { showLowDpiModal = false },
+                    // H-P2.6: BringYourOwn card now opens the walkthrough dialog
+                    // first; the dialog's "Choose file" button calls
+                    // onPickAlreadyUpscaled itself.
+                    onShowBringYourOwnHelp = {
+                        showLowDpiModal = false
+                        showBringYourOwnHelp = true
+                    },
                     // TODO(G12): wire to viewModel.signInWithGoogle()
                     onSignIn = { showLowDpiModal = false },
                     // TODO(G12): wire to viewModel.openPurchaseSheet()
                     onBuyCredits = { showLowDpiModal = false },
+                    onCompareModels = {
+                        showLowDpiModal = false
+                        viewModel.showUpscaleComparison = true
+                    },
+                )
+            }
+            if (showBringYourOwnHelp) {
+                com.posterpdf.ui.components.BringYourOwnHelpDialog(
+                    onDismiss = { showBringYourOwnHelp = false },
+                    onPickAlreadyUpscaled = {
+                        showBringYourOwnHelp = false
+                        // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage().
+                        // The button currently dismisses; the actual file-picker
+                        // launch is staged for the same VM hookup as the modal.
+                    },
                 )
             }
         }

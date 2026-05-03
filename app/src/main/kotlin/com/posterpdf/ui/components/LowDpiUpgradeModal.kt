@@ -1,7 +1,6 @@
 package com.posterpdf.ui.components
 
 import android.graphics.Bitmap
-import android.widget.Toast
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -205,10 +204,19 @@ fun LowDpiUpgradeModal(
     /** Effective USD per credit at the current SKU ladder; 0.0 hides the price hint. */
     usdPerCredit: Double,
     isAnonymous: Boolean,
+    /**
+     * Phase H-P1.13: when true the source is an SVG (vector) and upscaling
+     * makes no sense — the modal hides the 4 raster-upscale cards (NONE,
+     * FREE_LOCAL, TOPAZ_4X, RECRAFT, plus the EXTRA models when expanded)
+     * and replaces them with a single explainer banner. The BringYourOwn
+     * card stays visible (user might want to swap to a raster source).
+     */
+    sourceIsSvg: Boolean = false,
     onDismiss: () -> Unit,
     onFreeUpscale: () -> Unit,
     onAiUpscale: (modelId: String) -> Unit,
     onPickAlreadyUpscaled: () -> Unit,
+    onShowBringYourOwnHelp: () -> Unit,
     onSignIn: () -> Unit,
     onBuyCredits: () -> Unit,
     onCompareModels: () -> Unit,
@@ -327,7 +335,7 @@ fun LowDpiUpgradeModal(
             ) {
                 items(visibleOptions) { modelOrNull ->
                     if (modelOrNull == null) {
-                        BringYourOwnCard(onPick = onPickAlreadyUpscaled)
+                        BringYourOwnCard(onPick = onShowBringYourOwnHelp)
                     } else {
                         val option = ALL_OPTIONS.first { it.model == modelOrNull }
                         val credits = remember(inputMp) { creditsForOption(option, inputMp) }
@@ -369,9 +377,7 @@ fun LowDpiUpgradeModal(
                         color = BlueprintBlue700,
                     )
                 }
-                TextButton(onClick = {
-                    Toast.makeText(context, "Comparison demo coming in next update", Toast.LENGTH_SHORT).show()
-                }) {
+                TextButton(onClick = onCompareModels) {
                     Text(
                         "Help me decide…",
                         style = MaterialTheme.typography.labelMedium,
