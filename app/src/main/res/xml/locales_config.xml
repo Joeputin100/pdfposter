@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  RC7: Per-app language config. Required for AppCompatDelegate.setApplicationLocales
+  to actually change the locale at runtime on Android 13+ (API 33). Without this
+  resource referenced from <application android:localeConfig>, the system rejects
+  the call silently and the UI stays in the system locale.
+
+  Order matches the values-XX/strings.xml files we ship.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en"/>
+    <locale android:name="es"/>
+    <locale android:name="de"/>
+    <locale android:name="fr"/>
+    <locale android:name="pt-BR"/>
+    <locale android:name="ru"/>
+    <locale android:name="ja"/>
+    <locale android:name="zh-CN"/>
+    <locale android:name="hi"/>
+    <locale android:name="ar"/>
+</locale-config>

@@ -201,6 +201,9 @@ fun LowDpiUpgradeModal(
     /** Effective USD per credit at the current SKU ladder; 0.0 hides the price hint. */
     usdPerCredit: Double,
     isAnonymous: Boolean,
+    /** RC7: admin accounts have unlimited credits — short-circuits the
+     *  hasEnoughCredits check so admin never sees "Get more credits". */
+    isAdmin: Boolean = false,
     /**
      * Phase H-P1.13: when true the source is an SVG (vector) and upscaling
      * makes no sense — the modal hides the 4 raster-upscale cards (NONE,
@@ -352,7 +355,7 @@ fun LowDpiUpgradeModal(
                             val credits = remember(inputMp) { creditsForOption(option, inputMp) }
                             val usdStr = usdEquivalent(credits, usdPerCredit)
                             val outputDpi = currentDpi * option.scale
-                            val hasEnough = creditBalance >= credits
+                            val hasEnough = isAdmin || creditBalance >= credits
 
                             UpscaleOptionCard(
                                 option = option,

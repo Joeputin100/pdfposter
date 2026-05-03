@@ -217,11 +217,13 @@ fun PosterPreview(viewModel: MainViewModel) {
     // of the cycle; eases back to 0 during Reset. Applied as a pure Y-translate
     // to every pane and prop drawn inside the inner Canvas, AND fed to the
     // wood-grain shader's iOriginY uniform so the table grain scrolls in sync.
-    // Pan target = ~38% of viewport height. Empirically this is enough to push
-    // the printer body fully off-screen but keeps the panes well within view.
+    // RC7: Pan target dropped 0.38 → 0.15. The 0.38 value pushed the top
+    // row of pages above the viewport on tall layouts (user feedback +
+    // Screenshot_20260503_153224). 0.15 still moves the printer body
+    // mostly off-screen but keeps every row visible.
     val cameraOffsetYpx = remember { mutableFloatStateOf(0f) }
     androidx.compose.runtime.SideEffect {
-        val panTarget = boxSize.height * 0.38f
+        val panTarget = boxSize.height * 0.15f
         val newValue = if (!cycleEnabled) 0f else when (phase) {
             AssemblyPhase.Printing -> 0f
             AssemblyPhase.Panning -> {
@@ -1086,6 +1088,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                     usdPerCredit = 0.119,
                     // RC3 fix: derive from actual auth session, not placeholder
                     isAnonymous = viewModel.authSession.isAnonymous || !viewModel.authSession.signedIn,
+                    isAdmin = viewModel.isAdmin,
                     onDismiss = { viewModel.showLowDpiModal = false },
                     onFreeUpscale = {
                         viewModel.showLowDpiModal = false
