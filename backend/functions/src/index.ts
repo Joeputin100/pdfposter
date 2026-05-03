@@ -336,3 +336,4 @@ export const api = onRequest(
 
 export { getPricing, refreshPricing } from './pricing';
 export { getFalBalance } from './balance';
+export { dailySweep, deleteCloudCopy } from './storageBilling';
