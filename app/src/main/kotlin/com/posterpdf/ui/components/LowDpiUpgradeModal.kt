@@ -464,8 +464,7 @@ private fun UpscaleOptionCard(
     // on-device path (FREE_LOCAL) and the do-nothing NONE card stay matte —
     // the visual treatment is the user's cue that "this card costs credits".
     val isAiModel = option.model in setOf(
-        UpscaleModel.TOPAZ_4X,
-        UpscaleModel.TOPAZ_8X,
+        UpscaleModel.TOPAZ,
         UpscaleModel.RECRAFT,
         UpscaleModel.AURASR,
         UpscaleModel.ESRGAN,
