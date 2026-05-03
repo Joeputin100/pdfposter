@@ -34,6 +34,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -770,6 +771,20 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     // actionable, so this site stays silent.
                                 }
                             }
+                            }
+
+                            // RC4 — "Sharpen for print" CTA between Poster Size
+                            // and Paper & Layout. Tappable card with a
+                            // continuously-pulsing magic-wand icon. Opens the
+                            // same upscale modal that the under-preview low-DPI
+                            // warning opens. Hidden when the source is an SVG
+                            // (vector — no upscale needed).
+                            if (!viewModel.sourceIsSvg) {
+                                EnterStagger(index = 3) {
+                                    SharpenForPrintCta(
+                                        onClick = { viewModel.showLowDpiModal = true },
+                                    )
+                                }
                             }
 
                             // 4. Paper & Layout
@@ -1638,6 +1653,67 @@ fun ConfigInput(
             disabledPlaceholderColor = MaterialTheme.colorScheme.outline
         ) else OutlinedTextFieldDefaults.colors()
     )
+}
+
+/**
+ * RC4 — "Sharpen for print" CTA between Poster Size and Paper & Layout.
+ *
+ * A continuously-pulsing magic-wand card that opens the upscale modal. The
+ * pulse runs even when the source is high-DPI (no warning needed) so the
+ * user always knows AI sharpening is one tap away. The card uses
+ * surfaceVariant + a subtle glint sweep so it reads as "tappable polish"
+ * rather than "warning."
+ */
+@Composable
+private fun SharpenForPrintCta(onClick: () -> Unit) {
+    val infinite = androidx.compose.animation.core.rememberInfiniteTransition(label = "sharpen_cta_pulse")
+    val pulseAlpha by infinite.animateFloat(
+        initialValue = 0.55f,
+        targetValue = 1.0f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            animation = androidx.compose.animation.core.tween(900),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse,
+        ),
+        label = "sharpen_cta_alpha",
+    )
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        ),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "🪄",
+                fontSize = 26.sp,
+                modifier = Modifier.alpha(pulseAlpha),
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Sharpen for print",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                )
+                Text(
+                    "Free or AI upscale — pick what fits.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
+                )
+            }
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+        }
+    }
 }
 
 /**

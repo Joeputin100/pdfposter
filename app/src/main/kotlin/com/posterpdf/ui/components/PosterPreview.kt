@@ -983,11 +983,13 @@ fun PosterPreview(viewModel: MainViewModel) {
         val currentDpi = if (posterWInchesD > 0) (sourcePixelW / posterWInchesD).toFloat() else 0f
         val isLowDpi = currentDpi in 1f..149.99f
         if (isLowDpi && previewBitmap != null) {
-            var showLowDpiModal by remember { mutableStateOf(false) }
+            // RC4: showLowDpiModal lives on viewModel so the new MainActivity
+            // "Sharpen for print" CTA can also drive the modal. We read/write
+            // it directly here — no local alias.
             var showBringYourOwnHelp by remember { mutableStateOf(false) }
             Spacer(Modifier.height(8.dp))
             Card(
-                onClick = { showLowDpiModal = true },
+                onClick = { viewModel.showLowDpiModal = true },
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -1001,7 +1003,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                     fontWeight = FontWeight.Bold,
                 )
             }
-            if (showLowDpiModal) {
+            if (viewModel.showLowDpiModal) {
                 val src = previewBitmap!!
                 // inputMp / inputBytes are derived from the preview bitmap that's
                 // already in memory. For the real pipeline this will come from
@@ -1030,28 +1032,28 @@ fun PosterPreview(viewModel: MainViewModel) {
                     usdPerCredit = 0.119,
                     // RC3 fix: derive from actual auth session, not placeholder
                     isAnonymous = viewModel.authSession.isAnonymous || !viewModel.authSession.signedIn,
-                    onDismiss = { showLowDpiModal = false },
+                    onDismiss = { viewModel.showLowDpiModal = false },
                     onFreeUpscale = {
-                        showLowDpiModal = false
+                        viewModel.showLowDpiModal = false
                         viewModel.runFreeUpscale(context)
                     },
                     // TODO(G12): wire to viewModel.runAiUpscale(modelId, inputMpInt)
-                    onAiUpscale = { _ -> showLowDpiModal = false },
+                    onAiUpscale = { _ -> viewModel.showLowDpiModal = false },
                     // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
-                    onPickAlreadyUpscaled = { showLowDpiModal = false },
+                    onPickAlreadyUpscaled = { viewModel.showLowDpiModal = false },
                     // H-P2.6: BringYourOwn card now opens the walkthrough dialog
                     // first; the dialog's "Choose file" button calls
                     // onPickAlreadyUpscaled itself.
                     onShowBringYourOwnHelp = {
-                        showLowDpiModal = false
+                        viewModel.showLowDpiModal = false
                         showBringYourOwnHelp = true
                     },
                     // TODO(G12): wire to viewModel.signInWithGoogle()
-                    onSignIn = { showLowDpiModal = false },
+                    onSignIn = { viewModel.showLowDpiModal = false },
                     // TODO(G12): wire to viewModel.openPurchaseSheet()
-                    onBuyCredits = { showLowDpiModal = false },
+                    onBuyCredits = { viewModel.showLowDpiModal = false },
                     onCompareModels = {
-                        showLowDpiModal = false
+                        viewModel.showLowDpiModal = false
                         viewModel.showUpscaleComparison = true
                     },
                 )

@@ -109,6 +109,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
     private var freeUpscaleJob: kotlinx.coroutines.Job? = null
 
+    /** RC4: app-level toggle for the low-DPI upscale modal. PosterPreview
+     *  (the under-preview tappable card) and MainActivity (the new
+     *  Sharpen-for-print CTA between Poster Size and Paper & Layout) both
+     *  drive this flag, and PosterPreview\'s modal opens whenever it goes
+     *  true. Hoisted to ViewModel to keep both call sites in sync. */
+    var showLowDpiModal by mutableStateOf(false)
+
     /**
      * RC3 fix: actually run the on-device ESRGAN upscale, save it to cache,
      * point selectedImageUri at the result so the next preview redraw + DPI
