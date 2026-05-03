@@ -212,6 +212,9 @@ fun PosterPreview(viewModel: MainViewModel) {
             }
         }
         previewBitmap = bitmap?.asImageBitmap()
+        // Phase H-P1.9: lift the source dims to the ViewModel so MainActivity
+        // can gate View/Save/Share on currentDpi < 150 without re-decoding.
+        bitmap?.let { viewModel.sourcePixelDimensions = it.width to it.height }
     }
 
     // RuntimeShader is API 33+. On older devices we fall back to a static gradient.

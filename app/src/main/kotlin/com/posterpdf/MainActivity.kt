@@ -645,6 +645,17 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             EnterStagger(index = 6) { PosterPreview(viewModel) }
 
                             // 7. Unified Actions
+                            // H-P1.9: a tap on View/Save/Share at <150 DPI shows a confirm
+                            // dialog before running the action. lowDpiPendingAction holds
+                            // the closure waiting for the user's choice.
+                            var lowDpiPendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+                            val runWithDpiGate: ((() -> Unit) -> Unit) = { action ->
+                                if (viewModel.computeCurrentDpi() in 0.1f..149.99f) {
+                                    lowDpiPendingAction = action
+                                } else {
+                                    action()
+                                }
+                            }
                             EnterStagger(index = 7) {
                             if (viewModel.isGenerating) {
                                 Box(Modifier.fillMaxWidth().height(64.dp), contentAlignment = Alignment.Center) {
@@ -654,17 +665,19 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {
-                                            hapt.confirm()
-                                            viewModel.generatePoster(context) {
-                                                val file = viewModel.lastGeneratedFile ?: return@generatePoster
-                                                val uri = androidx.core.content.FileProvider.getUriForFile(
-                                                    context, "${context.packageName}.provider", file
-                                                )
-                                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                                                    setDataAndType(uri, "application/pdf")
-                                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            runWithDpiGate {
+                                                hapt.confirm()
+                                                viewModel.generatePoster(context) {
+                                                    val file = viewModel.lastGeneratedFile ?: return@generatePoster
+                                                    val uri = androidx.core.content.FileProvider.getUriForFile(
+                                                        context, "${context.packageName}.provider", file
+                                                    )
+                                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                                        setDataAndType(uri, "application/pdf")
+                                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                    }
+                                                    context.startActivity(android.content.Intent.createChooser(intent, "Open PDF"))
                                                 }
-                                                context.startActivity(android.content.Intent.createChooser(intent, "Open PDF"))
                                             }
                                         },
                                         modifier = Modifier.weight(1f).height(64.dp),
@@ -677,9 +690,11 @@ private fun MainScreenContent(viewModel: MainViewModel) {
 
                                     Button(
                                         onClick = {
-                                            hapt.confirm()
-                                            viewModel.generatePoster(context) {
-                                                saveLauncher.launch("poster_${System.currentTimeMillis()}.pdf")
+                                            runWithDpiGate {
+                                                hapt.confirm()
+                                                viewModel.generatePoster(context) {
+                                                    saveLauncher.launch("poster_${System.currentTimeMillis()}.pdf")
+                                                }
                                             }
                                         },
                                         modifier = Modifier.weight(1f).height(64.dp),
@@ -693,18 +708,20 @@ private fun MainScreenContent(viewModel: MainViewModel) {
 
                                     Button(
                                         onClick = {
-                                            hapt.tap()
-                                            viewModel.generatePoster(context) {
-                                                val file = viewModel.lastGeneratedFile ?: return@generatePoster
-                                                val uri = androidx.core.content.FileProvider.getUriForFile(
-                                                    context, "${context.packageName}.provider", file
-                                                )
-                                                val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                                    type = "application/pdf"
-                                                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            runWithDpiGate {
+                                                hapt.tap()
+                                                viewModel.generatePoster(context) {
+                                                    val file = viewModel.lastGeneratedFile ?: return@generatePoster
+                                                    val uri = androidx.core.content.FileProvider.getUriForFile(
+                                                        context, "${context.packageName}.provider", file
+                                                    )
+                                                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                                        type = "application/pdf"
+                                                        putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                    }
+                                                    context.startActivity(android.content.Intent.createChooser(intent, "Share PDF"))
                                                 }
-                                                context.startActivity(android.content.Intent.createChooser(intent, "Share PDF"))
                                             }
                                         },
                                         modifier = Modifier.weight(1f).height(64.dp),
@@ -717,6 +734,28 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     }
                                 }
                             }
+                            }
+                            lowDpiPendingAction?.let { action ->
+                                AlertDialog(
+                                    onDismissRequest = { lowDpiPendingAction = null },
+                                    title = { Text("This will print at low resolution") },
+                                    text = {
+                                        Text(
+                                            "Your poster is currently around ${viewModel.computeCurrentDpi().toInt()} DPI. " +
+                                                "For a sharp print you want at least 150 DPI. Continue anyway, or upscale your image first?"
+                                        )
+                                    },
+                                    confirmButton = {
+                                        TextButton(onClick = {
+                                            val a = action; lowDpiPendingAction = null; a()
+                                        }) { Text("Continue anyway") }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { lowDpiPendingAction = null }) {
+                                            Text("Upgrade source first")
+                                        }
+                                    },
+                                )
                             }
 
                             viewModel.errorMessage?.let { MessageText(it, MaterialTheme.colorScheme.error) }

@@ -56,6 +56,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // Firestore when AuthRepository wires through.
     }
 
+    // Phase H-P1.9: source bitmap pixel dimensions, populated by PosterPreview
+    // after BitmapFactory.decodeStream succeeds. Used by MainActivity to gate
+    // View/Save/Share at < 150 DPI.
+    var sourcePixelDimensions by mutableStateOf<Pair<Int, Int>?>(null)
+
+    /** Current effective DPI = sourceWidthPx / posterWidthInches.  0f when unknown. */
+    fun computeCurrentDpi(): Float {
+        val (w, _) = sourcePixelDimensions ?: return 0f
+        val widthIn = posterWidth.toDoubleOrNull() ?: return 0f
+        if (widthIn <= 0.0) return 0f
+        return (w.toDouble() / widthIn).toFloat()
+    }
+
     // Reactive inputs
     var selectedImageUri by mutableStateOf<Uri?>(null)
     var posterWidth by mutableStateOf("24")
