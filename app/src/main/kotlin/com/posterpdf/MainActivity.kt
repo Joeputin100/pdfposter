@@ -1774,6 +1774,16 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                     }
                 }
                 Spacer(Modifier.height(8.dp))
+                // RC12: storage usage line. Reads from
+                // viewModel.storageBilling which the daily-sweep Cloud
+                // Function writes per-user. Displays formatted bytes,
+                // poster count, and credits charged in the current
+                // billing cycle. Hidden when there\'s no billable storage
+                // (no cloud-stored PDFs past the free 30-day window).
+                viewModel.storageBilling?.let { sb ->
+                    StorageBillingRow(sb)
+                    Spacer(Modifier.height(8.dp))
+                }
                 OutlinedButton(onClick = { viewModel.signOut() }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.AutoMirrored.Filled.Logout, null)
                     Spacer(Modifier.width(8.dp))
@@ -1782,6 +1792,72 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
             }
         }
     }
+}
+
+/**
+ * RC12 — storage usage display for the drawer Account section. Renders:
+ *   "Storage: 4 credits this month for 50 posters · 1.2 GB used"
+ * In grace period:
+ *   "Storage: 50 posters · 1.2 GB · DELETION IN N HOURS — top up credits"
+ */
+@Composable
+private fun StorageBillingRow(s: MainViewModel.StorageBillingAggregate) {
+    val container: Color
+    val onContainer: Color
+    val text: String
+    val inGrace = s.gracePeriodStartedMs != null
+    if (inGrace) {
+        val graceEndsMs = s.gracePeriodStartedMs + 30L * 24 * 60 * 60 * 1000
+        val hoursLeft = ((graceEndsMs - System.currentTimeMillis()) / (60L * 60 * 1000))
+            .coerceAtLeast(0)
+        container = MaterialTheme.colorScheme.errorContainer
+        onContainer = MaterialTheme.colorScheme.onErrorContainer
+        text = "${s.posters} posters · ${prettyBytes(s.bytes)} · " +
+            "deletion in ${hoursLeft}h — top up credits"
+    } else {
+        container = MaterialTheme.colorScheme.surfaceVariant
+        onContainer = MaterialTheme.colorScheme.onSurfaceVariant
+        text = "${s.lastBilledCredits} credits this month for ${s.posters} posters · " +
+            prettyBytes(s.bytes) + " used"
+    }
+    androidx.compose.material3.Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = container,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.CloudQueue,
+                contentDescription = null,
+                tint = onContainer,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Storage",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = onContainer.copy(alpha = 0.85f),
+                )
+                Text(
+                    text,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = onContainer,
+                )
+            }
+        }
+    }
+}
+
+/** RC12: 1.234 → "1.2 KB", 1234567 → "1.2 MB", 1.5e9 → "1.5 GB". */
+private fun prettyBytes(bytes: Long): String {
+    if (bytes < 1024L) return "$bytes B"
+    if (bytes < 1024L * 1024) return "%.1f KB".format(bytes / 1024.0)
+    if (bytes < 1024L * 1024 * 1024) return "%.1f MB".format(bytes / (1024.0 * 1024))
+    return "%.1f GB".format(bytes / (1024.0 * 1024 * 1024))
 }
 
 @Composable

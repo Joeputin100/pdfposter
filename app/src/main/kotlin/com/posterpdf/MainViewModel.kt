@@ -123,6 +123,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *  source image. Display label only — not the wire id. */
     var pendingUpscaleModelLabel by mutableStateOf<String?>(null)
 
+    /** RC12: storage-billing aggregate read from `users/{uid}.storageBilling`.
+     *  Drives the drawer Account section\'s "Storage: N credits this month
+     *  for M posters [X.X GB used]" line. Null when the user has no cloud-
+     *  stored PDFs past the free 30-day window. */
+    data class StorageBillingAggregate(
+        val bytes: Long,
+        val posters: Int,
+        val lastBilledCredits: Int,
+        val nextBillDueMs: Long?,
+        val gracePeriodStartedMs: Long?,
+    )
+    var storageBilling by mutableStateOf<StorageBillingAggregate?>(null)
+        private set
+
     /**
      * RC3 fix: actually run the on-device ESRGAN upscale, save it to cache,
      * point selectedImageUri at the result so the next preview redraw + DPI

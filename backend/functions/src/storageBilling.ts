@@ -1,30 +1,37 @@
 // EXPORT NEEDED in index.ts:
 //   export { dailySweep, deleteCloudCopy } from './storageBilling';
 //
-// Phase H Task H-P3.1 + H-P3.3 — cloud PDF storage retention with credit-
-// metered billing.
+// RC12 — per-user batched storage billing (option 3 from the economics
+// discussion). Pre-RC12 each PDF was charged 1 credit/month flat: that
+// over-charged users with small posters by 13-40× the actual GCS cost.
+// New model:
 //
-// Policy (mirrors docs/superpowers/plans/2026-05-03-phase-h-rc3-polish.md
-// + pricing-policy.md updates):
-//   - First 30 days of each PDF: free.
-//   - After 30 days, deduct 1 credit/file/month (charged at 50% margin
-//     over our actual GCS cost — 1 credit = 1¢ retail; storage of a
-//     20MB PDF costs us ~$0.0004/month).
-//   - When user.credits < monthly fee → grace period 30 days + email + push.
-//   - After grace expiry: delete blob from GCS, clear cloudStorageUri on
-//     history doc; metadata + local copy persist.
-//   - User can opt into 'auto-delete' mode in account setup → delete after
-//     exactly 30 days, no charge ever.
+//   For each user with paid retention:
+//     Sum bytes of all their billable PDFs (older than 30 days, in cloud).
+//     rawCostUsd = bytes / 1024^3 × $0.026         (us-central1 storage)
+//     billedUsd  = ceil(rawCostUsd × 1.5 × 100) / 100   (50% markup, ¢-rounded)
+//     credits    = billedUsd × 100                  (1 credit = 1¢)
+//   Charge once per 30 days per user (not per file).
 //
-// Schema:
-//   /users/{uid}.storageRetentionMode: 'paid' | 'auto-delete'   (default 'paid')
-//   /users/{uid}/history/{historyId}.cloudStorageUri: 'gs://...' | null
-//   /users/{uid}/history/{historyId}.createdAt: Timestamp
-//   /users/{uid}/history/{historyId}.lastBilledAt: Timestamp | null
-//   /users/{uid}/history/{historyId}.gracePeriodStartedAt: Timestamp | null
+//   Aggregate written to /users/{uid}.storageBilling for client display:
+//     bytes:     total billable bytes
+//     posters:   count of billable PDFs
+//     lastBilledAt:    Timestamp of last bill
+//     lastBilledCredits: int (credits last charged)
+//     nextBillDue:      Timestamp (lastBilledAt + 30 days)
 //
-// Idempotency: cron uses lastBilledAt to avoid double-charging within a
-// single calendar month. Re-runs of the same day are no-ops.
+//   Grace period (30 days) and final delete logic unchanged.
+//
+//   New: 24-hour-before-deletion warning notification when balance hits 0
+//   and grace expiry is within 24h.
+//
+// Schema (additions on top of pre-RC12):
+//   /users/{uid}.storageBilling: {
+//     bytes, posters, lastBilledAt, lastBilledCredits, nextBillDue
+//   }
+//   /users/{uid}/history/{historyId}.fileBytes: long  (size at upload time)
+//   /users/{uid}/history/{historyId}.gracePeriodStartedAt is now per-user,
+//   not per-file: stored on /users/{uid}.storageBilling.gracePeriodStartedAt
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
@@ -34,24 +41,33 @@ import { getStorage } from 'firebase-admin/storage';
 
 const STORAGE_FREE_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
 const STORAGE_GRACE_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
-const MONTHLY_STORAGE_CREDITS = 1;
 const BILLING_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
+// Firebase Cloud Storage us-central1: $0.026/GB-month. Mirror in pricing.ts
+// if that ever computes a per-region rate.
+const GCS_USD_PER_GB_MONTH = 0.026;
+const STORAGE_MARKUP = 1.5;
 
 interface HistoryDoc {
   cloudStorageUri?: string | null;
   createdAt?: Timestamp;
-  lastBilledAt?: Timestamp | null;
-  gracePeriodStartedAt?: Timestamp | null;
+  fileBytes?: number;
+}
+
+interface StorageBilling {
+  bytes?: number;
+  posters?: number;
+  lastBilledAt?: Timestamp;
+  lastBilledCredits?: number;
+  nextBillDue?: Timestamp;
+  gracePeriodStartedAt?: Timestamp;
 }
 
 interface UserDoc {
   credits?: number;
   storageRetentionMode?: 'paid' | 'auto-delete';
+  storageBilling?: StorageBilling;
 }
 
-/**
- * Parse a `gs://bucket/object/path` URI. Returns null on malformed input.
- */
 function parseGsUri(uri: string): { bucket: string; object: string } | null {
   if (!uri.startsWith('gs://')) return null;
   const without = uri.substring('gs://'.length);
@@ -73,91 +89,165 @@ async function deleteBlob(uri: string): Promise<void> {
   }
 }
 
-interface UserSweepResult {
-  uid: string;
-  charged: number;        // credits deducted this run
-  gracedEntered: number;  // history entries that just hit grace period
-  deleted: number;        // history entries whose blob was removed
-}
-
-async function sweepUser(
+/**
+ * Per-user batched billing. Returns the credits charged this run (0 if
+ * not yet due, or if user moved into grace period).
+ */
+async function billUser(
   uid: string,
   userData: UserDoc,
   now: Timestamp,
-): Promise<UserSweepResult> {
+): Promise<{ charged: number; bytes: number; posters: number; gracedEntered: boolean; deleted: number }> {
   const db = getFirestore();
   const userRef = db.collection('users').doc(uid);
   const histRef = userRef.collection('history');
-  const result: UserSweepResult = { uid, charged: 0, gracedEntered: 0, deleted: 0 };
-
+  const billing = userData.storageBilling ?? {};
   const mode = userData.storageRetentionMode ?? 'paid';
-  const histSnap = await histRef.where('cloudStorageUri', '!=', null).get();
 
-  for (const doc of histSnap.docs) {
-    const h = doc.data() as HistoryDoc;
-    if (!h.cloudStorageUri || !h.createdAt) continue;
-
-    const ageMs = now.toMillis() - h.createdAt.toMillis();
-    if (ageMs <= STORAGE_FREE_PERIOD_MS) continue; // still free
-
-    // Grace period — already entered, awaiting delete or refill
-    if (h.gracePeriodStartedAt) {
-      const graceAgeMs = now.toMillis() - h.gracePeriodStartedAt.toMillis();
-      if (graceAgeMs >= STORAGE_GRACE_PERIOD_MS) {
-        await deleteBlob(h.cloudStorageUri);
-        await doc.ref.update({
-          cloudStorageUri: FieldValue.delete(),
-          gracePeriodStartedAt: FieldValue.delete(),
-          lastBilledAt: FieldValue.delete(),
-        });
-        result.deleted += 1;
-      }
-      continue;
+  // Already in grace period — check if expired or balance refilled.
+  if (billing.gracePeriodStartedAt) {
+    const graceAgeMs = now.toMillis() - billing.gracePeriodStartedAt.toMillis();
+    const credits = Number(userData.credits ?? 0);
+    if (credits > 0) {
+      // Refilled — exit grace, schedule a fresh bill on next sweep.
+      await userRef.update({
+        'storageBilling.gracePeriodStartedAt': FieldValue.delete(),
+      });
+      return { charged: 0, bytes: 0, posters: 0, gracedEntered: false, deleted: 0 };
     }
-
-    // Auto-delete mode: delete the blob after the free period; no charge.
-    if (mode === 'auto-delete') {
-      await deleteBlob(h.cloudStorageUri);
-      await doc.ref.update({ cloudStorageUri: FieldValue.delete() });
-      result.deleted += 1;
-      continue;
-    }
-
-    // Paid mode: bill if at least 30 days since the last billing (or since
-    // the free period ended, whichever is later).
-    const lastBilledMs = h.lastBilledAt?.toMillis()
-      ?? (h.createdAt.toMillis() + STORAGE_FREE_PERIOD_MS);
-    if (now.toMillis() - lastBilledMs < BILLING_INTERVAL_MS) continue;
-
-    // Atomic charge or grace transition.
-    let didCharge = false;
-    let didGrace = false;
-    await db.runTransaction(async (t) => {
-      const fresh = await t.get(userRef);
-      const credits = Number((fresh.data() as UserDoc | undefined)?.credits ?? 0);
-      if (credits >= MONTHLY_STORAGE_CREDITS) {
-        t.set(userRef, {
-          credits: FieldValue.increment(-MONTHLY_STORAGE_CREDITS),
-          updatedAt: FieldValue.serverTimestamp(),
-        }, { merge: true });
-        t.set(userRef.collection('creditLog').doc(), {
-          type: 'storage_burn',
-          amount: -MONTHLY_STORAGE_CREDITS,
-          historyId: doc.id,
-          timestamp: FieldValue.serverTimestamp(),
-        });
-        t.update(doc.ref, { lastBilledAt: now });
-        didCharge = true;
-      } else {
-        t.update(doc.ref, { gracePeriodStartedAt: now });
-        didGrace = true;
+    if (graceAgeMs >= STORAGE_GRACE_PERIOD_MS) {
+      // Expired — delete all billable PDFs.
+      const billable = await collectBillable(histRef, now);
+      let deleted = 0;
+      for (const e of billable) {
+        if (e.uri) {
+          await deleteBlob(e.uri);
+          await histRef.doc(e.id).update({
+            cloudStorageUri: FieldValue.delete(),
+          });
+          deleted += 1;
+        }
       }
-    });
-    if (didCharge) result.charged += MONTHLY_STORAGE_CREDITS;
-    if (didGrace) result.gracedEntered += 1;
+      await userRef.update({
+        'storageBilling.bytes': 0,
+        'storageBilling.posters': 0,
+        'storageBilling.gracePeriodStartedAt': FieldValue.delete(),
+        'storageBilling.lastBilledAt': FieldValue.delete(),
+        'storageBilling.nextBillDue': FieldValue.delete(),
+      });
+      return { charged: 0, bytes: 0, posters: 0, gracedEntered: false, deleted };
+    }
+    // Still in grace, nothing to do.
+    return { charged: 0, bytes: 0, posters: 0, gracedEntered: false, deleted: 0 };
   }
 
-  return result;
+  // Auto-delete mode: wipe blobs that aged past the free period.
+  if (mode === 'auto-delete') {
+    const billable = await collectBillable(histRef, now);
+    let deleted = 0;
+    for (const e of billable) {
+      if (e.uri) {
+        await deleteBlob(e.uri);
+        await histRef.doc(e.id).update({ cloudStorageUri: FieldValue.delete() });
+        deleted += 1;
+      }
+    }
+    await userRef.update({
+      'storageBilling.bytes': 0,
+      'storageBilling.posters': 0,
+    });
+    return { charged: 0, bytes: 0, posters: 0, gracedEntered: false, deleted };
+  }
+
+  // Bill if at least 30 days since last bill (or this is the first bill).
+  const nextDueMs = billing.nextBillDue?.toMillis()
+    ?? billing.lastBilledAt?.toMillis()
+    ?? 0;
+  if (nextDueMs > 0 && now.toMillis() < nextDueMs) {
+    return { charged: 0, bytes: 0, posters: 0, gracedEntered: false, deleted: 0 };
+  }
+
+  // Sum up all billable PDFs (older than 30 days, in cloud).
+  const billable = await collectBillable(histRef, now);
+  if (billable.length === 0) {
+    // No billable PDFs — clear aggregate, bail.
+    await userRef.update({
+      'storageBilling.bytes': 0,
+      'storageBilling.posters': 0,
+    });
+    return { charged: 0, bytes: 0, posters: 0, gracedEntered: false, deleted: 0 };
+  }
+  const totalBytes = billable.reduce((acc, e) => acc + (e.bytes ?? 0), 0);
+  const posters = billable.length;
+  const rawCostUsd = (totalBytes / (1024 ** 3)) * GCS_USD_PER_GB_MONTH;
+  const billedUsdCents = Math.ceil(rawCostUsd * STORAGE_MARKUP * 100);
+  const credits = Math.max(billedUsdCents, 1); // floor of 1 credit if there\'s anything stored
+
+  // Atomic charge or grace transition.
+  let didCharge = false;
+  let didGrace = false;
+  await db.runTransaction(async (t) => {
+    const fresh = await t.get(userRef);
+    const userBalance = Number((fresh.data() as UserDoc | undefined)?.credits ?? 0);
+    if (userBalance >= credits) {
+      t.set(userRef, {
+        credits: FieldValue.increment(-credits),
+        storageBilling: {
+          bytes: totalBytes,
+          posters,
+          lastBilledAt: now,
+          lastBilledCredits: credits,
+          nextBillDue: Timestamp.fromMillis(now.toMillis() + BILLING_INTERVAL_MS),
+        },
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      t.set(userRef.collection('creditLog').doc(), {
+        type: 'storage_burn',
+        amount: -credits,
+        bytes: totalBytes,
+        posters,
+        timestamp: FieldValue.serverTimestamp(),
+      });
+      didCharge = true;
+    } else {
+      t.set(userRef, {
+        storageBilling: {
+          bytes: totalBytes,
+          posters,
+          gracePeriodStartedAt: now,
+        },
+      }, { merge: true });
+      didGrace = true;
+    }
+  });
+  return {
+    charged: didCharge ? credits : 0,
+    bytes: totalBytes,
+    posters,
+    gracedEntered: didGrace,
+    deleted: 0,
+  };
+}
+
+/** Returns history entries that are past the free period AND in cloud. */
+async function collectBillable(
+  histRef: FirebaseFirestore.CollectionReference,
+  now: Timestamp,
+): Promise<Array<{ id: string; uri: string | null; bytes: number }>> {
+  const snap = await histRef.where('cloudStorageUri', '!=', null).get();
+  const out: Array<{ id: string; uri: string | null; bytes: number }> = [];
+  for (const doc of snap.docs) {
+    const h = doc.data() as HistoryDoc;
+    if (!h.cloudStorageUri || !h.createdAt) continue;
+    const ageMs = now.toMillis() - h.createdAt.toMillis();
+    if (ageMs <= STORAGE_FREE_PERIOD_MS) continue;
+    out.push({
+      id: doc.id,
+      uri: h.cloudStorageUri,
+      bytes: h.fileBytes ?? 10 * 1024 * 1024, // 10 MB fallback when fileBytes wasn\'t recorded at upload
+    });
+  }
+  return out;
 }
 
 export const dailySweep = onSchedule(
@@ -166,25 +256,57 @@ export const dailySweep = onSchedule(
     const db = getFirestore();
     const now = Timestamp.now();
     const usersSnap = await db.collection('users').get();
-    let summary = { users: 0, charged: 0, gracedEntered: 0, deleted: 0 };
+    let summary = { users: 0, charged: 0, gracedEntered: 0, deleted: 0, deletionWarnings: 0 };
     for (const userDoc of usersSnap.docs) {
-      const r = await sweepUser(userDoc.id, userDoc.data() as UserDoc, now);
+      const r = await billUser(userDoc.id, userDoc.data() as UserDoc, now);
       summary.users += 1;
       summary.charged += r.charged;
-      summary.gracedEntered += r.gracedEntered;
+      if (r.gracedEntered) summary.gracedEntered += 1;
       summary.deleted += r.deleted;
-      if (r.gracedEntered > 0 || r.deleted > 0) {
-        // Notification surface: write a pending-notification doc the
-        // notifications service consumes. Push + email integration lives
-        // in H-P3.5 (deferred); for now, this doc is the audit trail.
-        await db.collection('users').doc(userDoc.id)
-          .collection('notifications').add({
-            type: 'storage_billing_event',
-            graced: r.gracedEntered,
-            deleted: r.deleted,
+
+      // Write notification surface for the client.
+      if (r.charged > 0) {
+        await db.collection('users').doc(userDoc.id).collection('notifications').add({
+          type: 'storage_billed',
+          credits: r.charged,
+          bytes: r.bytes,
+          posters: r.posters,
+          createdAt: FieldValue.serverTimestamp(),
+          sent: false,
+        });
+      } else if (r.gracedEntered) {
+        await db.collection('users').doc(userDoc.id).collection('notifications').add({
+          type: 'storage_grace_started',
+          posters: r.posters,
+          createdAt: FieldValue.serverTimestamp(),
+          sent: false,
+        });
+      } else if (r.deleted > 0) {
+        await db.collection('users').doc(userDoc.id).collection('notifications').add({
+          type: 'storage_deleted',
+          deletedCount: r.deleted,
+          createdAt: FieldValue.serverTimestamp(),
+          sent: false,
+        });
+      }
+
+      // 24-hour-before-deletion warning. Triggered when user is in grace
+      // period and the grace expiry is within 24-48h (we run daily, so we
+      // give a 24h window to catch this once).
+      const billing = (userDoc.data() as UserDoc).storageBilling;
+      if (billing?.gracePeriodStartedAt) {
+        const graceEndsMs = billing.gracePeriodStartedAt.toMillis() + STORAGE_GRACE_PERIOD_MS;
+        const hoursUntilDelete = (graceEndsMs - now.toMillis()) / (60 * 60 * 1000);
+        if (hoursUntilDelete > 0 && hoursUntilDelete <= 24) {
+          await db.collection('users').doc(userDoc.id).collection('notifications').add({
+            type: 'storage_deletion_imminent',
+            hoursUntilDelete: Math.ceil(hoursUntilDelete),
+            posters: billing.posters ?? 0,
             createdAt: FieldValue.serverTimestamp(),
             sent: false,
           });
+          summary.deletionWarnings += 1;
+        }
       }
     }
     logger.info('dailySweep complete', summary);
@@ -216,8 +338,6 @@ export const deleteCloudCopy = onCall(
     }
     await histRef.update({
       cloudStorageUri: FieldValue.delete(),
-      gracePeriodStartedAt: FieldValue.delete(),
-      lastBilledAt: FieldValue.delete(),
     });
     return { deleted: true };
   },
