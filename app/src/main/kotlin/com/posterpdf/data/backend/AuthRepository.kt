@@ -156,12 +156,19 @@ class AuthRepository private constructor(appContext: Context) {
     private fun FirebaseUser?.toSession(): AuthSession = if (this == null) {
         AuthSession()
     } else {
+        // RC13 diagnostic: log the photoUrl so we can see whether it's
+        // null (Google scopes/SignIn issue), or set-but-failing-to-load
+        // (Coil/AsyncImage issue) — the drawer falls back to the
+        // AccountCircle icon either way, so without this log we can't
+        // tell which side of the boundary the bug is on.
+        val photo = photoUrl?.toString()
+        Log.i(TAG, "session: uid=$uid anon=$isAnonymous photoUrl=${photo ?: "<null>"}")
         AuthSession(
             uid = uid,
             isAnonymous = isAnonymous,
             displayName = displayName,
             email = email,
-            photoUrl = photoUrl?.toString(),
+            photoUrl = photo,
             signedIn = true,
         )
     }

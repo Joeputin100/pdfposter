@@ -109,6 +109,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
     private var freeUpscaleJob: kotlinx.coroutines.Job? = null
 
+    /** RC13: tile-level upscale progress, exposed so the in-app modal can
+     *  use the same ground-truth source as the foreground-service notification.
+     *  Without this the modal ran a benchmark-based ETA estimate that
+     *  diverged wildly from actual tile completion (user reported pill
+     *  showing 11% / 16-of-1474, modal showing 63%). Updated from the
+     *  onProgress callback in runFreeUpscale. */
+    var freeUpscaleTilesDone by mutableStateOf(0)
+        private set
+    var freeUpscaleTotalTiles by mutableStateOf(0)
+        private set
+    var freeUpscaleStartMs by mutableStateOf(0L)
+        private set
+
     /** RC4: app-level toggle for the low-DPI upscale modal. PosterPreview
      *  (the under-preview tappable card) and MainActivity (the new
      *  Sharpen-for-print CTA between Poster Size and Paper & Layout) both
@@ -148,6 +161,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         freeUpscaleJob?.cancel()
         freeUpscaleJob = viewModelScope.launch {
             isFreeUpscaling = true
+            freeUpscaleStartMs = System.currentTimeMillis()
+            freeUpscaleTilesDone = 0
+            freeUpscaleTotalTiles = 0
             logEvent(context, "free_upscale: start", "uri=$uri")
             try {
                 logEvent(context, "free_upscale: init UpscalerOnDevice")
@@ -203,7 +219,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         resumeFromTile = resumeFrom,
                         partialOutput = resumeBitmap,
                         onProgress = { done, total ->
-                            // Heartbeat every ~5% to log + every progress to notification.
+                            // RC13: surface ground-truth tile progress to the
+                            // ViewModel so the in-app modal reads from the
+                            // same source as the notification pill.
+                            freeUpscaleTilesDone = done
+                            freeUpscaleTotalTiles = total
                             com.posterpdf.ml.UpscaleForegroundService.updateProgress(
                                 context, done, total,
                             )
@@ -910,18 +930,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * RC12c — fires the backend's debug fixture so we can test FCM end-to-end
-     * without waiting for the daily storage-billing cron. The result is
-     * surfaced through successMessage/errorMessage so the user gets feedback
-     * even if the push fails to render (e.g. notifications disabled).
+     * without waiting for the daily storage-billing cron.
+     *
+     * RC13: surface result via Toast (which floats over the open drawer)
+     * because the chip lives inside the drawer; the previous successMessage
+     * path painted to the inline MessageText in the main scaffold body, which
+     * is hidden behind the open drawer when the chip is tapped.
      */
     fun runTestStorageEvent(type: String) {
         viewModelScope.launch {
             val r = backend.triggerTestStorageEvent(type)
-            successMessage = if (r != null) {
+            val msg = if (r != null) {
                 "Test push: ${r.title} (${r.delivered} delivered)"
             } else {
                 "Test push trigger failed (see logs)"
             }
+            android.widget.Toast.makeText(appContext, msg, android.widget.Toast.LENGTH_LONG).show()
         }
     }
 

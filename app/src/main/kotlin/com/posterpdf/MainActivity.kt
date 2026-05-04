@@ -317,55 +317,51 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         )
     }
 
-    // RC4/RC7 — free-upscale progress dialog. RC7 added a live elapsed
-    // counter + estimated-time-remaining + a determinate progress bar so
-    // the user has feedback (was a spinner-only dialog with no ETA).
-    // Estimate uses the device-capability benchmark when available; falls
-    // back to a 60s baseline (midpoint of the original 30-90s range).
+    // RC13 — free-upscale progress dialog rebuilt to read tile-level
+    // progress from the ViewModel (same source the notification pill
+    // uses). Earlier RC4/RC7/RC10 versions ran a benchmark-based ETA
+    // estimate that diverged from actual completion; the user reported
+    // pill at 11% (16/1474 tiles) while modal said 63% / 63 s left.
+    //
+    // New logic:
+    //   • progress fraction = done / total (ground truth, no asymptote)
+    //   • ETA = (elapsedSinceStart / done) × (total - done), once at
+    //     least one tile has completed (so we have a real per-tile rate).
+    //     Self-correcting on slow devices, no benchmark needed.
+    //   • elapsed/remaining formatted with prettyDuration() so a
+    //     242-second value reads as "4 minutes 2 seconds" not "242 s".
     if (viewModel.isFreeUpscaling) {
-        val startMs = remember(viewModel.isFreeUpscaling) { System.currentTimeMillis() }
+        val done = viewModel.freeUpscaleTilesDone
+        val total = viewModel.freeUpscaleTotalTiles
+        val startMs = viewModel.freeUpscaleStartMs
         var elapsedMs by remember { mutableLongStateOf(0L) }
         LaunchedEffect(viewModel.isFreeUpscaling) {
             while (viewModel.isFreeUpscaling) {
                 elapsedMs = System.currentTimeMillis() - startMs
-                kotlinx.coroutines.delay(200)
+                kotlinx.coroutines.delay(500)
             }
         }
-        val outputMp = remember(viewModel.sourcePixelDimensions) {
-            val (w, h) = viewModel.sourcePixelDimensions ?: (1 to 1)
-            (w.toLong() * h * 16L / 1_000_000L).coerceAtLeast(1L)
-        }
-        // Cached benchmark is a suspend fn; load it on first composition via
-        // LaunchedEffect. Fall back to 4 ms/MP — empirically a mid-tier
-        // Pixel produces ESRGAN output at roughly that rate.
-        var msPerMp by remember { mutableLongStateOf(4_000L) }
-        LaunchedEffect(Unit) {
-            com.posterpdf.ml.cachedMsPerMegapixel(context)?.let { msPerMp = it }
-        }
-        val expectedMs = (msPerMp * outputMp).coerceAtLeast(20_000L)
-        // RC10: when the actual run exceeds the estimate, asymptote progress
-        // toward (but never reach) 0.95 so the bar visibly keeps moving but
-        // doesn\'t lie about completion. Drop the "(X s elapsed)" counter
-        // when we\'re past the estimate — user complained the count went
-        // *up* after hitting zero, which read as broken rather than slow.
-        val progress = if (elapsedMs <= expectedMs) {
-            (elapsedMs.toFloat() / expectedMs.toFloat() * 0.85f).coerceIn(0f, 0.85f)
-        } else {
-            val overrun = (elapsedMs - expectedMs).toFloat() / expectedMs.toFloat()
-            (0.85f + 0.10f * (1f - kotlin.math.exp(-overrun))).coerceAtMost(0.95f)
-        }
-        val remainingSec = ((expectedMs - elapsedMs) / 1000L).coerceAtLeast(0L)
+        val progress = if (total > 0) {
+            (done.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+        } else 0f
+        val remainingMs = if (done > 0 && done < total) {
+            elapsedMs * (total - done) / done
+        } else 0L
         AlertDialog(
             onDismissRequest = { /* not dismissable — must Cancel or wait */ },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
             title = { Text("Sharpening your photo") },
             text = {
                 Column {
+                    val pct = (progress * 100).toInt()
                     Text(
-                        text = if (remainingSec > 0)
-                            "About $remainingSec s left · ${(progress * 100).toInt()}%"
-                        else
-                            "Taking longer than expected — still working… ${(progress * 100).toInt()}%",
+                        text = if (total == 0) {
+                            "Preparing tiles…"
+                        } else if (remainingMs > 0) {
+                            "About ${prettyDuration(remainingMs)} left · $pct% ($done/$total tiles)"
+                        } else {
+                            "Finishing… $pct% ($done/$total tiles)"
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(12.dp))
@@ -1009,7 +1005,13 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             // the closure waiting for the user's choice.
                             var lowDpiPendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
                             val runWithDpiGate: ((() -> Unit) -> Unit) = { action ->
-                                if (viewModel.computeCurrentDpi() in 0.1f..149.99f) {
+                                // RC13: bypass the gate if an upscale is in
+                                // flight or has been queued — the user has
+                                // already chosen to upscale (the warning is
+                                // redundant), and the gate's source-DPI math
+                                // doesn't see the pending upscaled output.
+                                val upscaleQueued = viewModel.pendingUpscaleModelLabel != null
+                                if (!upscaleQueued && viewModel.computeCurrentDpi() in 0.1f..149.99f) {
                                     lowDpiPendingAction = action
                                 } else {
                                     action()
@@ -1751,9 +1753,21 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                 // fallback if photoUrl is missing or fails to load.
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (s.photoUrl != null) {
+                        // RC13: explicit error/fallback painters so a failed
+                        // remote load surfaces the icon instead of an empty
+                        // 40dp gap. Without these, a failed Coil request just
+                        // leaves a blank circle and the user reads the avatar
+                        // as "missing." Logging in AuthRepository.toSession()
+                        // confirms whether the URL is actually null vs. set.
+                        val accountPainter = androidx.compose.ui.graphics.vector.rememberVectorPainter(
+                            image = Icons.Default.AccountCircle,
+                        )
                         coil.compose.AsyncImage(
                             model = s.photoUrl,
                             contentDescription = "Profile picture",
+                            error = accountPainter,
+                            fallback = accountPainter,
+                            placeholder = accountPainter,
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(androidx.compose.foundation.shape.CircleShape),
@@ -1899,6 +1913,32 @@ private fun DebugPushTestRow(viewModel: MainViewModel) {
             }
         }
     }
+}
+
+/**
+ * RC13: 242000 → "4 minutes 2 seconds", 65000 → "1 minute 5 seconds",
+ * 30000 → "30 seconds", 3700000 → "1 hour 1 minute". Used by the
+ * free-upscale progress modal so user-visible durations don't read
+ * as bare second counts ("242 s" was the prior format).
+ *
+ * Conventions: spell out the unit in singular/plural form (one word
+ * per slot) so the string is readable as a sentence. Truncates to
+ * the two coarsest non-zero units; smaller granularity isn't useful
+ * for ETAs.
+ */
+private fun prettyDuration(ms: Long): String {
+    val total = ms / 1000
+    if (total < 60) return if (total == 1L) "1 second" else "$total seconds"
+    val hours = total / 3600
+    val minutes = (total % 3600) / 60
+    val seconds = total % 60
+    val parts = mutableListOf<String>()
+    if (hours > 0) parts.add(if (hours == 1L) "1 hour" else "$hours hours")
+    if (minutes > 0) parts.add(if (minutes == 1L) "1 minute" else "$minutes minutes")
+    if (hours == 0L && seconds > 0) {
+        parts.add(if (seconds == 1L) "1 second" else "$seconds seconds")
+    }
+    return parts.joinToString(" ")
 }
 
 /** RC12: 1.234 → "1.2 KB", 1234567 → "1.2 MB", 1.5e9 → "1.5 GB". */

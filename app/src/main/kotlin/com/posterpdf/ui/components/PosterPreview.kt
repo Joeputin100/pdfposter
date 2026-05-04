@@ -521,7 +521,16 @@ fun PosterPreview(viewModel: MainViewModel) {
                 val printableHpx = layout.printableH.toFloat() * layout.scale
                 val assembledBlockW = cols * (printableWpx - overlapPx) + overlapPx
                 val assembledBlockH = rows * (printableHpx - overlapPx) + overlapPx
-                val printerWidth = (size.width * 0.55f).coerceAtMost(360f)
+                // RC13: printer must be visibly wider than a single sheet of
+                // paper — earlier sizing (canvas-width × 0.55) could be
+                // narrower than printableWpx for posters with few large pages.
+                // Real-world ratio is ~1.3× (8.5in letter → 11in printer body);
+                // 1.4× gives a clear "paper feeds out from a wider printer"
+                // read. Clamped to [50%, 90%] of canvas so it doesn't dominate.
+                val printerWidth = (printableWpx * 1.4f).coerceIn(
+                    minimumValue = size.width * 0.50f,
+                    maximumValue = size.width * 0.90f,
+                )
                 val printerTopY = -printerWidth * 0.10f      // sits slightly above canvas
                 val printerBodyH = printerWidth * 0.55f
                 val printerSlotY = printerTopY + printerBodyH * 0.71f

@@ -555,7 +555,15 @@ private fun UpscaleOptionCard(
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            // RC13: dropped the alpha=0.5 (was added in RC4 so the
+            // AGSL glitter could show through). In light mode the
+            // half-transparent surfaceVariant on top of the modal
+            // sheet's white background read as a near-white rectangle
+            // covering the entire card — the bug user has flagged
+            // across RC9 → RC12. AGSL uses BlendMode.Plus (additive),
+            // so glitter still brightens a solid surfaceVariant base;
+            // we don't need transparency for visibility.
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         modifier = Modifier
             .graphicsLayer { scaleX = scaleValue; scaleY = scaleValue }
@@ -608,20 +616,26 @@ private fun UpscaleOptionCard(
                 when (option.model) {
                     UpscaleModel.NONE -> {
                         if (pixelatedThumb != null) {
+                            // RC13: ContentScale.Fit (was Crop) so the
+                            // pixelated preview keeps the source aspect
+                            // ratio. Crop was distorting tall/wide source
+                            // images by cropping their edges into the box.
                             Image(
                                 bitmap = pixelatedThumb,
                                 contentDescription = "Pixelated preview",
-                                contentScale = ContentScale.Crop,
+                                contentScale = ContentScale.Fit,
                                 modifier = Modifier.fillMaxWidth().height(100.dp),
                             )
                         }
                     }
                     UpscaleModel.FREE_LOCAL -> {
                         if (onDeviceThumb != null) {
+                            // RC13: ContentScale.Fit so the on-device
+                            // preview keeps source aspect ratio.
                             Image(
                                 bitmap = onDeviceThumb,
                                 contentDescription = "On-device upscale preview",
-                                contentScale = ContentScale.Crop,
+                                contentScale = ContentScale.Fit,
                                 modifier = Modifier.fillMaxWidth().height(100.dp),
                             )
                         } else {
@@ -760,14 +774,15 @@ private fun UpscaleOptionCard(
                             .fillMaxWidth()
                             .height(36.dp),
                         shape = RoundedCornerShape(10.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                     ) {
-                        Icon(
-                            Icons.Default.Bolt,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                        )
-                        Spacer(Modifier.width(4.dp))
+                        // RC13: dropped the leading Bolt icon (was eating
+                        // ~18dp of width before the label) — `🪙` in the
+                        // label already signals "credits cost," and users
+                        // saw "Upscale 1…" truncation in label-small at
+                        // ~150dp card widths. Also tightened horizontal
+                        // contentPadding from the default 16dp → 8dp.
                         Text(
                             stringResource(R.string.upscale_card_upscale_with_credits, credits),
                             style = MaterialTheme.typography.labelSmall,

@@ -30,9 +30,10 @@ import com.posterpdf.R
  * later override). Persists to `users/{uid}.storageRetentionMode` =
  * 'paid' | 'auto-delete'.
  *
- * "About 1 cent per poster per month" reflects the per-file storage
- * billing rate set up in backend/storageBilling.ts (1 credit/file/month
- * at 1¢ retail per credit).
+ * RC13 — copy reflects the new RC12 per-user batched billing model:
+ * bytes × $0.026/GB-month × 1.5 markup, ceiled to next cent (1¢ = 1
+ * credit). For an average ~10MB poster, 100 stored posters ≈ 1 GB ≈
+ * 4 credits/month, with a 1-credit floor for any non-zero storage.
  */
 @Composable
 fun StorageRetentionDialog(
@@ -68,10 +69,11 @@ fun StorageRetentionDialog(
                     selected = selected == "paid",
                     onClick = { selected = "paid" },
                     title = "Keep storing them",
-                    body = "About 1¢ per poster per month after the first 30 days, " +
-                        "deducted from your credit balance. If you run out of " +
-                        "credits we hold the file for 30 more days and email you " +
-                        "before deleting.",
+                    body = "About 4 credits per GB-month after the first 30 days, " +
+                        "deducted from your credit balance (typical 10 MB poster ≈ " +
+                        "1 credit/month minimum, scaling up as you store more). " +
+                        "If you run out of credits we hold for 30 more days and " +
+                        "send a push 24h before deleting.",
                 )
             }
         },
