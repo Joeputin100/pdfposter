@@ -1,6 +1,7 @@
 package com.posterpdf.ui.screens
 
 import android.content.Intent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -197,11 +202,17 @@ private fun HistoryCard(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    Modifier.size(40.dp)
+                    Modifier.size(48.dp)
                         .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                    // RC14: render the PDF's first page as a thumbnail when
+                    // the file is on disk; fall back to the type-based icon
+                    // when the file is gone (cloud-only) or hasn't loaded yet.
+                    PdfThumbnail(
+                        localUri = item.localUri,
+                        fallbackIcon = icon,
+                    )
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
@@ -303,4 +314,84 @@ private fun sharePdf(context: android.content.Context, item: HistoryItem) {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     context.startActivity(Intent.createChooser(intent, "Share PDF"))
+}
+
+/**
+ * RC14 — first-page thumbnail of a saved PDF, rendered via PdfRenderer
+ * on a background coroutine. Shows the fallbackIcon while loading or
+ * when the file is gone (cloud-only items, or the user cleared cache).
+ *
+ * Cache strategy: composable-scoped via remember(localUri); the LazyColumn
+ * recycles cards as the user scrolls, so each card re-renders its thumb
+ * on first compose. PdfRenderer is fast enough (~10-30 ms per first
+ * page on mid-tier hardware) that this is acceptable; a global LruCache
+ * could be added if scrolling lag becomes noticeable.
+ */
+@Composable
+private fun PdfThumbnail(
+    localUri: String,
+    fallbackIcon: ImageVector,
+) {
+    var bmp by remember(localUri) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    androidx.compose.runtime.LaunchedEffect(localUri) {
+        bmp = if (localUri.isNotEmpty()) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                renderPdfFirstPage(File(localUri))
+            }
+        } else null
+    }
+    val current = bmp
+    if (current != null) {
+        Image(
+            bitmap = current.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(2.dp)
+                .clip(RoundedCornerShape(10.dp)),
+        )
+    } else {
+        Icon(
+            fallbackIcon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+    }
+}
+
+private fun renderPdfFirstPage(file: File): android.graphics.Bitmap? {
+    if (!file.exists()) return null
+    val pfd = android.os.ParcelFileDescriptor.open(
+        file, android.os.ParcelFileDescriptor.MODE_READ_ONLY,
+    )
+    return try {
+        val renderer = android.graphics.pdf.PdfRenderer(pfd)
+        try {
+            if (renderer.pageCount == 0) null else {
+                val page = renderer.openPage(0)
+                // Render at fixed 144px height to keep memory bounded;
+                // width follows page aspect.
+                val targetH = 144
+                val ratio = page.width.toFloat() / page.height.coerceAtLeast(1)
+                val targetW = (targetH * ratio).toInt().coerceAtLeast(1)
+                val out = android.graphics.Bitmap.createBitmap(
+                    targetW, targetH, android.graphics.Bitmap.Config.ARGB_8888,
+                )
+                out.eraseColor(android.graphics.Color.WHITE)
+                page.render(
+                    out, null, null,
+                    android.graphics.pdf.PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY,
+                )
+                page.close()
+                out
+            }
+        } finally {
+            renderer.close()
+        }
+    } catch (t: Throwable) {
+        null
+    } finally {
+        pfd.close()
+    }
 }
