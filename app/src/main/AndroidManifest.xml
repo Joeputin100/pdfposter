@@ -7,6 +7,15 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- Phase G3: Google Play Billing Library v7. Required for BillingClient + launchBillingFlow. -->
     <uses-permission android:name="com.android.vending.BILLING" />
+    <!-- RC11: foreground service so the on-device upscaler can survive
+         backgrounding / Doze / Samsung's PPK without being killed mid-run.
+         FOREGROUND_SERVICE is auto-granted; the dataSync subtype reflects
+         the work being done (image processing + writing partial output
+         to cache between tiles). POST_NOTIFICATIONS gates the progress
+         notification on Android 13+ — runtime-prompted on first upscale. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -35,6 +44,15 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- RC11: foreground service that hosts the on-device ESRGAN upscale
+             so PPK / Doze can\'t kill it. dataSync is the appropriate
+             foregroundServiceType for image processing + cache writes. -->
+        <service
+            android:name=".ml.UpscaleForegroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
     </application>
 
 </manifest>

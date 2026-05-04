@@ -71,6 +71,7 @@ import com.posterpdf.ui.util.Hapt
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private val POST_NOTIFICATIONS_REQUEST_CODE = 4711
     override fun onCreate(savedInstanceState: Bundle?) {
         // RC8: install a global UncaughtExceptionHandler that writes the
         // stack trace to the debug log BEFORE the JVM dies. Crash diagnosis
@@ -102,6 +103,21 @@ class MainActivity : ComponentActivity() {
         // before super.onCreate.
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // RC11: request POST_NOTIFICATIONS on Android 13+ so the upscale
+        // foreground service can surface its progress notification (and
+        // future billing alerts can land too). Best-effort — if user
+        // denies, the service still runs without a visible notification.
+        if (Build.VERSION.SDK_INT >= 33) {
+            val granted = ContextCompat.checkSelfPermission(
+                this, android.Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                requestPermissions(
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    POST_NOTIFICATIONS_REQUEST_CODE,
+                )
+            }
+        }
         setContent {
             PDFPosterTheme {
                 Surface(

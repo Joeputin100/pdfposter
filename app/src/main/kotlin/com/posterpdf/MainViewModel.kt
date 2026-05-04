@@ -134,8 +134,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         freeUpscaleJob?.cancel()
         freeUpscaleJob = viewModelScope.launch {
             isFreeUpscaling = true
-            // RC8: log every step of the free-upscale lifecycle so the user's
-            // shared debug log shows exactly where it crashed/stalled.
             logEvent(context, "free_upscale: start", "uri=$uri")
             try {
                 logEvent(context, "free_upscale: init UpscalerOnDevice")
@@ -155,26 +153,64 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     "free_upscale: source decoded",
                     "${src.width}x${src.height}, ${src.byteCount / 1024} KB",
                 )
-                logEvent(context, "free_upscale: invoking ESRGAN upscale (4x)")
-                // RC10: hard 15-min ceiling so a stuck inference can\'t hang
-                // the UI forever. User reported a 70+ min hang on RC9; the
-                // root cause was per-tile bitmap allocation thrashing the
-                // GC, fixed inside UpscalerOnDevice. The timeout is a belt-
-                // and-braces guard for any other stall mode (NNAPI hang,
-                // model corruption, etc.).
-                val upscaled = kotlinx.coroutines.withTimeout(15 * 60 * 1000L) {
-                    com.posterpdf.ml.UpscalerOnDevice.upscale(src) { done, total ->
-                        // Heartbeat every ~5% of progress so the log shows
-                        // forward motion (or its absence) at a glance.
-                        if (done == 1 || done == total ||
-                            (total > 20 && done % (total / 20).coerceAtLeast(1) == 0)) {
-                            logEvent(
-                                context,
-                                "free_upscale: tile $done/$total",
-                            )
-                        }
+
+                // RC11: check for resume state matching this URI; if present,
+                // pick up where the previous run left off.
+                val resumeSnapshot = withContext(Dispatchers.IO) {
+                    com.posterpdf.ml.UpscaleStateStore.load(context, uri.toString())
+                }
+                val resumeBitmap = resumeSnapshot?.let {
+                    withContext(Dispatchers.IO) {
+                        BitmapFactory.decodeFile(it.partialBitmapPath)
                     }
                 }
+                val resumeFrom = resumeSnapshot?.lastCompletedTile ?: 0
+                if (resumeFrom > 0 && resumeBitmap != null) {
+                    logEvent(
+                        context,
+                        "free_upscale: resuming from tile $resumeFrom",
+                        "of ${resumeSnapshot.totalTiles}",
+                    )
+                }
+
+                // RC11: pre-compute total tiles so we can start the foreground
+                // service with the right notification denominator.
+                val totalTiles = (
+                    ((src.width + 49) / 50).coerceAtLeast(1) *
+                    ((src.height + 49) / 50).coerceAtLeast(1)
+                )
+                com.posterpdf.ml.UpscaleForegroundService.start(context, totalTiles)
+                logEvent(context, "free_upscale: foreground service started", "totalTiles=$totalTiles")
+
+                logEvent(context, "free_upscale: invoking ESRGAN upscale (4x)")
+                val upscaled = kotlinx.coroutines.withTimeout(15 * 60 * 1000L) {
+                    com.posterpdf.ml.UpscalerOnDevice.upscale(
+                        input = src,
+                        resumeFromTile = resumeFrom,
+                        partialOutput = resumeBitmap,
+                        onProgress = { done, total ->
+                            // Heartbeat every ~5% to log + every progress to notification.
+                            com.posterpdf.ml.UpscaleForegroundService.updateProgress(
+                                context, done, total,
+                            )
+                            if (done == 1 || done == total ||
+                                (total > 20 && done % (total / 20).coerceAtLeast(1) == 0)) {
+                                logEvent(context, "free_upscale: tile $done/$total")
+                            }
+                        },
+                        onPartialSave = { lastDone, out ->
+                            com.posterpdf.ml.UpscaleStateStore.save(
+                                context,
+                                sourceUri = uri.toString(),
+                                totalTiles = totalTiles,
+                                lastCompletedTile = lastDone,
+                                partial = out,
+                            )
+                            logEvent(context, "free_upscale: partial saved", "tile=$lastDone")
+                        },
+                    )
+                }
+                resumeBitmap?.recycle()
                 logEvent(
                     context,
                     "free_upscale: upscale returned",
@@ -192,16 +228,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 selectedImageUri = Uri.fromFile(outFile)
                 sourcePixelDimensions = upscaled.width to upscaled.height
                 successMessage = "Upscaled to ${upscaled.width}×${upscaled.height}"
-                // RC7: image is now sharper — clear the "Upscaling with X" card.
                 pendingUpscaleModelLabel = null
                 logEvent(context, "free_upscale: SUCCESS", "wrote ${outFile.name}")
+                // RC11: success — clear the resume state so the next run
+                // starts fresh, and stop the foreground service.
+                com.posterpdf.ml.UpscaleStateStore.clear(context)
                 if (src !== upscaled) src.recycle()
                 upscaled.recycle()
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                 errorMessage = "Sharpening timed out after 15 minutes — try a smaller poster size or use an AI option instead."
                 logEvent(context, "free_upscale: TIMEOUT — exceeded 15 min budget")
+                // Keep state on disk so the user can resume next launch.
             } catch (e: kotlinx.coroutines.CancellationException) {
                 logEvent(context, "free_upscale: cancelled by user")
+                // RC11: explicit cancel clears state — user said "stop", don't
+                // offer to resume. Process kill leaves state untouched.
+                com.posterpdf.ml.UpscaleStateStore.clear(context)
             } catch (e: Throwable) {
                 errorMessage = "Upscale failed: ${e.message ?: "unknown error"}"
                 logEvent(
@@ -209,9 +251,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     "free_upscale: FAILED",
                     "${e.javaClass.simpleName}: ${e.message}",
                 )
+                // Failed runs clear state — the source is presumably corrupt
+                // or the model is broken; resume would just hit the same error.
+                com.posterpdf.ml.UpscaleStateStore.clear(context)
             } finally {
                 isFreeUpscaling = false
                 pendingUpscaleModelLabel = null
+                com.posterpdf.ml.UpscaleForegroundService.stop(context)
             }
         }
     }

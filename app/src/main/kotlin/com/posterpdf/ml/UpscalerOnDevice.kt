@@ -89,12 +89,21 @@ object UpscalerOnDevice {
      * bitmaps = ~73 MB of churn, which thrashes the GC and serializes
      * inference behind it. Now both buffers are allocated ONCE and reused.
      *
-     * Also: optional progress callback so the caller can log heartbeats and
-     * detect a stall vs. a slow run.
+     * RC11: resume support. If [resumeFromTile] > 0 and [partialOutput] is
+     * non-null, the loop skips tiles 0..resumeFromTile-1 and the output
+     * starts pre-seeded with [partialOutput]'s pixels (drawn via Canvas at
+     * 0,0). Combined with periodic [onPartialSave] callbacks the caller can
+     * persist mid-run state and recover from a process kill.
      */
     suspend fun upscale(
         input: Bitmap,
+        resumeFromTile: Int = 0,
+        partialOutput: Bitmap? = null,
         onProgress: ((completedTiles: Int, totalTiles: Int) -> Unit)? = null,
+        /** Called every ~60 s with (lastCompletedTile, currentOutputBitmap).
+         *  Caller is responsible for actually persisting the bitmap. */
+        onPartialSave: ((lastCompletedTile: Int, output: Bitmap) -> Unit)? = null,
+        partialSaveIntervalMs: Long = 60_000L,
     ): Bitmap = withContext(Dispatchers.Default) {
         val interp = ensureInterpreter()
         val srcW = input.width
@@ -110,6 +119,11 @@ object UpscalerOnDevice {
         val out = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
         val outCanvas = Canvas(out)
         val paint = Paint(Paint.FILTER_BITMAP_FLAG)
+        // RC11: resume — seed the output bitmap with the previously saved
+        // partial. New tiles draw on top of the resumed pixels via Canvas.
+        if (partialOutput != null && resumeFromTile > 0) {
+            outCanvas.drawBitmap(partialOutput, 0f, 0f, paint)
+        }
 
         // Reusable buffers — allocated ONCE for the whole upscale.
         val inBuf = ByteBuffer.allocateDirect(1 * TILE_IN * TILE_IN * 3 * 4)
@@ -126,6 +140,8 @@ object UpscalerOnDevice {
         val tileRows = (srcH + TILE_IN - 1) / TILE_IN
         val totalTiles = tileCols * tileRows
         var completed = 0
+        var tileIndex = 0
+        var lastSaveMs = System.currentTimeMillis()
 
         var y = 0
         while (y < srcH) {
@@ -137,6 +153,13 @@ object UpscalerOnDevice {
                 val tileSrcX = if (x + TILE_IN <= srcW) x else (srcW - TILE_IN).coerceAtLeast(0)
                 val tileW = minOf(TILE_IN, srcW - tileSrcX)
 
+                // RC11: skip tiles already done from a previous (resumed) run.
+                if (tileIndex < resumeFromTile) {
+                    tileIndex++
+                    completed++
+                    x += TILE_IN
+                    continue
+                }
                 // RC10: read source pixels DIRECTLY into the reused IntArray —
                 // no per-tile bitmap allocation. For sources smaller than
                 // 50x50, fall back to the legacy stretched-tile path.
@@ -193,7 +216,17 @@ object UpscalerOnDevice {
                 }
 
                 completed++
+                tileIndex++
                 onProgress?.invoke(completed, totalTiles)
+
+                // RC11: periodic save of partial output for resume on kill.
+                if (onPartialSave != null) {
+                    val now = System.currentTimeMillis()
+                    if (now - lastSaveMs >= partialSaveIntervalMs) {
+                        onPartialSave(completed, out)
+                        lastSaveMs = now
+                    }
+                }
 
                 x += TILE_IN
             }
