@@ -77,56 +77,51 @@ float vnoise(float2 p) {
 half4 main(float2 fragCoord) {
     float2 uv = fragCoord / iResolution.xy;
 
-    // Tilt-driven highlight position. When the phone tilts forward
-    // (pitch > 0, leaning back) the sparkle moves up; tilt right
-    // (roll > 0, right side down) and the sparkle moves left, so the
-    // user feels they're looking at a stable card under a moving light.
-    // Coefficient 0.6 chosen so a comfortable ~30deg tilt sweeps the
-    // highlight across the full card.
-    float2 lightUV = float2(0.5 - iTilt.x * 0.6, 0.5 - iTilt.y * 0.6);
+    // RC9: rebuilt to match the shadertoy reference (PG2020 demo). The
+    // prior version was a smooth color sheen confined to a fresnel cone;
+    // the demo is a high-frequency speckle field where individual peaks
+    // read as discrete diamond flashes, scattered across the entire
+    // surface, with tilt driving the noise *origin* so speckles swim as
+    // the phone moves.
 
-    // 6-octave value noise (manually unrolled — AGSL unrolls loops anyway,
-    // but writing it out makes the cost explicit and lets the optimiser
-    // fold the constants on each line).
-    float2 p = uv * 12.0 + float2(iTime * 0.15, iTime * 0.09);
-    float amp = 0.5;
-    float roughness = 0.0;
-    roughness += amp * vnoise(p);                 p *= 2.02; amp *= 0.5;
-    roughness += amp * vnoise(p);                 p *= 2.03; amp *= 0.5;
-    roughness += amp * vnoise(p);                 p *= 2.01; amp *= 0.5;
-    roughness += amp * vnoise(p);                 p *= 2.04; amp *= 0.5;
-    roughness += amp * vnoise(p);                 p *= 2.02; amp *= 0.5;
-    roughness += amp * vnoise(p);
+    // High-frequency noise field. uv*80 gives ~80 cells across the card
+    // width — small enough that each peak renders as one fragment-ish
+    // sparkle dot at typical card sizes (~140dp). Tilt offsets the noise
+    // origin so speckles slide rather than flicker in place.
+    float2 p = uv * 80.0
+        + float2(iTime * 0.5, iTime * 0.3)
+        + float2(iTilt.x * 8.0, iTilt.y * 8.0);
 
-    // Fresnel-ish cone around the tilt-light position. smoothstep from
-    // 0.0 (peak) to 0.5 (gone) gives a soft cone that covers ~half the
-    // card so the glint is visible no matter which direction the user tilts.
-    float dist = length(uv - lightUV);
-    float cone = smoothstep(0.55, 0.0, dist);
+    // Two octaves of value noise — combined to break up the regular
+    // grid pattern of a single octave.
+    float n1 = vnoise(p);
+    float n2 = vnoise(p * 2.07);
+    float roughness = n1 * 0.65 + n2 * 0.35;
 
-    // RC4 visibility tune-up: dropped pow exponent 6→3 (sparkles brighten
-    // ~64×) and removed the 0.4 floor on ridge so dark bands stay quiet
-    // between bright bands (more dynamic range), then doubled the
-    // baseline multiplier and lifted the alpha clamp ceiling. Real-device
-    // testing showed the prior values were too subtle to read as "glitter."
-    float ridge = 0.5 + 0.5 * sin(uv.x * 18.0 + uv.y * 9.0 + iTime * 1.4 + iTilt.x * 4.0);
-    float spark = pow(roughness, 3.0) * cone * ridge;
+    // Sharpen with high pow exponent. pow(0.95, 12) ≈ 0.54; pow(0.85, 12)
+    // ≈ 0.14; pow(0.7, 12) ≈ 0.014 — only the brightest 5-10% of the
+    // noise field renders as visible speckle, which is what gives the
+    // "individual diamond flash" reading rather than a smooth color
+    // gradient.
+    float spark = pow(roughness, 12.0) * 6.0;
 
-    // Holographic colour: rainbow shifted by view angle and roughness.
-    // The 2.09 / 4.19 offsets (2pi/3 and 4pi/3) give the canonical
-    // rainbow palette without needing an HSV conversion.
+    // Holographic rainbow shifted by tilt + a small time component so
+    // the speckle palette breathes. The 2.09 / 4.19 offsets are 2π/3
+    // and 4π/3 — canonical RGB rainbow without HSV conversion.
     float hue = roughness * 6.28 + iTilt.x * 3.14 + iTime * 0.6;
     half3 holo = half3(
         0.5 + 0.5 * cos(hue),
         0.5 + 0.5 * cos(hue + 2.09),
         0.5 + 0.5 * cos(hue + 4.19)
     );
+    // The brightest peaks push toward pure white — that's the "diamond"
+    // flash quality of real holographic glitter on the demo.
+    float whiteMix = clamp((spark - 0.5) * 2.0, 0.0, 1.0);
+    holo = mix(holo, half3(1.0, 1.0, 1.0), whiteMix);
 
-    // Output is alpha-premultiplied additive — composed on top of the card
-    // via BlendMode.Plus so the underlying card art shows through. Alpha
-    // clamp at 0.95 lets the brightest sparkles read as near-specular
-    // without blowing out the entire card.
-    float a = clamp(spark * 1.8, 0.0, 0.95);
+    // Alpha-premultiplied additive — BlendMode.Plus on top of the card.
+    // Clamp at 1.0 so the brightest speckle pixels can blow fully white.
+    float a = clamp(spark, 0.0, 1.0);
     return half4(holo * a, a);
 }
 """
