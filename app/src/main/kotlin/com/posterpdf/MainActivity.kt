@@ -722,6 +722,16 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     },
                 )
                 Spacer(Modifier.height(24.dp))
+                // RC14 — version footer so the user can verify which RC they
+                // installed when reporting bugs. BuildConfig.VERSION_NAME comes
+                // from app/build.gradle.kts defaultConfig.versionName, which
+                // we now bump per RC.
+                Text(
+                    "Build " + com.posterpdf.BuildConfig.VERSION_NAME,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
             }
         }
     ) {

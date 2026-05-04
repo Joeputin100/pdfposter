@@ -20,7 +20,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0-rc14"  // RC14 batch (drag/zoom, white rectangles, FCM toast)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
