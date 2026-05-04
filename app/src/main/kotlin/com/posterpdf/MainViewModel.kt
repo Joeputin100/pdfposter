@@ -339,6 +339,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     // Debug & telemetry
     var debugLoggingEnabled by mutableStateOf(false)
+    /** RC13b: A/B toggle — when true, model cards swap the AGSL holofoil
+     *  glitter for a simpler light-pulse sweep (the same animated gradient
+     *  the API 26-32 fallback uses). Visible only in debug builds via the
+     *  drawer chips next to the FCM test buttons. Not persisted: a session-
+     *  scoped flag is enough for an A/B comparison. */
+    var usePulseEffect by mutableStateOf(false)
     var postersMadeCount by mutableStateOf(0)
     var showNagwareModal by mutableStateOf(false)
     var nagwareCountdown by mutableStateOf(5) // seconds

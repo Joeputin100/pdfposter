@@ -147,12 +147,37 @@ fun Modifier.glintEffect(active: Boolean): Modifier {
     }
 }
 
+/**
+ * RC13b — alternate "light pulse" effect for the model cards. Reuses the
+ * API 26-32 fallback's animated linear-gradient sweep on every API level,
+ * so we get a consistent moving-shimmer that doesn't depend on sensor
+ * fusion. Wired through a debug toggle (MainViewModel.usePulseEffect)
+ * so the user can A/B against the AGSL glitter at runtime.
+ */
+@Composable
+fun Modifier.pulseEffect(active: Boolean): Modifier {
+    if (!active) return this
+    return when {
+        Build.VERSION.SDK_INT >= 26 -> this.then(glintAnimatedGradientModifier())
+        else -> this
+    }
+}
+
 // ────────────────────── API 33+: AGSL holofoil ──────────────────────
 
 @RequiresApi(33)
 @Composable
 private fun glintAgslModifier(): Modifier {
-    val tilt by rememberDeviceTilt()
+    // RC13b: keep the State<Pair<Float, Float>> rather than destructuring
+    // it with `by`. drawWithCache caches its lambda by State-read snapshot;
+    // a destructured `val tilt by …` returns the *current* Pair at modifier
+    // construction, and the captured Pair never re-reads the underlying
+    // state inside the cache lambda. Reading tiltState.value INSIDE
+    // onDrawWithContent re-subscribes on every draw, so live tilt changes
+    // actually reach the shader's iTilt uniform. (User report: glitter
+    // animation continued — iTime was working — but the speckles never
+    // shifted in response to phone tilt; only iTilt was stale.)
+    val tiltState = rememberDeviceTilt()
 
     // Wall-clock ticker for iTime (RuntimeShader needs a real-time clock,
     // not a normalised 0-1 transition, so the noise scrolls at a steady pace
@@ -171,17 +196,11 @@ private fun glintAgslModifier(): Modifier {
     return Modifier.drawWithCache {
         val brush = ShaderBrush(shader)
         onDrawWithContent {
-            // RC10: draw the glitter BEFORE the content so it sits on the
-            // card surface but UNDER the icon / text / button. User said:
-            // "confine glitter effect to card backgrounds — not over the
-            // model logos, text descriptions, and action buttons."
-            // The card\'s containerColor must be partly transparent for
-            // the glitter to show through; surfaceVariant.copy(alpha=0.5)
-            // (existing) is already see-through enough.
             val tSec = ((nowMs - startMs) / 1000f).coerceAtLeast(0f)
+            val (tiltX, tiltY) = tiltState.value
             shader.setFloatUniform("iResolution", size.width, size.height)
             shader.setFloatUniform("iTime", tSec)
-            shader.setFloatUniform("iTilt", tilt.first, tilt.second)
+            shader.setFloatUniform("iTilt", tiltX, tiltY)
             drawRect(brush = brush, size = size)
             drawContent()
         }

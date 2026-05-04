@@ -1263,6 +1263,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                     currentDpi = currentDpi,
                     posterWInches = posterWInchesD,
                     posterHInches = posterHInchesD,
+                    usePulseEffect = viewModel.usePulseEffect,
                     // Phase H-P1.13: when the source is SVG, the modal swaps
                     // the upscale grid for a vector-explainer banner and keeps
                     // only the BringYourOwn card enabled.

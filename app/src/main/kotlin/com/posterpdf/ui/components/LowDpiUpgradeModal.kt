@@ -269,6 +269,8 @@ fun LowDpiUpgradeModal(
      * card stays visible (user might want to swap to a raster source).
      */
     sourceIsSvg: Boolean = false,
+    /** RC13b: when true, swap AGSL glitter for animated-gradient pulse on AI cards. */
+    usePulseEffect: Boolean = false,
     onDismiss: () -> Unit,
     onFreeUpscale: () -> Unit,
     onAiUpscale: (modelId: String) -> Unit,
@@ -435,6 +437,7 @@ fun LowDpiUpgradeModal(
                                 localEtaText = if (option.model == UpscaleModel.FREE_LOCAL) localEtaText else null,
                                 pixelatedThumb = if (option.model == UpscaleModel.NONE) pixelatedThumb else null,
                                 onDeviceThumb = if (option.model == UpscaleModel.FREE_LOCAL) onDeviceThumb else null,
+                                usePulseEffect = usePulseEffect,
                                 onCardClick = { selectedModel = option.model },
                                 onFreeUpscale = onFreeUpscale,
                                 onAiUpscale = { onAiUpscale(option.model.name.lowercase()) },
@@ -529,6 +532,7 @@ private fun UpscaleOptionCard(
     localEtaText: String?,
     pixelatedThumb: ImageBitmap?,
     onDeviceThumb: ImageBitmap?,
+    usePulseEffect: Boolean,
     onCardClick: () -> Unit,
     onFreeUpscale: () -> Unit,
     onAiUpscale: () -> Unit,
@@ -578,7 +582,12 @@ private fun UpscaleOptionCard(
                 shape = RoundedCornerShape(20.dp),
             )
             .clickable(onClick = onCardClick)
-            .glintEffect(active = isAiModel),
+            .let {
+                // RC13b: A/B glitter vs. light-pulse based on the
+                // debug toggle from MainViewModel.usePulseEffect.
+                if (usePulseEffect) it.pulseEffect(active = isAiModel)
+                else it.glintEffect(active = isAiModel)
+            },
     ) {
         Column(
             modifier = Modifier.padding(10.dp),

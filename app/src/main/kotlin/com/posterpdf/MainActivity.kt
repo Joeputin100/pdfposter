@@ -1911,6 +1911,25 @@ private fun DebugPushTestRow(viewModel: MainViewModel) {
                     )
                 }
             }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Card effect",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
+            )
+            Spacer(Modifier.height(4.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FilterChip(
+                    selected = !viewModel.usePulseEffect,
+                    onClick = { viewModel.usePulseEffect = false },
+                    label = { Text("Glitter") },
+                )
+                FilterChip(
+                    selected = viewModel.usePulseEffect,
+                    onClick = { viewModel.usePulseEffect = true },
+                    label = { Text("Pulse") },
+                )
+            }
         }
     }
 }
