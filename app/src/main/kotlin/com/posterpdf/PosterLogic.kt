@@ -156,7 +156,7 @@ class PosterLogic {
             // fine for the diagram/preview — only the per-page tiles need
             // vector-quality fidelity.
             val instructionImage = image ?: LosslessFactory.createFromImage(doc, bitmap)
-            addInstructionsPage(doc, instructionImage, posterW, posterH, pageW, pageH, margin, overlap, logoBitmap, sourcePixelW, sourcePixelH)
+            addInstructionsPage(doc, instructionImage, posterW, posterH, pageW, pageH, margin, overlap, logoBitmap, sourcePixelW, sourcePixelH, suppressLowDpiWarning)
         }
 
         val printableW = pageW - 2 * margin
@@ -282,17 +282,18 @@ class PosterLogic {
     }
 
     private fun addInstructionsPage(
-        doc: PDDocument, 
-        image: PDImageXObject, 
-        pw: Double, 
-        ph: Double, 
-        pgw: Double, 
-        pgh: Double, 
-        m: Double, 
+        doc: PDDocument,
+        image: PDImageXObject,
+        pw: Double,
+        ph: Double,
+        pgw: Double,
+        pgh: Double,
+        m: Double,
         o: Double,
         logoBitmap: Bitmap?,
         sourcePixelW: Int,
-        sourcePixelH: Int
+        sourcePixelH: Int,
+        suppressLowDpiWarning: Boolean = false,
     ) {
         val page = PDPage(PDRectangle(pgw.toFloat(), pgh.toFloat()))
         doc.addPage(page)
