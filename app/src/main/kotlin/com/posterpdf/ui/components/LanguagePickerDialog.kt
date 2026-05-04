@@ -56,9 +56,21 @@ fun LanguagePickerDialog(
         "ar" to R.string.language_ar,
     )
 
+    // RC17: read from LocaleManager on API 33+ (the platform source of
+    // truth) and fall back to AppCompatDelegate on older. The pre-RC17
+    // path read only AppCompatDelegate, which on a ComponentActivity-
+    // hosted app falls out of sync with the platform's actual locale,
+    // so the dialog kept showing "System default" even after a switch.
+    val context = androidx.compose.ui.platform.LocalContext.current
     val current = remember {
-        val active = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
-        if (active.isEmpty) "" else active.toLanguageTags().substringBefore(',')
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            val lm = context.getSystemService(android.app.LocaleManager::class.java)
+            val l = lm?.applicationLocales
+            if (l == null || l.isEmpty) "" else l.toLanguageTags().substringBefore(',')
+        } else {
+            val active = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+            if (active.isEmpty) "" else active.toLanguageTags().substringBefore(',')
+        }
     }
     var selected by remember { mutableStateOf(current) }
 

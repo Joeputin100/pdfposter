@@ -614,8 +614,31 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                              } else {
                                  androidx.core.os.LocaleListCompat.forLanguageTags(tag)
                              }
+                             // RC17: AppCompatDelegate.setApplicationLocales
+                             // alone doesn't trigger a locale change here
+                             // because MainActivity extends ComponentActivity,
+                             // not AppCompatActivity — there's no AppCompat
+                             // delegate to dispatch onConfigurationChanged.
+                             // We do three things explicitly:
+                             //  1. setApplicationLocales (persists the choice)
+                             //  2. on API 33+, also poke LocaleManager (the
+                             //     platform mechanism that survives without
+                             //     AppCompat scaffolding)
+                             //  3. activity.recreate() so resources reload
+                             //     and stringResource calls return the new
+                             //     translations on the next frame.
                              androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(locales)
+                             if (android.os.Build.VERSION.SDK_INT >= 33) {
+                                 val lm = context.getSystemService(android.app.LocaleManager::class.java)
+                                 lm?.applicationLocales = if (tag.isEmpty()) {
+                                     android.os.LocaleList.getEmptyLocaleList()
+                                 } else {
+                                     android.os.LocaleList.forLanguageTags(tag)
+                                 }
+                             }
+                             viewModel.logEvent(context, "language_picked", "tag=$tag")
                              showLanguageDialog = false
+                             (context as? android.app.Activity)?.recreate()
                          },
                      )
                  }
@@ -2034,9 +2057,17 @@ fun ConfigInput(
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun LanguageDrawerCell(onClick: () -> Unit) {
+    // RC17: same fix as the dialog read — prefer LocaleManager on API 33+.
+    val ctxForLocale = LocalContext.current
     val activeTag = remember {
-        val list = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
-        if (list.isEmpty) "" else list.toLanguageTags().substringBefore(',')
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            val lm = ctxForLocale.getSystemService(android.app.LocaleManager::class.java)
+            val l = lm?.applicationLocales
+            if (l == null || l.isEmpty) "" else l.toLanguageTags().substringBefore(',')
+        } else {
+            val list = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+            if (list.isEmpty) "" else list.toLanguageTags().substringBefore(',')
+        }
     }
     // Native word for "Language" per locale. Order matches the dialog.
     val words: List<Pair<String, String>> = listOf(
