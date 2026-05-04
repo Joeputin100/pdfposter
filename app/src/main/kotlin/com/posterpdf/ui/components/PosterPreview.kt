@@ -17,6 +17,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -226,9 +227,8 @@ fun PosterPreview(viewModel: MainViewModel) {
     // RC10: user-driven pan offset added to the animation-driven camera Y.
     // Lets the user drag the table inside the viewport (e.g. drag down to
     // pan up and see the printer that's normally above the visible area
-    // during Arranging/Cutting/etc.). Persists across animation phases;
-    // resets when the source image changes (via remember(previewBitmap)).
-    val userPanY = remember(previewBitmap) { mutableFloatStateOf(0f) }
+    // during Arranging/Cutting/etc.). Persists across animation phases.
+    val userPanY = remember { mutableFloatStateOf(0f) }
     androidx.compose.runtime.SideEffect {
         val panTarget = boxSize.height * 0.15f
         val animY = if (!cycleEnabled) 0f else when (phase) {
@@ -451,12 +451,10 @@ fun PosterPreview(viewModel: MainViewModel) {
                     // userPanY grows positive → content translates down →
                     // user sees content that was above (e.g. the printer).
                     .pointerInput(Unit) {
-                        androidx.compose.foundation.gestures.detectVerticalDragGestures(
-                            onVerticalDrag = { change, dragAmount ->
-                                change.consume()
-                                userPanY.floatValue += dragAmount
-                            },
-                        )
+                        detectVerticalDragGestures { change, dragAmount ->
+                            change.consume()
+                            userPanY.floatValue += dragAmount
+                        }
                     },
             ) {
             val paneInfo = viewModel.getPaneCount()
