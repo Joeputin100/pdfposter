@@ -274,7 +274,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 imageMetadata = ImageMetadata(
                     width = upscaled.width,
                     height = upscaled.height,
+                    aspectRatioString = "${upscaled.width}:${upscaled.height}",
                     aspectRatio = upscaled.width.toDouble() / upscaled.height.toDouble(),
+                    resolution = "${upscaled.width}×${upscaled.height}",
                 )
                 wasUpscaled = true
                 successMessage = "Upscaled to ${upscaled.width}×${upscaled.height}"

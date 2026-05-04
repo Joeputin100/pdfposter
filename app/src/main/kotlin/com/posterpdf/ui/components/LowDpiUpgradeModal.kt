@@ -537,7 +537,7 @@ private fun UpscaleOptionCard(
     freeEnabled: Boolean,
     localEtaText: String?,
     pixelatedThumb: ImageBitmap?,
-    onDeviceThumb: ImageBitmap?,
+    onDeviceThumb: ImageBitmap,
     usePulseEffect: Boolean,
     onCardClick: () -> Unit,
     onFreeUpscale: () -> Unit,
