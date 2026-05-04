@@ -784,6 +784,92 @@ fun PosterPreview(viewModel: MainViewModel) {
                 }
 
                 // ─────────────────────────────────────────────────────────────
+                // RC9 — overlap fold animation. After all panes are drawn,
+                // during Taping (and held through Pinning/Reset-fadeout),
+                // each LEFT pane's right-edge overlap zone is redrawn ON
+                // TOP of the right pane's left-edge overlap with a wipe
+                // animation pivoted on the seam — physically: the LEFT
+                // page is lifted, its overlap flap folds down ON TOP of
+                // the RIGHT page's overlap, and the tape strip drawn in
+                // the next pass holds them together.
+                //
+                // Same scaffolding for horizontal seams (between rows).
+                // ─────────────────────────────────────────────────────────────
+                if (cycleEnabled && overlapPx > 0.5f &&
+                    phase.ordinal() >= AssemblyPhase.Taping.ordinal()) {
+                    val foldT = when (phase) {
+                        AssemblyPhase.Taping -> (phaseT * 3f).coerceIn(0f, 1f)
+                        AssemblyPhase.Reset -> (1f - phaseT).coerceIn(0f, 1f)
+                        else -> 1f
+                    }
+                    if (foldT > 0.001f) {
+                        val foldColor = Color(0xFFFF6F00).copy(alpha = 0.65f * foldT)
+                        // Vertical seams (between columns) — left pane's right overlap.
+                        for (pane in layout.panes) {
+                            val r = pane.row
+                            val c = pane.col
+                            if (c >= cols - 1) continue
+                            val tightenDx = -((c - (cols - 1) / 2f) * gap)
+                            val tightenDy = -((r - (rows - 1) / 2f) * gap)
+                            val stripLeft = pane.imageDstLeft + tightenDx + pane.imageContentWidth - overlapPx
+                            val stripTop = pane.imageDstTop + tightenDy
+                            val pivotX = stripLeft
+                            val pivotY = stripTop + pane.imageContentHeight / 2f
+                            withTransform({
+                                // Wipe: scale X from 0 to foldT, pivoted on the seam
+                                // (left edge of strip). Tilt up to -6° at start so the
+                                // strip reads as "lifted off the page" rather than
+                                // simply growing in width.
+                                rotate(
+                                    degrees = -6f * (1f - foldT),
+                                    pivot = Offset(pivotX, pivotY),
+                                )
+                                scale(
+                                    scaleX = foldT,
+                                    scaleY = 1f,
+                                    pivot = Offset(pivotX, pivotY),
+                                )
+                            }) {
+                                drawRect(
+                                    color = foldColor,
+                                    topLeft = Offset(stripLeft, stripTop),
+                                    size = Size(overlapPx, pane.imageContentHeight),
+                                )
+                            }
+                        }
+                        // Horizontal seams (between rows) — top pane's bottom overlap.
+                        for (pane in layout.panes) {
+                            val r = pane.row
+                            val c = pane.col
+                            if (r >= rows - 1) continue
+                            val tightenDx = -((c - (cols - 1) / 2f) * gap)
+                            val tightenDy = -((r - (rows - 1) / 2f) * gap)
+                            val stripLeft = pane.imageDstLeft + tightenDx
+                            val stripTop = pane.imageDstTop + tightenDy + pane.imageContentHeight - overlapPx
+                            val pivotX = stripLeft + pane.imageContentWidth / 2f
+                            val pivotY = stripTop
+                            withTransform({
+                                rotate(
+                                    degrees = -6f * (1f - foldT),
+                                    pivot = Offset(pivotX, pivotY),
+                                )
+                                scale(
+                                    scaleX = 1f,
+                                    scaleY = foldT,
+                                    pivot = Offset(pivotX, pivotY),
+                                )
+                            }) {
+                                drawRect(
+                                    color = foldColor,
+                                    topLeft = Offset(stripLeft, stripTop),
+                                    size = Size(pane.imageContentWidth, overlapPx),
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ─────────────────────────────────────────────────────────────
                 // RC3 props — printer, scissors (perimeter trace), hand 👌,
                 // tape, thumb tacks. All gated to API 33+ (cycleEnabled).
                 // ─────────────────────────────────────────────────────────────
