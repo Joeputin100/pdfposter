@@ -556,17 +556,18 @@ private fun UpscaleOptionCard(
         if (isSelected) 1.03f else 1f,
         label = "card_scale",
     )
+    // RC14: containerColor stays surfaceVariant per the paper-tone brand
+    // identity (PaperShadow #EAE0CC), but we now ALWAYS draw an outline
+    // border. RC13 dropped the alpha=0.5; that was right but only got us
+    // halfway — surfaceVariant and surface (PaperWarm #F8F1E4) only differ
+    // by ~10 luminance points, so an opaque card with no border still
+    // visually melts into the modal sheet (the "white rectangles covering
+    // the entire card" report). The 1dp outline draws a crisp edge that
+    // restores the card's silhouette without touching the fill.
+    val outlineColor = MaterialTheme.colorScheme.outline
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            // RC13: dropped the alpha=0.5 (was added in RC4 so the
-            // AGSL glitter could show through). In light mode the
-            // half-transparent surfaceVariant on top of the modal
-            // sheet's white background read as a near-white rectangle
-            // covering the entire card — the bug user has flagged
-            // across RC9 → RC12. AGSL uses BlendMode.Plus (additive),
-            // so glitter still brightens a solid surfaceVariant base;
-            // we don't need transparency for visibility.
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         modifier = Modifier
@@ -577,8 +578,8 @@ private fun UpscaleOptionCard(
                 spotColor = primary,
             )
             .border(
-                width = if (isSelected) 2.5.dp else 0.dp,
-                color = borderColor,
+                width = if (isSelected) 2.5.dp else 1.dp,
+                color = if (isSelected) borderColor else outlineColor,
                 shape = RoundedCornerShape(20.dp),
             )
             .clickable(onClick = onCardClick)

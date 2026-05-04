@@ -337,7 +337,7 @@
     <string name="upscale_card_upscale_free">تكبير مجاني</string>
     <string name="upscale_card_sign_in">تسجيل الدخول</string>
     <string name="upscale_card_get_more_credits">احصل على مزيد من الأرصدة</string>
-    <string name="upscale_card_upscale_with_credits">تكبير · %1$d رصيد</string>
+    <string name="upscale_card_upscale_with_credits">تكبير</string>
 
     <!-- لافتة SVG المتجهي -->
     <string name="svg_banner_title">مصدر متجهي</string>

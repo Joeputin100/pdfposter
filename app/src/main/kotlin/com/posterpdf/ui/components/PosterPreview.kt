@@ -15,9 +15,11 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -203,8 +205,10 @@ fun PosterPreview(viewModel: MainViewModel) {
         lastPhase.value = phase
     }
 
-    var zoom by remember { mutableStateOf(1f) }
-    var pan by remember { mutableStateOf(Offset.Zero) }
+    // RC14: outer-box `zoom`/`pan` state removed — see RC14 notes on the
+    // outer Box modifier. Pinch-to-zoom is now `userZoom` (drives a
+    // graphicsLayer on the inner Canvas) and drag-to-pan goes through
+    // `userPanY` (folded into cameraOffsetYpx).
 
     // Per-pane jiggle: tap a specific page to jiggle just that page.
     // paneBounds is filled during Canvas draw and read by the tap handler;
@@ -229,6 +233,11 @@ fun PosterPreview(viewModel: MainViewModel) {
     // pan up and see the printer that's normally above the visible area
     // during Arranging/Cutting/etc.). Persists across animation phases.
     val userPanY = remember { mutableFloatStateOf(0f) }
+    // RC14: user-driven zoom factor (pinch). Multiplied into every canvas
+    // draw so pinching scales content INSIDE the viewport (not the
+    // viewport itself). 1.0 is identity; clamped to [0.5, 3.0] to keep
+    // the assembled poster from disappearing or over-stuffing the frame.
+    val userZoom = remember { mutableFloatStateOf(1f) }
     androidx.compose.runtime.SideEffect {
         val panTarget = boxSize.height * 0.15f
         val animY = if (!cycleEnabled) 0f else when (phase) {
@@ -373,20 +382,24 @@ fun PosterPreview(viewModel: MainViewModel) {
                 .fillMaxWidth()
                 .height(300.dp)
                 .onSizeChanged { boxSize = it }
-                .pointerInput(Unit) {
-                    detectTransformGestures { _, panChange, zoomChange, _ ->
-                        zoom = (zoom * zoomChange).coerceIn(1f, 6f)
-                        pan += panChange
-                    }
-                }
+                // RC14: removed the outer detectTransformGestures + graphicsLayer
+                // pair (they scaled the *whole* viewport including its rounded
+                // frame, which the user read as "pinch is resizing the viewport").
+                // Pinch + drag are now handled on the inner Canvas-wrapping Box
+                // via Modifier.scrollable + a separate pointerInput, scaling the
+                // canvas content while the viewport stays fixed.
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { rawOffset ->
                         hapt.tap()
-                        // Invert the graphicsLayer pan/zoom to land in canvas coords.
-                        val pivotX = boxSize.width / 2f
-                        val pivotY = boxSize.height / 2f
-                        val cx = pivotX + (rawOffset.x - pivotX - pan.x) / zoom
-                        val cy = pivotY + (rawOffset.y - pivotY - pan.y) / zoom
+                        // RC14: tap math is now identity — no graphicsLayer
+                        // transform to invert, since the outer pan/zoom was
+                        // removed. Inner canvas zoom (userZoom) doesn't affect
+                        // tap hit-testing because pane bounds are computed in
+                        // pre-zoom canvas coords, matching where the user
+                        // visually sees the panes inside the (un-clipped)
+                        // viewport rect.
+                        val cx = rawOffset.x
+                        val cy = rawOffset.y
                         val hit = paneBounds.firstOrNull { p ->
                             cx >= p.left && cx <= p.left + p.width &&
                                 cy >= p.top && cy <= p.top + p.height
@@ -397,12 +410,11 @@ fun PosterPreview(viewModel: MainViewModel) {
                         }
                     })
                 }
-                .graphicsLayer {
-                    scaleX = zoom
-                    scaleY = zoom
-                    translationX = pan.x
-                    translationY = pan.y
-                }
+                // RC14: removed the outer graphicsLayer that applied
+                // scaleX/scaleY = zoom and translationX/Y = pan. Those came
+                // from the detectTransformGestures handler we just deleted;
+                // their job is now done by userZoom on the inner Canvas
+                // graphicsLayer + userPanY on the camera offset state.
                 .clip(RoundedCornerShape(24.dp))
                 .drawWithCache {
                     // Camera-pan offset is supplied by the AssemblyPhase clock
@@ -444,16 +456,28 @@ fun PosterPreview(viewModel: MainViewModel) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    // RC10: vertical drag pans the table inside the viewport
-                    // (rather than scrolling the entire screen). detectVerticalDragGestures
-                    // consumes events past touchSlop so the parent Column\'s
-                    // verticalScroll doesn\'t also receive them. Drag down →
-                    // userPanY grows positive → content translates down →
-                    // user sees content that was above (e.g. the printer).
+                    // RC14: vertical drag now uses Modifier.scrollable + a
+                    // ScrollableState that consumes the delta into userPanY.
+                    // The previous detectVerticalDragGestures path waited for
+                    // touchSlop before consuming, by which time the parent
+                    // Column.verticalScroll had already claimed the drag —
+                    // user reported "the viewport is still draggable; should
+                    // be stationary." scrollable integrates with NestedScroll
+                    // and consumes deltas at the gesture start, short-
+                    // circuiting the parent.
+                    .scrollable(
+                        orientation = Orientation.Vertical,
+                        state = rememberScrollableState { delta ->
+                            userPanY.floatValue += delta
+                            delta
+                        },
+                    )
+                    // Pinch-to-zoom on the canvas content (NOT the viewport).
+                    // detectTransformGestures fires (centroid, pan, zoom, rotation)
+                    // — we only consume zoom; pan is handled by scrollable above.
                     .pointerInput(Unit) {
-                        detectVerticalDragGestures { change, dragAmount ->
-                            change.consume()
-                            userPanY.floatValue += dragAmount
+                        detectTransformGestures(panZoomLock = false) { _, _, zoom, _ ->
+                            userZoom.floatValue = (userZoom.floatValue * zoom).coerceIn(0.5f, 3f)
                         }
                     },
             ) {
@@ -464,7 +488,19 @@ fun PosterPreview(viewModel: MainViewModel) {
             // Canvas itself doesn\'t auto-clip — only the parent Compose
             // layout would, but the way this nests, top overflow was
             // visible to the user.
-            Canvas(modifier = Modifier.fillMaxSize().clipToBounds()) {
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clipToBounds()
+                    // RC14: pinch-to-zoom scales canvas content (paper/printer/
+                    // assembly props) inside the fixed viewport. Applied via
+                    // graphicsLayer on the Canvas itself so the viewport's
+                    // bounds and clip stay fixed.
+                    .graphicsLayer {
+                        scaleX = userZoom.floatValue
+                        scaleY = userZoom.floatValue
+                    },
+            ) {
                 if (paneInfo == null) {
                     paneBounds.clear()
                     return@Canvas
@@ -521,16 +557,16 @@ fun PosterPreview(viewModel: MainViewModel) {
                 val printableHpx = layout.printableH.toFloat() * layout.scale
                 val assembledBlockW = cols * (printableWpx - overlapPx) + overlapPx
                 val assembledBlockH = rows * (printableHpx - overlapPx) + overlapPx
-                // RC13: printer must be visibly wider than a single sheet of
-                // paper — earlier sizing (canvas-width × 0.55) could be
-                // narrower than printableWpx for posters with few large pages.
-                // Real-world ratio is ~1.3× (8.5in letter → 11in printer body);
-                // 1.4× gives a clear "paper feeds out from a wider printer"
-                // read. Clamped to [50%, 90%] of canvas so it doesn't dominate.
-                val printerWidth = (printableWpx * 1.4f).coerceIn(
-                    minimumValue = size.width * 0.50f,
-                    maximumValue = size.width * 0.90f,
-                )
+                // RC14: simpler formula — at least 65% of canvas, AND wider
+                // than a single sheet of paper. RC13's printableWpx-based
+                // computation occasionally produced a degenerate width on
+                // first composition (before layout settled), so the user
+                // saw the printer "disappear off the table." Both inputs
+                // are now well-defined post-measure.
+                val printerWidth = maxOf(
+                    size.width * 0.65f,
+                    printableWpx * 1.25f,
+                ).coerceAtMost(size.width * 0.92f)
                 val printerTopY = -printerWidth * 0.10f      // sits slightly above canvas
                 val printerBodyH = printerWidth * 0.55f
                 val printerSlotY = printerTopY + printerBodyH * 0.71f
@@ -906,15 +942,14 @@ fun PosterPreview(viewModel: MainViewModel) {
                 // tape, thumb tacks. All gated to API 33+ (cycleEnabled).
                 // ─────────────────────────────────────────────────────────────
                 if (cycleEnabled) {
-                    // ── Printer body — visible during Printing, fades during
-                    //    Panning (camera leaves it behind), hidden through the
-                    //    rest, fades back in during Reset (ready for next loop).
-                    val printerAppearT = when (phase) {
-                        AssemblyPhase.Printing -> 1f
-                        AssemblyPhase.Panning -> (1f - phaseT).coerceIn(0f, 1f)
-                        AssemblyPhase.Reset -> phaseT.coerceIn(0f, 1f)
-                        else -> 0f
-                    }
+                    // RC14: printer now stays at full opacity across every
+                    // assembly phase. Pre-RC14 it faded out during Panning
+                    // and was invisible through the cut/tape/pin sequence,
+                    // which the user read as "the printer disappeared off
+                    // the table." Keeping it always visible matches the
+                    // user's mental model — a real printer doesn't vanish
+                    // mid-assembly.
+                    val printerAppearT = 1f
                     val inkScanT = (cycleSeconds.floatValue / 1.6f) % 1f
                     if (printerAppearT > 0f) {
                         drawPrinter(

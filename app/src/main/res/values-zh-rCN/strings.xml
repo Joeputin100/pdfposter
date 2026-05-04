@@ -337,7 +337,7 @@
     <string name="upscale_card_upscale_free">免费放大</string>
     <string name="upscale_card_sign_in">登录</string>
     <string name="upscale_card_get_more_credits">获取更多点数</string>
-    <string name="upscale_card_upscale_with_credits">放大 · %1$d 点</string>
+    <string name="upscale_card_upscale_with_credits">放大</string>
 
     <!-- SVG 矢量横幅 -->
     <string name="svg_banner_title">矢量源文件</string>

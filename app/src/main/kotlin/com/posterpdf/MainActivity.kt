@@ -1005,13 +1005,23 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             // the closure waiting for the user's choice.
                             var lowDpiPendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
                             val runWithDpiGate: ((() -> Unit) -> Unit) = { action ->
-                                // RC13: bypass the gate if an upscale is in
-                                // flight or has been queued — the user has
-                                // already chosen to upscale (the warning is
-                                // redundant), and the gate's source-DPI math
-                                // doesn't see the pending upscaled output.
-                                val upscaleQueued = viewModel.pendingUpscaleModelLabel != null
-                                if (!upscaleQueued && viewModel.computeCurrentDpi() in 0.1f..149.99f) {
+                                // RC14: broadened the bypass condition — RC13
+                                // only checked pendingUpscaleModelLabel; user
+                                // still saw the warning fire after picking
+                                // Recraft Crisp. Now also bypasses when the
+                                // free upscale is actively running. Logs the
+                                // state at gate-time so the next debug log
+                                // tells us which condition the gate saw.
+                                val pendingLabel = viewModel.pendingUpscaleModelLabel
+                                val freeRunning = viewModel.isFreeUpscaling
+                                val upscaleQueued = pendingLabel != null || freeRunning
+                                val dpi = viewModel.computeCurrentDpi()
+                                viewModel.logEvent(
+                                    context,
+                                    "dpi_gate: check",
+                                    "dpi=$dpi pendingLabel=$pendingLabel freeRunning=$freeRunning bypass=$upscaleQueued",
+                                )
+                                if (!upscaleQueued && dpi in 0.1f..149.99f) {
                                     lowDpiPendingAction = action
                                 } else {
                                     action()

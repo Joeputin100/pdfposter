@@ -337,7 +337,7 @@
     <string name="upscale_card_upscale_free">Melhorar grátis</string>
     <string name="upscale_card_sign_in">Entrar</string>
     <string name="upscale_card_get_more_credits">Obter mais créditos</string>
-    <string name="upscale_card_upscale_with_credits">Melhorar · %1$d cr</string>
+    <string name="upscale_card_upscale_with_credits">Melhorar</string>
 
     <!-- Banner de vetor SVG -->
     <string name="svg_banner_title">Fonte vetorial</string>

@@ -337,7 +337,7 @@
     <string name="upscale_card_upscale_free">Масштабировать бесплатно</string>
     <string name="upscale_card_sign_in">Войти</string>
     <string name="upscale_card_get_more_credits">Получить кредиты</string>
-    <string name="upscale_card_upscale_with_credits">Масштабировать · %1$d кр</string>
+    <string name="upscale_card_upscale_with_credits">Масштабировать</string>
 
     <!-- Баннер SVG-вектора -->
     <string name="svg_banner_title">Векторный источник</string>

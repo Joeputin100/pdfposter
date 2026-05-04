@@ -938,20 +938,45 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * RC12c — fires the backend's debug fixture so we can test FCM end-to-end
      * without waiting for the daily storage-billing cron.
      *
-     * RC13: surface result via Toast (which floats over the open drawer)
-     * because the chip lives inside the drawer; the previous successMessage
-     * path painted to the inline MessageText in the main scaffold body, which
-     * is hidden behind the open drawer when the chip is tapped.
+     * RC14: previous Toast attempt produced zero feedback per user testing.
+     * Restructured for visibility:
+     *   1. Immediate Toast on tap so the user sees ANY feedback right away
+     *      (proves the chip click reached the ViewModel);
+     *   2. Dispatchers.Main explicit for the show() calls (Toast.show throws
+     *      silently from non-main threads on some OEMs);
+     *   3. 15-second withTimeout on the backend call so a hung Ktor request
+     *      doesn't leave the user staring at "Sending…" forever;
+     *   4. Result Toast in a finally-style outer try/catch so any surprise
+     *      exception still produces visible feedback;
+     *   5. Also writes to debug log via logEvent so the failure mode is
+     *      forensically inspectable from the user's saved log file.
      */
     fun runTestStorageEvent(type: String) {
-        viewModelScope.launch {
-            val r = backend.triggerTestStorageEvent(type)
-            val msg = if (r != null) {
-                "Test push: ${r.title} (${r.delivered} delivered)"
-            } else {
-                "Test push trigger failed (see logs)"
+        viewModelScope.launch(Dispatchers.Main) {
+            android.widget.Toast.makeText(
+                appContext, "Sending test push ($type)…", android.widget.Toast.LENGTH_SHORT,
+            ).show()
+            logEvent(appContext, "test_push: tap", "type=$type")
+            val msg = try {
+                val r = kotlinx.coroutines.withTimeout(15_000L) {
+                    backend.triggerTestStorageEvent(type)
+                }
+                if (r != null) {
+                    logEvent(appContext, "test_push: ok", "delivered=${r.delivered} title=${r.title}")
+                    "Test push: ${r.title} (${r.delivered} delivered)"
+                } else {
+                    logEvent(appContext, "test_push: backend returned null", "type=$type")
+                    "Test push: backend returned null (route 404? not signed in?)"
+                }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                logEvent(appContext, "test_push: timeout", "type=$type")
+                "Test push timed out after 15 s"
+            } catch (t: Throwable) {
+                logEvent(appContext, "test_push: exception", "${t.javaClass.simpleName}: ${t.message}")
+                "Test push error: ${t.javaClass.simpleName}"
             }
             android.widget.Toast.makeText(appContext, msg, android.widget.Toast.LENGTH_LONG).show()
+            successMessage = msg // fallback for when drawer is closed
         }
     }
 

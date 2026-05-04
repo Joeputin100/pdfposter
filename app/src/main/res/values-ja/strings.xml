@@ -337,7 +337,7 @@
     <string name="upscale_card_upscale_free">無料でアップスケール</string>
     <string name="upscale_card_sign_in">サインイン</string>
     <string name="upscale_card_get_more_credits">クレジットを追加</string>
-    <string name="upscale_card_upscale_with_credits">アップスケール · %1$d cr</string>
+    <string name="upscale_card_upscale_with_credits">アップスケール</string>
 
     <!-- SVGベクターバナー -->
     <string name="svg_banner_title">ベクター画像</string>

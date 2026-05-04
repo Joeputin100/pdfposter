@@ -337,7 +337,7 @@
     <string name="upscale_card_upscale_free">मुफ़्त अपस्केल</string>
     <string name="upscale_card_sign_in">साइन इन करें</string>
     <string name="upscale_card_get_more_credits">अधिक क्रेडिट लें</string>
-    <string name="upscale_card_upscale_with_credits">अपस्केल · %1$d cr</string>
+    <string name="upscale_card_upscale_with_credits">अपस्केल</string>
 
     <!-- SVG वेक्टर बैनर -->
     <string name="svg_banner_title">वेक्टर सोर्स</string>

@@ -337,7 +337,7 @@
     <string name="upscale_card_upscale_free">Kostenlos hochskalieren</string>
     <string name="upscale_card_sign_in">Anmelden</string>
     <string name="upscale_card_get_more_credits">Credits kaufen</string>
-    <string name="upscale_card_upscale_with_credits">Upscale · %1$d Cr</string>
+    <string name="upscale_card_upscale_with_credits">Upscale</string>
 
     <!-- SVG-Vektor-Banner -->
     <string name="svg_banner_title">Vektorquelle</string>
