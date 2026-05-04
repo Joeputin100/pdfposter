@@ -91,7 +91,7 @@ class UpscaleForegroundService : Service() {
                 else "Starting…",
             )
             .setProgress(total, done, total <= 0)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(tapIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
