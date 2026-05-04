@@ -21,6 +21,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -1784,6 +1785,10 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                     StorageBillingRow(sb)
                     Spacer(Modifier.height(8.dp))
                 }
+                if (com.posterpdf.BuildConfig.DEBUG) {
+                    DebugPushTestRow(viewModel)
+                    Spacer(Modifier.height(8.dp))
+                }
                 OutlinedButton(onClick = { viewModel.signOut() }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.AutoMirrored.Filled.Logout, null)
                     Spacer(Modifier.width(8.dp))
@@ -1847,6 +1852,50 @@ private fun StorageBillingRow(s: MainViewModel.StorageBillingAggregate) {
                     style = MaterialTheme.typography.bodySmall,
                     color = onContainer,
                 )
+            }
+        }
+    }
+}
+
+/**
+ * RC12c — debug-only fixture to fire each storage-event push without
+ * waiting for the daily billing cron. Hidden from release builds at the
+ * call site (BuildConfig.DEBUG check). Each chip hits
+ * /v1/test/storage-event with a different `type` and the backend writes
+ * the same `simulated: true` notification doc + FCM push that production
+ * dailySweep would.
+ */
+@Composable
+private fun DebugPushTestRow(viewModel: MainViewModel) {
+    androidx.compose.material3.Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Text(
+                "Debug · push test",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
+            )
+            Spacer(Modifier.height(6.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                listOf(
+                    "billed" to "Bill",
+                    "grace_started" to "Grace",
+                    "deletion_imminent" to "Warn 24h",
+                    "deleted" to "Deleted",
+                ).forEach { (type, label) ->
+                    AssistChip(
+                        onClick = { viewModel.runTestStorageEvent(type) },
+                        label = { Text(label) },
+                    )
+                }
             }
         }
     }

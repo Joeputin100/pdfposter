@@ -56,6 +56,22 @@ class BackendClient(
         }
     }
 
+    /**
+     * RC12c — debug-only push test trigger. Returns null on any failure so
+     * the caller can surface a generic "trigger failed" message without
+     * crashing the drawer.
+     */
+    suspend fun triggerTestStorageEvent(type: String): TestStorageEventResponseDto? {
+        return try {
+            auth.ensureSignedIn()
+            val token = auth.getIdToken() ?: return null
+            api.triggerTestStorageEvent(token, type)
+        } catch (t: Throwable) {
+            Log.w(TAG, "triggerTestStorageEvent($type) failed: ${t.message}")
+            null
+        }
+    }
+
     private fun HistoryItemDto.toDomain(): HistoryItem {
         val meta = metadata.toAnyMap()
         return HistoryItem(

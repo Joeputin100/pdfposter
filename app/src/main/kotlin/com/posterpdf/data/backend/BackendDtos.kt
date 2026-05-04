@@ -71,3 +71,15 @@ data class HistoryItemDto(
     val metadata: JsonObject = JsonObject(emptyMap()),
     val createdAt: JsonElement? = null,
 )
+
+// RC12c — debug fixture for FCM push testing.
+@Serializable
+data class TestStorageEventRequestDto(val type: String)
+
+@Serializable
+data class TestStorageEventResponseDto(
+    val delivered: Int = 0,
+    val title: String = "",
+    val body: String = "",
+    val notificationId: String = "",
+)

@@ -908,6 +908,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * RC12c — fires the backend's debug fixture so we can test FCM end-to-end
+     * without waiting for the daily storage-billing cron. The result is
+     * surfaced through successMessage/errorMessage so the user gets feedback
+     * even if the push fails to render (e.g. notifications disabled).
+     */
+    fun runTestStorageEvent(type: String) {
+        viewModelScope.launch {
+            val r = backend.triggerTestStorageEvent(type)
+            successMessage = if (r != null) {
+                "Test push: ${r.title} (${r.delivered} delivered)"
+            } else {
+                "Test push trigger failed (see logs)"
+            }
+        }
+    }
+
     fun logEvent(context: Context, event: String, details: String? = null) {
         if (!debugLoggingEnabled) return
         viewModelScope.launch(Dispatchers.IO) {

@@ -2,6 +2,7 @@ import * as admin from "firebase-admin"
 import { onRequest } from "firebase-functions/v2/https"
 import express, { Request, Response } from "express"
 import cors from "cors"
+import { sendPushToUser, formatBytes } from "./storageBilling"
 
 admin.initializeApp()
 
@@ -310,6 +311,81 @@ app.post("/v1/purchases/support-activate", async (req: AuthedRequest, res: Respo
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   }, { merge: true })
   res.json({ ok: true, supportPurchaseActive: true, addedCredits: 3 })
+})
+
+/**
+ * RC12c — Debug-only fixture: simulate one of the four storage notifications
+ * for the calling user. Writes the same shape of doc dailySweep would, then
+ * fans the push out via sendPushToUser. Used by the in-app debug chips in
+ * the drawer; gated by BuildConfig.DEBUG client-side.
+ *
+ * The synthetic values (5 credits, 12 posters, 1.2 GB, 18h) are deliberately
+ * believable so the rendered notification matches what a real bill would
+ * look like in the wild. A `simulated: true` flag is written on the doc so
+ * we can filter it out of any future "billing history" UI.
+ */
+app.post("/v1/test/storage-event", async (req: AuthedRequest, res: Response) => {
+  // Defense-in-depth: client gates on BuildConfig.DEBUG, but a release APK
+  // could be reverse-engineered and the URL hit directly. The same env var
+  // that gates the test-credits faucet (ALLOW_TEST_CREDITS) gates this
+  // route — flipped on in dev cloudbuild-backend.yaml, off in prod.
+  if (process.env.ALLOW_TEST_CREDITS !== "true") {
+    res.status(403).json({ error: "test routes are disabled in this environment" })
+    return
+  }
+  if (!(await requireAuth(req, res))) return
+  const uid = req.uid!
+  const type = String(req.body?.type ?? "")
+  const allowed = ["billed", "grace_started", "deletion_imminent", "deleted"] as const
+  type AllowedType = typeof allowed[number]
+  if (!(allowed as readonly string[]).includes(type)) {
+    res.status(400).json({ error: `type must be one of ${allowed.join("|")}` })
+    return
+  }
+
+  const fakeCredits = 5
+  const fakePosters = 12
+  const fakeBytes = Math.round(1.2 * 1024 * 1024 * 1024)
+  const fakeHours = 18
+  const fakeDeleted = 3
+
+  let title = ""
+  let body = ""
+  let payload: Record<string, unknown> = {}
+  switch (type as AllowedType) {
+    case "billed":
+      title = "Storage charge"
+      body = `${fakeCredits} credits charged for ${fakePosters} posters · ${formatBytes(fakeBytes)}`
+      payload = { type: "storage_billed", credits: fakeCredits, bytes: fakeBytes, posters: fakePosters }
+      break
+    case "grace_started":
+      title = "Top up credits to keep your posters"
+      body = `Cloud storage paused — ${fakePosters} posters in 30-day grace period`
+      payload = { type: "storage_grace_started", posters: fakePosters }
+      break
+    case "deletion_imminent":
+      title = `Posters will be deleted in ${fakeHours}h`
+      body = `Add credits to keep your ${fakePosters} stored posters`
+      payload = { type: "storage_deletion_imminent", hoursUntilDelete: fakeHours, posters: fakePosters }
+      break
+    case "deleted":
+      title = "Cloud copies removed"
+      body = `${fakeDeleted} posters were deleted from cloud storage`
+      payload = { type: "storage_deleted", deletedCount: fakeDeleted }
+      break
+  }
+
+  const docRef = await db.collection("users").doc(uid).collection("notifications").add({
+    ...payload,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    sent: false,
+    simulated: true,
+  })
+  const delivered = await sendPushToUser(uid, title, body)
+  if (delivered > 0) {
+    await docRef.update({ sent: true, deliveredCount: delivered })
+  }
+  res.json({ delivered, title, body, notificationId: docRef.id })
 })
 
 app.get("/v1/history/list", async (req: AuthedRequest, res: Response) => {

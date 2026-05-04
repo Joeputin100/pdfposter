@@ -74,6 +74,20 @@ class BackendApi(
             authed(idToken)
         }.body()
 
+    /**
+     * RC12c — debug-only test fixture. Asks the backend to fan out a synthetic
+     * storage-event push (and write a `simulated: true` notification doc) to
+     * the caller. type ∈ {billed, grace_started, deletion_imminent, deleted}.
+     */
+    suspend fun triggerTestStorageEvent(
+        idToken: String,
+        type: String,
+    ): TestStorageEventResponseDto =
+        client.post("$baseUrl/v1/test/storage-event") {
+            authed(idToken)
+            setBody(TestStorageEventRequestDto(type))
+        }.body()
+
     private fun io.ktor.client.request.HttpRequestBuilder.authed(idToken: String) {
         header(HttpHeaders.Authorization, "Bearer $idToken")
         contentType(ContentType.Application.Json)

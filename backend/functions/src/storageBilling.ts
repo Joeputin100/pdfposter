@@ -70,7 +70,7 @@ interface UserDoc {
 }
 
 /** Mirrors the Android `prettyBytes()` helper so push body and drawer row read identically. */
-function formatBytes(bytes: number): string {
+export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -95,7 +95,7 @@ function parseGsUri(uri: string): { bucket: string; object: string } | null {
  * Returns the count of successfully-delivered messages so the caller can
  * decide whether to mark the originating notification doc as sent.
  */
-async function sendPushToUser(
+export async function sendPushToUser(
   uid: string,
   title: string,
   body: string,
