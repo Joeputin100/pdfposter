@@ -15,11 +15,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -456,28 +453,20 @@ fun PosterPreview(viewModel: MainViewModel) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    // RC14: vertical drag now uses Modifier.scrollable + a
-                    // ScrollableState that consumes the delta into userPanY.
-                    // The previous detectVerticalDragGestures path waited for
-                    // touchSlop before consuming, by which time the parent
-                    // Column.verticalScroll had already claimed the drag —
-                    // user reported "the viewport is still draggable; should
-                    // be stationary." scrollable integrates with NestedScroll
-                    // and consumes deltas at the gesture start, short-
-                    // circuiting the parent.
-                    .scrollable(
-                        orientation = Orientation.Vertical,
-                        state = rememberScrollableState { delta ->
-                            userPanY.floatValue += delta
-                            delta
-                        },
-                    )
-                    // Pinch-to-zoom on the canvas content (NOT the viewport).
-                    // detectTransformGestures fires (centroid, pan, zoom, rotation)
-                    // — we only consume zoom; pan is handled by scrollable above.
+                    // RC15: consolidated pan + pinch into ONE detectTransformGestures
+                    // handler. RC14's scrollable + separate transform pointerInput
+                    // didn't actually pan (user report: "viewport is still
+                    // draggable; can't pan inside") — they were probably contending
+                    // over the gesture handle. detectTransformGestures fires for
+                    // both 1-finger drag (zoomChange = 1, panChange = movement)
+                    // and 2-finger pinch (both nonzero), and consumes positions
+                    // internally so the parent Column.verticalScroll doesn't see
+                    // the gesture once we're past touchSlop.
                     .pointerInput(Unit) {
-                        detectTransformGestures(panZoomLock = false) { _, _, zoom, _ ->
-                            userZoom.floatValue = (userZoom.floatValue * zoom).coerceIn(0.5f, 3f)
+                        detectTransformGestures(panZoomLock = false) { _, panChange, zoomChange, _ ->
+                            userPanY.floatValue += panChange.y
+                            userZoom.floatValue = (userZoom.floatValue * zoomChange)
+                                .coerceIn(0.5f, 3f)
                         }
                     },
             ) {
@@ -567,8 +556,15 @@ fun PosterPreview(viewModel: MainViewModel) {
                     size.width * 0.65f,
                     printableWpx * 1.25f,
                 ).coerceAtMost(size.width * 0.92f)
-                val printerTopY = -printerWidth * 0.10f      // sits slightly above canvas
                 val printerBodyH = printerWidth * 0.55f
+                // RC15: position printer's bottom edge just above the pages
+                // so the printer body sits ABOVE the top row, not on top of
+                // it. RC14 used printerTopY = -printerWidth*0.10 which put
+                // the bottom edge well below layout.layoutTop and overlapped
+                // the assembled-stack area (user report: "printer overlaps
+                // the top row of pages"). 6dp gap below the body keeps the
+                // paper-out slot clearly separated from the page rectangle.
+                val printerTopY = (layout.layoutTop - printerBodyH - 6f).coerceAtMost(-4f)
                 val printerSlotY = printerTopY + printerBodyH * 0.71f
                 val printerSlotX = size.width / 2f
                 val stackCenterX = layout.layoutLeft + assembledBlockW / 2f
@@ -950,7 +946,14 @@ fun PosterPreview(viewModel: MainViewModel) {
                     // user's mental model — a real printer doesn't vanish
                     // mid-assembly.
                     val printerAppearT = 1f
-                    val inkScanT = (cycleSeconds.floatValue / 1.6f) % 1f
+                    // RC15: clamp inkScanT to 0 when not in the Printing
+                    // phase so the print-head stops moving once all pages
+                    // have emerged. Pre-RC15 the scan kept oscillating
+                    // through the entire animation, which read as a
+                    // printer that "keeps printing forever."
+                    val inkScanT = if (phase == AssemblyPhase.Printing) {
+                        (cycleSeconds.floatValue / 1.6f) % 1f
+                    } else 0f
                     if (printerAppearT > 0f) {
                         drawPrinter(
                             cx = printerSlotX,

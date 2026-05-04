@@ -840,6 +840,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         sourcePixelW = imageMetadata?.width ?: bitmap.width,
                         sourcePixelH = imageMetadata?.height ?: bitmap.height,
                         svgTileRenderer = svgTileRenderer,
+                        // RC15: skip the embedded "Low Print Resolution Warning"
+                        // when the user has already chosen to upscale — the
+                        // status banner ("Upscaling with X to Y DPI") makes
+                        // the warning visually contradictory.
+                        suppressLowDpiWarning = pendingUpscaleModelLabel != null || isFreeUpscaling,
                     )
                     
                      withContext(Dispatchers.Main) {

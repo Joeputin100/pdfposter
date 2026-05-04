@@ -556,20 +556,20 @@ private fun UpscaleOptionCard(
         if (isSelected) 1.03f else 1f,
         label = "card_scale",
     )
-    // RC14: containerColor stays surfaceVariant per the paper-tone brand
-    // identity (PaperShadow #EAE0CC), but we now ALWAYS draw an outline
-    // border. RC13 dropped the alpha=0.5; that was right but only got us
-    // halfway — surfaceVariant and surface (PaperWarm #F8F1E4) only differ
-    // by ~10 luminance points, so an opaque card with no border still
-    // visually melts into the modal sheet (the "white rectangles covering
-    // the entire card" report). The 1dp outline draws a crisp edge that
-    // restores the card's silhouette without touching the fill.
+    // RC15: rewrote the card layering so glitter/pulse is actually visible.
+    // RC14's setup was Card(containerColor=surfaceVariant) + .glintEffect
+    // modifier on the Card's outer chain, but Card paints containerColor
+    // INSIDE its surface, on top of any modifier-drawn pixels. So the
+    // glitter (drawn before drawContent in glintEffect's drawWithCache
+    // lambda) was completely covered by the opaque card. Fix: Card now
+    // has containerColor = Transparent; an inner Box paints the paper
+    // tone explicitly, glintEffect/pulseEffect overlays the glitter on
+    // top of that paint, and the Column's children draw on top of both.
     val outlineColor = MaterialTheme.colorScheme.outline
+    val paperFill = MaterialTheme.colorScheme.surfaceVariant
     Card(
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
             .graphicsLayer { scaleX = scaleValue; scaleY = scaleValue }
             .shadow(
@@ -582,16 +582,18 @@ private fun UpscaleOptionCard(
                 color = if (isSelected) borderColor else outlineColor,
                 shape = RoundedCornerShape(20.dp),
             )
-            .clickable(onClick = onCardClick)
-            .let {
-                // RC13b: A/B glitter vs. light-pulse based on the
-                // debug toggle from MainViewModel.usePulseEffect.
-                if (usePulseEffect) it.pulseEffect(active = isAiModel)
-                else it.glintEffect(active = isAiModel)
-            },
+            .clickable(onClick = onCardClick),
     ) {
         Column(
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier
+                .background(paperFill)
+                .let {
+                    // Glitter / pulse drawn between the paper fill (Box bg
+                    // above) and the column children (drawContent below).
+                    if (usePulseEffect) it.pulseEffect(active = isAiModel)
+                    else it.glintEffect(active = isAiModel)
+                }
+                .padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             // Title row

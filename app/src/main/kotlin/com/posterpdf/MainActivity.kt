@@ -57,6 +57,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.posterpdf.ui.components.CreditBadge
 import com.posterpdf.ui.components.GlassCard
 import com.posterpdf.ui.components.glintEffect
+import com.posterpdf.ui.components.pulseEffect
 import com.posterpdf.ui.components.ImagePickerHeader
 import com.posterpdf.ui.components.PaperSizeCardRow
 import com.posterpdf.ui.components.PosterPreview
@@ -946,6 +947,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             if (!viewModel.sourceIsSvg) {
                                 EnterStagger(index = 3) {
                                     SharpenForPrintCta(
+                                        usePulseEffect = viewModel.usePulseEffect,
                                         onClick = { viewModel.showLowDpiModal = true },
                                     )
                                 }
@@ -2197,7 +2199,7 @@ private fun DpiChip(
  * rather than "warning."
  */
 @Composable
-private fun SharpenForPrintCta(onClick: () -> Unit) {
+private fun SharpenForPrintCta(usePulseEffect: Boolean = false, onClick: () -> Unit) {
     val infinite = androidx.compose.animation.core.rememberInfiniteTransition(label = "sharpen_cta_pulse")
     val pulseAlpha by infinite.animateFloat(
         initialValue = 0.55f,
@@ -2220,7 +2222,12 @@ private fun SharpenForPrintCta(onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.tertiaryContainer,
                 shape = RoundedCornerShape(20.dp),
             )
-            .glintEffect(active = true),
+            .let {
+                // RC15: respect the debug Glitter / Pulse toggle here too
+                // so the user can A/B both effects across every surface.
+                if (usePulseEffect) it.pulseEffect(active = true)
+                else it.glintEffect(active = true)
+            },
         colors = CardDefaults.cardColors(
             containerColor = androidx.compose.ui.graphics.Color.Transparent,
         ),

@@ -327,65 +327,68 @@ private fun SlideHandleViewer(
             onOffsetYChange(offsetY.coerceIn(-maxY, maxY))
         }
 
-        // Single pointerInput that ARBITRATES between handle drag and
-        // pinch-zoom + pan based on the initial down position and pointer count.
+        // RC15 — restored "near handle vs elsewhere" arbiter:
+        //   • Down within ±60px (~24dp) of handle X → glide the handle as
+        //     the finger moves. Pre-RC15 the slider only responded to a
+        //     full press-release cycle (tap-to-snap), so a drag along the
+        //     handle did nothing — user had to "double tap" to advance it.
+        //   • Down elsewhere → pinch-zoom + pan, same as before.
+        //   • A press near the handle that lifts WITHOUT moving past slop
+        //     still snaps the handle to that x (covers tap-to-jump cases).
         //
-        // Decision rule on first-down:
-        //   • If down lands within ±24.dp of the handle X AND only one pointer
-        //     is down → claim the gesture for the handle, ignore additional
-        //     pointers until release.
-        //   • Otherwise → run a transform loop (pinch zoom + pan) until all
-        //     pointers lift.
-        //
-        // RC8 — gesture rewrite. Pre-RC8 used a "near handle = drag handle,
-        // far from handle = pan/zoom" arbiter that the user couldn\'t drag-
-        // pan inside (the dispatch was unreliable, and once the handle was
-        // dragged to an edge the user couldn\'t re-grab it without reloading
-        // the screen). Now: every press starts neutral, accumulates movement
-        // until either touchSlop is crossed (→ pan/zoom for the rest of the
-        // gesture) or the finger lifts before slop (→ tap snaps the handle
-        // to the tap x). Tap-anywhere always works, so the "slider only
-        // works once" symptom is gone.
+        // RC8 noted that the prior "near-handle = drag" version had a bug
+        // where reaching an edge made the handle unreachable; that was the
+        // arbiter sometimes selecting pan-mode for handle-area presses. We
+        // fix that here by ALWAYS using pixel proximity at the down event.
+        // The handle never sticks at an edge because the user can drag
+        // back away from it from any nearby position.
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(Unit) {
+                .pointerInput(viewportW) {
                     val slop = viewConfiguration.touchSlop
+                    val handleHitPx = 60f
                     awaitEachGesture {
                         val down = awaitFirstDown(requireUnconsumed = false)
                         val downPos = down.position
-                        var totalMoved = 0f
-                        var isDragging = false
+                        val nearHandle = kotlin.math.abs(downPos.x - handleX) <= handleHitPx
+                        var movedPastSlop = false
 
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            val change = event.changes.firstOrNull { it.id == down.id }
-
-                            if (!isDragging && change != null) {
-                                val dx = change.position.x - downPos.x
-                                val dy = change.position.y - downPos.y
-                                totalMoved = kotlin.math.hypot(dx, dy)
-                                if (totalMoved > slop) isDragging = true
+                        if (nearHandle) {
+                            // Glide the handle as the finger moves.
+                            // Snap on first frame too so a tap immediately
+                            // jumps the handle to the press location.
+                            onHandleXChange(downPos.x.coerceIn(0f, viewportW))
+                            down.consume()
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val change = event.changes.firstOrNull { it.id == down.id }
+                                if (change == null || !change.pressed) break
+                                onHandleXChange(change.position.x.coerceIn(0f, viewportW))
+                                change.consume()
                             }
-
-                            if (isDragging) {
-                                val zoomChange = event.calculateZoom()
-                                val panChange = event.calculatePan()
-                                if (zoomChange != 1f || panChange != Offset.Zero) {
-                                    onScaleChange((scale * zoomChange).coerceIn(1f, 8f))
-                                    onOffsetXChange(offsetX + panChange.x)
-                                    onOffsetYChange(offsetY + panChange.y)
-                                    clampOffsets()
-                                    event.changes.forEach { it.consume() }
+                        } else {
+                            // Pinch + pan elsewhere.
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val change = event.changes.firstOrNull { it.id == down.id }
+                                if (!movedPastSlop && change != null) {
+                                    val dx = change.position.x - downPos.x
+                                    val dy = change.position.y - downPos.y
+                                    if (kotlin.math.hypot(dx, dy) > slop) movedPastSlop = true
                                 }
-                            }
-
-                            if (change == null || !change.pressed) {
-                                if (!isDragging) {
-                                    // True tap — snap handle to tap x.
-                                    onHandleXChange(downPos.x.coerceIn(0f, viewportW))
+                                if (movedPastSlop) {
+                                    val zoomChange = event.calculateZoom()
+                                    val panChange = event.calculatePan()
+                                    if (zoomChange != 1f || panChange != Offset.Zero) {
+                                        onScaleChange((scale * zoomChange).coerceIn(1f, 8f))
+                                        onOffsetXChange(offsetX + panChange.x)
+                                        onOffsetYChange(offsetY + panChange.y)
+                                        clampOffsets()
+                                        event.changes.forEach { it.consume() }
+                                    }
                                 }
-                                break
+                                if (change == null || !change.pressed) break
                             }
                         }
                     }

@@ -44,9 +44,14 @@ class PosterPdfMessagingService : FirebaseMessagingService() {
             // any time, so worst case the next signin re-fetches.
             return
         }
+        // RC15: see AuthRepository.registerFcmTokenForCurrentUser — set+merge
+        // instead of update() so a fresh doc is created on first write.
         FirebaseFirestore.getInstance()
             .collection("users").document(uid)
-            .update("fcmTokens", FieldValue.arrayUnion(token))
+            .set(
+                mapOf("fcmTokens" to FieldValue.arrayUnion(token)),
+                com.google.firebase.firestore.SetOptions.merge(),
+            )
             .addOnFailureListener { e -> Log.w(TAG, "FCM token upload failed: ${e.message}") }
     }
 

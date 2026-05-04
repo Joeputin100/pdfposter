@@ -20,7 +20,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc14"  // RC14 batch (drag/zoom, white rectangles, FCM toast)
+        versionName = "1.0-rc15"  // RC15 (glitter relayered, drag fixed, FCM token set+merge)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

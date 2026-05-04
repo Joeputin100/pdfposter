@@ -135,6 +135,14 @@ class PosterLogic {
         svgTileRenderer: ((tilePxW: Int, tilePxH: Int,
                            srcLeft01: Float, srcTop01: Float,
                            srcRight01: Float, srcBottom01: Float) -> Bitmap)? = null,
+        /**
+         * RC15: when an upscale is queued or in progress, suppress the embedded
+         * "Low Print Resolution Warning" text on the instructions page. The
+         * source bitmap is still low-DPI (the upscale happens on a separate
+         * pipeline that swaps the source later), so the warning was visually
+         * incorrect and contradicted the in-app "Upscaling with X" status.
+         */
+        suppressLowDpiWarning: Boolean = false,
     ) {
         val doc = PDDocument()
         // For raster sources we hoist the image once (PDFBox de-duplicates
@@ -351,8 +359,8 @@ class PosterLogic {
         cs.endText()
         cs.setNonStrokingColor(0f, 0f, 0f)
 
-        // Low-DPI warning
-        if (minDpi < 150) {
+        // Low-DPI warning. RC15: suppress when an upscale is queued.
+        if (minDpi < 150 && !suppressLowDpiWarning) {
             cs.beginText()
             cs.setFont(PDType1Font.HELVETICA_BOLD, 11f)
             cs.setNonStrokingColor(0.8f, 0.35f, 0.0f) // warm orange warning

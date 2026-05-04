@@ -89,13 +89,23 @@ class AuthRepository private constructor(appContext: Context) {
         try {
             val token = com.google.firebase.messaging.FirebaseMessaging.getInstance()
                 .token.await()
+            // RC15: switched .update(...) → .set(..., merge) because update()
+            // fails with NOT_FOUND for users who haven't yet had a /users/{uid}
+            // doc written by the backend (fresh anon sign-in). The user's
+            // RC14 debug log showed test_push: delivered=0 across every chip,
+            // because the token was never persisted server-side. set+merge
+            // creates the doc on first write, then arrayUnion's idempotency
+            // handles repeated registrations.
             com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 .collection("users").document(uid)
-                .update(
-                    "fcmTokens",
-                    com.google.firebase.firestore.FieldValue.arrayUnion(token),
+                .set(
+                    mapOf(
+                        "fcmTokens" to com.google.firebase.firestore.FieldValue.arrayUnion(token),
+                    ),
+                    com.google.firebase.firestore.SetOptions.merge(),
                 )
                 .await()
+            Log.i(TAG, "FCM token registered for uid=$uid")
         } catch (t: Throwable) {
             Log.w(TAG, "FCM token registration failed: ${t.message}")
         }
