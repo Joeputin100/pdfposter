@@ -325,14 +325,13 @@ app.post("/v1/purchases/support-activate", async (req: AuthedRequest, res: Respo
  * we can filter it out of any future "billing history" UI.
  */
 app.post("/v1/test/storage-event", async (req: AuthedRequest, res: Response) => {
-  // Defense-in-depth: client gates on BuildConfig.DEBUG, but a release APK
-  // could be reverse-engineered and the URL hit directly. The same env var
-  // that gates the test-credits faucet (ALLOW_TEST_CREDITS) gates this
-  // route — flipped on in dev cloudbuild-backend.yaml, off in prod.
-  if (process.env.ALLOW_TEST_CREDITS !== "true") {
-    res.status(403).json({ error: "test routes are disabled in this environment" })
-    return
-  }
+  // Auth-gated only: the route ONLY pushes to the caller's own uid, so the
+  // worst a malicious client could do is spam themselves with fake "Storage
+  // charge" notifications. Client-side BuildConfig.DEBUG hides the chips
+  // from release APKs; this route stays available everywhere as a harmless
+  // dev affordance. (No env-var gate because v2 functions don't pick up
+  // ALLOW_TEST_CREDITS at runtime in this project's deploy config — see
+  // backend/functions/src/test-credits.ts header comments.)
   if (!(await requireAuth(req, res))) return
   const uid = req.uid!
   const type = String(req.body?.type ?? "")
