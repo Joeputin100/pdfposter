@@ -639,25 +639,12 @@ private fun UpscaleOptionCard(
                                 .height(100.dp)
                                 .padding(12.dp),
                         )
-                        // Subtle pulsing wand emoji overlay — top-left corner
-                        val infiniteTransition = rememberInfiniteTransition(label = "wandPulse_${option.model.name}")
-                        val wandAlpha by infiniteTransition.animateFloat(
-                            initialValue = 0.7f,
-                            targetValue = 1.0f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(durationMillis = 800),
-                                repeatMode = RepeatMode.Reverse,
-                            ),
-                            label = "wandAlpha_${option.model.name}",
-                        )
-                        Text(
-                            text = "🪄",
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(4.dp)
-                                .alpha(wandAlpha),
-                        )
+                        // RC10: removed the pulsing 🪄 emoji that rendered as
+                        // a white square on Samsung's emoji set at small
+                        // sizes (user-flagged "white rectangles in the
+                        // middle of every model card"). The AGSL glitter on
+                        // the card surface already conveys the "AI magic"
+                        // signal; the emoji was redundant.
                     }
                 }
             }

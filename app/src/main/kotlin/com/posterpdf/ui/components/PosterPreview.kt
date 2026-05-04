@@ -223,9 +223,15 @@ fun PosterPreview(viewModel: MainViewModel) {
     // Screenshot_20260503_153224). 0.15 still moves the printer body
     // mostly off-screen but keeps every row visible.
     val cameraOffsetYpx = remember { mutableFloatStateOf(0f) }
+    // RC10: user-driven pan offset added to the animation-driven camera Y.
+    // Lets the user drag the table inside the viewport (e.g. drag down to
+    // pan up and see the printer that's normally above the visible area
+    // during Arranging/Cutting/etc.). Persists across animation phases;
+    // resets when the source image changes (via remember(previewBitmap)).
+    val userPanY = remember(previewBitmap) { mutableFloatStateOf(0f) }
     androidx.compose.runtime.SideEffect {
         val panTarget = boxSize.height * 0.15f
-        val newValue = if (!cycleEnabled) 0f else when (phase) {
+        val animY = if (!cycleEnabled) 0f else when (phase) {
             AssemblyPhase.Printing -> 0f
             AssemblyPhase.Panning -> {
                 val k = phaseT
@@ -236,8 +242,12 @@ fun PosterPreview(viewModel: MainViewModel) {
             AssemblyPhase.Reset -> -panTarget * (1f - phaseT)
             else -> -panTarget // Hold panned-down through Arranging..Pinning.
         }
-        if (cameraOffsetYpx.floatValue != newValue) {
-            cameraOffsetYpx.floatValue = newValue
+        // Clamp combined offset to ±1.5× viewport height so the user can\'t
+        // drag the layout permanently off-screen.
+        val maxAbs = boxSize.height * 1.5f
+        val combined = (animY + userPanY.floatValue).coerceIn(-maxAbs, maxAbs)
+        if (cameraOffsetYpx.floatValue != combined) {
+            cameraOffsetYpx.floatValue = combined
         }
     }
     val jiggleDurationMs = 600f
@@ -432,7 +442,22 @@ fun PosterPreview(viewModel: MainViewModel) {
             contentAlignment = Alignment.Center
         ) {
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    // RC10: vertical drag pans the table inside the viewport
+                    // (rather than scrolling the entire screen). detectVerticalDragGestures
+                    // consumes events past touchSlop so the parent Column\'s
+                    // verticalScroll doesn\'t also receive them. Drag down →
+                    // userPanY grows positive → content translates down →
+                    // user sees content that was above (e.g. the printer).
+                    .pointerInput(Unit) {
+                        androidx.compose.foundation.gestures.detectVerticalDragGestures(
+                            onVerticalDrag = { change, dragAmount ->
+                                change.consume()
+                                userPanY.floatValue += dragAmount
+                            },
+                        )
+                    },
             ) {
             val paneInfo = viewModel.getPaneCount()
             // RC5: clipToBounds prevents the camera-pan transform from
