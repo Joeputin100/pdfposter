@@ -156,7 +156,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     "${src.width}x${src.height}, ${src.byteCount / 1024} KB",
                 )
                 logEvent(context, "free_upscale: invoking ESRGAN upscale (4x)")
-                val upscaled = com.posterpdf.ml.UpscalerOnDevice.upscale(src)
+                // RC10: hard 15-min ceiling so a stuck inference can\'t hang
+                // the UI forever. User reported a 70+ min hang on RC9; the
+                // root cause was per-tile bitmap allocation thrashing the
+                // GC, fixed inside UpscalerOnDevice. The timeout is a belt-
+                // and-braces guard for any other stall mode (NNAPI hang,
+                // model corruption, etc.).
+                val upscaled = kotlinx.coroutines.withTimeout(15 * 60 * 1000L) {
+                    com.posterpdf.ml.UpscalerOnDevice.upscale(src) { done, total ->
+                        // Heartbeat every ~5% of progress so the log shows
+                        // forward motion (or its absence) at a glance.
+                        if (done == 1 || done == total ||
+                            (total > 20 && done % (total / 20).coerceAtLeast(1) == 0)) {
+                            logEvent(
+                                context,
+                                "free_upscale: tile $done/$total",
+                            )
+                        }
+                    }
+                }
                 logEvent(
                     context,
                     "free_upscale: upscale returned",
@@ -179,6 +197,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 logEvent(context, "free_upscale: SUCCESS", "wrote ${outFile.name}")
                 if (src !== upscaled) src.recycle()
                 upscaled.recycle()
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                errorMessage = "Sharpening timed out after 15 minutes — try a smaller poster size or use an AI option instead."
+                logEvent(context, "free_upscale: TIMEOUT — exceeded 15 min budget")
             } catch (e: kotlinx.coroutines.CancellationException) {
                 logEvent(context, "free_upscale: cancelled by user")
             } catch (e: Throwable) {
@@ -190,6 +211,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
             } finally {
                 isFreeUpscaling = false
+                pendingUpscaleModelLabel = null
             }
         }
     }

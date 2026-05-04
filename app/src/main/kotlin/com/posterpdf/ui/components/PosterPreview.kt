@@ -897,14 +897,32 @@ fun PosterPreview(viewModel: MainViewModel) {
 
                     // Tightened assembled-rect (post-Tightening), reused by
                     // Taping/Pinning + the hand draws below.
+                    //
+                    // RC10: subtract the trailing-edge "leftover paper" that
+                    // gets torn away during Cutting. Pre-RC10 the assembled
+                    // rect spanned the full printable union, so thumb tacks
+                    // landed in empty space (the area where leftover paper
+                    // used to be) instead of in the corners of the actual
+                    // image. Same fix for tape strips that hit the bottom
+                    // and right edges.
+                    val rightLeftover = layout.panes
+                        .firstOrNull { it.col == cols - 1 }
+                        ?.let { it.imageDstWidth - it.imageContentWidth } ?: 0f
+                    val bottomLeftover = layout.panes
+                        .firstOrNull { it.row == rows - 1 }
+                        ?.let { it.imageDstHeight - it.imageContentHeight } ?: 0f
                     val tCenterX = stackCenterX
                     val tCenterY = stackCenterY
-                    val tightenedW = assembledBlockW - (cols - 1) * gap
-                    val tightenedH = assembledBlockH - (rows - 1) * gap
-                    val tLeft = tCenterX - tightenedW / 2f
-                    val tTop = tCenterY - tightenedH / 2f
-                    val tRight = tCenterX + tightenedW / 2f
-                    val tBottom = tCenterY + tightenedH / 2f
+                    val tightenedW = assembledBlockW - (cols - 1) * gap - rightLeftover
+                    val tightenedH = assembledBlockH - (rows - 1) * gap - bottomLeftover
+                    // Image is anchored top-left of the assembled block (the
+                    // leftover trims from the right and bottom only), so the
+                    // image-centre is offset slightly up-and-left of the
+                    // printable-block centre.
+                    val tLeft = stackCenterX - assembledBlockW / 2f + (cols - 1) * gap / 2f
+                    val tTop = stackCenterY - assembledBlockH / 2f + (rows - 1) * gap / 2f
+                    val tRight = tLeft + tightenedW
+                    val tBottom = tTop + tightenedH
 
                     // ── Hand 👌 — drives Arranging, Tightening, Taping, Pinning.
                     // RC5: bumped 0.45 → 0.65 of the smaller printable axis so

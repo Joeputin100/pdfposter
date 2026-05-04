@@ -81,11 +81,21 @@ object UpscalerOnDevice {
     /**
      * Upscale [input] by 4x. Any input size is accepted; the bitmap is tiled
      * into 50x50 chunks fed to the model, and the 200x200 outputs are
-     * composited into the result bitmap. Edge tiles whose source rect would
-     * exceed bitmap bounds are anchored against the right/bottom edge so the
-     * model always sees a full 50x50 input.
+     * composited into the result bitmap.
+     *
+     * RC10: rebuilt to drop the per-tile bitmap allocations that were causing
+     * a user-reported 70+ min hang on a 1 MP source. For 1 MP input → 432
+     * tiles, the prior code allocated 432 × (50×50 + 200×200) ARGB_8888
+     * bitmaps = ~73 MB of churn, which thrashes the GC and serializes
+     * inference behind it. Now both buffers are allocated ONCE and reused.
+     *
+     * Also: optional progress callback so the caller can log heartbeats and
+     * detect a stall vs. a slow run.
      */
-    suspend fun upscale(input: Bitmap): Bitmap = withContext(Dispatchers.Default) {
+    suspend fun upscale(
+        input: Bitmap,
+        onProgress: ((completedTiles: Int, totalTiles: Int) -> Unit)? = null,
+    ): Bitmap = withContext(Dispatchers.Default) {
         val interp = ensureInterpreter()
         val srcW = input.width
         val srcH = input.height
@@ -101,13 +111,21 @@ object UpscalerOnDevice {
         val outCanvas = Canvas(out)
         val paint = Paint(Paint.FILTER_BITMAP_FLAG)
 
-        // Reusable buffers.
+        // Reusable buffers — allocated ONCE for the whole upscale.
         val inBuf = ByteBuffer.allocateDirect(1 * TILE_IN * TILE_IN * 3 * 4)
             .order(ByteOrder.nativeOrder())
         val outBuf = ByteBuffer.allocateDirect(1 * TILE_OUT * TILE_OUT * 3 * 4)
             .order(ByteOrder.nativeOrder())
         val tilePixels = IntArray(TILE_IN * TILE_IN)
         val outPixels = IntArray(TILE_OUT * TILE_OUT)
+        // Reused output tile bitmap (RC10 fix: was being allocated PER TILE).
+        val tileOut = Bitmap.createBitmap(TILE_OUT, TILE_OUT, Bitmap.Config.ARGB_8888)
+
+        // Pre-compute total tile count for progress reporting.
+        val tileCols = (srcW + TILE_IN - 1) / TILE_IN
+        val tileRows = (srcH + TILE_IN - 1) / TILE_IN
+        val totalTiles = tileCols * tileRows
+        var completed = 0
 
         var y = 0
         while (y < srcH) {
@@ -119,18 +137,19 @@ object UpscalerOnDevice {
                 val tileSrcX = if (x + TILE_IN <= srcW) x else (srcW - TILE_IN).coerceAtLeast(0)
                 val tileW = minOf(TILE_IN, srcW - tileSrcX)
 
-                // If the source is smaller than 50x50, pad by clamping reads to
-                // a temporary scaled-up tile via Bitmap.createBitmap with copy.
-                val tileBmp = if (srcW >= TILE_IN && srcH >= TILE_IN) {
-                    Bitmap.createBitmap(src, tileSrcX, tileSrcY, TILE_IN, TILE_IN)
+                // RC10: read source pixels DIRECTLY into the reused IntArray —
+                // no per-tile bitmap allocation. For sources smaller than
+                // 50x50, fall back to the legacy stretched-tile path.
+                if (srcW >= TILE_IN && srcH >= TILE_IN) {
+                    src.getPixels(tilePixels, 0, TILE_IN, tileSrcX, tileSrcY, TILE_IN, TILE_IN)
                 } else {
-                    // Pad small bitmaps to 50x50 by stretching (rare path —
-                    // the caller guarantees >=50x50 in production use).
-                    Bitmap.createScaledBitmap(src, TILE_IN, TILE_IN, true)
+                    // Tiny source — stretch into a temp 50x50 once. Rare.
+                    val padded = Bitmap.createScaledBitmap(src, TILE_IN, TILE_IN, true)
+                    padded.getPixels(tilePixels, 0, TILE_IN, 0, 0, TILE_IN, TILE_IN)
+                    if (padded !== src) padded.recycle()
                 }
 
                 // Pack RGB float32 [0..255] into the model input buffer.
-                tileBmp.getPixels(tilePixels, 0, TILE_IN, 0, 0, TILE_IN, TILE_IN)
                 inBuf.rewind()
                 for (px in tilePixels) {
                     inBuf.putFloat(((px ushr 16) and 0xFF).toFloat())
@@ -150,12 +169,10 @@ object UpscalerOnDevice {
                     outPixels[i] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
                 }
 
-                val tileOut = Bitmap.createBitmap(TILE_OUT, TILE_OUT, Bitmap.Config.ARGB_8888)
+                // RC10: write into the REUSED tileOut bitmap (no allocation).
                 tileOut.setPixels(outPixels, 0, TILE_OUT, 0, 0, TILE_OUT, TILE_OUT)
 
                 if (srcW >= TILE_IN && srcH >= TILE_IN) {
-                    // Slice the meaningful (non-padded) region of the output
-                    // and blit it into the destination at the right place.
                     val outSrcLeft = (x - tileSrcX) * SCALE
                     val outSrcTop = (y - tileSrcY) * SCALE
                     val outSrcRight = outSrcLeft + tileW * SCALE
@@ -167,9 +184,6 @@ object UpscalerOnDevice {
                         paint
                     )
                 } else {
-                    // Small-input path: source was stretched to 50x50 to feed
-                    // the model; rescale the full 200x200 output back down to
-                    // (srcW*4, srcH*4) so the caller still gets a 4x bitmap.
                     outCanvas.drawBitmap(
                         tileOut,
                         Rect(0, 0, TILE_OUT, TILE_OUT),
@@ -177,14 +191,16 @@ object UpscalerOnDevice {
                         paint
                     )
                 }
-                tileOut.recycle()
-                if (tileBmp !== src) tileBmp.recycle()
+
+                completed++
+                onProgress?.invoke(completed, totalTiles)
 
                 x += TILE_IN
             }
             y += TILE_IN
         }
 
+        tileOut.recycle()
         if (src !== input) src.recycle()
         out
     }

@@ -326,7 +326,17 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             com.posterpdf.ml.cachedMsPerMegapixel(context)?.let { msPerMp = it }
         }
         val expectedMs = (msPerMp * outputMp).coerceAtLeast(20_000L)
-        val progress = (elapsedMs.toFloat() / expectedMs.toFloat()).coerceIn(0f, 0.99f)
+        // RC10: when the actual run exceeds the estimate, asymptote progress
+        // toward (but never reach) 0.95 so the bar visibly keeps moving but
+        // doesn\'t lie about completion. Drop the "(X s elapsed)" counter
+        // when we\'re past the estimate — user complained the count went
+        // *up* after hitting zero, which read as broken rather than slow.
+        val progress = if (elapsedMs <= expectedMs) {
+            (elapsedMs.toFloat() / expectedMs.toFloat() * 0.85f).coerceIn(0f, 0.85f)
+        } else {
+            val overrun = (elapsedMs - expectedMs).toFloat() / expectedMs.toFloat()
+            (0.85f + 0.10f * (1f - kotlin.math.exp(-overrun))).coerceAtMost(0.95f)
+        }
         val remainingSec = ((expectedMs - elapsedMs) / 1000L).coerceAtLeast(0L)
         AlertDialog(
             onDismissRequest = { /* not dismissable — must Cancel or wait */ },
@@ -338,7 +348,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                         text = if (remainingSec > 0)
                             "About $remainingSec s left · ${(progress * 100).toInt()}%"
                         else
-                            "Almost done… (${elapsedMs / 1000} s elapsed)",
+                            "Taking longer than expected — still working… ${(progress * 100).toInt()}%",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(12.dp))
@@ -1982,12 +1992,17 @@ private fun SharpenForPrintCta(onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            // RC8: glintEffect was missing — that\'s why the card was
-            // "just a purple button" with no holofoil sparkle. Now active
-            // unconditionally because this is the headline CTA.
+            // RC10: paint the tertiaryContainer background ourselves so the
+            // glitter (drawn next, BEFORE the card content) lands on top
+            // of it but UNDER the icon/text/chevron. The card\'s own
+            // containerColor is set to Transparent below.
+            .background(
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                shape = RoundedCornerShape(20.dp),
+            )
             .glintEffect(active = true),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
         ),
         shape = RoundedCornerShape(20.dp),
     ) {

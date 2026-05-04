@@ -361,7 +361,7 @@
     <string name="upscale_card_upscale_free" tools:maxLength="16">Upscale free</string>
     <string name="upscale_card_sign_in" tools:maxLength="14">Sign in</string>
     <string name="upscale_card_get_more_credits" tools:maxLength="20">Get more credits</string>
-    <string name="upscale_card_upscale_with_credits" tools:maxLength="20">Upscale · %1$d cr</string>
+    <string name="upscale_card_upscale_with_credits" tools:maxLength="14">Upscale · %1$d 🪙</string>
 
     <!-- SVG vector banner -->
     <string name="svg_banner_title">Vector source</string>

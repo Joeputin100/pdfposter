@@ -171,12 +171,19 @@ private fun glintAgslModifier(): Modifier {
     return Modifier.drawWithCache {
         val brush = ShaderBrush(shader)
         onDrawWithContent {
-            drawContent()
+            // RC10: draw the glitter BEFORE the content so it sits on the
+            // card surface but UNDER the icon / text / button. User said:
+            // "confine glitter effect to card backgrounds — not over the
+            // model logos, text descriptions, and action buttons."
+            // The card\'s containerColor must be partly transparent for
+            // the glitter to show through; surfaceVariant.copy(alpha=0.5)
+            // (existing) is already see-through enough.
             val tSec = ((nowMs - startMs) / 1000f).coerceAtLeast(0f)
             shader.setFloatUniform("iResolution", size.width, size.height)
             shader.setFloatUniform("iTime", tSec)
             shader.setFloatUniform("iTilt", tilt.first, tilt.second)
-            drawRect(brush = brush, size = size, blendMode = BlendMode.Plus)
+            drawRect(brush = brush, size = size)
+            drawContent()
         }
     }
 }
@@ -202,8 +209,9 @@ private fun glintAnimatedGradientModifier(): Modifier {
     return Modifier.drawWithCache {
         val brush = sweepBrush(phase)
         onDrawWithContent {
+            // RC10: glitter under content (see GlintShader AGSL path comment).
+            drawRect(brush = brush, size = size)
             drawContent()
-            drawRect(brush = brush, size = size, blendMode = BlendMode.Plus)
         }
     }
 }
