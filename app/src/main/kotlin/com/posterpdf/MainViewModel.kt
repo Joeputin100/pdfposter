@@ -399,10 +399,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         loadSettings()
-        viewModelScope.launch { auth.session.collectLatest { authSession = it } }
+        viewModelScope.launch {
+            auth.session.collectLatest { s ->
+                authSession = s
+                // RC16: mirror the photoUrl into the debug log so the
+                // user's next saved log tells us whether the URL is
+                // actually null vs. set-but-failing-to-load.
+                logEvent(
+                    appContext,
+                    "auth_session",
+                    "signedIn=${s.signedIn} anon=${s.isAnonymous} photoUrl=${com.posterpdf.data.backend.AuthRepository.lastPhotoUrl ?: "<null>"}",
+                )
+            }
+        }
         viewModelScope.launch {
             auth.ensureSignedIn()
             refreshHistory()
+        }
+        // RC16: kick off the on-device upscale benchmark on app start (if
+        // missing or stale) so the LowDpiUpgradeModal's "Free upscale"
+        // model card can render a real ETA instead of "estimating…"
+        // forever. Runs on Dispatchers.Default; a few seconds on a mid-
+        // tier phone, results cached for 30 days.
+        viewModelScope.launch(Dispatchers.Default) {
+            try {
+                if (com.posterpdf.ml.benchmarkNeedsRefresh(appContext)) {
+                    com.posterpdf.ml.UpscalerOnDevice.init(appContext)
+                    com.posterpdf.ml.UpscalerOnDevice.benchmarkAndCache(appContext)
+                    logEvent(appContext, "upscale_benchmark: completed")
+                }
+            } catch (t: Throwable) {
+                logEvent(appContext, "upscale_benchmark: failed", t.message)
+            }
         }
     }
 

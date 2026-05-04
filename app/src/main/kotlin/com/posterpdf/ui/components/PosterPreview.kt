@@ -546,16 +546,16 @@ fun PosterPreview(viewModel: MainViewModel) {
                 val printableHpx = layout.printableH.toFloat() * layout.scale
                 val assembledBlockW = cols * (printableWpx - overlapPx) + overlapPx
                 val assembledBlockH = rows * (printableHpx - overlapPx) + overlapPx
-                // RC14: simpler formula — at least 65% of canvas, AND wider
-                // than a single sheet of paper. RC13's printableWpx-based
-                // computation occasionally produced a degenerate width on
-                // first composition (before layout settled), so the user
-                // saw the printer "disappear off the table." Both inputs
-                // are now well-defined post-measure.
-                val printerWidth = maxOf(
-                    size.width * 0.65f,
-                    printableWpx * 1.25f,
-                ).coerceAtMost(size.width * 0.92f)
+                // RC16: real printers feed paper in PORTRAIT regardless of
+                // the eventual orientation, so the printer body is sized to
+                // the SHORTER edge of the paper × ~1.15 (just enough wider
+                // than the page to cradle the feed slot). The user's
+                // mental model: "slightly wider than 1 sheet of paper in
+                // portrait format. Landscape sheets exit the printer in
+                // portrait and rotate 90° CCW as they hit the table."
+                val portraitEdgePx = minOf(printableWpx, printableHpx)
+                val printerWidth = (portraitEdgePx * 1.15f)
+                    .coerceIn(size.width * 0.35f, size.width * 0.85f)
                 val printerBodyH = printerWidth * 0.55f
                 // RC15: position printer's bottom edge just above the pages
                 // so the printer body sits ABOVE the top row, not on top of
@@ -992,7 +992,12 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val tLeft = stackCenterX - assembledBlockW / 2f + (cols - 1) * gap / 2f
                     val tTop = stackCenterY - assembledBlockH / 2f + (rows - 1) * gap / 2f
                     val tRight = tLeft + tightenedW
-                    val tBottom = tTop + tightenedH
+                    // RC16: tBottom now uses the FULL tightened block height
+                    // less just the bottom leftover (no gap subtraction). The
+                    // prior formula put the bottom tacks in the middle row
+                    // when bottomLeftover was nonzero (user report). Tacks
+                    // should pin the bottom edge of the bottom row, full stop.
+                    val tBottom = tTop + (assembledBlockH - bottomLeftover - (rows - 1) * gap / 2f)
 
                     // ── Hand 👌 — drives Arranging, Tightening, Taping, Pinning.
                     // RC5: bumped 0.45 → 0.65 of the smaller printable axis so

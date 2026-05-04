@@ -336,18 +336,28 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         val total = viewModel.freeUpscaleTotalTiles
         val startMs = viewModel.freeUpscaleStartMs
         var elapsedMs by remember { mutableLongStateOf(0L) }
+        // RC16: smoothed ETA. The instantaneous formula (elapsed/done × remaining)
+        // jittered between high and low values as tiles ran at different speeds
+        // (the user reported "~3 min at 33%, then ~2:30 at 60% — needs to be a
+        // lot better and smoothed"). We low-pass with α=0.15: smoothed_eta is
+        // a slow chase of the instantaneous reading. Once 100% complete we
+        // also show a dedicated "Saving…" state because the PNG write tail
+        // takes a few seconds the user noticed as a "paused at 100%" beat.
+        var smoothedRemainingMs by remember { mutableLongStateOf(0L) }
         LaunchedEffect(viewModel.isFreeUpscaling) {
             while (viewModel.isFreeUpscaling) {
                 elapsedMs = System.currentTimeMillis() - startMs
+                if (done > 0 && done < total) {
+                    val instantRemaining = elapsedMs * (total - done) / done
+                    smoothedRemainingMs = if (smoothedRemainingMs == 0L) instantRemaining
+                    else (smoothedRemainingMs * 85 + instantRemaining * 15) / 100
+                }
                 kotlinx.coroutines.delay(500)
             }
         }
         val progress = if (total > 0) {
             (done.toFloat() / total.toFloat()).coerceIn(0f, 1f)
         } else 0f
-        val remainingMs = if (done > 0 && done < total) {
-            elapsedMs * (total - done) / done
-        } else 0L
         AlertDialog(
             onDismissRequest = { /* not dismissable — must Cancel or wait */ },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
@@ -355,16 +365,25 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             text = {
                 Column {
                     val pct = (progress * 100).toInt()
+                    val isSaving = total > 0 && done >= total
+                    // RC16: separate lines per user request — time on top,
+                    // tile counter underneath.
                     Text(
-                        text = if (total == 0) {
-                            "Preparing tiles…"
-                        } else if (remainingMs > 0) {
-                            "About ${prettyDuration(remainingMs)} left · $pct% ($done/$total tiles)"
-                        } else {
-                            "Finishing… $pct% ($done/$total tiles)"
+                        text = when {
+                            total == 0 -> "Preparing tiles…"
+                            isSaving -> "Saving…"
+                            smoothedRemainingMs > 0L -> "About ${prettyDuration(smoothedRemainingMs)} left"
+                            else -> "Almost done…"
                         },
                         style = MaterialTheme.typography.bodyMedium,
                     )
+                    if (total > 0 && !isSaving) {
+                        Text(
+                            text = "$pct% ($done of $total tiles)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     Spacer(Modifier.height(12.dp))
                     LinearProgressIndicator(
                         progress = { progress },

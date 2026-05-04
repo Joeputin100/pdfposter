@@ -166,13 +166,14 @@ class AuthRepository private constructor(appContext: Context) {
     private fun FirebaseUser?.toSession(): AuthSession = if (this == null) {
         AuthSession()
     } else {
-        // RC13 diagnostic: log the photoUrl so we can see whether it's
-        // null (Google scopes/SignIn issue), or set-but-failing-to-load
-        // (Coil/AsyncImage issue) — the drawer falls back to the
-        // AccountCircle icon either way, so without this log we can't
-        // tell which side of the boundary the bug is on.
         val photo = photoUrl?.toString()
+        // RC16: Log.i went to logcat which the user can't access. Mirror
+        // the diagnostic into the user-facing debug log file via the
+        // logEvent path — the user can then submit the next saved log
+        // and we can see whether photoUrl is null (Google scopes
+        // problem) or set-but-not-rendering (Coil/AsyncImage).
         Log.i(TAG, "session: uid=$uid anon=$isAnonymous photoUrl=${photo ?: "<null>"}")
+        AuthRepository.lastPhotoUrl = photo
         AuthSession(
             uid = uid,
             isAnonymous = isAnonymous,
@@ -187,6 +188,12 @@ class AuthRepository private constructor(appContext: Context) {
         private const val TAG = "AuthRepository"
 
         @Volatile private var INSTANCE: AuthRepository? = null
+
+        /** RC16 diagnostic: the most recently observed photoUrl from the auth
+         *  state listener. Read from MainActivity / MainViewModel and written
+         *  to the debug log file once per session-update so the user-facing
+         *  log shows whether the URL is actually null vs. failing to load. */
+        @Volatile var lastPhotoUrl: String? = null
 
         fun get(context: Context): AuthRepository =
             INSTANCE ?: synchronized(this) {

@@ -73,7 +73,9 @@ fun StorageRetentionDialog(
                         "deducted from your credit balance (typical 10 MB poster ≈ " +
                         "1 credit/month minimum, scaling up as you store more). " +
                         "If you run out of credits we hold for 30 more days and " +
-                        "send a push 24h before deleting.",
+                        "send a push 24h before deleting — or you can switch back " +
+                        "to local-only any time and keep your posters without " +
+                        "paying for cloud storage.",
                 )
             }
         },
