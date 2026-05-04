@@ -53,6 +53,16 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <!-- RC12b: Firebase Cloud Messaging service — handles incoming push
+             for monthly storage charges + 24h-before-deletion warnings. -->
+        <service
+            android:name=".data.backend.PosterPdfMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

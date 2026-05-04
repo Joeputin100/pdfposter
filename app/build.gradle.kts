@@ -128,6 +128,10 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-common-ktx")
+    // RC12b: Cloud Messaging for storage-billing + deletion-warning push.
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    // RC12b: Firestore client for FCM token registration + storageBilling read.
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:20.7.0")

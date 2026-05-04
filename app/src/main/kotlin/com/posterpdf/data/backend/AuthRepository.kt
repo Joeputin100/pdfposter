@@ -59,11 +59,45 @@ class AuthRepository private constructor(appContext: Context) {
 
     suspend fun ensureSignedIn() {
         val a = auth ?: return
-        if (a.currentUser != null) return
+        if (a.currentUser != null) {
+            registerFcmTokenForCurrentUser()
+            return
+        }
         try {
             a.signInAnonymously().await()
+            registerFcmTokenForCurrentUser()
         } catch (t: Throwable) {
             Log.w(TAG, "anonymous sign-in failed: ${t.message}")
+        }
+    }
+
+    /**
+     * RC12b — fetch the device's current FCM token and write it into
+     * /users/{uid}.fcmTokens (an array — Firestore arrayUnion handles dedup).
+     * Server-side dailySweep reads this array to deliver storage-billing
+     * pushes. Best-effort; failures are logged but never propagated.
+     *
+     * Called from ensureSignedIn() (covers both fresh anon and returning
+     * Google sign-in flows) and after any successful upgradeToGoogle().
+     * The FirebaseMessagingService.onNewToken hook also writes the token,
+     * but that only fires on token rotation — not on app start with a
+     * pre-existing token, so this explicit registration is the reliable
+     * path for already-signed-in users.
+     */
+    private suspend fun registerFcmTokenForCurrentUser() {
+        val uid = auth?.currentUser?.uid ?: return
+        try {
+            val token = com.google.firebase.messaging.FirebaseMessaging.getInstance()
+                .token.await()
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("users").document(uid)
+                .update(
+                    "fcmTokens",
+                    com.google.firebase.firestore.FieldValue.arrayUnion(token),
+                )
+                .await()
+        } catch (t: Throwable) {
+            Log.w(TAG, "FCM token registration failed: ${t.message}")
         }
     }
 

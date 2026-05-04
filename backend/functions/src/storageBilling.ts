@@ -38,6 +38,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from 'firebase-functions/v2';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
+import { getMessaging } from 'firebase-admin/messaging';
 
 const STORAGE_FREE_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
 const STORAGE_GRACE_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
@@ -68,12 +69,77 @@ interface UserDoc {
   storageBilling?: StorageBilling;
 }
 
+/** Mirrors the Android `prettyBytes()` helper so push body and drawer row read identically. */
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
 function parseGsUri(uri: string): { bucket: string; object: string } | null {
   if (!uri.startsWith('gs://')) return null;
   const without = uri.substring('gs://'.length);
   const slash = without.indexOf('/');
   if (slash <= 0) return null;
   return { bucket: without.substring(0, slash), object: without.substring(slash + 1) };
+}
+
+/**
+ * RC12b — Push the {title, body} to every FCM token registered for `uid`.
+ * Best-effort: any token-level failure is logged; the only side-effect on
+ * the user doc is pruning tokens that the FCM service rejects with
+ * `messaging/registration-token-not-registered` (i.e. uninstalled or
+ * expired tokens — leaving them in the array would balloon it forever).
+ *
+ * Returns the count of successfully-delivered messages so the caller can
+ * decide whether to mark the originating notification doc as sent.
+ */
+async function sendPushToUser(
+  uid: string,
+  title: string,
+  body: string,
+): Promise<number> {
+  const db = getFirestore();
+  const userRef = db.collection('users').doc(uid);
+  const userSnap = await userRef.get();
+  const tokens = (userSnap.data() as { fcmTokens?: string[] } | undefined)?.fcmTokens ?? [];
+  if (tokens.length === 0) return 0;
+
+  let delivered = 0;
+  const dead: string[] = [];
+  for (const token of tokens) {
+    try {
+      await getMessaging().send({
+        token,
+        notification: { title, body },
+        android: {
+          priority: 'high',
+          notification: { channelId: 'billing' },
+        },
+      });
+      delivered += 1;
+    } catch (err: unknown) {
+      const code = (err as { code?: string } | undefined)?.code ?? '';
+      if (
+        code === 'messaging/registration-token-not-registered' ||
+        code === 'messaging/invalid-registration-token' ||
+        code === 'messaging/invalid-argument'
+      ) {
+        dead.push(token);
+      } else {
+        logger.warn('FCM send failed', { uid, code, err: String(err) });
+      }
+    }
+  }
+  if (dead.length > 0) {
+    try {
+      await userRef.update({ fcmTokens: FieldValue.arrayRemove(...dead) });
+    } catch (err) {
+      logger.warn('FCM dead-token prune failed', { uid, err: String(err) });
+    }
+  }
+  return delivered;
 }
 
 async function deleteBlob(uri: string): Promise<void> {
@@ -264,9 +330,21 @@ export const dailySweep = onSchedule(
       if (r.gracedEntered) summary.gracedEntered += 1;
       summary.deleted += r.deleted;
 
-      // Write notification surface for the client.
+      // Write notification surface for the client AND push via FCM.
+      // The Firestore doc is the durable record (in-app inbox); FCM is
+      // the wake-the-device transport. We always write the doc first
+      // (sent: false) and only flip to sent: true after at least one
+      // FCM delivery succeeds — that way a failed push leaves a retry
+      // signal rather than disappearing silently.
+      const notifRef = db.collection('users').doc(userDoc.id).collection('notifications');
+      let title: string | null = null;
+      let body: string | null = null;
+      let docRef: FirebaseFirestore.DocumentReference | null = null;
+
       if (r.charged > 0) {
-        await db.collection('users').doc(userDoc.id).collection('notifications').add({
+        title = 'Storage charge';
+        body = `${r.charged} ${r.charged === 1 ? 'credit' : 'credits'} charged for ${r.posters} ${r.posters === 1 ? 'poster' : 'posters'} · ${formatBytes(r.bytes)}`;
+        docRef = await notifRef.add({
           type: 'storage_billed',
           credits: r.charged,
           bytes: r.bytes,
@@ -275,19 +353,30 @@ export const dailySweep = onSchedule(
           sent: false,
         });
       } else if (r.gracedEntered) {
-        await db.collection('users').doc(userDoc.id).collection('notifications').add({
+        title = 'Top up credits to keep your posters';
+        body = `Cloud storage paused — ${r.posters} ${r.posters === 1 ? 'poster' : 'posters'} in 30-day grace period`;
+        docRef = await notifRef.add({
           type: 'storage_grace_started',
           posters: r.posters,
           createdAt: FieldValue.serverTimestamp(),
           sent: false,
         });
       } else if (r.deleted > 0) {
-        await db.collection('users').doc(userDoc.id).collection('notifications').add({
+        title = 'Cloud copies removed';
+        body = `${r.deleted} ${r.deleted === 1 ? 'poster was' : 'posters were'} deleted from cloud storage`;
+        docRef = await notifRef.add({
           type: 'storage_deleted',
           deletedCount: r.deleted,
           createdAt: FieldValue.serverTimestamp(),
           sent: false,
         });
+      }
+
+      if (docRef && title && body) {
+        const delivered = await sendPushToUser(userDoc.id, title, body);
+        if (delivered > 0) {
+          await docRef.update({ sent: true, deliveredCount: delivered });
+        }
       }
 
       // 24-hour-before-deletion warning. Triggered when user is in grace
@@ -298,13 +387,21 @@ export const dailySweep = onSchedule(
         const graceEndsMs = billing.gracePeriodStartedAt.toMillis() + STORAGE_GRACE_PERIOD_MS;
         const hoursUntilDelete = (graceEndsMs - now.toMillis()) / (60 * 60 * 1000);
         if (hoursUntilDelete > 0 && hoursUntilDelete <= 24) {
-          await db.collection('users').doc(userDoc.id).collection('notifications').add({
+          const hours = Math.ceil(hoursUntilDelete);
+          const posters = billing.posters ?? 0;
+          const warnTitle = `Posters will be deleted in ${hours}h`;
+          const warnBody = `Add credits to keep your ${posters} stored ${posters === 1 ? 'poster' : 'posters'}`;
+          const warnDoc = await db.collection('users').doc(userDoc.id).collection('notifications').add({
             type: 'storage_deletion_imminent',
-            hoursUntilDelete: Math.ceil(hoursUntilDelete),
-            posters: billing.posters ?? 0,
+            hoursUntilDelete: hours,
+            posters,
             createdAt: FieldValue.serverTimestamp(),
             sent: false,
           });
+          const delivered = await sendPushToUser(userDoc.id, warnTitle, warnBody);
+          if (delivered > 0) {
+            await warnDoc.update({ sent: true, deliveredCount: delivered });
+          }
           summary.deletionWarnings += 1;
         }
       }
