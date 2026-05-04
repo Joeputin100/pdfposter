@@ -3,32 +3,31 @@
   Clarus the Dogcow — landscape orientation. The same traced silhouette
   rotated 90 degrees clockwise so the dogcow lies on its side, indicating
   landscape page orientation.
+
+  RC16 — translate values computed from a measured bounding box rather
+  than guessed. Source bbox X∈[4,168] Y∈[4,132]. Rotating 90° clockwise
+  around pivot (120,120) sends a point (x,y) → (y, 240-x), giving a
+  rotated bbox X'∈[4,132] Y'∈[72,236] with center (68, 154). To center
+  that in the 240×240 viewport (target 120,120) the translate is
+  (120 - 68, 120 - 154) = (+52, −34).
+
+  Earlier RC10/RC13 tries used (+32, +6) and (+52, +60) — both pushed
+  Clarus DOWN of center, which is why the user kept seeing her head
+  pop off the top edge as I added margin. Math now derives translate
+  directly from bbox so future viewport changes can recompute it
+  without guesswork.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="240dp"
     android:height="240dp"
     android:viewportWidth="240"
     android:viewportHeight="240">
-    <!--
-      RC13 — viewport bumped 200×200 → 240×240 because RC10's 200×200 with
-      18dp claimed clearance still rendered with a clipped head per user
-      report. We rotate around the new viewport center (120, 120) so the
-      math doesn't depend on the original 100×100 pivot, and re-center
-      the rotated content with translate. With portrait content spanning
-      roughly X∈[28,176], Y∈[4,132] in its source viewport (180×180-ish),
-      a 90° rotation around (120,120) yields a span fully inside [0,240]
-      with translate (52, 60). Net clearance ≥ 30dp on every side, so
-      even a slightly mismeasured bounding box won't reach the viewport
-      edge. Larger viewport rendered into the same 56dp Icon size means
-      the trace draws a touch smaller — acceptable trade for "head no
-      longer clipped."
-    -->
     <group
         android:pivotX="120.0"
         android:pivotY="120.0"
         android:rotation="90"
         android:translateX="52.0"
-        android:translateY="60.0">
+        android:translateY="-34.0">
         <path
             android:fillColor="#FF1F1F1F"
             android:pathData="M28,4h8v4h-8zM52,4h12v4h-12zM24,8h4v16h-4zM36,8h4v4h-4zM36,24h4v4h-4zM36,124h4v4h-4zM48,8h4v4h-4zM60,8h4v8h-4zM60,32h4v4h-4zM60,116h4v8h-4zM36,12h12v4h-12zM160,12h4v4h-4zM160,44h4v4h-4zM52,16h8v16h-8zM52,124h8v4h-8zM160,16h8v8h-8zM20,24h4v4h-4zM156,24h4v4h-4zM156,48h4v8h-4zM156,84h4v32h-4zM164,24h4v20h-4zM16,28h4v4h-4zM152,28h4v4h-4zM152,56h4v28h-4zM152,116h4v8h-4zM8,32h8v4h-8zM144,32h8v4h-8zM144,124h8v4h-8zM4,36h4v12h-4zM64,36h8v8h-8zM140,36h4v8h-4zM72,44h68v4h-68zM8,48h32v4h-32zM88,48h44v4h-44zM40,52h4v12h-4zM40,116h4v8h-4zM92,52h40v4h-40zM100,56h24v8h-24zM44,64h8v4h-8zM44,84h8v4h-8zM44,68h16v16h-16zM44,88h4v28h-4zM68,88h56v4h-56zM64,92h4v24h-4zM124,92h8v4h-8zM124,124h8v4h-8zM132,96h4v8h-4zM132,116h4v8h-4zM136,104h4v12h-4zM40,128h12v4h-12zM132,128h12v4h-12z" />

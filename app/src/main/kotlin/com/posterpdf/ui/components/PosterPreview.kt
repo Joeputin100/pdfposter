@@ -1246,7 +1246,13 @@ fun PosterPreview(viewModel: MainViewModel) {
         val currentDpi = if (posterWInchesD > 0) (sourcePixelW / posterWInchesD).toFloat() else 0f
         val isLowDpi = currentDpi in 1f..149.99f
         val pendingLabel = viewModel.pendingUpscaleModelLabel
-        if ((isLowDpi || pendingLabel != null) && previewBitmap != null) {
+        // RC16: include showLowDpiModal as a third entry condition so the
+        // modal can still open from the SharpenForPrintCta after an upscale
+        // has completed (isLowDpi=false, pendingLabel=null). User report:
+        // "the sharpen for print button no longer works after the
+        // successful upscale." With this OR, the modal renders whenever
+        // the flag is set, regardless of resolution state.
+        if ((isLowDpi || pendingLabel != null || viewModel.showLowDpiModal) && previewBitmap != null) {
             // RC4: showLowDpiModal lives on viewModel so the new MainActivity
             // "Sharpen for print" CTA can also drive the modal. We read/write
             // it directly here — no local alias.
@@ -1263,25 +1269,32 @@ fun PosterPreview(viewModel: MainViewModel) {
                 MaterialTheme.colorScheme.onTertiaryContainer
             else
                 MaterialTheme.colorScheme.onErrorContainer
-            Card(
-                onClick = { viewModel.showLowDpiModal = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = cardContainer),
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Text(
-                    text = if (pendingLabel != null) {
-                        val targetDpi = (currentDpi * 4f).toInt()
-                        androidx.compose.ui.res.stringResource(
-                            R.string.preview_upscaling_card, pendingLabel, targetDpi,
-                        )
-                    } else {
-                        "Low resolution: ${currentDpi.toInt()} DPI · Tap to upscale ↑"
-                    },
-                    modifier = Modifier.padding(12.dp),
-                    color = cardOnContainer,
-                    fontWeight = FontWeight.Bold,
-                )
+            // Only render the inline status card when there's actually
+            // something resolution-related to say. After an upscale, the
+            // outer block re-enters via showLowDpiModal but isLowDpi /
+            // pendingLabel are both false; we just want the modal, not
+            // the (now-misleading) "Low resolution" inline.
+            if (isLowDpi || pendingLabel != null) {
+                Card(
+                    onClick = { viewModel.showLowDpiModal = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = cardContainer),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Text(
+                        text = if (pendingLabel != null) {
+                            val targetDpi = (currentDpi * 4f).toInt()
+                            androidx.compose.ui.res.stringResource(
+                                R.string.preview_upscaling_card, pendingLabel, targetDpi,
+                            )
+                        } else {
+                            "Low resolution: ${currentDpi.toInt()} DPI · Tap to upscale ↑"
+                        },
+                        modifier = Modifier.padding(12.dp),
+                        color = cardOnContainer,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
             if (viewModel.showLowDpiModal) {
                 val src = previewBitmap!!

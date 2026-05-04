@@ -55,6 +55,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -312,23 +313,23 @@ fun LowDpiUpgradeModal(
         Bitmap.createScaledBitmap(src, newW, newH, true)
     }
 
+    // RC16: chunky-pixel "Now" preview — heavily downscale then nearest-
+    // neighbor upscale to make the contrast against the high-quality
+    // alternatives visceral. 32px source → 256px display = ~8× pixel
+    // size, instantly readable as "low res."
     val pixelatedThumb: ImageBitmap = remember(sourceThumb) {
-        val small = Bitmap.createScaledBitmap(sourceThumb, 128, 128, false)
+        val small = Bitmap.createScaledBitmap(sourceThumb, 32, 32, false)
         Bitmap.createScaledBitmap(small, 256, 256, false).asImageBitmap()
     }
 
-    var onDeviceThumb by remember { mutableStateOf<ImageBitmap?>(null) }
-    LaunchedEffect(sourceThumb) {
-        val result = withContext(Dispatchers.Default) {
-            try {
-                UpscalerOnDevice.init(context)
-                UpscalerOnDevice.upscale(sourceThumb)
-            } catch (_: Throwable) {
-                Bitmap.createScaledBitmap(sourceThumb, 1024, 1024, true)
-            }
-        }
-        onDeviceThumb = Bitmap.createScaledBitmap(result, 256, 256, true).asImageBitmap()
-    }
+    // RC16: "Free upscale" preview is now just the source image (no actual
+    // ESRGAN render). The pre-RC16 version ran on-device upscale for the
+    // thumbnail which took ~30 s on the user's phone, blocking the modal
+    // and making the card useless as a quick A/B. Showing the original
+    // is fine for the comparison: "Now" is pixelated, "Free / AI" are
+    // the original — the side-by-side itself sells the upgrade.
+    val sourceThumbBitmap = remember(sourceThumb) { sourceThumb.asImageBitmap() }
+    val onDeviceThumb: ImageBitmap = sourceThumbBitmap
 
     // RC3+: tracks user-selected model card for the glow effect. Defaults to
     // null (nothing selected); user can tap any card to highlight it.
@@ -436,7 +437,12 @@ fun LowDpiUpgradeModal(
                                 freeEnabled = if (option.model == UpscaleModel.FREE_LOCAL) freeEnabled else true,
                                 localEtaText = if (option.model == UpscaleModel.FREE_LOCAL) localEtaText else null,
                                 pixelatedThumb = if (option.model == UpscaleModel.NONE) pixelatedThumb else null,
-                                onDeviceThumb = if (option.model == UpscaleModel.FREE_LOCAL) onDeviceThumb else null,
+                                // RC16: pass the source thumbnail to every
+                                // non-NONE card (Free + AI) so the new
+                                // instant-preview design works for all of
+                                // them. The "AI" cards overlay a brand
+                                // stripe inside the thumbnail box.
+                                onDeviceThumb = onDeviceThumb,
                                 usePulseEffect = usePulseEffect,
                                 onCardClick = { selectedModel = option.model },
                                 onFreeUpscale = onFreeUpscale,
@@ -616,7 +622,12 @@ private fun UpscaleOptionCard(
                 )
             }
 
-            // Thumbnail
+            // Thumbnail. RC16 redesign: instantaneous previews. NONE shows
+            // the chunky-pixel proxy; FREE_LOCAL and the AI cards both show
+            // the original source image (the side-by-side against the
+            // pixelated NOW card sells the upgrade), with AI cards adding
+            // a model-icon + magic-wand brand stripe at the bottom so the
+            // user can tell which model produced which result later.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -628,10 +639,6 @@ private fun UpscaleOptionCard(
                 when (option.model) {
                     UpscaleModel.NONE -> {
                         if (pixelatedThumb != null) {
-                            // RC13: ContentScale.Fit (was Crop) so the
-                            // pixelated preview keeps the source aspect
-                            // ratio. Crop was distorting tall/wide source
-                            // images by cropping their edges into the box.
                             Image(
                                 bitmap = pixelatedThumb,
                                 contentDescription = "Pixelated preview",
@@ -641,36 +648,47 @@ private fun UpscaleOptionCard(
                         }
                     }
                     UpscaleModel.FREE_LOCAL -> {
-                        if (onDeviceThumb != null) {
-                            // RC13: ContentScale.Fit so the on-device
-                            // preview keeps source aspect ratio.
-                            Image(
-                                bitmap = onDeviceThumb,
-                                contentDescription = "On-device upscale preview",
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.fillMaxWidth().height(100.dp),
-                            )
-                        } else {
-                            CircularProgressIndicator(color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(32.dp))
-                        }
+                        Image(
+                            bitmap = onDeviceThumb,
+                            contentDescription = "Free upscale preview (original image)",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxWidth().height(100.dp),
+                        )
                     }
                     else -> {
-                        // Distinct per-model icon (H-P1.11)
+                        // RC16: AI card thumbnail = original image with
+                        // bottom-aligned brand stripe (model icon + 🪄).
                         Image(
-                            painter = painterResource(id = iconForModel(option.model)),
-                            contentDescription = "${option.displayName} icon",
+                            bitmap = onDeviceThumb,
+                            contentDescription = "${option.displayName} preview",
                             contentScale = ContentScale.Fit,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                                .padding(12.dp),
+                            modifier = Modifier.fillMaxWidth().height(100.dp),
                         )
-                        // RC10: removed the pulsing 🪄 emoji that rendered as
-                        // a white square on Samsung's emoji set at small
-                        // sizes (user-flagged "white rectangles in the
-                        // middle of every model card"). The AGSL glitter on
-                        // the card surface already conveys the "AI magic"
-                        // signal; the emoji was redundant.
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .background(Color.Black.copy(alpha = 0.55f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Image(
+                                painter = painterResource(id = iconForModel(option.model)),
+                                contentDescription = null,
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text(
+                                option.displayName,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                            )
+                            Spacer(Modifier.weight(1f))
+                            Text("🪄", fontSize = 14.sp)
+                        }
                     }
                 }
             }

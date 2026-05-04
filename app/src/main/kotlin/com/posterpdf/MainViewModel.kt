@@ -62,6 +62,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // after BitmapFactory.decodeStream succeeds. Used by MainActivity to gate
     // View/Save/Share at < 150 DPI.
     var sourcePixelDimensions by mutableStateOf<Pair<Int, Int>?>(null)
+    /** RC16: true when the current source image is an upscale of the
+     *  original (free or AI). Drives the "Upscaled X DPI ✓" label and
+     *  suppresses the embedded low-DPI warning in the generated PDF. */
+    var wasUpscaled by mutableStateOf(false)
+        private set
 
     // Phase H-P1.13: true when the active source URI is an SVG (vector). The
     // preview rasterizes it for display, but the PDF generation path renders
@@ -261,6 +266,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 selectedImageUri = Uri.fromFile(outFile)
                 sourcePixelDimensions = upscaled.width to upscaled.height
+                // RC16: also refresh imageMetadata so the PDF generator's
+                // sourcePixelW/H reflect the upscaled dimensions instead of
+                // the stale original. Without this, the PDF embeds the
+                // pre-upscale "Source: WxH" + low-DPI warning even though
+                // the actual rendered image is high-res.
+                imageMetadata = ImageMetadata(
+                    width = upscaled.width,
+                    height = upscaled.height,
+                    aspectRatio = upscaled.width.toDouble() / upscaled.height.toDouble(),
+                )
+                wasUpscaled = true
                 successMessage = "Upscaled to ${upscaled.width}×${upscaled.height}"
                 pendingUpscaleModelLabel = null
                 logEvent(context, "free_upscale: SUCCESS", "wrote ${outFile.name}")
@@ -503,6 +519,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateImage(context: Context, uri: Uri) {
         selectedImageUri = uri
+        // RC16: clear the wasUpscaled flag whenever the user picks a fresh
+        // image (this fn is only called for picker results; the post-upscale
+        // selectedImageUri = Uri.fromFile(outFile) write skips it).
+        wasUpscaled = false
         try {
             // Compute image content hash for per-image counter
             val imageBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
@@ -840,11 +860,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         sourcePixelW = imageMetadata?.width ?: bitmap.width,
                         sourcePixelH = imageMetadata?.height ?: bitmap.height,
                         svgTileRenderer = svgTileRenderer,
-                        // RC15: skip the embedded "Low Print Resolution Warning"
-                        // when the user has already chosen to upscale — the
-                        // status banner ("Upscaling with X to Y DPI") makes
-                        // the warning visually contradictory.
-                        suppressLowDpiWarning = pendingUpscaleModelLabel != null || isFreeUpscaling,
+                        // RC16: also suppress when the source IS already an
+                        // upscaled image (wasUpscaled). RC15 only suppressed
+                        // while an upscale was queued/running; after success
+                        // both flags clear, but the bitmap is now high-res
+                        // so the warning was wrong-but-firing in user logs.
+                        suppressLowDpiWarning =
+                            wasUpscaled ||
+                            pendingUpscaleModelLabel != null ||
+                            isFreeUpscaling,
                     )
                     
                      withContext(Dispatchers.Main) {

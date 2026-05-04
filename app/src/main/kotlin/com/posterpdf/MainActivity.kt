@@ -1933,25 +1933,9 @@ private fun DebugPushTestRow(viewModel: MainViewModel) {
                     )
                 }
             }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                "Card effect",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
-            )
-            Spacer(Modifier.height(4.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilterChip(
-                    selected = !viewModel.usePulseEffect,
-                    onClick = { viewModel.usePulseEffect = false },
-                    label = { Text("Glitter") },
-                )
-                FilterChip(
-                    selected = viewModel.usePulseEffect,
-                    onClick = { viewModel.usePulseEffect = true },
-                    label = { Text("Pulse") },
-                )
-            }
+            // RC16: Glitter / Pulse FilterChips removed — glitter shader was
+            // dropped entirely per user feedback, sensor-driven pulse is now
+            // the sole effect. Toggle no longer needed.
         }
     }
 }
@@ -2106,12 +2090,25 @@ private fun DpiSummaryRow(viewModel: MainViewModel) {
     val upscaledDpi = if (pendingLabel != null) originalDpi * 4 else null
     var showHelp by remember { mutableStateOf(false) }
 
+    // RC16: when the source IS an already-upscaled image, label the chip
+    // "Upscaled X ✓" (highlight + checkmark) instead of "Original X". The
+    // user reported "main page DPI is now showing as Original 256 — should
+    // be Upscaled 256 with a checkmark since 256 is higher than the target."
+    val sourceIsUpscaled = viewModel.wasUpscaled
+    val firstChipLabel = if (sourceIsUpscaled) "Upscaled" else "Original"
+    val firstChipMeetsTarget = originalDpi >= targetDpi
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (originalDpi > 0) {
-            DpiChip(label = "Original", dpi = originalDpi, isWarn = originalDpi < 150)
+            DpiChip(
+                label = firstChipLabel,
+                dpi = originalDpi,
+                isWarn = originalDpi < 150,
+                isHighlight = sourceIsUpscaled,
+                trailing = if (sourceIsUpscaled && firstChipMeetsTarget) " ✓" else "",
+            )
         }
         if (upscaledDpi != null) {
             DpiChip(label = "Upscaled", dpi = upscaledDpi, isWarn = false, isHighlight = true)
@@ -2156,6 +2153,7 @@ private fun DpiChip(
     dpi: Int,
     isWarn: Boolean,
     isHighlight: Boolean = false,
+    trailing: String = "",
 ) {
     val container = when {
         isWarn -> MaterialTheme.colorScheme.errorContainer
@@ -2180,7 +2178,7 @@ private fun DpiChip(
                 color = onContainer.copy(alpha = 0.85f),
             )
             Text(
-                "$dpi DPI",
+                "$dpi DPI$trailing",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = onContainer,

@@ -20,7 +20,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc15"  // RC15 (glitter relayered, drag fixed, FCM token set+merge)
+        versionName = "1.0-rc16"  // RC16 (sensor pulse, no glitter, Clarus centered, post-upscale flow)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

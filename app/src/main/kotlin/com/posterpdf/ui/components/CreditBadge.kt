@@ -2,13 +2,11 @@ package com.posterpdf.ui.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,7 +39,10 @@ fun CreditBadge(balance: Int, isAdmin: Boolean = false, onClick: () -> Unit) {
                 balance > 0 -> Badge { FlipNumber(balance) }
             }
         }) {
-            Icon(Icons.Default.AutoAwesome, contentDescription = "AI credits")
+            // RC16: switched the top-bar token symbol from the sparkle
+            // (Icons.Default.AutoAwesome) to a coin emoji, matching the
+            // 🪙 used elsewhere for credits and the user's explicit ask.
+            Text("🪙", fontSize = 24.sp)
         }
     }
 }
