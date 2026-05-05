@@ -369,7 +369,11 @@ class PosterLogic {
         cs.newLineAtOffset(0f, -13f)
         cs.showText("Margins: ${"%.2f".format(m/72.0 * unitScale)} $unitLabel | Overlap: ${"%.2f".format(o/72.0 * unitScale)} $unitLabel")
         cs.newLineAtOffset(0f, -13f)
-        cs.showText("Source: ${sourcePixelW}x${sourcePixelH}px | Print resolution: ~$minDpi DPI")
+        // RC18: print-resolution label is DPI in Inches, DPCM in Metric.
+        // 150 DPI = 59 DPCM, so the math is the same — just relabel.
+        val resUnitLabel = if (units == "Metric") "DPCM" else "DPI"
+        val resInUserUnit = if (units == "Metric") (minDpi / 2.54).toInt() else minDpi
+        cs.showText("Source: ${sourcePixelW}x${sourcePixelH}px | Print resolution: ~$resInUserUnit $resUnitLabel")
         cs.endText()
         cs.setNonStrokingColor(0f, 0f, 0f)
 
@@ -383,16 +387,18 @@ class PosterLogic {
             cs.setFont(PDType1Font.HELVETICA, 9f)
             cs.setNonStrokingColor(0.25f, 0.25f, 0.28f)
             cs.newLineAtOffset(0f, -12f)
+            // RC18: also unit-aware for the warning copy. 150 DPI ≈ 59 DPCM.
+            val targetReadable = if (units == "Metric") "59+ DPCM" else "150+ DPI"
             if (isLandscapePage) {
-                cs.showText("This poster prints at about $minDpi DPI.")
+                cs.showText("This poster prints at about $resInUserUnit $resUnitLabel.")
                 cs.newLineAtOffset(0f, -11f)
-                cs.showText("For sharp results, target 150+ DPI.")
+                cs.showText("For sharp results, target $targetReadable.")
                 cs.newLineAtOffset(0f, -11f)
                 cs.showText("Consider AI upscaling or a smaller poster size.")
             } else {
-                cs.showText("This poster will print at approximately $minDpi DPI. For sharp, professional-quality prints,")
+                cs.showText("This poster will print at approximately $resInUserUnit $resUnitLabel. For sharp, professional-quality prints,")
                 cs.newLineAtOffset(0f, -11f)
-                cs.showText("aim for 150+ DPI. Consider using AI upscaling or a smaller poster size.")
+                cs.showText("aim for $targetReadable. Consider using AI upscaling or a smaller poster size.")
             }
             cs.endText()
             cs.setNonStrokingColor(0f, 0f, 0f)

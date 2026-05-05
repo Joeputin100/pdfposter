@@ -74,20 +74,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // The upscale modal also uses this flag to gray out raster-upscale options.
     var sourceIsSvg by mutableStateOf(false)
 
-    /** Current effective DPI = sourceWidthPx / posterWidthInches.  0f when unknown. */
+    /**
+     * Current effective print resolution: source pixels per *unit* of poster
+     * width, where the unit is whatever the user has selected. Inches → DPI
+     * (dots-per-inch); Metric → DPCM (dots-per-centimeter). Returns 0f when
+     * unknown. Use [currentResolutionUnitLabel] to render the right label.
+     */
     fun computeCurrentDpi(): Float {
         val (w, _) = sourcePixelDimensions ?: return 0f
         val rawWidth = posterWidth.toDoubleOrNull() ?: return 0f
         if (rawWidth <= 0.0) return 0f
-        // RC18: convert to inches when the user is in Metric mode. Pre-RC18
-        // we always treated posterWidth as inches; toggling units to cm
-        // physically preserves the poster size (toggleUnits multiplies the
-        // stored value by 2.54), but computeCurrentDpi was reading the
-        // post-conversion value as if it were still inches and reporting
-        // ~34 DPI for what was actually 88 DPI.
-        val widthIn = if (units == "Metric") rawWidth / 2.54 else rawWidth
-        return (w.toDouble() / widthIn).toFloat()
+        return (w.toDouble() / rawWidth).toFloat()
     }
+
+    /** "DPI" or "DPCM" depending on [units]. */
+    val currentResolutionUnitLabel: String
+        get() = if (units == "Metric") "DPCM" else "DPI"
+
+    /** Industry-standard "good poster print" threshold expressed in the
+     *  CURRENT unit. 150 DPI = 59.055 DPCM. Used by the under-preview
+     *  warning gate so the threshold stays meaningful regardless of unit. */
+    val lowResolutionThreshold: Float
+        get() = if (units == "Metric") 150f / 2.54f else 150f
 
     /**
      * RC3+ — show ∞ in the credit badge for admin accounts. The Firestore

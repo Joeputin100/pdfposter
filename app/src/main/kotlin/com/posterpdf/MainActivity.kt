@@ -1130,7 +1130,10 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     "dpi_gate: check",
                                     "dpi=$dpi pendingLabel=$pendingLabel freeRunning=$freeRunning bypass=$upscaleQueued",
                                 )
-                                if (!upscaleQueued && dpi in 0.1f..149.99f) {
+                                // RC18: threshold is 150 DPI = 59.05 DPCM,
+                                // computed by the ViewModel based on units.
+                                val threshold = viewModel.lowResolutionThreshold
+                                if (!upscaleQueued && dpi > 0.1f && dpi < threshold) {
                                     lowDpiPendingAction = action
                                 } else {
                                     action()
@@ -2201,6 +2204,9 @@ private fun DpiSummaryRow(viewModel: MainViewModel) {
     // be Upscaled 256 with a checkmark since 256 is higher than the target."
     val sourceIsUpscaled = viewModel.wasUpscaled
     val firstChipLabel = if (sourceIsUpscaled) "Upscaled" else "Original"
+    // RC18: unit-aware threshold + label. DPI in Inches mode, DPCM in Metric.
+    val unitLabel = viewModel.currentResolutionUnitLabel
+    val warnThreshold = viewModel.lowResolutionThreshold.toInt()
     val firstChipMeetsTarget = originalDpi >= targetDpi
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -2210,18 +2216,19 @@ private fun DpiSummaryRow(viewModel: MainViewModel) {
             DpiChip(
                 label = firstChipLabel,
                 dpi = originalDpi,
-                isWarn = originalDpi < 150,
+                unitLabel = unitLabel,
+                isWarn = originalDpi < warnThreshold,
                 isHighlight = sourceIsUpscaled,
                 trailing = if (sourceIsUpscaled && firstChipMeetsTarget) " ✓" else "",
             )
         }
         if (upscaledDpi != null) {
-            DpiChip(label = "Upscaled", dpi = upscaledDpi, isWarn = false, isHighlight = true)
+            DpiChip(label = "Upscaled", dpi = upscaledDpi, unitLabel = unitLabel, isWarn = false, isHighlight = true)
         }
-        DpiChip(label = "Target", dpi = targetDpi, isWarn = false)
+        DpiChip(label = "Target", dpi = targetDpi, unitLabel = unitLabel, isWarn = false)
         Spacer(Modifier.weight(1f))
         IconButton(onClick = { showHelp = true }) {
-            Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "About DPI")
+            Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "About print resolution")
         }
     }
 
@@ -2259,6 +2266,7 @@ private fun DpiChip(
     isWarn: Boolean,
     isHighlight: Boolean = false,
     trailing: String = "",
+    unitLabel: String = "DPI",
 ) {
     val container = when {
         isWarn -> MaterialTheme.colorScheme.errorContainer
@@ -2283,7 +2291,7 @@ private fun DpiChip(
                 color = onContainer.copy(alpha = 0.85f),
             )
             Text(
-                "$dpi DPI$trailing",
+                "$dpi $unitLabel$trailing",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = onContainer,

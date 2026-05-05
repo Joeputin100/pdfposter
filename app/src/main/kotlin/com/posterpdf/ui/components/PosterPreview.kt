@@ -1229,7 +1229,8 @@ fun PosterPreview(viewModel: MainViewModel) {
         val posterWInchesD = viewModel.posterWidth.toDoubleOrNull() ?: 0.0
         val posterHInchesD = viewModel.posterHeight.toDoubleOrNull() ?: 0.0
         val currentDpi = if (posterWInchesD > 0) (sourcePixelW / posterWInchesD).toFloat() else 0f
-        val isLowDpi = currentDpi in 1f..149.99f
+        // RC18: threshold is unit-aware (150 DPI / 59.05 DPCM).
+        val isLowDpi = currentDpi > 1f && currentDpi < viewModel.lowResolutionThreshold
         val pendingLabel = viewModel.pendingUpscaleModelLabel
         // RC16: include showLowDpiModal as a third entry condition so the
         // modal can still open from the SharpenForPrintCta after an upscale
@@ -1273,7 +1274,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                                 R.string.preview_upscaling_card, pendingLabel, targetDpi,
                             )
                         } else {
-                            "Low resolution: ${currentDpi.toInt()} DPI · Tap to upscale ↑"
+                            "Low resolution: ${currentDpi.toInt()} ${viewModel.currentResolutionUnitLabel} · Tap to upscale ↑"
                         },
                         modifier = Modifier.padding(12.dp),
                         color = cardOnContainer,
