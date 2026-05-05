@@ -500,6 +500,17 @@ fun PosterPreview(viewModel: MainViewModel) {
                 val marginPx = layout.marginPx
                 val overlapPx = layout.overlapPx
 
+                // RC20.2: tighten step closes BOTH the inter-page gap AND the
+                // page-margin gutters AND the overlap zone — so after Tightening
+                // the cut content rects butt up with their overlap zones occupying
+                // the same screen space (one strip, not two adjacent stripes).
+                // Pre-RC20.2 the step was just `gap`, which left 2*marginPx of
+                // empty paper visible between adjacent printable rects ("visible
+                // gaps") and made each pair of overlap zones render as a doubled
+                // strip ("doubled overlaps after closing gaps"). Now the seams
+                // align with where the tape strip math expects them.
+                val tightenStep = gap + 2f * marginPx + overlapPx
+
                 val src = previewBitmap
 
                 val outlinePx = when (viewModel.outlineThickness) {
@@ -604,9 +615,9 @@ fun PosterPreview(viewModel: MainViewModel) {
                     val toPrinterDx = (printerSlotX - pageW / 2f) - dx
                     val toPrinterDy = (printerSlotY - pageH / 2f) - dy
                     // Gap-closing offset for Tightening: shift each pane toward
-                    // layout center by the inter-pane gap so panes butt up.
-                    val tightenDx = -((c - (cols - 1) / 2f) * gap)
-                    val tightenDy = -((r - (rows - 1) / 2f) * gap)
+                    // layout center by tightenStep (gap + margin gutters + overlap).
+                    val tightenDx = -((c - (cols - 1) / 2f) * tightenStep)
+                    val tightenDy = -((r - (rows - 1) / 2f) * tightenStep)
 
                     // Per-phase pane offset relative to home.
                     var paneOffX: Float
@@ -853,8 +864,8 @@ fun PosterPreview(viewModel: MainViewModel) {
                             val r = pane.row
                             val c = pane.col
                             if (c >= cols - 1) continue
-                            val tightenDx = -((c - (cols - 1) / 2f) * gap)
-                            val tightenDy = -((r - (rows - 1) / 2f) * gap)
+                            val tightenDx = -((c - (cols - 1) / 2f) * tightenStep)
+                            val tightenDy = -((r - (rows - 1) / 2f) * tightenStep)
                             val stripLeft = pane.imageDstLeft + tightenDx + pane.imageContentWidth - overlapPx
                             val stripTop = pane.imageDstTop + tightenDy
                             val pivotX = stripLeft
@@ -886,8 +897,8 @@ fun PosterPreview(viewModel: MainViewModel) {
                             val r = pane.row
                             val c = pane.col
                             if (r >= rows - 1) continue
-                            val tightenDx = -((c - (cols - 1) / 2f) * gap)
-                            val tightenDy = -((r - (rows - 1) / 2f) * gap)
+                            val tightenDx = -((c - (cols - 1) / 2f) * tightenStep)
+                            val tightenDy = -((r - (rows - 1) / 2f) * tightenStep)
                             val stripLeft = pane.imageDstLeft + tightenDx
                             val stripTop = pane.imageDstTop + tightenDy + pane.imageContentHeight - overlapPx
                             val pivotX = stripLeft + pane.imageContentWidth / 2f
@@ -963,21 +974,20 @@ fun PosterPreview(viewModel: MainViewModel) {
                         ?.let { it.imageDstHeight - it.imageContentHeight } ?: 0f
                     val tCenterX = stackCenterX
                     val tCenterY = stackCenterY
-                    val tightenedW = assembledBlockW - (cols - 1) * gap - rightLeftover
-                    val tightenedH = assembledBlockH - (rows - 1) * gap - bottomLeftover
-                    // Image is anchored top-left of the assembled block (the
-                    // leftover trims from the right and bottom only), so the
-                    // image-centre is offset slightly up-and-left of the
-                    // printable-block centre.
-                    val tLeft = stackCenterX - assembledBlockW / 2f + (cols - 1) * gap / 2f
-                    val tTop = stackCenterY - assembledBlockH / 2f + (rows - 1) * gap / 2f
+                    // RC20.2: assembledBlockW already represents the post-tighten
+                    // overlapping content extent (cols × printableW − (cols-1) ×
+                    // overlap). The previous code subtracted (cols-1)*gap on top
+                    // of that, which only made sense when tightenStep was just
+                    // `gap` and panes still had margin gutters between them.
+                    // With tightenStep = gap + 2*marginPx + overlapPx, the cut
+                    // content rects butt up exactly to assembledBlockW; only the
+                    // trailing-edge leftover paper gets trimmed off.
+                    val tightenedW = assembledBlockW - rightLeftover
+                    val tightenedH = assembledBlockH - bottomLeftover
+                    val tLeft = stackCenterX - assembledBlockW / 2f
+                    val tTop = stackCenterY - assembledBlockH / 2f
                     val tRight = tLeft + tightenedW
-                    // RC16: tBottom now uses the FULL tightened block height
-                    // less just the bottom leftover (no gap subtraction). The
-                    // prior formula put the bottom tacks in the middle row
-                    // when bottomLeftover was nonzero (user report). Tacks
-                    // should pin the bottom edge of the bottom row, full stop.
-                    val tBottom = tTop + (assembledBlockH - bottomLeftover - (rows - 1) * gap / 2f)
+                    val tBottom = tTop + tightenedH
 
                     // ── Hand 👌 — drives Arranging, Tightening, Taping, Pinning.
                     // RC5: bumped 0.45 → 0.65 of the smaller printable axis so
@@ -1129,7 +1139,15 @@ fun PosterPreview(viewModel: MainViewModel) {
                         var stripIdx = 0
                         for (rr in 0 until rows) {
                             for (cc in 0 until cols - 1) {
-                                val seamX = tLeft + (cc + 1) * seamStepX - overlapPx / 2f
+                                // RC20.2: place the seam at the center of the
+                                // shared overlap region, which sits at
+                                // pane[cc].imageContentLeft + printableWpx - overlapPx/2
+                                // = tLeft + cc*seamStepX + printableWpx - overlapPx/2.
+                                // The previous form, (cc+1)*seamStepX - overlapPx/2,
+                                // placed each tape strip overlapPx to the left of the
+                                // actual seam (matching the user's "tape pieces still
+                                // not on the seams" report).
+                                val seamX = tLeft + cc * seamStepX + printableWpx - overlapPx / 2f
                                 val seamY = tTop + rr * seamStepY + printableHpx / 2f
                                 val stripT = stripStaggerT(tapeAppearT, stripIdx, totalStrips)
                                 drawScotchTape(
@@ -1144,7 +1162,9 @@ fun PosterPreview(viewModel: MainViewModel) {
                         for (rr in 0 until rows - 1) {
                             for (cc in 0 until cols) {
                                 val seamX = tLeft + cc * seamStepX + printableWpx / 2f
-                                val seamY = tTop + (rr + 1) * seamStepY - overlapPx / 2f
+                                // RC20.2: same correction as the vertical-seam loop
+                                // above — center on the shared overlap region.
+                                val seamY = tTop + rr * seamStepY + printableHpx - overlapPx / 2f
                                 val stripT = stripStaggerT(tapeAppearT, stripIdx, totalStrips)
                                 drawScotchTape(
                                     centerX = seamX, centerY = seamY,

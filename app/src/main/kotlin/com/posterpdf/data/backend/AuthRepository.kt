@@ -122,9 +122,14 @@ class AuthRepository private constructor(appContext: Context) {
     }
 
     fun googleSignInIntent(activity: Activity, webClientId: String): Intent {
+        // RC20.2: explicit .requestProfile() so the photo URL ends up on the
+        // GoogleSignInAccount even though DEFAULT_SIGN_IN already requests
+        // the profile scope — being explicit here keeps the intent obvious
+        // and survives any future change to DEFAULT_SIGN_IN's defaults.
         val opts = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(webClientId)
             .requestEmail()
+            .requestProfile()
             .build()
         val client = GoogleSignIn.getClient(activity, opts)
         // Force account picker to appear — without signOut(), Google Sign-In
@@ -166,7 +171,16 @@ class AuthRepository private constructor(appContext: Context) {
     private fun FirebaseUser?.toSession(): AuthSession = if (this == null) {
         AuthSession()
     } else {
+        // RC20.2: FirebaseUser.photoUrl is the "primary" photo URL across
+        // providers and can be null right after signInWithCredential even
+        // when the Google provider entry has it. Fall back to the
+        // google.com providerData entry's photoUrl so the chip + drawer
+        // both render the avatar instead of the initial-letter placeholder.
         val photo = photoUrl?.toString()
+            ?: providerData
+                .firstOrNull { it.providerId == "google.com" }
+                ?.photoUrl
+                ?.toString()
         // RC16: Log.i went to logcat which the user can't access. Mirror
         // the diagnostic into the user-facing debug log file via the
         // logEvent path — the user can then submit the next saved log

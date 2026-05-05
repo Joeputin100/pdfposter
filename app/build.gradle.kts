@@ -20,7 +20,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc20"  // RC20 (RC19 feedback batch — DPCM/upload/feedback fixes)
+        versionName = "1.0-rc20.2"  // RC20.2 (real recraft demo + photoUrl + tighten fix)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

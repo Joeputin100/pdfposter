@@ -93,14 +93,13 @@ private enum class CompareModel(val label: String, val key: String) {
 }
 
 /** Subjects that have synthesized fallback outputs for given models.
- *  RC20.1: dropped Gristmill→AuraSr — gristmill_aurasr.webp now has a unique
- *  md5 (≠ the topaz output) so it's a real AuraSR upscale, not a fallback.
- *  Gristmill→Recraft remains a placeholder (bytes-identical to topaz output).
- *  Generating the real asset requires running gristmill_source.jpg through
- *  FAL Recraft via the deployed `requestUpscale` callable. */
-private val SYNTHESIZED_FALLBACKS: Set<Pair<CompareSubject, CompareModel>> = setOf(
-    CompareSubject.Gristmill to CompareModel.Recraft,
-)
+ *  RC20.2: empty — every cell now has a real upscale. The remaining
+ *  Gristmill→Recraft asset was generated via a one-shot FAL job
+ *  (downscale source to 1024w → fal-ai/recraft/upscale/crisp → 4× output
+ *  back to JPEG quality 88) on 2026-05-05. The downscaling sidesteps
+ *  Recraft's 5 MB output cap; output is 4096×2732, matching the source
+ *  aspect ratio so the slider lines up cleanly. */
+private val SYNTHESIZED_FALLBACKS: Set<Pair<CompareSubject, CompareModel>> = emptySet()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
