@@ -300,7 +300,7 @@
     <string name="compare_subject_cat_shimmer">Cat</string>
     <string name="compare_subject_gristmill">Gristmill</string>
     <string name="compare_subject_earth">Earth poster</string>
-    <string name="compare_synthesized_fallback">(synthesized fallback — see assets)</string>
+    <string name="compare_synthesized_fallback">Demo unavailable for this combination — preview is illustrative.</string>
     <string name="compare_source_image_cd">Source image</string>
     <string name="compare_upscaled_image_cd">Upscaled image</string>
     <string name="compare_label_original">Original</string>

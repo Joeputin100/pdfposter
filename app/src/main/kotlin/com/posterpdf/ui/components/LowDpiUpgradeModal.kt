@@ -419,8 +419,12 @@ fun LowDpiUpgradeModal(
                 BringYourOwnCard(onPick = onShowBringYourOwnHelp, modifier = Modifier.fillMaxWidth())
             } else {
                 // 2-column option grid — fixed height to avoid unbounded scroll conflict.
+                // RC20: bumped 290 → 340 so the pros/cons rows can render 3 lines
+                // each without ellipsis. User reported truncation on real devices
+                // even with English copy because the marketing-framework strings
+                // ("Use when … / Trade-off …") run long.
                 val rowCount = (visibleOptions.size + 1) / 2
-                val cardHeightDp = 290
+                val cardHeightDp = 340
                 val gridHeight = (rowCount * cardHeightDp + (rowCount - 1) * 12).dp
 
                 LazyVerticalGrid(
@@ -739,19 +743,20 @@ private fun UpscaleOptionCard(
                 )
             }
 
-            // Pros (green-tinted)
+            // Pros (green-tinted). RC20: 2 → 3 lines (pairs with the
+            // bumped cardHeightDp so longer marketing copy fits cleanly).
             Text(
                 option.pros,
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF66BB6A),
-                maxLines = 2,
+                maxLines = 3,
             )
             // Cons (amber-tinted)
             Text(
                 option.cons,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
+                maxLines = 3,
             )
 
             // Action button (Layer 1 i18n hardening: every label has maxLines=1 +

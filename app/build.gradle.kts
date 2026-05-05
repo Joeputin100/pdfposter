@@ -20,7 +20,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc19"  // RC19 (AI upscale wired end-to-end)
+        versionName = "1.0-rc20"  // RC20 (RC19 feedback batch — DPCM/upload/feedback fixes)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

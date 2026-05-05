@@ -715,7 +715,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          )
                          Spacer(Modifier.width(12.dp))
                          Text(
-                             "Target print DPI: ${viewModel.targetDpi}",
+                             // RC20: render in the user's chosen unit so the
+                             // label matches the chip on the main page.
+                             "Target print ${viewModel.currentResolutionUnitLabel}: ${viewModel.targetDpiDisplay}",
                              style = MaterialTheme.typography.labelLarge,
                          )
                      }
@@ -726,8 +728,15 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          steps = 14, // ~75-step increments
                      )
                      Text(
-                         "Higher DPI → sharper print, more upscale credits used. " +
-                             "150 is standard for posters; 300 for photos; 600+ for fine art.",
+                         // RC20: copy is unit-agnostic — the slider stores DPI canonically
+                         // but the printer + comparison values need the right unit so they
+                         // make sense in either mode.
+                         if (viewModel.units == "Metric")
+                             "Higher DPCM → sharper print, more upscale credits used. " +
+                                 "59 is standard for posters; 118 for photos; 236+ for fine art."
+                         else
+                             "Higher DPI → sharper print, more upscale credits used. " +
+                                 "150 is standard for posters; 300 for photos; 600+ for fine art.",
                          style = MaterialTheme.typography.labelSmall,
                          color = MaterialTheme.colorScheme.onSurfaceVariant,
                      )
@@ -2232,7 +2241,10 @@ private fun LanguageDrawerCell(onClick: () -> Unit) {
 private fun DpiSummaryRow(viewModel: MainViewModel) {
     val context = LocalContext.current
     val originalDpi = viewModel.computeCurrentDpi().toInt()
-    val targetDpi = viewModel.targetDpi
+    // RC20: targetDpi is canonical (always DPI). Both the displayed chip
+    // value and the meets-target comparison need to use the same unit as
+    // originalDpi (which comes from computeCurrentDpi → native unit).
+    val targetDisplay = viewModel.targetDpiDisplay
     val pendingLabel = viewModel.pendingUpscaleModelLabel
     val upscaledDpi = if (pendingLabel != null) originalDpi * 4 else null
     var showHelp by remember { mutableStateOf(false) }
@@ -2246,7 +2258,7 @@ private fun DpiSummaryRow(viewModel: MainViewModel) {
     // RC18: unit-aware threshold + label. DPI in Inches mode, DPCM in Metric.
     val unitLabel = viewModel.currentResolutionUnitLabel
     val warnThreshold = viewModel.lowResolutionThreshold.toInt()
-    val firstChipMeetsTarget = originalDpi >= targetDpi
+    val firstChipMeetsTarget = originalDpi >= targetDisplay
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -2264,7 +2276,7 @@ private fun DpiSummaryRow(viewModel: MainViewModel) {
         if (upscaledDpi != null) {
             DpiChip(label = "Upscaled", dpi = upscaledDpi, unitLabel = unitLabel, isWarn = false, isHighlight = true)
         }
-        DpiChip(label = "Target", dpi = targetDpi, unitLabel = unitLabel, isWarn = false)
+        DpiChip(label = "Target", dpi = targetDisplay, unitLabel = unitLabel, isWarn = false)
         Spacer(Modifier.weight(1f))
         IconButton(onClick = { showHelp = true }) {
             Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "About print resolution")

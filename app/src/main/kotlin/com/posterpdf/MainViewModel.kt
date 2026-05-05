@@ -97,6 +97,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val lowResolutionThreshold: Float
         get() = if (units == "Metric") 150f / 2.54f else 150f
 
+    /** RC20: targetDpi rendered in the current unit. Internally targetDpi is
+     *  always stored in DPI (the canonical "150" the slider snaps to). When
+     *  the user is in Metric mode, the chip + Settings label need to show
+     *  the DPCM equivalent so "Target 150 DPI" doesn't render as the wrong
+     *  number "150 DPCM" (≈381 DPI worth of pixels — 2.54× too high). */
+    val targetDpiDisplay: Int
+        get() = if (units == "Metric") (targetDpi / 2.54f).toInt() else targetDpi
+
     /**
      * RC3+ — show ∞ in the credit badge for admin accounts. The Firestore
      * custom-claim path is set by the admin script; for v1 we additionally

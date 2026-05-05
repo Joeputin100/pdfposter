@@ -17,7 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
@@ -44,6 +43,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import android.os.Build
+import android.widget.Toast
+import com.posterpdf.BuildConfig
 import com.posterpdf.MainViewModel
 
 /**
@@ -69,7 +71,6 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     var includeDiagnostics by remember { mutableStateOf(true) }
     var detailsExpanded by remember { mutableStateOf(false) }
     var submitting by remember { mutableStateOf(false) }
-    var submittedTicketId by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -91,11 +92,6 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            if (submittedTicketId != null) {
-                SuccessPanel(submittedTicketId!!, onClose = onBack)
-                return@Column
-            }
-
             Text(
                 "Tell us what went wrong, what you wish the app did, " +
                     "or what's confusing. We read every report.",
@@ -198,8 +194,31 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                         includeDiagnostics = includeDiagnostics,
                         onResult = { result ->
                             submitting = false
-                            result.onSuccess { id -> submittedTicketId = id }
-                            // failures surface via viewModel.errorMessage
+                            // RC20: explicit toast + screen close so the user
+                            // gets immediate confirmation. Previously the
+                            // submitted ticket replaced the form with a
+                            // SuccessPanel, but real-device testing showed
+                            // users tapping back before noticing it; failures
+                            // also went silent (errorMessage surfaces in the
+                            // main scaffold, not on the support screen).
+                            result.fold(
+                                onSuccess = { id ->
+                                    Toast.makeText(
+                                        context,
+                                        "Thanks — feedback sent (${id.take(6)})",
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                                    onBack()
+                                },
+                                onFailure = { t ->
+                                    val msg = t.message ?: "unknown error"
+                                    Toast.makeText(
+                                        context,
+                                        "Couldn't send feedback: $msg",
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                                },
+                            )
                         },
                     )
                 },
@@ -267,13 +286,20 @@ private fun CategoryDropdown(value: String, onChange: (String) -> Unit) {
 
 @Composable
 private fun DiagnosticsBreakdown() {
+    // RC20: render the actual values that will be sent so the consent is
+    // grounded in real data. Previously the bullets used a hypothetical
+    // "Samsung SM-S908U on Android 14 / version 1.0-rc17" example which
+    // confused users on different devices/builds — they couldn't tell if
+    // they were consenting to the example or to their own data.
+    val deviceLine = "${Build.MANUFACTURER} ${Build.MODEL} on Android ${Build.VERSION.RELEASE}"
+    val versionLine = "${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})"
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         BreakdownSection(
             title = "We send:",
             color = MaterialTheme.colorScheme.tertiary,
             items = listOf(
-                "Your device (e.g. \"Samsung SM-S908U on Android 14\")",
-                "The app version (1.0-rc17 or whatever you're on)",
+                "Your device: $deviceLine",
+                "App version: $versionLine",
                 "Last ~50 KB of your debug log — taps, image picks, " +
                     "error messages, upscale tile counts",
                 "Your account ID and email if signed in, so we can link " +
@@ -332,39 +358,3 @@ private fun BreakdownSection(
     }
 }
 
-@Composable
-private fun SuccessPanel(ticketId: String, onClose: () -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.tertiaryContainer,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Icon(
-                Icons.Default.Check,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                modifier = Modifier.size(36.dp),
-            )
-            Text(
-                "Thanks — feedback sent",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
-            )
-            Text(
-                "Reference: $ticketId",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
-            )
-            Button(
-                onClick = onClose,
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("Close") }
-        }
-    }
-}

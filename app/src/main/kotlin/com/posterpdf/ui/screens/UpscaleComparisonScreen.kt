@@ -141,7 +141,11 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
                     Text(stringResource(R.string.screen_compare_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
-                        color = BlueprintBlue700,
+                        // RC20: use theme primary so dark mode picks the
+                        // dark-variant blue (high contrast on dark surface).
+                        // BlueprintBlue700 is the LIGHT-mode brand color and
+                        // disappears against M3's dark surface (#1A1A1A).
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 },
                 navigationIcon = {
@@ -160,7 +164,7 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Subject picker chip row
-            Text(stringResource(R.string.compare_subject_label), style = MaterialTheme.typography.labelMedium, color = BlueprintBlue700)
+            Text(stringResource(R.string.compare_subject_label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -212,7 +216,7 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
             }
 
             // Model picker chip row
-            Text(stringResource(R.string.compare_model_label), style = MaterialTheme.typography.labelMedium, color = BlueprintBlue700)
+            Text(stringResource(R.string.compare_model_label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -306,8 +310,6 @@ private fun SlideHandleViewer(
     val handleHitRadiusPx = with(density) { 10.dp.toPx() }
     val knobRadiusPx = with(density) { 14.dp.toPx() }
 
-    var viewportW by remember { mutableFloatStateOf(0f) }
-
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -316,7 +318,12 @@ private fun SlideHandleViewer(
     ) {
         val wPx = with(density) { maxWidth.toPx() }
         val hPx = with(density) { maxHeight.toPx() }
-        viewportW = wPx
+        // RC20: dropped the var viewportW + reassign-during-composition pattern
+        // — re-keying pointerInput on a state that flickered during gesture
+        // updates was restarting the gesture coroutine mid-drag, which the
+        // user perceived as "sticky" handle behavior. wPx comes straight from
+        // BoxWithConstraints and only changes when the layout reflows, which
+        // doesn't happen during a touch sequence.
         if (handleX < 0f) onHandleXChange(wPx / 2f)
 
         // Clamp helpers — keep image visible inside viewport at any zoom.
@@ -345,7 +352,7 @@ private fun SlideHandleViewer(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(viewportW) {
+                .pointerInput(wPx) {
                     val slop = viewConfiguration.touchSlop
                     val handleHitPx = 60f
                     awaitEachGesture {
@@ -358,13 +365,13 @@ private fun SlideHandleViewer(
                             // Glide the handle as the finger moves.
                             // Snap on first frame too so a tap immediately
                             // jumps the handle to the press location.
-                            onHandleXChange(downPos.x.coerceIn(0f, viewportW))
+                            onHandleXChange(downPos.x.coerceIn(0f, wPx))
                             down.consume()
                             while (true) {
                                 val event = awaitPointerEvent()
                                 val change = event.changes.firstOrNull { it.id == down.id }
                                 if (change == null || !change.pressed) break
-                                onHandleXChange(change.position.x.coerceIn(0f, viewportW))
+                                onHandleXChange(change.position.x.coerceIn(0f, wPx))
                                 change.consume()
                             }
                         } else {
@@ -394,34 +401,51 @@ private fun SlideHandleViewer(
                     }
                 },
         ) {
-            // Source image — drawn on the LEFT half of handle.
-            Image(
-                bitmap = source,
-                contentDescription = "Source image",
-                contentScale = ContentScale.Fit,
+            // RC20: clip outside the graphicsLayer transform so the split
+            // edge stays pixel-aligned with the handle line at any zoom.
+            // Previously drawWithContent was chained AFTER graphicsZoomPan,
+            // so the clipRect at `right = handleX` ran in the Image's local
+            // pre-transform coordinates while the handle line drew in
+            // screen space. At scale > 1 the two diverged and the visible
+            // before/after split trailed the handle by (scale-1)·offset.
+            // Wrapping each Image in a Box and putting drawWithContent on
+            // the Box puts the clip back in screen space.
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .graphicsZoomPan(scale, offsetX, offsetY)
                     .drawWithContent {
                         clipRect(left = 0f, top = 0f, right = handleX, bottom = size.height) {
                             this@drawWithContent.drawContent()
                         }
                     },
-            )
-            // Upscaled image — drawn on the RIGHT of handle, same transform.
-            Image(
-                bitmap = upscaled,
-                contentDescription = "Upscaled image",
-                contentScale = ContentScale.Fit,
+            ) {
+                Image(
+                    bitmap = source,
+                    contentDescription = "Source image",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsZoomPan(scale, offsetX, offsetY),
+                )
+            }
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .graphicsZoomPan(scale, offsetX, offsetY)
                     .drawWithContent {
                         clipRect(left = handleX, top = 0f, right = size.width, bottom = size.height) {
                             this@drawWithContent.drawContent()
                         }
                     },
-            )
+            ) {
+                Image(
+                    bitmap = upscaled,
+                    contentDescription = "Upscaled image",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsZoomPan(scale, offsetX, offsetY),
+                )
+            }
 
             // Handle line + knob (drawn on top, NOT zoom-panned).
             Box(

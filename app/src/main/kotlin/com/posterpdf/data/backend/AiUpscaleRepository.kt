@@ -96,7 +96,13 @@ class AiUpscaleRepository(private val auth: AuthRepository) {
                 }
             }
             uploadTask.await()
-            val gsUri = "gs://${storageRef.bucket}/${storageRef.path}"
+            // RC20: storageRef.path includes a leading slash, which produces
+            // gs://bucket//users/... with a doubled slash. The backend's
+            // resolveFetchableUrl looks up the literal path and returns
+            // "Object does not exist at location" because GCS treats the
+            // doubled slash as a real character. Use the local storagePath
+            // (no leading slash) instead.
+            val gsUri = "gs://${storageRef.bucket}/$storagePath"
             Log.i(TAG, "uploaded source: $gsUri")
 
             // 3. Call requestUpscale.
