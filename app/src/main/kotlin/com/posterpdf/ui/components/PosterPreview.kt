@@ -1307,14 +1307,18 @@ fun PosterPreview(viewModel: MainViewModel) {
                 // already in memory. For the real pipeline this will come from
                 // the source URI before any downsampling, but the preview
                 // bitmap is a reasonable proxy for the modal's first paint.
+                //
+                // RC17: pass inputMp as a Double so the modal's pricing math
+                // sees the true source MP. Pre-RC17 we floored the int division
+                // and then coerced ≥1, so a 768×1024 source (0.79 MP) was sent
+                // as 1 MP — which inflated the per-MP COGS estimate by 27% on
+                // small phone shots.
                 val srcAndroid = src.asAndroidBitmap()
-                val inputMpInt = ((srcAndroid.width.toLong() * srcAndroid.height) / 1_000_000L)
-                    .toInt()
-                    .coerceAtLeast(1)
+                val inputMpD = (srcAndroid.width.toLong() * srcAndroid.height).toDouble() / 1_000_000.0
                 val inputBytesL = srcAndroid.byteCount.toLong()
                 LowDpiUpgradeModal(
                     sourceBitmap = src,
-                    inputMp = inputMpInt,
+                    inputMp = inputMpD,
                     inputBytes = inputBytesL,
                     currentDpi = currentDpi,
                     posterWInches = posterWInchesD,

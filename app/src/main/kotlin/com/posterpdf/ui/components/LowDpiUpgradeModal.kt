@@ -173,41 +173,52 @@ private val ALL_OPTIONS: List<UpscaleOption> = listOf(
 /**
  * RC8 — DPI-aware scale picker, mirrors backend/functions/src/upscale.ts.
  * Pick the smallest supported scale that produces enough pixels to hit the
- * user's target DPI on the chosen poster size, with 20% headroom for crop
- * marks. Falls back to the largest available scale if no scale meets the
- * target. Pre-RC8 the client always assumed 4× regardless of target DPI,
- * so Topaz cost was displayed as $4.52 on an 8MP source × 16 scale-factor
- * even when only 2× was needed to hit 150 DPI.
+ * user's target DPI on the chosen poster size. Falls back to the largest
+ * available scale if no scale meets the target. Pre-RC8 the client always
+ * assumed 4× regardless of target DPI, so Topaz cost was displayed as $4.52
+ * on an 8MP source × 16 scale-factor even when only 2× was needed to hit
+ * 150 DPI.
+ *
+ * RC17 — two pricing-accuracy fixes:
+ *  1. inputMp is now a Double (was Int with `coerceAtLeast(1)`). Sub-1 MP
+ *     sources (e.g., 768×1024 = 0.79 MP) were rounding up to 1, which
+ *     inflated the downstream outputMp from 12.58 → 16 MP and over-charged
+ *     Topaz/AuraSR/ESRGAN by 25-67% on small sources.
+ *  2. Dropped the 1.2× headroom on `required`. Topaz's
+ *     `supportedScales = [2,4,6,8]` was forcing a jump from 4→6 whenever
+ *     scale 4 met `targetMp` exactly but didn't clear `targetMp × 1.2` —
+ *     billing the user for ~125% extra MP they never asked for. The 1.2×
+ *     was justified as "20% crop headroom," but real bleed/crop is <5% of
+ *     dimensions; targeting `targetMp` exactly is the honest behavior.
  */
 private fun pickScale(
     option: UpscaleOption,
-    inputMp: Int,
+    inputMp: Double,
     posterWInches: Double,
     posterHInches: Double,
     targetDpi: Int,
 ): Int {
     val targetMp = (posterWInches * targetDpi) * (posterHInches * targetDpi) / 1_000_000.0
-    val required = targetMp * 1.2
     for (s in option.supportedScales) {
-        if (inputMp.toDouble() * s * s >= required) return s
+        if (inputMp * s * s >= targetMp) return s
     }
     return option.supportedScales.last()
 }
 
 private fun cogsForOption(
     option: UpscaleOption,
-    inputMp: Int,
+    inputMp: Double,
     pickedScale: Int,
 ): Double {
     if (option.flatUsd > 0.0) return option.flatUsd
-    val outputMp = inputMp.toDouble() * pickedScale * pickedScale
+    val outputMp = inputMp * pickedScale * pickedScale
     return outputMp * option.perOutputMp
 }
 
 /** Free options return 0; paid options return ceil(cogs / budget), min 1. */
 private fun creditsForOption(
     option: UpscaleOption,
-    inputMp: Int,
+    inputMp: Double,
     pickedScale: Int,
 ): Int {
     if (option.model == UpscaleModel.NONE || option.model == UpscaleModel.FREE_LOCAL) return 0
@@ -245,7 +256,10 @@ private const val DEFAULT_BYTES_PER_SECOND = 500_000L
 @Composable
 fun LowDpiUpgradeModal(
     sourceBitmap: ImageBitmap,
-    inputMp: Int,
+    /** RC17: source megapixels as a Double (was Int with `coerceAtLeast(1)`).
+     *  Sub-1 MP sources rounded up to 1 inflated the COGS calc by up to 67%.
+     *  Capability + ETA helpers still take Int and use ceil() locally. */
+    inputMp: Double,
     inputBytes: Long,
     currentDpi: Float,
     posterWInches: Double,
@@ -289,16 +303,22 @@ fun LowDpiUpgradeModal(
 
     val context = LocalContext.current
 
+    // Capability + ETA helpers still operate in integer-MP space. Use
+    // ceil() so a 0.79 MP source counts as "1 MP of work" for the RAM-
+    // sufficiency check (slightly conservative is fine here; the exact
+    // pricing path uses the Double inputMp directly).
+    val inputMpInt = remember(inputMp) { ceil(inputMp).toInt().coerceAtLeast(1) }
+
     // Device capability for on-device upscale (gates FREE_LOCAL card button).
-    val freeCapability = remember(inputMp, context) {
-        Capability.assessLocalUpscale(inputMp, scale = 4, ctx = context)
+    val freeCapability = remember(inputMpInt, context) {
+        Capability.assessLocalUpscale(inputMpInt, scale = 4, ctx = context)
     }
     val freeEnabled = freeCapability.tier != CapabilityTier.RED
 
     // On-device ETA from cached benchmark.
     var msPerMp by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(context) { msPerMp = cachedMsPerMegapixel(context) }
-    val localOutputMp = remember(inputMp) { inputMp.toLong() * 4 * 4 }
+    val localOutputMp = remember(inputMpInt) { inputMpInt.toLong() * 4 * 4 }
     val localEtaText = remember(localOutputMp, msPerMp) {
         etaForLocal(localOutputMp, msPerMp)?.let(::formatEta) ?: "estimating…"
     }

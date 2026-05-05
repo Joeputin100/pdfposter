@@ -49,7 +49,11 @@ const CREDIT_COST_BUDGET_USD = 0.00425;
 interface ModelSpec {
   endpoint: string;
   /** Supported scale factors in ascending order — backend picks the smallest
-   *  that produces output_mp ≥ target_mp × 1.2 (20% headroom for cropping). */
+   *  that produces output_mp ≥ target_mp. RC17 dropped a previous 1.2× crop
+   *  headroom because Topaz's [2,4,6,8] supportedScales were forcing scale
+   *  6 whenever scale 4 met the target exactly, billing the user for ~125%
+   *  more output MP than the target DPI required. Real bleed/crop is <5%
+   *  of dimensions; targeting target_mp exactly is the honest behavior. */
   supportedScales: number[];
   costFn: (outputMp: number) => number;   // returns COGS in USD
   body: (imageUrl: string, scale: number) => Record<string, unknown>;
@@ -102,14 +106,17 @@ const MODELS: Record<UpscaleModel, ModelSpec> = {
 };
 
 /**
- * RC3+ — pick smallest scale factor that produces enough pixels for the
- * target DPI on the user's poster size. Saves 5-10× FAL cost vs. always 4×
- * for typical phone-shot 12 MP photos printed at 24×19" / 150 DPI.
+ * RC3+ / RC17 — pick smallest scale factor that produces enough pixels for
+ * the target DPI on the user's poster size. Saves 5-10× FAL cost vs. always
+ * 4× for typical phone-shot 12 MP photos printed at 24×19" / 150 DPI.
  *
  * targetMp = (posterW × DPI) × (posterH × DPI) / 1e6
  * outputMp(scale) = inputMp × scale²
- * Pick smallest scale where outputMp ≥ targetMp × 1.2 (20% crop headroom).
- * If no scale meets the target, return the largest available (best-effort).
+ * Pick smallest scale where outputMp ≥ targetMp. RC17 dropped a previous
+ * 1.2× headroom because it pushed Topaz's [2,4,6,8] from scale 4 → 6 even
+ * when scale 4 met the target exactly, ~doubling the credit charge for no
+ * functional benefit. If no scale meets the target, return the largest
+ * available (best-effort).
  */
 function pickScale(
   modelId: UpscaleModel,
@@ -119,10 +126,9 @@ function pickScale(
   targetDpi: number,
 ): number {
   const targetMp = (posterW * targetDpi) * (posterH * targetDpi) / 1_000_000;
-  const required = targetMp * 1.2;
   const scales = MODELS[modelId].supportedScales;
   for (const s of scales) {
-    if (inputMp * s * s >= required) return s;
+    if (inputMp * s * s >= targetMp) return s;
   }
   return scales[scales.length - 1];
 }
