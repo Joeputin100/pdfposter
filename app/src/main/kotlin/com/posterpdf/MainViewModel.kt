@@ -150,6 +150,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
     var aiUpscaleProgress by mutableStateOf(0f)
         private set
+    /** RC21: extra detail line for the AI upscale modal. Surfaces queue
+     *  position ("Queue position 3") while IN_QUEUE and a generic
+     *  "Processing image" while IN_PROGRESS, both populated by the
+     *  AiUpscaleRepository's polling path from FAL's status response.
+     *  Null during setup/teardown phases — UI hides the row in that case. */
+    var aiUpscaleDetail by mutableStateOf<String?>(null)
+        private set
     private var aiUpscaleJob: kotlinx.coroutines.Job? = null
 
     /** RC13: tile-level upscale progress, exposed so the in-app modal can
@@ -309,11 +316,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 // the stale original. Without this, the PDF embeds the
                 // pre-upscale "Source: WxH" + low-DPI warning even though
                 // the actual rendered image is high-res.
+                // RC21: aspectRatioString uses the SAME "%.1f:1.0" format as the
+                // initial-load path (line ~725) so the chip doesn't appear to
+                // change format from "0.6:1.0" to a raw pixel ratio "768:1376"
+                // after upscale. Underlying aspectRatio Double is identical
+                // because ESRGAN-TF2's 4× upscale preserves dimensions linearly.
+                val arUp = upscaled.width.toDouble() / upscaled.height.toDouble()
                 imageMetadata = ImageMetadata(
                     width = upscaled.width,
                     height = upscaled.height,
-                    aspectRatioString = "${upscaled.width}:${upscaled.height}",
-                    aspectRatio = upscaled.width.toDouble() / upscaled.height.toDouble(),
+                    aspectRatioString = String.format(Locale.US, "%.1f:1.0", arUp),
+                    aspectRatio = arUp,
                     resolution = "${upscaled.width}×${upscaled.height}",
                 )
                 wasUpscaled = true
@@ -402,7 +415,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     posterWidthInches = posterWIn,
                     posterHeightInches = posterHIn,
                     targetDpi = targetDpi,
-                ) { phase, frac ->
+                ) { phase, frac, detail ->
                     aiUpscalePhase = when (phase) {
                         com.posterpdf.data.backend.AiUpscaleRepository.Phase.UPLOADING -> "Uploading source…"
                         com.posterpdf.data.backend.AiUpscaleRepository.Phase.IN_QUEUE -> "Waiting in queue…"
@@ -413,17 +426,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         com.posterpdf.data.backend.AiUpscaleRepository.Phase.FAILED -> "Failed"
                     }
                     aiUpscaleProgress = frac
+                    // RC21: detail is "Queue position 3", "Processing image",
+                    // etc. when the backend has populated queuePosition; null
+                    // for setup/teardown phases.
+                    aiUpscaleDetail = detail
                 }
                 result.onSuccess { outFile ->
                     val bmp = android.graphics.BitmapFactory.decodeFile(outFile.absolutePath)
                     if (bmp != null) {
                         selectedImageUri = Uri.fromFile(outFile)
                         sourcePixelDimensions = bmp.width to bmp.height
+                        // RC21: same "%.1f:1.0" format as the initial-load path
+                        // and the FREE_LOCAL upscale path so the chip reads
+                        // consistently regardless of how the image arrived.
+                        val arAi = bmp.width.toDouble() / bmp.height.toDouble()
                         imageMetadata = ImageMetadata(
                             width = bmp.width,
                             height = bmp.height,
-                            aspectRatioString = "${bmp.width}:${bmp.height}",
-                            aspectRatio = bmp.width.toDouble() / bmp.height.toDouble(),
+                            aspectRatioString = String.format(Locale.US, "%.1f:1.0", arAi),
+                            aspectRatio = arAi,
                             resolution = "${bmp.width}×${bmp.height}",
                         )
                         wasUpscaled = true

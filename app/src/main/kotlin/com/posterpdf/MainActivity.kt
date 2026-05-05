@@ -433,6 +433,19 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                         text = viewModel.aiUpscalePhase.ifEmpty { "Starting…" },
                         style = MaterialTheme.typography.bodyMedium,
                     )
+                    // RC21: detail line — "Queue position 3", "Processing image",
+                    // etc. when the backend has populated queuePosition. Hidden
+                    // during the upload / download / save phases where there's
+                    // no FAL queue to report.
+                    val detail = viewModel.aiUpscaleDetail
+                    if (!detail.isNullOrEmpty()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = detail,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     Spacer(Modifier.height(12.dp))
                     LinearProgressIndicator(
                         progress = { viewModel.aiUpscaleProgress },

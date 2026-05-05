@@ -421,26 +421,113 @@ class PosterLogic {
         cs.drawImage(image, dx, dy, dw, dh)
         cs.restoreGraphicsState()
 
-        // 2. Draw Grid and Labels
+        // 2. Draw Grid and Labels — RC21 rewrite:
+        //
+        // Pre-RC21 the grid was a uniform `dw/cols` × `dh/rows` cell partition.
+        // That hides three things the user actually needs to see when planning
+        // the assembly:
+        //   • paper margins (blank borders trimmed before taping)
+        //   • overlap zones between adjacent printable rects
+        //   • the fact that some paper extends past the poster edge (rightmost
+        //     column / bottom row often have leftover paper)
+        //
+        // The new grid plots paper cells in TRUE poster coordinates:
+        //   • each paper is `pgw × pgh` points, positioned at
+        //     `(c*stepX − m, r*stepY − m)` in poster space
+        //   • adjacent papers overlap by `overlap` points in printable space
+        //   • cell labels sit on the printable area, not the full paper
+        //
+        // Drawn in three passes so z-order is sensible:
+        //   pass 1: paper bounds (light gray outline)
+        //   pass 2: overlap zones (orange-tinted fill, shows shared content)
+        //   pass 3: printable rect (black outline) + label
         val (_, rows, cols) = calculateSheetCount(pw, ph, pgw - 2 * m, pgh - 2 * m, o)
-        val tw = dw / cols
-        val th = dh / rows
-        
-        cs.setLineWidth(1f)
-        cs.setStrokingColor(0f, 0f, 0f)
-        
+        val printableWPts = pgw - 2 * m
+        val printableHPts = pgh - 2 * m
+        val stepXPts = printableWPts - o
+        val stepYPts = printableHPts - o
+        val sx = (dw / pw).toFloat()
+        val sy = (dh / ph).toFloat()
+
+        // Helper: poster (x, y_top_down) → diagram (x, y_pdf_up).
+        fun posterToDiagram(px: Double, py: Double): Pair<Float, Float> {
+            val xd = dx + (px * sx)
+            // PDF y-up; poster y-down. Flip with dh.
+            val yd = dy + dh - (py * sy)
+            return xd.toFloat() to yd.toFloat()
+        }
+
+        // Pass 1: paper bounds (full sheet, including margins).
+        cs.setStrokingColor(0.55f, 0.55f, 0.55f)
+        cs.setLineWidth(0.6f)
         for (r in 0 until rows) {
             for (c in 0 until cols) {
-                val tx = dx + c * tw
-                val ty = dy + (rows - 1 - r) * th
-                cs.addRect(tx, ty, tw, th)
+                val paperLeftPoster = c * stepXPts - m
+                val paperTopPoster = r * stepYPts - m
+                val (px, py) = posterToDiagram(paperLeftPoster, paperTopPoster + pgh)
+                cs.addRect(px, py, (pgw * sx).toFloat(), (pgh * sy).toFloat())
                 cs.stroke()
-                
+            }
+        }
+
+        // Pass 2: overlap zones between vertical seams.
+        // Each pair (c, c+1) shares a vertical strip at poster x in
+        // [c*stepX + printableW − overlap, c*stepX + printableW]. Fill
+        // the strip with a light orange so the user can see where adjacent
+        // pages duplicate content. Same logic for horizontal seams.
+        if (o > 0.5) {
+            cs.setNonStrokingColor(1.0f, 0.7f, 0.4f)
+            cs.saveGraphicsState()
+            cs.setGraphicsStateParameters(com.tom_roush.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState().apply {
+                nonStrokingAlphaConstant = 0.35f
+            })
+            for (r in 0 until rows) {
+                val seamTopPoster = r * stepYPts
+                val seamBotPoster = seamTopPoster + printableHPts
+                for (c in 0 until cols - 1) {
+                    val seamLeftPoster = c * stepXPts + printableWPts - o
+                    val seamRightPoster = c * stepXPts + printableWPts
+                    val (lx, ty) = posterToDiagram(seamLeftPoster, seamTopPoster)
+                    val w = ((seamRightPoster - seamLeftPoster) * sx).toFloat()
+                    val h = (printableHPts * sy).toFloat()
+                    cs.addRect(lx, ty - h, w, h)
+                    cs.fill()
+                }
+            }
+            for (c in 0 until cols) {
+                val seamLeftPoster = c * stepXPts
+                val seamRightPoster = seamLeftPoster + printableWPts
+                for (r in 0 until rows - 1) {
+                    val seamTopPoster = r * stepYPts + printableHPts - o
+                    val seamBotPoster = r * stepYPts + printableHPts
+                    val (lx, ty) = posterToDiagram(seamLeftPoster, seamTopPoster)
+                    val w = (printableWPts * sx).toFloat()
+                    val h = ((seamBotPoster - seamTopPoster) * sy).toFloat()
+                    cs.addRect(lx, ty - h, w, h)
+                    cs.fill()
+                }
+            }
+            cs.restoreGraphicsState()
+            cs.setNonStrokingColor(0f, 0f, 0f)
+        }
+
+        // Pass 3: printable rect outline + label.
+        cs.setLineWidth(1f)
+        cs.setStrokingColor(0f, 0f, 0f)
+        for (r in 0 until rows) {
+            for (c in 0 until cols) {
+                val printableLeftPoster = c * stepXPts
+                val printableTopPoster = r * stepYPts
+                val (lx, ty) = posterToDiagram(printableLeftPoster, printableTopPoster)
+                val w = (printableWPts * sx).toFloat()
+                val h = (printableHPts * sy).toFloat()
+                cs.addRect(lx, ty - h, w, h)
+                cs.stroke()
+
                 cs.beginText()
                 cs.setFont(PDType1Font.HELVETICA_BOLD, 14f)
                 val label = getGridLabel(r, c)
-                // Center label simple logic
-                cs.newLineAtOffset(tx + tw/2f - 10f, ty + th/2f - 5f)
+                cs.newLineAtOffset(lx + w / 2f - 10f, ty - h / 2f - 5f)
                 cs.showText(label)
                 cs.endText()
             }

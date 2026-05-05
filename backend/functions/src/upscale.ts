@@ -338,6 +338,12 @@ interface FalSubmitResponse {
 
 interface FalStatusResponse {
   status?: 'IN_QUEUE' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | string;
+  // RC21: queue_position (only set while IN_QUEUE) + metrics.inference_time
+  // (only set after COMPLETED). Surface both via the upscaleTransactions
+  // doc so the client's pollForCompletion can render an ETA / queue depth
+  // detail line in the progress modal.
+  queue_position?: number;
+  metrics?: { inference_time?: number };
   // Result payload shape varies; try a few common keys.
   image?: { url: string };
   images?: Array<{ url: string }>;
@@ -378,6 +384,7 @@ async function pollFalJob(
   statusUrl: string,
   apiKey: string,
   deadlineMs: number,
+  txId?: string,
 ): Promise<FalStatusResponse | null> {
   while (Date.now() < deadlineMs) {
     const resp = await axios.get<FalStatusResponse>(statusUrl, {
@@ -390,6 +397,23 @@ async function pollFalJob(
     }
     const data = resp.data;
     const status = data.status;
+    // RC21: persist live progress fields so getUpscaleStatus can return them
+    // to the client. We only do the write when txId is known and the values
+    // are interesting (queue_position changes, status flips IN_QUEUE→IN_PROGRESS,
+    // etc.) — no point churning Firestore writes on no-op iterations.
+    if (txId && (status === 'IN_QUEUE' || status === 'IN_PROGRESS')) {
+      const updates: Record<string, unknown> = { falStatus: status };
+      if (typeof data.queue_position === 'number') {
+        updates.queuePosition = data.queue_position;
+      }
+      try {
+        await getFirestore().collection('upscaleTransactions').doc(txId).set(updates, { merge: true });
+      } catch (e) {
+        // Non-fatal — Firestore write failure shouldn't block the FAL poll.
+        // Production probably hits this rarely; log and continue.
+        console.warn('failed to persist FAL progress', e);
+      }
+    }
     if (status === 'COMPLETED') return data;
     if (status === 'FAILED') {
       const errMsg =
@@ -491,7 +515,7 @@ export const requestUpscale = onCall(
           );
 
         const deadline = Date.now() + POLL_TIMEOUT_MS;
-        const finalStatus = await pollFalJob(statusUrl, FAL_KEY.value(), deadline);
+        const finalStatus = await pollFalJob(statusUrl, FAL_KEY.value(), deadline, txId);
         if (!finalStatus) {
           // Inline timeout. Mark as in-progress; client will poll getUpscaleStatus.
           await getFirestore()

@@ -636,8 +636,19 @@ fun PosterPreview(viewModel: MainViewModel) {
                             val emergeT = (tInPhase / 1.8f).coerceIn(0f, 1f)
                             val jitterX = sin(tInPhase.toDouble() * Math.PI * 8.0)
                                 .toFloat() * 1.6f * (1f - emergeT)
+                            // RC21: invert the stack-offset direction so the
+                            // most-recently-printed pane (paneIndex = N-1)
+                            // sits AT the slot and earlier panes recede
+                            // BEHIND it. Combined with the row-major draw
+                            // order (later paneIndex drawn on top), this
+                            // matches a real printer pile: newest on top,
+                            // visible flush at the slot, oldest peeking out
+                            // from the back. Pre-RC21 the offset was
+                            // `paneIndex * 6f`, which inverted the visual
+                            // metaphor — newest pane was furthest from the
+                            // slot.
                             val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
-                                paneIndex * 6f
+                                (paneCount - 1 - paneIndex) * 6f
                             val easeOut = 1f - (1f - emergeT) * (1f - emergeT)
                             paneOffX = toPrinterDx + jitterX
                             paneOffY = toPrinterDy + (emergedY - toPrinterDy) * easeOut
@@ -647,8 +658,19 @@ fun PosterPreview(viewModel: MainViewModel) {
                         AssemblyPhase.Panning -> {
                             // Panes hold at the printer-emerged position; the CAMERA
                             // moves around them (cameraOff handled by outer transform).
+                            // RC21: invert the stack-offset direction so the
+                            // most-recently-printed pane (paneIndex = N-1)
+                            // sits AT the slot and earlier panes recede
+                            // BEHIND it. Combined with the row-major draw
+                            // order (later paneIndex drawn on top), this
+                            // matches a real printer pile: newest on top,
+                            // visible flush at the slot, oldest peeking out
+                            // from the back. Pre-RC21 the offset was
+                            // `paneIndex * 6f`, which inverted the visual
+                            // metaphor — newest pane was furthest from the
+                            // slot.
                             val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
-                                paneIndex * 6f
+                                (paneCount - 1 - paneIndex) * 6f
                             paneOffX = toPrinterDx
                             paneOffY = emergedY
                         }
@@ -658,8 +680,19 @@ fun PosterPreview(viewModel: MainViewModel) {
                             // across the phase; before its slice it stays at the
                             // print-stack pile, after its slice it sits at home (with
                             // white borders intact — pre-cut).
+                            // RC21: invert the stack-offset direction so the
+                            // most-recently-printed pane (paneIndex = N-1)
+                            // sits AT the slot and earlier panes recede
+                            // BEHIND it. Combined with the row-major draw
+                            // order (later paneIndex drawn on top), this
+                            // matches a real printer pile: newest on top,
+                            // visible flush at the slot, oldest peeking out
+                            // from the back. Pre-RC21 the offset was
+                            // `paneIndex * 6f`, which inverted the visual
+                            // metaphor — newest pane was furthest from the
+                            // slot.
                             val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
-                                paneIndex * 6f
+                                (paneCount - 1 - paneIndex) * 6f
                             val slice = 1f / paneCount
                             val sliceStart = paneIndex * slice
                             val k = ((phaseT - sliceStart) / slice).coerceIn(0f, 1f)
