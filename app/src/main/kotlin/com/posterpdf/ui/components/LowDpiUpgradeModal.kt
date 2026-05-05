@@ -99,7 +99,7 @@ private const val CREDIT_COST_BUDGET_USD = 0.00425
 
 enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN }
 
-private data class UpscaleOption(
+internal data class UpscaleOption(
     val model: UpscaleModel,
     val displayName: String,
     val pros: String,
@@ -122,7 +122,7 @@ private data class UpscaleOption(
 // Copy framing distills each paid model into a "use-when" pros line + a
 // "trade-off" cons line — a compressed 4Ps/6Ms read so the user can pick by
 // fit (text vs photo vs art) and price together, instead of guessing.
-private val ALL_OPTIONS: List<UpscaleOption> = listOf(
+internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
     UpscaleOption(
         model = UpscaleModel.NONE,
         displayName = "Now (pixelated)",
