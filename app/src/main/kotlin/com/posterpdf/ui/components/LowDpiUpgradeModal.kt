@@ -11,7 +11,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +46,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -359,6 +362,10 @@ fun LowDpiUpgradeModal(
     // RC3+: tracks user-selected model card for the glow effect. Defaults to
     // null (nothing selected); user can tap any card to highlight it.
     var selectedModel by remember { mutableStateOf<UpscaleModel?>(null) }
+    // RC22-7: when non-null, the marketing-detail dialog opens for this
+    // model. Set by either the lower-right Info icon on a card, or a
+    // double-tap on the card body. Cleared by the dialog's onDismiss.
+    var detailModel by remember { mutableStateOf<UpscaleModel?>(null) }
 
     // All 6 model options always visible + BringYourOwn sentinel last.
     val visibleOptions: List<UpscaleModel?> = remember {
@@ -478,6 +485,7 @@ fun LowDpiUpgradeModal(
                                 onAiUpscale = { onAiUpscale(option.model.name.lowercase()) },
                                 onSignIn = onSignIn,
                                 onBuyCredits = onBuyCredits,
+                                onShowDetail = { detailModel = option.model },
                             )
                         }
                     }
@@ -534,6 +542,35 @@ fun LowDpiUpgradeModal(
             Spacer(Modifier.height(8.dp))
         }
     }
+    // RC22-7: full-screen marketing detail dialog. Triggered by the lower-right
+    // Info icon on each card, or a double-tap anywhere on the card. Surfaces
+    // the long-form pitch (pickWhen / standsOut / worthThePrice) that doesn't
+    // fit in the in-grid card body.
+    val open = detailModel
+    if (open != null) {
+        val option = ALL_OPTIONS.first { it.model == open }
+        val copy = detailFor(open)
+        val (actionLabel, action) = when {
+            open == UpscaleModel.NONE -> "" to { }
+            open == UpscaleModel.FREE_LOCAL -> "Use free upscaler" to onFreeUpscale
+            isAnonymous -> "Sign in to upscale" to onSignIn
+            !(isAdmin || creditBalance >= creditsForOption(option, inputMp,
+                pickScale(option, inputMp, posterWInches, posterHInches, targetDpi))) ->
+                "Get more credits" to onBuyCredits
+            else -> "Upscale with ${option.displayName}" to { onAiUpscale(open.name.lowercase()) }
+        }
+        ModelDetailDialog(
+            option = option,
+            bestFor = copy.bestFor,
+            pickWhen = copy.pickWhen,
+            standsOut = copy.standsOut,
+            worthThePrice = copy.worthThePrice,
+            primaryActionLabel = actionLabel,
+            onPrimaryAction = action,
+            showPrimaryAction = open != UpscaleModel.NONE,
+            onDismiss = { detailModel = null },
+        )
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -553,6 +590,7 @@ private fun iconForModel(model: UpscaleModel): Int = when (model) {
 // Option card
 // ─────────────────────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun UpscaleOptionCard(
     option: UpscaleOption,
@@ -573,6 +611,9 @@ private fun UpscaleOptionCard(
     onAiUpscale: () -> Unit,
     onSignIn: () -> Unit,
     onBuyCredits: () -> Unit,
+    // RC22-7: show the detailed model dialog. Triggered by the
+    // lower-right Info icon button OR a double-tap anywhere on the card.
+    onShowDetail: () -> Unit = {},
 ) {
     val isAi = credits > 0
     val isAiModel = option.model in setOf(
@@ -617,7 +658,14 @@ private fun UpscaleOptionCard(
                 color = if (isSelected) borderColor else outlineColor,
                 shape = RoundedCornerShape(20.dp),
             )
-            .clickable(onClick = onCardClick),
+            // RC22-7: combinedClickable so the same Card surface responds to
+            // single-tap (select-this-model) AND double-tap (open the
+            // marketing-detail dialog). Single-tap goes to onCardClick like
+            // before; double-tap routes to onShowDetail.
+            .combinedClickable(
+                onClick = onCardClick,
+                onDoubleClick = onShowDetail,
+            ),
     ) {
         Column(
             modifier = Modifier
@@ -665,6 +713,32 @@ private fun UpscaleOptionCard(
                     .background(Color.Black),
                 contentAlignment = Alignment.Center,
             ) {
+                // RC22-7: lower-right info button. Single tap → onShowDetail
+                // (full-screen marketing detail). Sits on top of the thumbnail
+                // so the icon is always reachable; the surrounding circle gives
+                // the icon a tap target on busy/dark thumbnails.
+                IconButton(
+                    onClick = onShowDetail,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(2.dp)
+                        .size(28.dp),
+                ) {
+                    Surface(
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        color = Color.Black.copy(alpha = 0.55f),
+                        modifier = Modifier.size(24.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                            Icon(
+                                androidx.compose.material.icons.Icons.Outlined.Info,
+                                contentDescription = "More about ${option.displayName}",
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
+                    }
+                }
                 when (option.model) {
                     UpscaleModel.NONE -> {
                         if (pixelatedThumb != null) {

@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc21"  // RC21 (sRGB + Crashlytics/JankStats + test battery + items 1-9)
+        versionName = "1.0-rc22"  // RC22 (cm ruler + tape/tack + zoom + pulse + flipping coin + model detail)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
