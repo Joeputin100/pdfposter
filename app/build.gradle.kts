@@ -37,9 +37,13 @@ android {
             // the fallback IS the live password — TODO 4 step 1 (rotate keystore)
             // remains open. Env-var support is the prerequisite that lets a
             // future rotation land without re-touching this file.
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "posterpdf"
-            keyAlias = System.getenv("KEY_ALIAS") ?: "posterpdf"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: "posterpdf"
+            //
+            // takeIf { isNotEmpty() } guards against GitHub Actions setting the
+            // env var to "" when a secret is unset — which would otherwise
+            // bypass the ?: fallback and corrupt the keystore decrypt.
+            storePassword = System.getenv("KEYSTORE_PASSWORD")?.takeIf { it.isNotEmpty() } ?: "posterpdf"
+            keyAlias = System.getenv("KEY_ALIAS")?.takeIf { it.isNotEmpty() } ?: "posterpdf"
+            keyPassword = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotEmpty() } ?: "posterpdf"
         }
     }
 
