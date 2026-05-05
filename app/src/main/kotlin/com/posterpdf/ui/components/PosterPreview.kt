@@ -60,6 +60,8 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
@@ -90,64 +92,11 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
-private const val WOOD_AGSL = """
-uniform float2 iResolution;
-uniform float iTime;
-uniform float iOriginY;
-
-float hash1(float2 p) {
-    p = fract(p * float2(123.34, 456.21));
-    p += dot(p, p + 45.32);
-    return fract(p.x * p.y);
-}
-float noise(float2 p) {
-    float2 i = floor(p);
-    float2 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    float a = hash1(i);
-    float b = hash1(i + float2(1.0, 0.0));
-    float c = hash1(i + float2(0.0, 1.0));
-    float d = hash1(i + float2(1.0, 1.0));
-    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-}
-float fbm(float2 p) {
-    float v = 0.0;
-    float amp = 0.5;
-    for (int i = 0; i < 5; i++) {
-        v += amp * noise(p);
-        p *= 2.02;
-        amp *= 0.5;
-    }
-    return v;
-}
-half4 main(float2 fragCoord) {
-    // RC3: iOriginY shifts the sampled wood-grain origin in pixels so that the
-    // grain scrolls in sync with the camera pan. The viewport pans DOWN the
-    // table during the Panning phase (printer slides up/off-screen); we add
-    // (-cameraOffsetY) to fragCoord.y so wood texture appears to slide too.
-    float2 sampleCoord = float2(fragCoord.x, fragCoord.y - iOriginY);
-    float2 uv = sampleCoord / iResolution.xy;
-    float2 grainUV = float2(uv.x * 6.0, uv.y * 2.2);
-    float distort = fbm(grainUV * 3.0) * 0.15;
-    grainUV.y += distort;
-    float ring = fbm(float2(grainUV.x * 0.6, grainUV.y * 18.0));
-    ring = fract(ring * 8.0);
-    float rings = smoothstep(0.35, 0.45, ring) * smoothstep(0.65, 0.55, ring);
-    half3 dark = half3(0.28, 0.16, 0.09);
-    half3 mid = half3(0.46, 0.28, 0.16);
-    half3 light = half3(0.62, 0.42, 0.24);
-    float grain = fbm(grainUV * float2(12.0, 90.0)) * 0.35;
-    half3 color = mix(mid, dark, half(rings));
-    color = mix(color, light, half(grain * 0.5));
-    // Vignette uses screen-space uv (not the scrolled sampleCoord) so the
-    // viewport edges stay subtly darker even as the grain scrolls.
-    float2 screenUV = fragCoord / iResolution.xy;
-    float2 center = screenUV - 0.5;
-    float vig = 1.0 - dot(center, center) * 0.6;
-    color *= half(vig);
-    return half4(color, 1.0);
-}
-"""
+// RC17: WOOD_AGSL procedural shader removed. Replaced with a raster
+// wood texture (R.drawable.wood_table, sourced from a real photograph)
+// drawn via BitmapShader + ShaderBrush — see the woodShader/woodBrush
+// initialization in PosterPreview() and the drawWithCache block on the
+// outer preview Box.
 
 @Composable
 fun PosterPreview(viewModel: MainViewModel) {
@@ -225,15 +174,16 @@ fun PosterPreview(viewModel: MainViewModel) {
     // Screenshot_20260503_153224). 0.15 still moves the printer body
     // mostly off-screen but keeps every row visible.
     val cameraOffsetYpx = remember { mutableFloatStateOf(0f) }
-    // RC10: user-driven pan offset added to the animation-driven camera Y.
-    // Lets the user drag the table inside the viewport (e.g. drag down to
-    // pan up and see the printer that's normally above the visible area
-    // during Arranging/Cutting/etc.). Persists across animation phases.
+    // RC17: 2D pan/camera. Pre-RC17 only the Y axis was user-controllable;
+    // user wanted "should also be able to pan left and right." Animated
+    // camera (cycle) is still vertical-only — there's no horizontal cycle
+    // motion — so cameraOffsetXpx is just the clamped userPanX.
+    val userPanX = remember { mutableFloatStateOf(0f) }
     val userPanY = remember { mutableFloatStateOf(0f) }
-    // RC14: user-driven zoom factor (pinch). Multiplied into every canvas
-    // draw so pinching scales content INSIDE the viewport (not the
-    // viewport itself). 1.0 is identity; clamped to [0.5, 3.0] to keep
-    // the assembled poster from disappearing or over-stuffing the frame.
+    val cameraOffsetXpx = remember { mutableFloatStateOf(0f) }
+    // RC17: zoom clamped to [1, 3]. Below 1 left empty viewport corners
+    // since the wood-and-content composite shrinks with the scale; user
+    // wanted enlarge-to-inspect, not shrink.
     val userZoom = remember { mutableFloatStateOf(1f) }
     androidx.compose.runtime.SideEffect {
         val panTarget = boxSize.height * 0.15f
@@ -248,12 +198,15 @@ fun PosterPreview(viewModel: MainViewModel) {
             AssemblyPhase.Reset -> -panTarget * (1f - phaseT)
             else -> -panTarget // Hold panned-down through Arranging..Pinning.
         }
-        // Clamp combined offset to ±1.5× viewport height so the user can\'t
-        // drag the layout permanently off-screen.
-        val maxAbs = boxSize.height * 1.5f
-        val combined = (animY + userPanY.floatValue).coerceIn(-maxAbs, maxAbs)
-        if (cameraOffsetYpx.floatValue != combined) {
-            cameraOffsetYpx.floatValue = combined
+        val maxAbsX = boxSize.width * 1.5f
+        val maxAbsY = boxSize.height * 1.5f
+        val combinedY = (animY + userPanY.floatValue).coerceIn(-maxAbsY, maxAbsY)
+        val combinedX = userPanX.floatValue.coerceIn(-maxAbsX, maxAbsX)
+        if (cameraOffsetYpx.floatValue != combinedY) {
+            cameraOffsetYpx.floatValue = combinedY
+        }
+        if (cameraOffsetXpx.floatValue != combinedX) {
+            cameraOffsetXpx.floatValue = combinedX
         }
     }
     val jiggleDurationMs = 600f
@@ -343,10 +296,20 @@ fun PosterPreview(viewModel: MainViewModel) {
         bitmap?.let { viewModel.sourcePixelDimensions = it.width to it.height }
     }
 
-    // RuntimeShader is API 33+. On older devices we fall back to a static gradient.
-    val woodShader = remember(cycleEnabled) {
-        if (cycleEnabled) RuntimeShader(WOOD_AGSL) else null
+    // RC17: replaced procedural AGSL wood with a raster wood texture per
+    // user request ("replace procedurally generated table surface with a
+    // raster one"). The bitmap is decoded once and wrapped in a tiled
+    // BitmapShader so wood fills any viewport size without distortion.
+    val woodImage = androidx.compose.ui.res.imageResource(id = com.posterpdf.R.drawable.wood_table)
+    val woodBitmap = remember(woodImage) { woodImage.asAndroidBitmap() }
+    val woodShader = remember(woodBitmap) {
+        android.graphics.BitmapShader(
+            woodBitmap,
+            android.graphics.Shader.TileMode.REPEAT,
+            android.graphics.Shader.TileMode.REPEAT,
+        )
     }
+    val woodBrush = remember(woodShader) { ShaderBrush(woodShader) }
     // H-P1.8: dot-matrix printer ink streak — AGSL, gated to API 33+; null on
     // older devices (drawPrinter handles the fallback path). The RC3 redesign
     // dropped the dust puff (no more "stack lands on desk" beat).
@@ -414,37 +377,35 @@ fun PosterPreview(viewModel: MainViewModel) {
                 // graphicsLayer + userPanY on the camera offset state.
                 .clip(RoundedCornerShape(24.dp))
                 .drawWithCache {
-                    // Camera-pan offset is supplied by the AssemblyPhase clock
-                    // via the `cameraOffsetYpx` Compose state below. We can't
-                    // read Compose state from inside drawWithCache directly —
-                    // drawBehind closes over the live state lambda, so reads
-                    // happen at draw time.
-                    if (woodShader != null) {
-                        val brush = ShaderBrush(woodShader)
-                        onDrawBehind {
-                            woodShader.setFloatUniform("iResolution", size.width, size.height)
-                            // Subtle ambient grain scroll (was hardcoded 0f); ties into the
-                            // existing infinite transition `t`.
-                            woodShader.setFloatUniform("iTime", t * 0.6f)
-                            // RC3: scroll the wood-grain origin in lock-step with
-                            // the camera pan. cameraOffsetYpx is negative when
-                            // panning DOWN the table (printer slides up). We
-                            // negate so the grain appears to slide too.
-                            woodShader.setFloatUniform("iOriginY", -cameraOffsetYpx.floatValue)
-                            drawRect(brush = brush, size = size)
+                    // RC17: wood texture now draws with the SAME camera offset
+                    // and zoom that the inner Canvas content applies, so the
+                    // table grain and the pages translate / scale together.
+                    // Pre-RC17 the wood used `iOriginY = -cameraOffsetYpx`
+                    // (opposite direction) and ignored userZoom entirely,
+                    // which the user read as "panning moves the table in the
+                    // opposite direction of the papers" + "pinch zoom doesn't
+                    // enlarge the grain."
+                    onDrawBehind {
+                        val zoom = userZoom.floatValue
+                        val tx = cameraOffsetXpx.floatValue
+                        val ty = cameraOffsetYpx.floatValue
+                        // Scale around the viewport center so the grain
+                        // "blooms outward" from the centre; same pivot the
+                        // Canvas's graphicsLayer uses by default.
+                        scale(zoom, pivot = Offset(size.width / 2f, size.height / 2f)) {
+                            translate(tx, ty) {
+                                // Overdraw a frame larger than the viewport
+                                // so panning doesn't reveal the unfilled
+                                // area outside the brush bounds. 3× viewport
+                                // covers the full ±1.5×viewport pan range.
+                                val pad = maxOf(size.width, size.height)
+                                drawRect(
+                                    brush = woodBrush,
+                                    topLeft = Offset(-pad, -pad),
+                                    size = Size(size.width + pad * 2f, size.height + pad * 2f),
+                                )
+                            }
                         }
-                    } else {
-                        // API <33 fallback: warm three-stop wood gradient (no AGSL).
-                        val brush = Brush.linearGradient(
-                            colors = listOf(
-                                Color(0xFF6B4226),
-                                Color(0xFF8B5A37),
-                                Color(0xFF6B4226),
-                            ),
-                            start = Offset.Zero,
-                            end = Offset(size.width, size.height),
-                        )
-                        onDrawBehind { drawRect(brush = brush, size = size) }
                     }
                 }
                 .shadow(8.dp),
@@ -464,9 +425,12 @@ fun PosterPreview(viewModel: MainViewModel) {
                     // the gesture once we're past touchSlop.
                     .pointerInput(Unit) {
                         detectTransformGestures(panZoomLock = false) { _, panChange, zoomChange, _ ->
+                            // RC17: 2D pan + zoom. RC15 handler only used
+                            // panChange.y; user wanted left/right too.
+                            userPanX.floatValue += panChange.x
                             userPanY.floatValue += panChange.y
                             userZoom.floatValue = (userZoom.floatValue * zoomChange)
-                                .coerceIn(0.5f, 3f)
+                                .coerceIn(1f, 3f)
                         }
                     },
             ) {
@@ -589,13 +553,12 @@ fun PosterPreview(viewModel: MainViewModel) {
                 val borderBottomAlpha = edgeAlpha(0.50f, 0.75f)
                 val borderLeftAlpha   = edgeAlpha(0.75f, 1.00f)
 
-                // RC3: every pane + every prop is drawn inside ONE outer
-                // translate(0, cameraOff). The wood-grain background (drawn
-                // behind, in the parent Modifier) takes its iOriginY uniform
-                // from the same cameraOffsetYpx state, so the table appears to
-                // scroll in lock-step with what's drawn here.
+                // RC17: 2D camera translate. Wood (drawn in the outer
+                // drawWithCache) applies the SAME translation, so wood
+                // and content move together and now in the same direction.
+                val cameraOffX = cameraOffsetXpx.floatValue
                 withTransform({
-                    if (cameraOff != 0f) translate(0f, cameraOff)
+                    if (cameraOff != 0f || cameraOffX != 0f) translate(cameraOffX, cameraOff)
                 }) {
 
                 for (pane in layout.panes) {
