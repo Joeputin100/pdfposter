@@ -87,9 +87,15 @@ private fun sensorPulseModifier(): Modifier {
     LaunchedEffect(Unit) {
         // Track the tilt magnitude at the time of the most recent pulse so
         // we can fire on a meaningful CHANGE, not absolute tilt level.
+        // RC23: lowered the threshold from 0.15 rad (≈8.5°) to 0.05 rad
+        // (≈3°) — user's natural held-phone wobble is easily 5° but rarely
+        // 9°, so the prior threshold made the cards feel inert during
+        // normal handling. The IIR low-pass in rememberDeviceTilt still
+        // suppresses < 1° hand-tremor jitter, so 0.05 is comfortably above
+        // the noise floor.
         var anchorRoll = 0f
         var anchorPitch = 0f
-        val tiltDeltaThreshold = 0.15f
+        val tiltDeltaThreshold = 0.05f
 
         // Timed pulses: 10–13s with a per-tick rerandomized interval so
         // multiple cards on screen don't collapse into one synchronous flash.
@@ -164,12 +170,17 @@ private fun sweepBrush(phase: Float, w: Float, h: Float, amplitude: Float = 1f):
         val b = argb and 0xFF
         return Color(red = r / 255f, green = g / 255f, blue = b / 255f, alpha = baseAlpha * a)
     }
+    // RC23: bumped peak alpha so the pulse is actually noticeable on the
+    // saturated card backgrounds (surfaceVariant + AI brand stripe). Old
+    // peaks at 0.4/0.6/0.4 produced visible-on-blank-paper but invisible-
+    // on-busy-thumbnail flashes; new peaks 0.55/0.85/0.55 cross above the
+    // perception threshold even on the high-contrast AI thumbnails.
     return Brush.linearGradient(
         colors = listOf(
             Color.Transparent,
-            fade(0xFFC6FFL, 0.4f),  // soft pink
-            fade(0xFFFFFFL, 0.6f),  // white centre
-            fade(0xC6FFFFL, 0.4f),  // soft cyan
+            fade(0xFFC6FFL, 0.55f),  // soft pink
+            fade(0xFFFFFFL, 0.85f),  // white centre
+            fade(0xC6FFFFL, 0.55f),  // soft cyan
             Color.Transparent,
         ),
         start = Offset(cx - band, cy - band),

@@ -305,7 +305,7 @@ fun detailFor(model: UpscaleModel): ModelDetailCopy = when (model) {
             "is the clear choice.",
     )
     UpscaleModel.ESRGAN -> ModelDetailCopy(
-        bestFor = listOf("General photos", "Predictable", "Cheapest cloud"),
+        bestFor = listOf("General photos", "Predictable", "Classic SR"),
         pickWhen = "When you want classic super-resolution without surprises. " +
             "Real-ESRGAN is the model the wider community has used for " +
             "years; its behaviour is well-understood and predictable.",
@@ -313,11 +313,17 @@ fun detailFor(model: UpscaleModel): ModelDetailCopy = when (model) {
             "texture or hallucinate detail — it just sharpens what's there. " +
             "Output looks like a higher-resolution version of your input, " +
             "not a different photo.",
-        worthThePrice = "Cheapest cloud option. Faster than the on-device " +
-            "free path (10-30 seconds vs 5 minutes) and produces cleaner " +
-            "results because cloud GPUs run a larger model than your phone " +
-            "can fit. Pick AuraSR if you want richer texture, Recraft if " +
-            "you have fine text, Topaz if quality is paramount.",
+        // RC23: removed the "cheapest cloud option" line — Recraft's flat-
+        // rate $0.004 beats ESRGAN's per-MP cost at typical poster sizes.
+        // Keeping the comparison framing but pivoting the angle to
+        // "predictable" rather than "cheapest."
+        worthThePrice = "Faster than the on-device free path (10-30 seconds " +
+            "vs 5 minutes) and produces cleaner results because cloud GPUs " +
+            "run a larger model than your phone can fit. For raw price " +
+            "Recraft's flat per-image rate often wins; ESRGAN's edge is its " +
+            "predictability — same input, same output, no creative drift. " +
+            "Pick AuraSR for richer texture, Recraft for fine text, Topaz " +
+            "for absolute top quality.",
     )
     UpscaleModel.AURASR -> ModelDetailCopy(
         bestFor = listOf("Skin", "Foliage", "Natural texture"),

@@ -347,9 +347,27 @@ fun LowDpiUpgradeModal(
     // neighbor upscale to make the contrast against the high-quality
     // alternatives visceral. 32px source → 256px display = ~8× pixel
     // size, instantly readable as "low res."
+    //
+    // RC23: preserve the source's aspect ratio. Pre-RC23 the thumb was
+    // forced to 32×32 → 256×256 (square), so a portrait 768×1376 source
+    // got squished into a square and looked wrong next to the other
+    // (correctly-aspected) thumbnails. Now we pick the smaller side as
+    // 32 px and scale the other side proportionally.
     val pixelatedThumb: ImageBitmap = remember(sourceThumb) {
-        val small = Bitmap.createScaledBitmap(sourceThumb, 32, 32, false)
-        Bitmap.createScaledBitmap(small, 256, 256, false).asImageBitmap()
+        val srcW = sourceThumb.width
+        val srcH = sourceThumb.height
+        val (smallW, smallH) = if (srcW >= srcH) {
+            32 to (32 * srcH / srcW).coerceAtLeast(1)
+        } else {
+            (32 * srcW / srcH).coerceAtLeast(1) to 32
+        }
+        val (bigW, bigH) = if (srcW >= srcH) {
+            256 to (256 * srcH / srcW).coerceAtLeast(1)
+        } else {
+            (256 * srcW / srcH).coerceAtLeast(1) to 256
+        }
+        val small = Bitmap.createScaledBitmap(sourceThumb, smallW, smallH, false)
+        Bitmap.createScaledBitmap(small, bigW, bigH, false).asImageBitmap()
     }
 
     // RC16: "Free upscale" preview is now just the source image (no actual

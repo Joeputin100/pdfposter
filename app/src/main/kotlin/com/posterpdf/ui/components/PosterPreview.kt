@@ -628,6 +628,14 @@ fun PosterPreview(viewModel: MainViewModel) {
                     var paneOffX: Float
                     var paneOffY: Float
                     var paneAlpha = 1f
+                    // RC23: landscape paper exits the (always-portrait) printer
+                    // body in portrait orientation and rotates 90° CCW as it
+                    // lands on the table. paneRotationDeg holds the current
+                    // rotation around the pane's displayed centre — non-zero
+                    // only during Printing for landscape pages, lerping from
+                    // -90° at emergeT=0 down to 0° at emergeT=1.
+                    val isLandscapePaper = pageW > pageH
+                    var paneRotationDeg = 0f
 
                     if (!cycleEnabled) {
                         paneOffX = 0f
@@ -641,6 +649,10 @@ fun PosterPreview(viewModel: MainViewModel) {
                             val emergeT = (tInPhase / 1.8f).coerceIn(0f, 1f)
                             val jitterX = sin(tInPhase.toDouble() * Math.PI * 8.0)
                                 .toFloat() * 1.6f * (1f - emergeT)
+                            // RC23: landscape paper rotates 90° CCW during emerge.
+                            if (isLandscapePaper) {
+                                paneRotationDeg = -90f * (1f - emergeT)
+                            }
                             // RC21: invert the stack-offset direction so the
                             // most-recently-printed pane (paneIndex = N-1)
                             // sits AT the slot and earlier panes recede
@@ -759,6 +771,15 @@ fun PosterPreview(viewModel: MainViewModel) {
                             translate(paneJiggleDx, paneJiggleDy)
                         }
                         if (paneOffX != 0f || paneOffY != 0f) translate(paneOffX, paneOffY)
+                        // RC23: rotation is applied AFTER the translate so the
+                        // pivot in the post-translate coord system equals the
+                        // pane's displayed centre (paneCenter is in original
+                        // coords; in the translated frame it's at the same
+                        // offset relative to current origin, which is exactly
+                        // the displayed centre once the offset has shifted us).
+                        if (paneRotationDeg != 0f) {
+                            rotate(paneRotationDeg, pivot = paneCenter)
+                        }
                     }) {
                         // RC3: paper "border" = the margin band around the printable
                         // area. Before Cutting, full page is paper. During Cutting,

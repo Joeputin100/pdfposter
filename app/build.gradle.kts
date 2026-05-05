@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc22"  // RC22 (cm ruler + tape/tack + zoom + pulse + flipping coin + model detail)
+        versionName = "1.0-rc23"  // RC23 (landscape rotate, NOW aspect, pulse boost, AI upscale deploy)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

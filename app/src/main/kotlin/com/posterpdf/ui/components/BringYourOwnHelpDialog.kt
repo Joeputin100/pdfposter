@@ -43,11 +43,16 @@ fun BringYourOwnHelpDialog(
     onDismiss: () -> Unit,
     onPickAlreadyUpscaled: () -> Unit,
 ) {
+    // RC23: dropped per-tool prices. Pricing changes more often than the
+    // app's release cadence, and listing competitors' rates risked
+    // showing stale numbers or implying endorsement of specific
+    // pricing tiers. Names + value props only — users will check the
+    // current price on whichever tool they pick.
     val tools = listOf(
-        ToolOption("Canva", "~\$15/mo", "Designer-friendly. Built-in upscaler under Edit Image → Magic Studio."),
-        ToolOption("OpenArt", "\$10/mo", "Heavy AI library; the 'Upscaler' tab handles 4× and 8×."),
-        ToolOption("FAL Topaz", "~\$0.01/MP", "Pay-per-image, no subscription. Professional-grade quality."),
-        ToolOption("Magnific", "\$30/mo", "Premium creative upscaler. Slowest but most stylized."),
+        ToolOption("Canva", "Designer-friendly. Built-in upscaler under Edit Image → Magic Studio."),
+        ToolOption("OpenArt", "Heavy AI library; the 'Upscaler' tab handles 4× and 8×."),
+        ToolOption("FAL Topaz", "Pay-per-image, no subscription. Professional-grade quality."),
+        ToolOption("Magnific", "Premium creative upscaler. Slowest but most stylized."),
     )
 
     AlertDialog(
@@ -68,7 +73,7 @@ fun BringYourOwnHelpDialog(
                 Step(
                     number = 1,
                     title = "Pick your tool",
-                    body = "Any of these will work — pick whichever you already have or like the price of:",
+                    body = "Any of these will work — pick whichever you already have or fits your budget:",
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     tools.forEach { ToolRow(it) }
@@ -105,7 +110,7 @@ fun BringYourOwnHelpDialog(
     )
 }
 
-private data class ToolOption(val name: String, val price: String, val note: String)
+private data class ToolOption(val name: String, val note: String)
 
 @Composable
 private fun ToolRow(tool: ToolOption) {
@@ -115,20 +120,12 @@ private fun ToolRow(tool: ToolOption) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    tool.name,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    tool.price,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                tool.name,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
             Text(tool.note, style = MaterialTheme.typography.bodySmall)
         }
     }

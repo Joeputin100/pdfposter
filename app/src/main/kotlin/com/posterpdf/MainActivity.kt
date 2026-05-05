@@ -938,12 +938,13 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          }
                     },
                     actions = {
-                        // RC18: 6dp end-padding so the badge dot doesn't
-                        // get clipped by the right screen edge. The badge
-                        // is positioned at the top-end of the IconButton's
-                        // 24dp icon — without padding the badge bleeds
-                        // past the action area's right edge by ~3dp.
-                        Box(modifier = Modifier.padding(end = 6.dp)) {
+                        // RC23: 12dp end-padding (≈1/8 inch) — RC18's 6dp
+                        // wasn't enough on devices where the badge digit
+                        // hits 3+ characters (e.g., "100" credits) and
+                        // pushed the badge over the right edge. 12dp also
+                        // matches the start-edge padding on the navigation
+                        // icon so the toolbar feels balanced.
+                        Box(modifier = Modifier.padding(end = 12.dp)) {
                             CreditBadge(
                                 balance = creditBalance,
                                 isAdmin = viewModel.isAdmin,
