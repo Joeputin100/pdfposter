@@ -43,14 +43,14 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      # AGP 8.8.x -> Gradle 8.10.2. Project has no wrapper today, so
+      # AGP 8.9.x -> Gradle 8.11.1. Project has no wrapper today, so
       # download Gradle directly. Once a wrapper lands, swap this for
       # actions/setup-gradle reading the wrapper version.
-      - name: Install Gradle 8.10.2
+      - name: Install Gradle 8.11.1
         run: |
-          curl -fsSL https://services.gradle.org/distributions/gradle-8.10.2-bin.zip -o /tmp/gradle.zip
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
           sudo unzip -q /tmp/gradle.zip -d /opt
-          echo "/opt/gradle-8.10.2/bin" >> $GITHUB_PATH
+          echo "/opt/gradle-8.11.1/bin" >> $GITHUB_PATH
 
       - name: Decode keystore
         env:
