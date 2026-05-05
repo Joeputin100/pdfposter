@@ -112,6 +112,11 @@ private data class UpscaleOption(
     val flatUsd: Double = 0.0,
 )
 
+// RC18: Cards sorted ascending by typical-cost (free → cheapest paid → premium):
+//   NONE, FREE_LOCAL, RECRAFT ($0.004 flat), ESRGAN (~3cr), AURASR (~4cr), TOPAZ (~30cr).
+// Copy framing distills each paid model into a "use-when" pros line + a
+// "trade-off" cons line — a compressed 4Ps/6Ms read so the user can pick by
+// fit (text vs photo vs art) and price together, instead of guessing.
 private val ALL_OPTIONS: List<UpscaleOption> = listOf(
     UpscaleOption(
         model = UpscaleModel.NONE,
@@ -132,41 +137,41 @@ private val ALL_OPTIONS: List<UpscaleOption> = listOf(
         perOutputMp = 0.0,
     ),
     UpscaleOption(
-        model = UpscaleModel.TOPAZ,
-        displayName = "Topaz Gigapixel",
-        pros = "Cleanest edges, polished output",
-        cons = "Highest cost per pixel",
-        scale = 4,
-        supportedScales = listOf(2, 4, 6, 8),
-        perOutputMp = 0.01,
-    ),
-    UpscaleOption(
         model = UpscaleModel.RECRAFT,
         displayName = "Recraft Crisp",
-        pros = "Photo-faithful, 40× cheaper than Topaz",
-        cons = "Less crisp on text/UI than Topaz",
+        pros = "Best for photos & portraits — keeps the original look",
+        cons = "Softer than Topaz on text and hard edges",
         scale = 4,
         supportedScales = listOf(4),
         perOutputMp = 0.0,
         flatUsd = 0.004,
     ),
     UpscaleOption(
+        model = UpscaleModel.ESRGAN,
+        displayName = "ESRGAN",
+        pros = "Budget cleanup — predictable open-source baseline",
+        cons = "Dated model; can over-smooth fine detail",
+        scale = 4,
+        supportedScales = listOf(4),
+        perOutputMp = 0.00111,
+    ),
+    UpscaleOption(
         model = UpscaleModel.AURASR,
         displayName = "AuraSR",
-        pros = "Fast and cheap (~\$0.01/image)",
-        cons = "Occasional artifacts on smooth gradients",
+        pros = "Best for art, anime & illustrations — fast GAN polish",
+        cons = "Occasional artifacts on skies and skin",
         scale = 4,
         supportedScales = listOf(4),
         perOutputMp = 0.00125,
     ),
     UpscaleOption(
-        model = UpscaleModel.ESRGAN,
-        displayName = "ESRGAN",
-        pros = "Open-source classic, cheapest AI option",
-        cons = "Less crisp than Topaz",
+        model = UpscaleModel.TOPAZ,
+        displayName = "Topaz Gigapixel",
+        pros = "Best for text, line art & print-shop polish",
+        cons = "30× the cost for ~10–20% sharper edges",
         scale = 4,
-        supportedScales = listOf(4),
-        perOutputMp = 0.00111,
+        supportedScales = listOf(2, 4, 6, 8),
+        perOutputMp = 0.01,
     ),
 )
 
