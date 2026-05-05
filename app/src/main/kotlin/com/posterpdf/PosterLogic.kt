@@ -546,13 +546,26 @@ class PosterLogic {
             }
         }
 
-        // 3. Rulers (top and left) showing poster scale in inches
-        // Origin is top-left corner of grid (0,0) for both rulers.
+        // 3. Rulers (top and left) showing poster scale.
+        //
+        // RC22: switch tick spacing from inches to centimeters when the user
+        // is in Metric mode. Pre-RC22 the ruler always drew inch ticks even
+        // when the rest of the page (dimension labels, DPI/DPCM, etc.) had
+        // been converted to metric — so a user reading the assembly guide in
+        // cm got mismatched units between the body text and the ruler.
+        //
+        // 1 inch = 72 PDF points, 1 cm = 72/2.54 ≈ 28.3465 points. Major
+        // tick on every 2nd unit (i.e. every 2 in or every 5 cm), minor on
+        // each unit between.
         val rulerOffset = 12f
         val topRulerY = dy - rulerOffset
         val leftRulerX = dx - rulerOffset
-        val ptsPerInchOnDiagramX = dw / (pw.toFloat() / 72f)
-        val ptsPerInchOnDiagramY = dh / (ph.toFloat() / 72f)
+        val isMetricRuler = units == "Metric"
+        val unitPerPt = if (isMetricRuler) 72.0 / 2.54 else 72.0
+        val rulerLabel = if (isMetricRuler) "cm" else "in"
+        val majorEvery = if (isMetricRuler) 5 else 2 // cm: every 5; in: every 2
+        val ptsPerUnitOnDiagramX = dw / (pw.toFloat() / unitPerPt.toFloat())
+        val ptsPerUnitOnDiagramY = dh / (ph.toFloat() / unitPerPt.toFloat())
 
         cs.setStrokingColor(0.15f, 0.15f, 0.15f)
         cs.setLineWidth(0.8f)
@@ -565,13 +578,13 @@ class PosterLogic {
         cs.lineTo(leftRulerX, dy + dh)
         cs.stroke()
 
-        val maxInchesX = kotlin.math.floor(pw / 72.0).toInt()
-        val maxInchesY = kotlin.math.floor(ph / 72.0).toInt()
+        val maxUnitsX = kotlin.math.floor(pw / unitPerPt).toInt()
+        val maxUnitsY = kotlin.math.floor(ph / unitPerPt).toInt()
 
-        // Top ruler ticks/labels (every 1in tick, every 2in label)
-        for (inch in 0..maxInchesX) {
-            val x = dx + inch * ptsPerInchOnDiagramX
-            val major = inch % 2 == 0
+        // Top ruler ticks/labels.
+        for (u in 0..maxUnitsX) {
+            val x = dx + u * ptsPerUnitOnDiagramX
+            val major = u % majorEvery == 0
             val tick = if (major) 8f else 4f
             cs.moveTo(x, topRulerY)
             cs.lineTo(x, topRulerY - tick)
@@ -580,14 +593,14 @@ class PosterLogic {
                 cs.beginText()
                 cs.setFont(PDType1Font.HELVETICA, 7f)
                 cs.newLineAtOffset(x - 4f, topRulerY - tick - 9f)
-                cs.showText(inch.toString())
+                cs.showText(u.toString())
                 cs.endText()
             }
         }
-        // Left ruler ticks/labels (every 1in tick, every 2in label)
-        for (inch in 0..maxInchesY) {
-            val y = dy + inch * ptsPerInchOnDiagramY
-            val major = inch % 2 == 0
+        // Left ruler ticks/labels.
+        for (u in 0..maxUnitsY) {
+            val y = dy + u * ptsPerUnitOnDiagramY
+            val major = u % majorEvery == 0
             val tick = if (major) 8f else 4f
             cs.moveTo(leftRulerX, y)
             cs.lineTo(leftRulerX - tick, y)
@@ -596,7 +609,7 @@ class PosterLogic {
                 cs.beginText()
                 cs.setFont(PDType1Font.HELVETICA, 7f)
                 cs.newLineAtOffset(leftRulerX - tick - 10f, y - 2f)
-                cs.showText(inch.toString())
+                cs.showText(u.toString())
                 cs.endText()
             }
         }
@@ -605,12 +618,12 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA_OBLIQUE, 8f)
         cs.newLineAtOffset(dx + dw + 6f, topRulerY - 2f)
-        cs.showText("in")
+        cs.showText(rulerLabel)
         cs.endText()
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA_OBLIQUE, 8f)
         cs.newLineAtOffset(leftRulerX - 14f, dy - 3f)
-        cs.showText("in")
+        cs.showText(rulerLabel)
         cs.endText()
 
         // Instructions Footer

@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material3.Button
@@ -92,35 +91,29 @@ fun PurchaseSheet(
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Header: balance + sparkles icon
+            // Header: balance + flipping coin
+            //
+            // RC22: replaced the AutoAwesome sparkles icon with the new
+            // FlippingCoin asset (photoreal copper coin, "1¢ CENT" obverse /
+            // "POSTER PDF" reverse, auto-flips at 30–60s + on tap). Title
+            // colour switched from hardcoded BlueprintBlue700 to
+            // MaterialTheme.colorScheme.primary so dark mode uses its
+            // bright-variant blue (the hardcoded color was unreadable on
+            // the dark surface).
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = BlueprintBlue700,
-                    modifier = Modifier.size(56.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        Icon(
-                            Icons.Default.AutoAwesome,
-                            contentDescription = null,
-                            tint = TrimOrange500,
-                            modifier = Modifier.size(32.dp),
-                        )
-                    }
-                }
+                FlippingCoin(
+                    sizeDp = 56.dp,
+                    contentDescription = "1¢ AI credit coin",
+                )
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.purchase_ai_credits),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
-                        color = BlueprintBlue700,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                     Text(
                         "Balance: $balance",
@@ -176,7 +169,8 @@ fun PurchaseSheet(
                 Icon(
                     Icons.Default.History,
                     null,
-                    tint = BlueprintBlue700,
+                    // RC22: theme primary for dark-mode contrast.
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(8.dp))
@@ -219,19 +213,19 @@ private fun SkuRow(item: CreditSku, onBuy: () -> Unit) {
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                Icons.Default.AutoAwesome,
-                null,
-                tint = TrimOrange500,
-                modifier = Modifier.size(28.dp),
-            )
+            // RC22: replaced sparkles icon with the FlippingCoin so each
+            // pack row visibly carries the same coin-of-credit metaphor.
+            // The smaller size (28 dp) keeps the row height unchanged.
+            FlippingCoin(sizeDp = 28.dp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(
                     item.label,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = BlueprintBlue700,
+                    // RC22: theme primary for dark-mode contrast (was the
+                    // hardcoded BlueprintBlue700, unreadable on dark surface).
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
                     "${item.credits} credits  -  ${item.price}",

@@ -6,7 +6,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,10 +39,13 @@ fun CreditBadge(balance: Int, isAdmin: Boolean = false, onClick: () -> Unit) {
                 balance > 0 -> Badge { FlipNumber(balance) }
             }
         }) {
-            // RC16: switched the top-bar token symbol from the sparkle
-            // (Icons.Default.AutoAwesome) to a coin emoji, matching the
-            // 🪙 used elsewhere for credits and the user's explicit ask.
-            Text("🪙", fontSize = 24.sp)
+            // RC22: replaced the 🪙 emoji with FlippingCoin — a 3D-flipping
+            // pair of photoreal coin faces (Vertex Imagen 3 generated) that
+            // auto-flips at random 30–60s intervals and snap-flips on tap.
+            // Reads as a real coin, not a textured Unicode character. Sized
+            // 28dp so it nests in the toolbar at the same visual weight the
+            // emoji had at fontSize=24.sp.
+            FlippingCoin(sizeDp = 28.dp, contentDescription = "AI credits")
         }
     }
 }

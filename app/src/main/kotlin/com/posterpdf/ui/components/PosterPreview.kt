@@ -181,9 +181,14 @@ fun PosterPreview(viewModel: MainViewModel) {
     val userPanX = remember { mutableFloatStateOf(0f) }
     val userPanY = remember { mutableFloatStateOf(0f) }
     val cameraOffsetXpx = remember { mutableFloatStateOf(0f) }
-    // RC17: zoom clamped to [1, 3]. Below 1 left empty viewport corners
-    // since the wood-and-content composite shrinks with the scale; user
-    // wanted enlarge-to-inspect, not shrink.
+    // RC22: zoom clamped to [0.4, 3]. Pre-RC22 the floor was 1, so the user
+    // could only zoom IN (close-up inspection of seams). They wanted the
+    // option to zoom OUT to see the entire poster + printer at once,
+    // especially on big posters where the printer is 4-5× the height of
+    // the visible viewport. 0.4 is enough headroom to fit a 24×36-inch
+    // poster + the printer above it within a 800px-tall preview surface.
+    // The wood texture renders out to the full draw area regardless of
+    // zoom, so empty corners don't appear at zoom < 1.
     val userZoom = remember { mutableFloatStateOf(1f) }
     androidx.compose.runtime.SideEffect {
         val panTarget = boxSize.height * 0.15f
@@ -447,7 +452,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                             userPanX.floatValue += panChange.x
                             userPanY.floatValue += panChange.y
                             userZoom.floatValue = (userZoom.floatValue * zoomChange)
-                                .coerceIn(1f, 3f)
+                                .coerceIn(0.4f, 3f)
                         }
                     },
             ) {
@@ -1007,18 +1012,20 @@ fun PosterPreview(viewModel: MainViewModel) {
                         ?.let { it.imageDstHeight - it.imageContentHeight } ?: 0f
                     val tCenterX = stackCenterX
                     val tCenterY = stackCenterY
-                    // RC20.2: assembledBlockW already represents the post-tighten
-                    // overlapping content extent (cols × printableW − (cols-1) ×
-                    // overlap). The previous code subtracted (cols-1)*gap on top
-                    // of that, which only made sense when tightenStep was just
-                    // `gap` and panes still had margin gutters between them.
-                    // With tightenStep = gap + 2*marginPx + overlapPx, the cut
-                    // content rects butt up exactly to assembledBlockW; only the
-                    // trailing-edge leftover paper gets trimmed off.
+                    // RC22: tLeft/tTop must equal pane[0].imageContent's
+                    // POST-TIGHTEN top-left corner, not stackCenterX-based.
+                    // The post-tighten left edge of pane[0]'s content is
+                    //   layout.layoutLeft + marginPx + (cols-1)/2 * tightenStep
+                    // (each pane shifts by tightenDx = -(c-(cols-1)/2)*tightenStep,
+                    // so pane[0] shifts +(cols-1)/2*tightenStep to the right).
+                    // Pre-RC22 we used stackCenterX − assembledBlockW/2 which
+                    // was off by `marginPx + (cols-1)/2 * tightenStep`, putting
+                    // tape strips and thumbtacks systematically left/up of the
+                    // actual seam/corner positions.
                     val tightenedW = assembledBlockW - rightLeftover
                     val tightenedH = assembledBlockH - bottomLeftover
-                    val tLeft = stackCenterX - assembledBlockW / 2f
-                    val tTop = stackCenterY - assembledBlockH / 2f
+                    val tLeft = layout.layoutLeft + marginPx + (cols - 1) / 2f * tightenStep
+                    val tTop = layout.layoutTop + marginPx + (rows - 1) / 2f * tightenStep
                     val tRight = tLeft + tightenedW
                     val tBottom = tTop + tightenedH
 
