@@ -381,6 +381,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val auth = AuthRepository.get(appContext)
     private val backend = BackendClient.create(auth)
+    private val supportRepo = com.posterpdf.data.backend.SupportRepository(auth)
 
     var authSession by mutableStateOf(AuthSession())
         private set
@@ -396,6 +397,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var showHelp by mutableStateOf(false)
     var showFaq by mutableStateOf(false)
     var showPrivacy by mutableStateOf(false)
+    /** RC17: Support / feedback form. Submits a Firestore /support
+     *  document via SupportRepository when the user taps Send. */
+    var showSupport by mutableStateOf(false)
 
     private var ignoreFlowUpdates = false
 
@@ -1036,6 +1040,41 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             android.widget.Toast.makeText(appContext, msg, android.widget.Toast.LENGTH_LONG).show()
             successMessage = msg // fallback for when drawer is closed
+        }
+    }
+
+    /**
+     * RC17: submit a support ticket through SupportRepository. Result
+     * callback fires on the main thread with the new doc id on success
+     * or the failure throwable so the SupportScreen can show success
+     * panel or error toast. The function also writes to debug log so
+     * a failed submit is recoverable.
+     */
+    fun submitSupport(
+        context: Context,
+        subject: String,
+        category: String,
+        description: String,
+        includeDiagnostics: Boolean,
+        onResult: (Result<String>) -> Unit,
+    ) {
+        viewModelScope.launch {
+            logEvent(context, "support_submit", "category=$category diag=$includeDiagnostics")
+            val r = supportRepo.submit(
+                context = context,
+                subject = subject,
+                category = category,
+                description = description,
+                includeDiagnostics = includeDiagnostics,
+            )
+            r.onSuccess { id ->
+                logEvent(context, "support_submit: ok", "ticket=$id")
+                successMessage = "Feedback sent — thanks"
+            }.onFailure { t ->
+                logEvent(context, "support_submit: fail", t.message)
+                errorMessage = "Couldn't send: ${t.javaClass.simpleName}"
+            }
+            onResult(r)
         }
     }
 

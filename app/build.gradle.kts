@@ -20,7 +20,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc16"  // RC16 (sensor pulse, no glitter, Clarus centered, post-upscale flow)
+        versionName = "1.0-rc17"  // RC17 (support form, language picker fix, theme-switch no-restart)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

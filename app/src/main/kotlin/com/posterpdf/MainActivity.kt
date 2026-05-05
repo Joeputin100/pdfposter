@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.LiveHelp
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -184,6 +185,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         viewModel.showHelp -> "help"
         viewModel.showFaq -> "faq"
         viewModel.showPrivacy -> "privacy"
+        viewModel.showSupport -> "support"
         else -> "main"
     }
     AnimatedContent(
@@ -199,6 +201,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                 "help" to 4,
                 "faq" to 5,
                 "privacy" to 6,
+                "support" to 7,
             )
             val from = order[initialState] ?: 0
             val to = order[targetState] ?: 0
@@ -238,6 +241,13 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             "privacy" -> {
                 BackHandler { viewModel.showPrivacy = false }
                 PrivacyPolicyScreen(onBack = { viewModel.showPrivacy = false })
+            }
+            "support" -> {
+                BackHandler { viewModel.showSupport = false }
+                com.posterpdf.ui.screens.SupportScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.showSupport = false },
+                )
             }
             else -> MainScreenContent(viewModel = viewModel)
         }
@@ -718,6 +728,19 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          scope.launch { drawerState.close() }
                      },
                      icon = { Icon(Icons.Default.PrivacyTip, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
+                 // RC17: Send-feedback / support form. Opt-in diagnostic
+                 // payload submitted to Firestore /support/{auto-id}.
+                 NavigationDrawerItem(
+                     label = { Text("Send feedback") },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "Support opened")
+                         viewModel.showSupport = true
+                         scope.launch { drawerState.close() }
+                     },
+                     icon = { Icon(Icons.AutoMirrored.Filled.Send, null) },
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
                  NavigationDrawerItem(
