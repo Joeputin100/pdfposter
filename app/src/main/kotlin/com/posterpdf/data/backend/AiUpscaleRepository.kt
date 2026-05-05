@@ -80,12 +80,17 @@ class AiUpscaleRepository(private val auth: AuthRepository) {
             // 2. Re-encode as PNG so the FAL pipeline gets lossless input
             //    (per project memory: lossless-only output formats; same applies
             //    to upload). If the source is already a PNG we still pay one
-            //    decode-encode pass but keep the path uniform.
+            //    decode-encode pass but keep the path uniform. RC21: also
+            //    funnel through ColorSpaceUtil.ensureSRGB so wide-gamut
+            //    Display-P3 captures don't get misread as sRGB by the FAL
+            //    model (visible drift on vivid colors).
             val pngBytes = withContext(Dispatchers.IO) {
-                val bmp = BitmapFactory.decodeByteArray(srcBytes, 0, srcBytes.size)
+                val raw = BitmapFactory.decodeByteArray(srcBytes, 0, srcBytes.size)
                     ?: throw IllegalStateException("could not decode source bitmap")
+                val bmp = com.posterpdf.util.ColorSpaceUtil.ensureSRGB(raw)
                 val out = java.io.ByteArrayOutputStream()
                 bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+                if (bmp !== raw) raw.recycle()
                 bmp.recycle()
                 out.toByteArray()
             }

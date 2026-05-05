@@ -1,0 +1,31 @@
+All Rights Reserved
+Copyright (c) 2026 joeputin100@gmail.com
+
+This source code is published for transparency and educational reference.
+
+Permission is granted to:
+  • read the source for personal study
+  • run the code in a development environment for the purpose of evaluating
+    or contributing fixes back to this repository
+
+The following are NOT granted:
+  • redistribution of the source or compiled binaries
+  • commercial use of any part of the code, including derivatives
+  • publication of the app (or a fork) to any app store
+  • use of the brand assets ("Poster PDF" wordmark, logo, color palette,
+    Fraunces wordmark treatment) in any other project or product
+
+The compiled artifact is distributed via the Google Play Store under the
+listing for "Poster PDF". Installing the app from the Play Store is the
+only authorized distribution channel for end users.
+
+If you'd like to use any portion of this code under different terms,
+contact joeputin100@gmail.com to discuss licensing.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.

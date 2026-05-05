@@ -150,17 +150,24 @@ class PosterLogic {
         units: String = "Inches",
     ) {
         val doc = PDDocument()
+        // RC21 / Phase J: normalize the source bitmap to sRGB before it crosses
+        // into PdfBox. PDF readers interpret a DeviceRGB content stream as sRGB
+        // by default; if the source bitmap was Display P3 the embedded pixels
+        // would render with ~10% hue/saturation drift on vivid colors. The
+        // conversion is a no-op on pre-O devices (where bitmaps are already
+        // sRGB) and on bitmaps that already declare sRGB.
+        val srgbBitmap = com.posterpdf.util.ColorSpaceUtil.ensureSRGB(bitmap)
         // For raster sources we hoist the image once (PDFBox de-duplicates
         // identical XObject streams). For SVG we draw fresh per tile, so we
         // skip this hoist and let each tile create its own PDImageXObject.
-        val image = if (svgTileRenderer == null) LosslessFactory.createFromImage(doc, bitmap) else null
+        val image = if (svgTileRenderer == null) LosslessFactory.createFromImage(doc, srgbBitmap) else null
 
         if (includeInstructions) {
             // Instructions page uses the existing single bitmap (rasterized
             // at SVG.documentWidth × .documentHeight by the caller). That's
             // fine for the diagram/preview — only the per-page tiles need
             // vector-quality fidelity.
-            val instructionImage = image ?: LosslessFactory.createFromImage(doc, bitmap)
+            val instructionImage = image ?: LosslessFactory.createFromImage(doc, srgbBitmap)
             addInstructionsPage(doc, instructionImage, posterW, posterH, pageW, pageH, margin, overlap, logoBitmap, sourcePixelW, sourcePixelH, suppressLowDpiWarning, units)
         }
 
@@ -204,10 +211,15 @@ class PosterLogic {
                 val srcRight01 = ((tile.offsetX + printableW) / posterW).toFloat().coerceIn(0f, 1f)
                 val srcBottom01 = ((tile.offsetY + printableH) / posterH).toFloat().coerceIn(0f, 1f)
 
-                val tileBmp = svgTileRenderer.invoke(
+                val tileBmpRaw = svgTileRenderer.invoke(
                     svgTilePxW, svgTilePxH,
                     srcLeft01, srcTop01, srcRight01, srcBottom01,
                 )
+                // RC21 / Phase J: same sRGB normalization as the hoisted-raster
+                // path. SVG rendering by AndroidSVG can land on whatever the
+                // platform's default colorspace is, which is Display P3 on
+                // recent devices.
+                val tileBmp = com.posterpdf.util.ColorSpaceUtil.ensureSRGB(tileBmpRaw)
                 val tileImage = LosslessFactory.createFromImage(doc, tileBmp)
                 contentStream.drawImage(
                     tileImage,
@@ -216,6 +228,7 @@ class PosterLogic {
                     printableW.toFloat(),
                     printableH.toFloat(),
                 )
+                if (tileBmp !== tileBmpRaw) tileBmpRaw.recycle()
                 tileBmp.recycle()
             } else {
                 val drawX = margin - tile.offsetX

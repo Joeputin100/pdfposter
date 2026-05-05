@@ -75,6 +75,13 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val POST_NOTIFICATIONS_REQUEST_CODE = 4711
+    /**
+     * RC21: JankStats handle so we can stop tracking on Activity tear-down.
+     * Initialized in onCreate after setContent so the window is attached.
+     */
+    private var jankStats: androidx.metrics.performance.JankStats? = null
+    private var lastJankCustomKeyMs: Long = 0L
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // RC8: install a global UncaughtExceptionHandler that writes the
         // stack trace to the debug log BEFORE the JVM dies. Crash diagnosis
@@ -136,6 +143,32 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        // RC21: JankStats — track janky frames and feed the slowest one
+        // (per-minute throttled) into Crashlytics custom keys. NOT recorded
+        // as exceptions because jank isn't a crash and would otherwise
+        // flood Crashlytics. The custom keys ride along on a future actual
+        // crash so triage gets recent jank data for free.
+        jankStats = androidx.metrics.performance.JankStats.createAndTrack(window) { frameData ->
+            if (!frameData.isJank) return@createAndTrack
+            val now = System.currentTimeMillis()
+            if (now - lastJankCustomKeyMs < 60_000L) return@createAndTrack
+            lastJankCustomKeyMs = now
+            try {
+                com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance().apply {
+                    setCustomKey("last_jank_ui_ns", frameData.frameDurationUiNanos)
+                    setCustomKey("last_jank_state_count", frameData.states.size)
+                }
+            } catch (_: Throwable) {
+                // Crashlytics not initialized in test/stub builds — ignore.
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        jankStats?.isTrackingEnabled = false
+        jankStats = null
+        super.onDestroy()
     }
 }
 

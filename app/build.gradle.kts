@@ -4,6 +4,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.gms.google-services")
+    // RC21: enables auto-symbol upload + Crashlytics initialization. The
+    // crashlytics-ktx runtime dep below pairs with this plugin.
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -20,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc20.2"  // RC20.2 (real recraft demo + photoUrl + tighten fix)
+        versionName = "1.0-rc21"  // RC21 (sRGB + Crashlytics/JankStats + test battery + items 1-9)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -156,6 +159,15 @@ dependencies {
     // the callable that runs the FAL job and stores the result back in GCS.
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-functions-ktx")
+    // RC21: Crashlytics for automatic crash + ANR capture. KTX flavor pulls
+    // in coroutine-friendly extensions. Auto-initializes via the Firebase
+    // Initializer; no custom code needed for crash reporting itself.
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    // RC21: JankStats reads the platform's frame metrics each frame and
+    // emits a callback flagging slow / janky frames. We hook it to
+    // Crashlytics custom keys (not recordException — jank isn't a crash)
+    // so triage of a real crash includes the most recent slow-frame value.
+    implementation("androidx.metrics:metrics-performance:1.0.0-beta01")
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:20.7.0")
