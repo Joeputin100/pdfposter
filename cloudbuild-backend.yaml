@@ -47,9 +47,14 @@ steps:
       - |
         set -euo pipefail
         npm install -g firebase-tools@13
+        # Storage rules deploy is gated on Firebase Storage being initialized
+        # via the Firebase Console (one-time, click "Get Started" at
+        # https://console.firebase.google.com/project/static-webbing-461904-c4/storage).
+        # Once that's done, add `,storage` back to --only and the rules at
+        # backend/storage.rules will deploy with everything else.
         firebase deploy \
           --project static-webbing-461904-c4 \
-          --only functions,firestore:rules,firestore:indexes,storage \
+          --only functions,firestore:rules,firestore:indexes \
           --non-interactive \
           --force
 
