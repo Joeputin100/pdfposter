@@ -44,6 +44,22 @@ jobs:
           sudo unzip -q /tmp/gradle.zip -d /opt
           echo "/opt/gradle-8.11.1/bin" >> $GITHUB_PATH
 
+      - name: Decode keystore
+        env:
+          KS_B64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          # The signing config is shared between debug and release variants
+          # (see app/build.gradle.kts), so even instrumentation builds need
+          # the keystore present. Falls back to creating an empty placeholder
+          # if the secret isn't set — Gradle will fail later, but the early
+          # error message is clearer than a missing-file error mid-build.
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > release.keystore
+          else
+            touch release.keystore
+            echo "WARNING: RELEASE_KEYSTORE_BASE64 not set — signing will fail"
+          fi
+
       - name: Decode google-services.json
         env:
           GS_B64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
@@ -114,6 +130,22 @@ jobs:
           curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
           sudo unzip -q /tmp/gradle.zip -d /opt
           echo "/opt/gradle-8.11.1/bin" >> $GITHUB_PATH
+
+      - name: Decode keystore
+        env:
+          KS_B64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          # The signing config is shared between debug and release variants
+          # (see app/build.gradle.kts), so even instrumentation builds need
+          # the keystore present. Falls back to creating an empty placeholder
+          # if the secret isn't set — Gradle will fail later, but the early
+          # error message is clearer than a missing-file error mid-build.
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > release.keystore
+          else
+            touch release.keystore
+            echo "WARNING: RELEASE_KEYSTORE_BASE64 not set — signing will fail"
+          fi
 
       - name: Decode google-services.json
         env:
