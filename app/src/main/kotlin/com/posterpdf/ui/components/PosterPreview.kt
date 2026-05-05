@@ -300,8 +300,17 @@ fun PosterPreview(viewModel: MainViewModel) {
     // user request ("replace procedurally generated table surface with a
     // raster one"). The bitmap is decoded once and wrapped in a tiled
     // BitmapShader so wood fills any viewport size without distortion.
-    val woodImage = androidx.compose.ui.res.imageResource(id = com.posterpdf.R.drawable.wood_table)
-    val woodBitmap = remember(woodImage) { woodImage.asAndroidBitmap() }
+    // Decode straight via BitmapFactory rather than Compose's imageResource()
+    // — that helper requires extra import gymnastics for ImageBitmap →
+    // Android Bitmap conversion, and we only need the raw bitmap to feed
+    // BitmapShader. Resources.getDrawable would also work but allocates an
+    // intermediate Drawable wrapper.
+    val woodBitmap = remember(context) {
+        android.graphics.BitmapFactory.decodeResource(
+            context.resources,
+            com.posterpdf.R.drawable.wood_table,
+        )
+    }
     val woodShader = remember(woodBitmap) {
         android.graphics.BitmapShader(
             woodBitmap,
