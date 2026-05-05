@@ -92,9 +92,13 @@ private enum class CompareModel(val label: String, val key: String) {
     Esrgan("ESRGAN", "esrgan"),
 }
 
-/** Subjects that have synthesized fallback outputs for given models. */
+/** Subjects that have synthesized fallback outputs for given models.
+ *  RC20.1: dropped Gristmill→AuraSr — gristmill_aurasr.webp now has a unique
+ *  md5 (≠ the topaz output) so it's a real AuraSR upscale, not a fallback.
+ *  Gristmill→Recraft remains a placeholder (bytes-identical to topaz output).
+ *  Generating the real asset requires running gristmill_source.jpg through
+ *  FAL Recraft via the deployed `requestUpscale` callable. */
 private val SYNTHESIZED_FALLBACKS: Set<Pair<CompareSubject, CompareModel>> = setOf(
-    CompareSubject.Gristmill to CompareModel.AuraSr,
     CompareSubject.Gristmill to CompareModel.Recraft,
 )
 
