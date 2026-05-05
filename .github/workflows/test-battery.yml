@@ -188,7 +188,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.api-level }}-default
+          key: avd-${{ matrix.api-level }}-default-disk4g
 
       - name: Create AVD + warm cache
         if: steps.avd-cache.outputs.cache-hit != 'true'
@@ -197,6 +197,12 @@ jobs:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
           target: default
+          # RC22: 4096M internal storage so the APK (now ~115MB after the
+          # coin assets landed) has room on the AVD. Default API 23 image
+          # ships with ~800MB, which the install-create step rejects with
+          # "Requested internal only, but not enough space." Bumping for
+          # all API levels keeps the cache key stable.
+          disk-size: 4096M
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
@@ -208,6 +214,12 @@ jobs:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
           target: default
+          # RC22: 4096M internal storage so the APK (now ~115MB after the
+          # coin assets landed) has room on the AVD. Default API 23 image
+          # ships with ~800MB, which the install-create step rejects with
+          # "Requested internal only, but not enough space." Bumping for
+          # all API levels keeps the cache key stable.
+          disk-size: 4096M
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
