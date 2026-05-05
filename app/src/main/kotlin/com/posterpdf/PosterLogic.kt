@@ -143,6 +143,11 @@ class PosterLogic {
          * incorrect and contradicted the in-app "Upscaling with X" status.
          */
         suppressLowDpiWarning: Boolean = false,
+        /** RC18: "Metric" → instructions-page dimension labels read in
+         *  centimeters. "Inches" → inches. Internal point-based math is
+         *  unchanged; only the displayed unit string + value scaling
+         *  for the printable text shifts. */
+        units: String = "Inches",
     ) {
         val doc = PDDocument()
         // For raster sources we hoist the image once (PDFBox de-duplicates
@@ -156,7 +161,7 @@ class PosterLogic {
             // fine for the diagram/preview — only the per-page tiles need
             // vector-quality fidelity.
             val instructionImage = image ?: LosslessFactory.createFromImage(doc, bitmap)
-            addInstructionsPage(doc, instructionImage, posterW, posterH, pageW, pageH, margin, overlap, logoBitmap, sourcePixelW, sourcePixelH, suppressLowDpiWarning)
+            addInstructionsPage(doc, instructionImage, posterW, posterH, pageW, pageH, margin, overlap, logoBitmap, sourcePixelW, sourcePixelH, suppressLowDpiWarning, units)
         }
 
         val printableW = pageW - 2 * margin
@@ -294,6 +299,7 @@ class PosterLogic {
         sourcePixelW: Int,
         sourcePixelH: Int,
         suppressLowDpiWarning: Boolean = false,
+        units: String = "Inches",
     ) {
         val page = PDPage(PDRectangle(pgw.toFloat(), pgh.toFloat()))
         doc.addPage(page)
@@ -352,9 +358,16 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA, 10f)
         cs.newLineAtOffset(detailsX, detailsY)
-        cs.showText("Dimensions: ${"%.1f".format(posterWInches)}x${"%.1f".format(posterHInches)} in | Paper: ${"%.1f".format(pgw/72.0)}x${"%.1f".format(pgh/72.0)} in")
+        // RC18: render dimension labels in the user's chosen unit. Inputs
+        // (pgw/72, m/72, etc.) are always in inches because unitScale
+        // already converted to PDF points; we just multiply by 2.54 to
+        // emit cm when units=="Metric".
+        val isMetric = units == "Metric"
+        val unitLabel = if (isMetric) "cm" else "in"
+        val unitScale = if (isMetric) 2.54 else 1.0
+        cs.showText("Dimensions: ${"%.1f".format(posterWInches * unitScale)}x${"%.1f".format(posterHInches * unitScale)} $unitLabel | Paper: ${"%.1f".format(pgw/72.0 * unitScale)}x${"%.1f".format(pgh/72.0 * unitScale)} $unitLabel")
         cs.newLineAtOffset(0f, -13f)
-        cs.showText("Margins: ${"%.2f".format(m/72.0)} in | Overlap: ${"%.2f".format(o/72.0)} in")
+        cs.showText("Margins: ${"%.2f".format(m/72.0 * unitScale)} $unitLabel | Overlap: ${"%.2f".format(o/72.0 * unitScale)} $unitLabel")
         cs.newLineAtOffset(0f, -13f)
         cs.showText("Source: ${sourcePixelW}x${sourcePixelH}px | Print resolution: ~$minDpi DPI")
         cs.endText()

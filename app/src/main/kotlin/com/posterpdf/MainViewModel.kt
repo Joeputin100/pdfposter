@@ -77,8 +77,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /** Current effective DPI = sourceWidthPx / posterWidthInches.  0f when unknown. */
     fun computeCurrentDpi(): Float {
         val (w, _) = sourcePixelDimensions ?: return 0f
-        val widthIn = posterWidth.toDoubleOrNull() ?: return 0f
-        if (widthIn <= 0.0) return 0f
+        val rawWidth = posterWidth.toDoubleOrNull() ?: return 0f
+        if (rawWidth <= 0.0) return 0f
+        // RC18: convert to inches when the user is in Metric mode. Pre-RC18
+        // we always treated posterWidth as inches; toggling units to cm
+        // physically preserves the poster size (toggleUnits multiplies the
+        // stored value by 2.54), but computeCurrentDpi was reading the
+        // post-conversion value as if it were still inches and reporting
+        // ~34 DPI for what was actually 88 DPI.
+        val widthIn = if (units == "Metric") rawWidth / 2.54 else rawWidth
         return (w.toDouble() / widthIn).toFloat()
     }
 
@@ -903,6 +910,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             wasUpscaled ||
                             pendingUpscaleModelLabel != null ||
                             isFreeUpscaling,
+                        units = units,
                     )
                     
                      withContext(Dispatchers.Main) {
