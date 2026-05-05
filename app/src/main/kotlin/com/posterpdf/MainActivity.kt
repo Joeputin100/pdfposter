@@ -419,6 +419,42 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         )
     }
 
+    // RC19 — AI upscale progress dialog. Mirrors the free-upscale dialog
+    // pattern but reads aiUpscalePhase / aiUpscaleProgress directly from
+    // the ViewModel (the repository does its own phase + fraction tracking).
+    if (viewModel.isAiUpscaling) {
+        AlertDialog(
+            onDismissRequest = { /* not dismissable — must Cancel or wait */ },
+            icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
+            title = { Text("Sharpening with AI") },
+            text = {
+                Column {
+                    Text(
+                        text = viewModel.aiUpscalePhase.ifEmpty { "Starting…" },
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    LinearProgressIndicator(
+                        progress = { viewModel.aiUpscaleProgress },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "${(viewModel.aiUpscaleProgress * 100).toInt()}%",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { viewModel.cancelAiUpscale() }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
+    }
+
     if (showPurchaseSheet) {
         PurchaseSheet(
             balance = creditBalance,

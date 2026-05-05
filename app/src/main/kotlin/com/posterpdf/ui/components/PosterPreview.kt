@@ -1324,26 +1324,10 @@ fun PosterPreview(viewModel: MainViewModel) {
                         viewModel.pendingUpscaleModelLabel = "Free upscale"
                         viewModel.runFreeUpscale(context)
                     },
-                    // TODO(G12): wire to viewModel.runAiUpscale(modelId, inputMpInt)
+                    // RC19: wired end-to-end via AiUpscaleRepository.
                     onAiUpscale = { modelId ->
                         viewModel.showLowDpiModal = false
-                        // RC18: surface a user-visible error since the actual
-                        // upscale isn't wired yet. Pre-RC18 the modal closed
-                        // silently, the pendingUpscaleModelLabel got set, and
-                        // the View flow generated a PDF with the ORIGINAL
-                        // image — user couldn't tell whether the API call had
-                        // even been attempted. Now we don't even pretend.
-                        // pendingUpscaleModelLabel deliberately NOT set, so
-                        // the under-preview status card stays in its low-DPI
-                        // state and the View button gate fires correctly.
-                        viewModel.errorMessage =
-                            "AI upscale (${modelId.uppercase()}) isn't wired up yet — " +
-                            "use Free upscale or 'Bring your own' for now."
-                        viewModel.logEvent(
-                            context,
-                            "ai_upscale: not_implemented",
-                            "modelId=$modelId",
-                        )
+                        viewModel.runAiUpscale(context, modelId)
                     },
                     // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
                     onPickAlreadyUpscaled = { viewModel.showLowDpiModal = false },

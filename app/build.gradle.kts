@@ -20,7 +20,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc18"  // RC18 (Clarus, single-wood, ETA, sharpen modal, badges, AI stub)
+        versionName = "1.0-rc19"  // RC19 (AI upscale wired end-to-end)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -132,6 +132,12 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging-ktx")
     // RC12b: Firestore client for FCM token registration + storageBilling read.
     implementation("com.google.firebase:firebase-firestore-ktx")
+    // RC19: Storage SDK for the AI-upscale upload + Functions SDK for the
+    // requestUpscale onCall. The upscale flow needs to put the source bitmap
+    // somewhere FAL can fetch (we use gs:// → backend signs it), then invoke
+    // the callable that runs the FAL job and stores the result back in GCS.
+    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.firebase:firebase-functions-ktx")
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:20.7.0")

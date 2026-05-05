@@ -129,6 +129,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
     private var freeUpscaleJob: kotlinx.coroutines.Job? = null
 
+    /** RC19: AI upscale (FAL) progress state. Mirrors freeUpscaleTilesDone /
+     *  freeUpscaleTotalTiles for the on-device flow but with named phases
+     *  matching the user's request: "for AI models, progress card should
+     *  show uploading, in_queue, in_progress, completed/failed processing,
+     *  downloading as separate steps." Phase strings come from
+     *  AiUpscaleRepository.Phase. progressFraction is a [0,1] estimate the
+     *  UI uses to drive the LinearProgressIndicator. */
+    var isAiUpscaling by mutableStateOf(false)
+        private set
+    var aiUpscalePhase by mutableStateOf("")
+        private set
+    var aiUpscaleProgress by mutableStateOf(0f)
+        private set
+    private var aiUpscaleJob: kotlinx.coroutines.Job? = null
+
     /** RC13: tile-level upscale progress, exposed so the in-app modal can
      *  use the same ground-truth source as the foreground-service notification.
      *  Without this the modal ran a benchmark-based ETA estimate that
@@ -336,6 +351,100 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pendingUpscaleModelLabel = null
     }
 
+    /**
+     * RC19: kick off an AI upscale via FAL. Uploads the source bitmap to
+     * Firebase Storage, calls the requestUpscale callable, polls for
+     * completion, downloads the result, and swaps it in as the active
+     * source image (same as the free-upscale flow's success path).
+     *
+     * Backend handles credit staging + commit + refund-on-failure
+     * internally inside requestUpscale, so the client just needs to
+     * surface progress and react to the final outcome.
+     */
+    fun runAiUpscale(context: Context, modelId: String) {
+        val uri = selectedImageUri ?: return
+        val (srcW, srcH) = sourcePixelDimensions ?: return
+        val displayName = when (modelId) {
+            "topaz" -> "Topaz Gigapixel"
+            "recraft" -> "Recraft Crisp"
+            "aurasr" -> "AuraSR"
+            "esrgan" -> "ESRGAN"
+            else -> modelId
+        }
+        aiUpscaleJob?.cancel()
+        aiUpscaleJob = viewModelScope.launch {
+            isAiUpscaling = true
+            aiUpscalePhase = "Starting…"
+            aiUpscaleProgress = 0f
+            pendingUpscaleModelLabel = displayName
+            logEvent(context, "ai_upscale: start", "model=$modelId src=${srcW}x$srcH")
+            try {
+                // Convert poster dims to inches for the backend's pickScale.
+                val rawW = posterWidth.toDoubleOrNull() ?: 24.0
+                val rawH = posterHeight.toDoubleOrNull() ?: 36.0
+                val posterWIn = if (units == "Metric") rawW / 2.54 else rawW
+                val posterHIn = if (units == "Metric") rawH / 2.54 else rawH
+                val inputMp = (srcW.toDouble() * srcH) / 1_000_000.0
+
+                val result = aiUpscaleRepo.runUpscale(
+                    context = context,
+                    sourceUri = uri,
+                    modelId = modelId,
+                    inputMp = inputMp,
+                    posterWidthInches = posterWIn,
+                    posterHeightInches = posterHIn,
+                    targetDpi = targetDpi,
+                ) { phase, frac ->
+                    aiUpscalePhase = when (phase) {
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.UPLOADING -> "Uploading source…"
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.IN_QUEUE -> "Waiting in queue…"
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.IN_PROGRESS -> "Sharpening with $displayName…"
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.DOWNLOADING -> "Downloading result…"
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.SAVING -> "Saving…"
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.SUCCEEDED -> "Done"
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.FAILED -> "Failed"
+                    }
+                    aiUpscaleProgress = frac
+                }
+                result.onSuccess { outFile ->
+                    val bmp = android.graphics.BitmapFactory.decodeFile(outFile.absolutePath)
+                    if (bmp != null) {
+                        selectedImageUri = Uri.fromFile(outFile)
+                        sourcePixelDimensions = bmp.width to bmp.height
+                        imageMetadata = ImageMetadata(
+                            width = bmp.width,
+                            height = bmp.height,
+                            aspectRatioString = "${bmp.width}:${bmp.height}",
+                            aspectRatio = bmp.width.toDouble() / bmp.height.toDouble(),
+                            resolution = "${bmp.width}×${bmp.height}",
+                        )
+                        wasUpscaled = true
+                        successMessage = "Upscaled to ${bmp.width}×${bmp.height} via $displayName"
+                        logEvent(context, "ai_upscale: SUCCESS", "${bmp.width}x${bmp.height}")
+                        bmp.recycle()
+                    } else {
+                        errorMessage = "Upscale completed but result image could not be decoded"
+                    }
+                }.onFailure { t ->
+                    logEvent(context, "ai_upscale: FAIL", t.message)
+                    errorMessage = "AI upscale failed: ${t.message ?: t.javaClass.simpleName}"
+                }
+            } catch (t: Throwable) {
+                logEvent(context, "ai_upscale: exception", t.message)
+                errorMessage = "AI upscale error: ${t.message ?: t.javaClass.simpleName}"
+            } finally {
+                isAiUpscaling = false
+                pendingUpscaleModelLabel = null
+            }
+        }
+    }
+
+    fun cancelAiUpscale() {
+        aiUpscaleJob?.cancel()
+        isAiUpscaling = false
+        pendingUpscaleModelLabel = null
+    }
+
     // Reactive inputs
     var selectedImageUri by mutableStateOf<Uri?>(null)
     var posterWidth by mutableStateOf("24")
@@ -397,6 +506,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val auth = AuthRepository.get(appContext)
     private val backend = BackendClient.create(auth)
     private val supportRepo = com.posterpdf.data.backend.SupportRepository(auth)
+    private val aiUpscaleRepo = com.posterpdf.data.backend.AiUpscaleRepository(auth)
 
     var authSession by mutableStateOf(AuthSession())
         private set
