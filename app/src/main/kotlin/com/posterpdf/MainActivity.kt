@@ -822,6 +822,22 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     navigationIcon = {
                          IconButton(onClick = {
                              viewModel.logEvent(context, "Drawer opened")
+                             // RC18: emit auth-state diagnostic on every
+                             // drawer open so the saved log file actually
+                             // contains the photoUrl. Pre-RC18 the auth
+                             // logEvent fired only at the auth state's
+                             // initial emit, which was BEFORE the user
+                             // typically toggled debug logging on; result
+                             // was zero auth_session lines in the log
+                             // even when signed in.
+                             viewModel.logEvent(
+                                 context,
+                                 "auth_session_snapshot",
+                                 "signedIn=${viewModel.authSession.signedIn} " +
+                                 "anon=${viewModel.authSession.isAnonymous} " +
+                                 "email=${viewModel.authSession.email ?: "<null>"} " +
+                                 "photoUrl=${viewModel.authSession.photoUrl ?: "<null>"}",
+                             )
                              scope.launch { drawerState.open() }
                          }) {
                              Icon(Icons.Default.Menu, "Settings")
