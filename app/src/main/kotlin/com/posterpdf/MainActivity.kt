@@ -669,19 +669,23 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                              } else {
                                  androidx.core.os.LocaleListCompat.forLanguageTags(tag)
                              }
-                             // RC17: AppCompatDelegate.setApplicationLocales
-                             // alone doesn't trigger a locale change here
-                             // because MainActivity extends ComponentActivity,
-                             // not AppCompatActivity — there's no AppCompat
-                             // delegate to dispatch onConfigurationChanged.
-                             // We do three things explicitly:
-                             //  1. setApplicationLocales (persists the choice)
-                             //  2. on API 33+, also poke LocaleManager (the
-                             //     platform mechanism that survives without
-                             //     AppCompat scaffolding)
-                             //  3. activity.recreate() so resources reload
-                             //     and stringResource calls return the new
-                             //     translations on the next frame.
+                             // RC19: seamless locale switch (no Activity recreate).
+                             // We added `locale` to AndroidManifest configChanges,
+                             // so the system delivers onConfigurationChanged in
+                             // place instead of destroying + recreating the
+                             // Activity. Compose's LocalConfiguration provider
+                             // automatically updates on that callback, so any
+                             // composables that read stringResource() recompose
+                             // with the new translations on the next frame —
+                             // without losing in-progress state (poster size,
+                             // selected image, scroll position, etc.).
+                             //
+                             // RC17 had to call activity.recreate() because
+                             // locale was NOT in configChanges, so the system
+                             // would destroy the Activity on locale change
+                             // anyway. Now that we handle it, the recreate is
+                             // not just unnecessary — it's actively harmful
+                             // (loses state, restarts to splash).
                              androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(locales)
                              if (android.os.Build.VERSION.SDK_INT >= 33) {
                                  val lm = context.getSystemService(android.app.LocaleManager::class.java)
@@ -693,7 +697,6 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                              }
                              viewModel.logEvent(context, "language_picked", "tag=$tag")
                              showLanguageDialog = false
-                             (context as? android.app.Activity)?.recreate()
                          },
                      )
                  }
