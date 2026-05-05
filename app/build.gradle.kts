@@ -49,11 +49,23 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        // RC19: bumped Java 1.8 → 17. The AGP 8.x toolchain handles Java
+        // 17 source + bytecode end-to-end (R8/D8 desugar anything not
+        // supported on minSdk 23 down to a runnable form), and JDK 17 is
+        // the de-facto modern target for Android — what AGP 8 defaults to
+        // and what Jetpack libraries certify against. Build JDK is 21
+        // (.github/workflows/build-android.yml), which can produce 17
+        // bytecode without trouble.
+        //
+        // Why not Java 21 source/target: AGP 8.5+ supports it, but some
+        // 3rd-party libs in our graph (Firebase BOM 32.7.0, AndroidSVG,
+        // PDFBox-Android 2.0.27) haven't certified against 21 yet —
+        // sticking with 17 keeps the ecosystem boring.
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     packaging {
         resources {
