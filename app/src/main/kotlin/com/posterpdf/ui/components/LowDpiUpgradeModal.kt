@@ -562,7 +562,7 @@ fun LowDpiUpgradeModal(
             else -> "Upscale with ${option.displayName}" to { onAiUpscale(open.name.lowercase()) }
         }
         ModelDetailDialog(
-            option = option,
+            displayName = option.displayName,
             bestFor = copy.bestFor,
             pickWhen = copy.pickWhen,
             standsOut = copy.standsOut,

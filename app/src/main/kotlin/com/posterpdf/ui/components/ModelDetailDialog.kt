@@ -66,7 +66,7 @@ import androidx.compose.ui.window.DialogProperties
  */
 @Composable
 fun ModelDetailDialog(
-    option: UpscaleOption,
+    displayName: String,
     bestFor: List<String>,
     pickWhen: String,
     standsOut: String,
@@ -104,7 +104,7 @@ fun ModelDetailDialog(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        option.displayName,
+                        displayName,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary,
