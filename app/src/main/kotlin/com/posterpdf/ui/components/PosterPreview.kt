@@ -300,25 +300,21 @@ fun PosterPreview(viewModel: MainViewModel) {
     // user request ("replace procedurally generated table surface with a
     // raster one"). The bitmap is decoded once and wrapped in a tiled
     // BitmapShader so wood fills any viewport size without distortion.
-    // Decode straight via BitmapFactory rather than Compose's imageResource()
-    // — that helper requires extra import gymnastics for ImageBitmap →
-    // Android Bitmap conversion, and we only need the raw bitmap to feed
-    // BitmapShader. Resources.getDrawable would also work but allocates an
-    // intermediate Drawable wrapper.
+    // RC18: single wood image scaled to fit, no tile. RC17 used REPEAT
+    // tile mode which made multiple seam lines visible across the
+    // viewport (user: "background wood image is tiled. just use 1 wood
+    // image, all arranged pages and the printer should fit in the wood
+    // image (scale the wood image up to fit. its 4k so should still
+    // look sharp )"). The source bitmap is 1024×825 (downscaled from a
+    // 4608×3712 photograph); we draw it stretched to size + pan offset
+    // so the whole panable area gets ONE seamless wood field.
     val woodBitmap = remember(context) {
         android.graphics.BitmapFactory.decodeResource(
             context.resources,
             com.posterpdf.R.drawable.wood_table,
         )
     }
-    val woodShader = remember(woodBitmap) {
-        android.graphics.BitmapShader(
-            woodBitmap,
-            android.graphics.Shader.TileMode.REPEAT,
-            android.graphics.Shader.TileMode.REPEAT,
-        )
-    }
-    val woodBrush = remember(woodShader) { ShaderBrush(woodShader) }
+    val woodImageBitmap = remember(woodBitmap) { woodBitmap.asImageBitmap() }
     // H-P1.8: dot-matrix printer ink streak — AGSL, gated to API 33+; null on
     // older devices (drawPrinter handles the fallback path). The RC3 redesign
     // dropped the dust puff (no more "stack lands on desk" beat).
@@ -398,20 +394,32 @@ fun PosterPreview(viewModel: MainViewModel) {
                         val zoom = userZoom.floatValue
                         val tx = cameraOffsetXpx.floatValue
                         val ty = cameraOffsetYpx.floatValue
-                        // Scale around the viewport center so the grain
-                        // "blooms outward" from the centre; same pivot the
-                        // Canvas's graphicsLayer uses by default.
+                        // RC18: draw a SINGLE stretched copy of the 1024×825
+                        // wood photo across a frame larger than the viewport,
+                        // instead of tiling. Tile mode showed seam lines at
+                        // every repeat and the user wanted "1 wood image, all
+                        // arranged pages and the printer should fit in the
+                        // wood image (scale the wood image up to fit. its
+                        // 4k so should still look sharp)." Source bitmap is
+                        // already a real photograph, so a 4× upscale to fill
+                        // the pan area is well within its detail budget.
                         scale(zoom, pivot = Offset(size.width / 2f, size.height / 2f)) {
                             translate(tx, ty) {
-                                // Overdraw a frame larger than the viewport
-                                // so panning doesn't reveal the unfilled
-                                // area outside the brush bounds. 3× viewport
-                                // covers the full ±1.5×viewport pan range.
                                 val pad = maxOf(size.width, size.height)
-                                drawRect(
-                                    brush = woodBrush,
-                                    topLeft = Offset(-pad, -pad),
-                                    size = Size(size.width + pad * 2f, size.height + pad * 2f),
+                                val frameW = (size.width + pad * 2f).toInt()
+                                val frameH = (size.height + pad * 2f).toInt()
+                                drawImage(
+                                    image = woodImageBitmap,
+                                    srcOffset = androidx.compose.ui.unit.IntOffset.Zero,
+                                    srcSize = androidx.compose.ui.unit.IntSize(
+                                        woodImageBitmap.width,
+                                        woodImageBitmap.height,
+                                    ),
+                                    dstOffset = androidx.compose.ui.unit.IntOffset(
+                                        x = -pad.toInt(),
+                                        y = -pad.toInt(),
+                                    ),
+                                    dstSize = androidx.compose.ui.unit.IntSize(frameW, frameH),
                                 )
                             }
                         }
@@ -1318,13 +1326,23 @@ fun PosterPreview(viewModel: MainViewModel) {
                     // TODO(G12): wire to viewModel.runAiUpscale(modelId, inputMpInt)
                     onAiUpscale = { modelId ->
                         viewModel.showLowDpiModal = false
-                        viewModel.pendingUpscaleModelLabel = when (modelId) {
-                            "topaz" -> "Topaz Gigapixel"
-                            "recraft" -> "Recraft Crisp"
-                            "aurasr" -> "AuraSR"
-                            "esrgan" -> "ESRGAN"
-                            else -> modelId
-                        }
+                        // RC18: surface a user-visible error since the actual
+                        // upscale isn't wired yet. Pre-RC18 the modal closed
+                        // silently, the pendingUpscaleModelLabel got set, and
+                        // the View flow generated a PDF with the ORIGINAL
+                        // image — user couldn't tell whether the API call had
+                        // even been attempted. Now we don't even pretend.
+                        // pendingUpscaleModelLabel deliberately NOT set, so
+                        // the under-preview status card stays in its low-DPI
+                        // state and the View button gate fires correctly.
+                        viewModel.errorMessage =
+                            "AI upscale (${modelId.uppercase()}) isn't wired up yet — " +
+                            "use Free upscale or 'Bring your own' for now."
+                        viewModel.logEvent(
+                            context,
+                            "ai_upscale: not_implemented",
+                            "modelId=$modelId",
+                        )
                     },
                     // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
                     onPickAlreadyUpscaled = { viewModel.showLowDpiModal = false },

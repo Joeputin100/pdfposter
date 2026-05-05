@@ -37,6 +37,7 @@
     <string name="drawer_help">Помощь</string>
     <string name="drawer_faq">Вопросы и ответы</string>
     <string name="drawer_privacy_policy">Политика конфиденциальности</string>
+    <string name="drawer_send_feedback">Отправить отзыв</string>
     <string name="drawer_support">Поддержка</string>
     <string name="drawer_reset_to_defaults">Сбросить настройки</string>
     <string name="drawer_no_browser_for_support">Браузер не установлен — не удаётся открыть ссылку поддержки.</string>

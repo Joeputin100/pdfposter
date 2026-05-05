@@ -354,11 +354,20 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         // also show a dedicated "Saving…" state because the PNG write tail
         // takes a few seconds the user noticed as a "paused at 100%" beat.
         var smoothedRemainingMs by remember { mutableLongStateOf(0L) }
+        // RC18: read viewModel state INSIDE the loop, not via captured
+        // outer-scope `done`/`total`. Pre-RC18 the LaunchedEffect lambda
+        // captured Compose State READS at composition (a snapshot, not a
+        // live subscription), so `done` was stuck at 0 for the lifetime
+        // of the dialog, the inner if-condition stayed false, and
+        // smoothedRemainingMs never updated. The text fell through to
+        // "Almost done…" for the entire 7-min upscale (user report).
         LaunchedEffect(viewModel.isFreeUpscaling) {
             while (viewModel.isFreeUpscaling) {
+                val curDone = viewModel.freeUpscaleTilesDone
+                val curTotal = viewModel.freeUpscaleTotalTiles
                 elapsedMs = System.currentTimeMillis() - startMs
-                if (done > 0 && done < total) {
-                    val instantRemaining = elapsedMs * (total - done) / done
+                if (curDone > 0 && curDone < curTotal) {
+                    val instantRemaining = elapsedMs * (curTotal - curDone) / curDone
                     smoothedRemainingMs = if (smoothedRemainingMs == 0L) instantRemaining
                     else (smoothedRemainingMs * 85 + instantRemaining * 15) / 100
                 }
@@ -698,7 +707,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
                  NavigationDrawerItem(
-                     label = { Text("Help") },
+                     label = { Text(stringResource(R.string.drawer_help)) },
                      selected = false,
                      onClick = {
                          viewModel.logEvent(context, "Help opened")
@@ -709,7 +718,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
                  NavigationDrawerItem(
-                     label = { Text("FAQ") },
+                     label = { Text(stringResource(R.string.drawer_faq)) },
                      selected = false,
                      onClick = {
                          viewModel.logEvent(context, "FAQ opened")
@@ -720,7 +729,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
                  NavigationDrawerItem(
-                     label = { Text("Privacy Policy") },
+                     label = { Text(stringResource(R.string.drawer_privacy_policy)) },
                      selected = false,
                      onClick = {
                          viewModel.logEvent(context, "Privacy Policy opened")
@@ -733,7 +742,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                  // RC17: Send-feedback / support form. Opt-in diagnostic
                  // payload submitted to Firestore /support/{auto-id}.
                  NavigationDrawerItem(
-                     label = { Text("Send feedback") },
+                     label = { Text(stringResource(R.string.drawer_send_feedback)) },
                      selected = false,
                      onClick = {
                          viewModel.logEvent(context, "Support opened")
@@ -819,15 +828,22 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          }
                     },
                     actions = {
-                        CreditBadge(
-                            balance = creditBalance,
-                            isAdmin = viewModel.isAdmin,
-                            onClick = {
-                                hapt.tap()
-                                viewModel.logEvent(context, "Credit badge tapped", "balance=$creditBalance")
-                                showPurchaseSheet = true
-                            }
-                        )
+                        // RC18: 6dp end-padding so the badge dot doesn't
+                        // get clipped by the right screen edge. The badge
+                        // is positioned at the top-end of the IconButton's
+                        // 24dp icon — without padding the badge bleeds
+                        // past the action area's right edge by ~3dp.
+                        Box(modifier = Modifier.padding(end = 6.dp)) {
+                            CreditBadge(
+                                balance = creditBalance,
+                                isAdmin = viewModel.isAdmin,
+                                onClick = {
+                                    hapt.tap()
+                                    viewModel.logEvent(context, "Credit badge tapped", "balance=$creditBalance")
+                                    showPurchaseSheet = true
+                                }
+                            )
+                        }
                     }
                 )
             }
@@ -2285,17 +2301,18 @@ private fun SharpenForPrintCta(usePulseEffect: Boolean = false, onClick: () -> U
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            // RC10: paint the tertiaryContainer background ourselves so the
-            // glitter (drawn next, BEFORE the card content) lands on top
-            // of it but UNDER the icon/text/chevron. The card\'s own
-            // containerColor is set to Transparent below.
+            // RC18: clip BEFORE the pulse effect modifier so the pulse's
+            // gradient sweep is bounded by the rounded-corner frame. Pre-RC18
+            // the pulse painted into a square area and the sweep escaped
+            // past the corners (user: "the pulse effect on the 'Sharpen
+            // your image' button escapes the bounds of the button roundrect
+            // corners").
+            .clip(RoundedCornerShape(20.dp))
             .background(
                 color = MaterialTheme.colorScheme.tertiaryContainer,
                 shape = RoundedCornerShape(20.dp),
             )
             .let {
-                // RC15: respect the debug Glitter / Pulse toggle here too
-                // so the user can A/B both effects across every surface.
                 if (usePulseEffect) it.pulseEffect(active = true)
                 else it.glintEffect(active = true)
             },

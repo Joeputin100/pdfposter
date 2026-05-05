@@ -37,6 +37,7 @@
     <string name="drawer_help">Ayuda</string>
     <string name="drawer_faq">Preguntas frecuentes</string>
     <string name="drawer_privacy_policy">Política de privacidad</string>
+    <string name="drawer_send_feedback">Enviar comentarios</string>
     <string name="drawer_support">Soporte</string>
     <string name="drawer_reset_to_defaults">Restablecer valores predeterminados</string>
     <string name="drawer_no_browser_for_support">No hay navegador instalado para abrir el enlace de soporte.</string>

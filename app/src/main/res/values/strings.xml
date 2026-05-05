@@ -63,6 +63,7 @@
     <string name="drawer_help">Help</string>
     <string name="drawer_faq">FAQ</string>
     <string name="drawer_privacy_policy">Privacy Policy</string>
+    <string name="drawer_send_feedback">Send feedback</string>
     <string name="drawer_support">Support</string>
     <string name="drawer_reset_to_defaults">Reset to Defaults</string>
     <string name="drawer_no_browser_for_support">No browser installed to open the Support link.</string>

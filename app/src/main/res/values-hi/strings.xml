@@ -37,6 +37,7 @@
     <string name="drawer_help">सहायता</string>
     <string name="drawer_faq">अक्सर पूछे जाने वाले सवाल</string>
     <string name="drawer_privacy_policy">गोपनीयता नीति</string>
+    <string name="drawer_send_feedback">फ़ीडबैक भेजें</string>
     <string name="drawer_support">सपोर्ट</string>
     <string name="drawer_reset_to_defaults">डिफ़ॉल्ट पर रीसेट करें</string>
     <string name="drawer_no_browser_for_support">सपोर्ट लिंक खोलने के लिए कोई ब्राउज़र नहीं मिला।</string>

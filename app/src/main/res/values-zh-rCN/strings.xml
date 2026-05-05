@@ -37,6 +37,7 @@
     <string name="drawer_help">帮助</string>
     <string name="drawer_faq">常见问题</string>
     <string name="drawer_privacy_policy">隐私政策</string>
+    <string name="drawer_send_feedback">发送反馈</string>
     <string name="drawer_support">支持</string>
     <string name="drawer_reset_to_defaults">恢复默认设置</string>
     <string name="drawer_no_browser_for_support">未安装浏览器，无法打开支持链接。</string>

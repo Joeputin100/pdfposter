@@ -732,7 +732,7 @@ private fun UpscaleOptionCard(
                 )
             } else if (option.model == UpscaleModel.FREE_LOCAL && localEtaText != null) {
                 Text(
-                    if (freeEnabled) "ETA $localEtaText" else (freeCapability?.reason ?: "Unavailable"),
+                    if (freeEnabled) "$localEtaText on your device" else (freeCapability?.reason ?: "Unavailable"),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (freeEnabled) MaterialTheme.colorScheme.onSurfaceVariant
                     else MaterialTheme.colorScheme.error,

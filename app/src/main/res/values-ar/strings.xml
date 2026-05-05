@@ -37,6 +37,7 @@
     <string name="drawer_help">المساعدة</string>
     <string name="drawer_faq">الأسئلة الشائعة</string>
     <string name="drawer_privacy_policy">سياسة الخصوصية</string>
+    <string name="drawer_send_feedback">إرسال تعليقات</string>
     <string name="drawer_support">الدعم</string>
     <string name="drawer_reset_to_defaults">إعادة الضبط الافتراضي</string>
     <string name="drawer_no_browser_for_support">لا يوجد متصفح مثبَّت لفتح رابط الدعم.</string>

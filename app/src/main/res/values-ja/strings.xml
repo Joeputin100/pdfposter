@@ -37,6 +37,7 @@
     <string name="drawer_help">ヘルプ</string>
     <string name="drawer_faq">よくある質問</string>
     <string name="drawer_privacy_policy">プライバシーポリシー</string>
+    <string name="drawer_send_feedback">フィードバックを送信</string>
     <string name="drawer_support">サポート</string>
     <string name="drawer_reset_to_defaults">デフォルトに戻す</string>
     <string name="drawer_no_browser_for_support">サポートリンクを開くブラウザがインストールされていません。</string>

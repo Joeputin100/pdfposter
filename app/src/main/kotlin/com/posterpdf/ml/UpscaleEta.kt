@@ -103,15 +103,24 @@ fun etaForFal(
 }
 
 /**
- * Render a seconds [range] as a human-friendly string.
- * Examples: `2..4` → "2–4 s", `45..70` → "45–70 s", `90..150` → "1.5–2.5 min".
+ * Render a seconds [range] as a human-friendly string. RC18 — collapsed
+ * the low–high range to a single rounded-up midpoint per user request:
+ * "ETA on card is '4.2 — 6.9 min'. lets make that more friendly using
+ * mean rounded up to next whole minute — 'about 6 minutes on your device'."
+ *
+ * Sub-minute jobs still render in seconds (rounded up to a tens-of-seconds
+ * grid) since "about 1 minute" is too coarse for a 30 s wait.
  */
 fun formatEta(range: IntRange): String {
-    val low = range.first
-    val high = range.last
+    val midSec = (range.first + range.last) / 2
     return when {
-        high < 60 -> "$low–$high s"
-        high < 600 -> "%.1f–%.1f min".format(low / 60.0, high / 60.0)
-        else -> "%d–%d min".format(low / 60, high / 60)
+        midSec < 60 -> {
+            val rounded = ((midSec + 9) / 10) * 10
+            "about $rounded s"
+        }
+        else -> {
+            val mins = (midSec + 59) / 60  // round up to next whole minute
+            if (mins == 1) "about 1 minute" else "about $mins minutes"
+        }
     }
 }

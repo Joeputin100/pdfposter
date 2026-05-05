@@ -20,7 +20,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc17"  // RC17 (support form, language picker fix, theme-switch no-restart)
+        versionName = "1.0-rc18"  // RC18 (Clarus, single-wood, ETA, sharpen modal, badges, AI stub)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
