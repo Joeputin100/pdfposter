@@ -28,9 +28,15 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("../release.keystore")
-            storePassword = "posterpdf"
-            keyAlias = "posterpdf"
-            keyPassword = "posterpdf"
+            // RC21: read from env vars (KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD).
+            // Falls back to "posterpdf" for local dev so anyone cloning the repo
+            // can build without env-setup. Until the keystore itself is rotated,
+            // the fallback IS the live password — TODO 4 step 1 (rotate keystore)
+            // remains open. Env-var support is the prerequisite that lets a
+            // future rotation land without re-touching this file.
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "posterpdf"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "posterpdf"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "posterpdf"
         }
     }
 
@@ -181,4 +187,9 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    // RC21 test battery: ActivityScenario lives in test:core, runner is what
+    // AndroidJUnitRunner ships from. Both are required for SmokeTest.kt.
+    androidTestImplementation("androidx.test:core:1.5.0")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
 }

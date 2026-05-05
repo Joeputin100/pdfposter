@@ -68,6 +68,16 @@ jobs:
             && echo "google-services.json: valid JSON"
 
       - name: Build (assembleDebug + bundleRelease)
+        env:
+          # RC21: keystore credentials read from app/build.gradle.kts via
+          # System.getenv. If a secret isn't set the build falls back to
+          # the in-tree "posterpdf" defaults, which is still adequate for
+          # CI debug signing but means the release AAB is signed with the
+          # publicly-known credentials. To use the real production keystore
+          # credentials, set all three repository secrets.
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: gradle assembleDebug bundleRelease --stacktrace
 
       - name: Upload artifacts

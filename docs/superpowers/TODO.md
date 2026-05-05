@@ -4,8 +4,13 @@ Items deferred from the MD3E redesign work. Each is its own future plan.
 
 ---
 
-## TODO 1 — Migrate Android build to GitHub Actions
+## TODO 1 — Migrate Android build to GitHub Actions ✅ DONE
 
+**Status:** Shipped 2026-05-02. Android builds run via `.github/workflows/build-android.yml`; A/B run on the same source produced byte-identical APKs at 7m59s vs Cloud Build's 28m29s. Cloud Build trigger for Android decommissioned. Backend stays on Cloud Build (intentional — `cloudbuild-backend.yaml` SA already has the Firebase/Functions IAM roles).
+
+---
+
+### Original deferral (preserved for context)
 **Status:** Deferred until MD3E redesign lands.
 
 **Scope:** Move `cloudbuild.yaml` (Android APK + AAB build only) to `.github/workflows/build-android.yml`. **Keep `cloudbuild-backend.yaml` on Cloud Build** — already wired to a Cloud Build SA with `Firebase Admin`, `Cloud Functions Developer`, `Service Account User` roles; replicating that path under workload identity federation is fragility risk for negligible UX gain.
@@ -148,8 +153,13 @@ Baseline profiles encode "which classes/methods to AOT-compile at install time" 
 
 ---
 
-## TODO 6 — Localization to 5+ languages
+## TODO 6 — Localization to 5+ languages ✅ DONE
 
+**Status:** Shipped during the RC3+ work (commits `RC3+ Layer 2c — 9 locale translations`). Coverage: ar, de, es, fr, hi, ja, pt-rBR, ru, zh-rCN — 9 locales, all driven through `app/src/main/res/values-<locale>/strings.xml`. `LocaleManagerCompat.setApplicationLocales()` integrated; users can switch app language independent of OS language via the drawer's Language picker. Beats the 5-locale "minimum for featuring" bar.
+
+---
+
+### Original deferral (preserved for context)
 **Status:** Tier-3 Play-Store-featured-readiness item.
 
 **Why:** Localized apps reach more users, qualify for more regional featuring, and signal "global app" to the Play Store algorithm. Realistic minimum for featuring: 5 locales beyond English.
