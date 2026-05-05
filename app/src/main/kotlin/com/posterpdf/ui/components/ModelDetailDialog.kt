@@ -1,10 +1,11 @@
 package com.posterpdf.ui.components
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -34,13 +34,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import kotlinx.coroutines.launch
 
 /**
  * RC22 — full-screen model-detail dialog answering the user's three
@@ -76,14 +82,44 @@ fun ModelDetailDialog(
     onPrimaryAction: () -> Unit,
     showPrimaryAction: Boolean = true,
 ) {
+    // RC23: animate the dialog content scaling 0 → 1 on open and 1 → 0 on
+    // close, so it visibly "grows" out of nothing and shrinks back to
+    // nothing — making the relationship between the small card and its
+    // expanded view obvious. The Dialog wrapper still provides platform-
+    // level dim background + back-button-dismisses + click-outside-dismisses;
+    // the animation runs INSIDE the dialog content. (A true card-bounds
+    // shared transition would need SharedTransitionLayout wrapping both
+    // the grid and the dialog, which the Dialog wrapper doesn't span —
+    // saving that for a future refactor.)
+    val anim = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        anim.animateTo(1f, tween(durationMillis = 280, easing = FastOutSlowInEasing))
+    }
+
+    val handleClose: () -> Unit = {
+        scope.launch {
+            anim.animateTo(0f, tween(durationMillis = 220, easing = FastOutSlowInEasing))
+            onDismiss()
+        }
+    }
+
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = handleClose,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(8.dp)
+                .graphicsLayer {
+                    val t = anim.value
+                    scaleX = t
+                    scaleY = t
+                    alpha = t
+                    transformOrigin = TransformOrigin(0.5f, 0.5f)
+                },
             shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 4.dp,
@@ -110,7 +146,9 @@ fun ModelDetailDialog(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                     )
-                    IconButton(onClick = onDismiss) {
+                    // RC23: route through handleClose so the close button
+                    // also triggers the shrink animation before dismissing.
+                    IconButton(onClick = handleClose) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
                     }
                 }
@@ -186,8 +224,13 @@ fun ModelDetailDialog(
                     ) {
                         Button(
                             onClick = {
+                                // RC23: fire the primary action immediately —
+                                // the user wants the upscale to start now —
+                                // and route the close through handleClose so
+                                // the shrink animation plays as the dialog
+                                // dismisses.
                                 onPrimaryAction()
-                                onDismiss()
+                                handleClose()
                             },
                             modifier = Modifier
                                 .fillMaxWidth()

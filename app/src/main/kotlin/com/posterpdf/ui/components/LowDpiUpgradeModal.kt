@@ -792,7 +792,11 @@ private fun UpscaleOptionCard(
                                 .align(Alignment.BottomCenter)
                                 .fillMaxWidth()
                                 .background(Color.Black.copy(alpha = 0.55f))
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                                // RC23: 32 dp end-padding so the 🪄 doesn't
+                                // overlap the lower-right Info icon
+                                // (28 dp + 2 dp pad = 30 dp; 32 dp gives a
+                                // small gap between them).
+                                .padding(start = 8.dp, end = 32.dp, top = 4.dp, bottom = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {

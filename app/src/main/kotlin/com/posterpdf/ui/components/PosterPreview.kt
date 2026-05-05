@@ -664,8 +664,20 @@ fun PosterPreview(viewModel: MainViewModel) {
                             // `paneIndex * 6f`, which inverted the visual
                             // metaphor — newest pane was furthest from the
                             // slot.
+                            // RC23: paneIndex * 6f (NOT inverted). Each new page
+                            // emerging from the printer lands BELOW the previous
+                            // ones (Y increases downward on screen). Drawing in
+                            // row-major order, the LAST pane (paneIndex = N-1,
+                            // = newest = bottom-right of the poster) draws on
+                            // TOP in z-order. So pane[N-1] is at the LOWEST
+                            // screen position AND visually on top — matching a
+                            // physical printer pile where each new sheet falls
+                            // forward of the previous and partially obscures it.
+                            // RC21 inverted this to (N-1-i)*6 which put the
+                            // newest at the slot (closest to printer) and was
+                            // visually wrong per RC22 user testing.
                             val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
-                                (paneCount - 1 - paneIndex) * 6f
+                                paneIndex * 6f
                             val easeOut = 1f - (1f - emergeT) * (1f - emergeT)
                             paneOffX = toPrinterDx + jitterX
                             paneOffY = toPrinterDy + (emergedY - toPrinterDy) * easeOut
@@ -686,8 +698,20 @@ fun PosterPreview(viewModel: MainViewModel) {
                             // `paneIndex * 6f`, which inverted the visual
                             // metaphor — newest pane was furthest from the
                             // slot.
+                            // RC23: paneIndex * 6f (NOT inverted). Each new page
+                            // emerging from the printer lands BELOW the previous
+                            // ones (Y increases downward on screen). Drawing in
+                            // row-major order, the LAST pane (paneIndex = N-1,
+                            // = newest = bottom-right of the poster) draws on
+                            // TOP in z-order. So pane[N-1] is at the LOWEST
+                            // screen position AND visually on top — matching a
+                            // physical printer pile where each new sheet falls
+                            // forward of the previous and partially obscures it.
+                            // RC21 inverted this to (N-1-i)*6 which put the
+                            // newest at the slot (closest to printer) and was
+                            // visually wrong per RC22 user testing.
                             val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
-                                (paneCount - 1 - paneIndex) * 6f
+                                paneIndex * 6f
                             paneOffX = toPrinterDx
                             paneOffY = emergedY
                         }
@@ -708,8 +732,20 @@ fun PosterPreview(viewModel: MainViewModel) {
                             // `paneIndex * 6f`, which inverted the visual
                             // metaphor — newest pane was furthest from the
                             // slot.
+                            // RC23: paneIndex * 6f (NOT inverted). Each new page
+                            // emerging from the printer lands BELOW the previous
+                            // ones (Y increases downward on screen). Drawing in
+                            // row-major order, the LAST pane (paneIndex = N-1,
+                            // = newest = bottom-right of the poster) draws on
+                            // TOP in z-order. So pane[N-1] is at the LOWEST
+                            // screen position AND visually on top — matching a
+                            // physical printer pile where each new sheet falls
+                            // forward of the previous and partially obscures it.
+                            // RC21 inverted this to (N-1-i)*6 which put the
+                            // newest at the slot (closest to printer) and was
+                            // visually wrong per RC22 user testing.
                             val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
-                                (paneCount - 1 - paneIndex) * 6f
+                                paneIndex * 6f
                             val slice = 1f / paneCount
                             val sliceStart = paneIndex * slice
                             val k = ((phaseT - sliceStart) / slice).coerceIn(0f, 1f)
