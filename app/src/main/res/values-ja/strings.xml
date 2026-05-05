@@ -208,8 +208,6 @@
     <string name="faq_a_credit_value">料金の内訳を開示します：AIプロバイダーへの支払いは受取額の約3分の2です。残りの3分の1はPlay Storeの15%%手数料、サーバーコスト（Cloud Functions + Firestore + Storage）、そして開発資金としてのわずかなマージンです。FAL.aiの原価に対して約50%%上乗せを目標としており、運営を維持できる程度で、大きな利益にはなりません。各クレジットパックにはドル換算が表示されるため、価格は明確です。</string>
     <string name="faq_q_offline">オフラインで使えますか？</string>
     <string name="faq_a_offline">基本機能はオフラインで使用できます：画像ピッカー・ポスター生成・端末内無料アップスケール・表示／保存／共有はインターネット不要です。インターネットが必要な機能：Googleサインイン・AIアップスケール（Topaz、Recraftなど）・クレジット購入・クラウドストレージ同期。履歴のメタデータは再接続時にバックグラウンドで同期されます。</string>
-    <string name="faq_q_sha1">SHA-1フィンガープリントとは何ですか？</string>
-    <string name="faq_a_sha1">Google Sign-InはアプリのAPK署名証明書をFirebase Authプロジェクトに紐づけます。リリースキーストアのSHA-1フィンガープリントがFirebaseに登録されており、その署名のAPKのみがGoogle Sign-Inを使用できます。これにより偽造APKによるGoogleアカウントへのフィッシングを防ぎます。インストール直後にサインインが失敗する場合、最も多い原因はデバッグまたは第三者のキーストアで署名されたAPKです。</string>
     <string name="faq_q_out_of_credits">クレジットがなくなるとどうなりますか？</string>
     <string name="faq_a_out_of_credits">2つの独立した影響があります。（1）AIアップスケールオプションはモーダルで利用不可になり、ボタンが「クレジットを追加」に変わります。無料アップスケールとPDF生成は引き続き使えます。（2）有料保持プランでクラウドストレージをご利用の場合、保存中のPDFは30日間の猶予期間に入ります。警告メールをお送りし、30日後にクラウドコピーが削除されます。ローカルコピーと履歴エントリは影響を受けません。</string>
     <string name="faq_q_pdf_time">PDFの生成に約30秒かかるのはなぜですか？</string>

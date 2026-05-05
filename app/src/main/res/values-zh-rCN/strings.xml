@@ -208,8 +208,6 @@
     <string name="faq_a_credit_value">透明定价：底层 AI 服务商向我们收取约三分之二的价格，另外三分之一用于覆盖 Play Store 15%% 抽成、服务器成本（Cloud Functions + Firestore + Storage），并留有小额利润用于开发。我们的目标是在 FAL.ai 原始成本上加价约 50%%——足以维持运营，不会暴利。每个点数套餐均标注对应美元金额，无任何隐藏收费。</string>
     <string name="faq_q_offline">可以离线使用吗？</string>
     <string name="faq_a_offline">核心流程可离线使用：图片选择、海报生成、本机免费放大，以及预览/保存/分享均无需网络。以下功能需要网络：Google 登录、AI 放大（Topaz、Recraft 等）、购买点数、云存储同步。历史元数据会在恢复网络后自动后台同步。</string>
-    <string name="faq_q_sha1">SHA-1 指纹有什么用？</string>
-    <string name="faq_a_sha1">Google 登录将应用的 APK 签名证书与您的 Firebase Auth 项目绑定。我们发布密钥库的 SHA-1 指纹已在 Firebase 中注册，因此只有使用该密钥库签名的 APK 才能使用 Google 登录。这可防止恶意方发布仿冒 APK 来钓鱼您的 Google 账户。若安装后登录失败，最常见原因是 APK 使用了调试密钥库或第三方密钥库签名。</string>
     <string name="faq_q_out_of_credits">点数用完怎么办？</string>
     <string name="faq_a_out_of_credits">两件事，且相互独立。（1）AI 放大选项在弹窗中变为不可用，按钮变为"获取更多点数"提示。免费放大和 PDF 生成仍可正常使用。（2）若您同时开启了付费云存储，已存储的 PDF 进入 30 天宽限期：我们会发送警告邮件，30 天后删除云端副本。本地副本和历史条目不受影响。</string>
     <string name="faq_q_pdf_time">为什么生成 PDF 需要约 30 秒？</string>
