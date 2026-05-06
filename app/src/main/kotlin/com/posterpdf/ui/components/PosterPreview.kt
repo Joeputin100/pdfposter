@@ -284,8 +284,19 @@ fun PosterPreview(viewModel: MainViewModel) {
                         // it had no intrinsic dims.
                         svg.setDocumentWidth(w.toFloat())
                         svg.setDocumentHeight(h.toFloat())
+                        // RC34: pre-fill the bitmap with opaque white before
+                        // rendering the SVG. Most SVGs use transparent
+                        // backgrounds, so a freshly-allocated ARGB_8888
+                        // bitmap with no fill produced a near-blank thumbnail
+                        // when scaled down for the model-picker cards (and
+                        // the top-of-screen sample image disappeared on
+                        // dark surfaces). White matches the printed-poster
+                        // background and makes the SVG visible regardless
+                        // of theme.
                         val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-                        svg.renderToCanvas(AndroidCanvas(b))
+                        val canvas = AndroidCanvas(b)
+                        canvas.drawColor(android.graphics.Color.WHITE)
+                        svg.renderToCanvas(canvas)
                         b
                     }
                 } else {
@@ -1347,7 +1358,12 @@ fun PosterPreview(viewModel: MainViewModel) {
         val posterHInchesD = viewModel.posterHeight.toDoubleOrNull() ?: 0.0
         val currentDpi = if (posterWInchesD > 0) (sourcePixelW / posterWInchesD).toFloat() else 0f
         // RC18: threshold is unit-aware (150 DPI / 59.05 DPCM).
-        val isLowDpi = currentDpi > 1f && currentDpi < viewModel.lowResolutionThreshold
+        // RC34: SVG sources are vector — DPI is meaningless. Suppress the
+        // low-resolution chip + the implicit modal-entry conditions when
+        // the source is SVG; the upgrade modal still has the "Vector
+        // source — no upscale needed" tag if it's reached via the
+        // explicit Sharpen-For-Print CTA.
+        val isLowDpi = !viewModel.sourceIsSvg && currentDpi > 1f && currentDpi < viewModel.lowResolutionThreshold
         val pendingLabel = viewModel.pendingUpscaleModelLabel
         // RC16: include showLowDpiModal as a third entry condition so the
         // modal can still open from the SharpenForPrintCta after an upscale

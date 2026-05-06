@@ -1212,10 +1212,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         // while an upscale was queued/running; after success
                         // both flags clear, but the bitmap is now high-res
                         // so the warning was wrong-but-firing in user logs.
+                        // RC34: also suppress for SVG sources — the PDF
+                        // emitter renders SVG via the per-tile vector path,
+                        // so DPI is meaningless for vector input.
                         suppressLowDpiWarning =
                             wasUpscaled ||
                             pendingUpscaleModelLabel != null ||
-                            isFreeUpscaling,
+                            isFreeUpscaling ||
+                            sourceIsSvg,
                         units = units,
                     )
                     

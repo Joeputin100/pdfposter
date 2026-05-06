@@ -1294,7 +1294,15 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            InfoChip(label = "Resolution", value = meta.resolution)
+                            // RC34: SVG is vector — pixel resolution doesn't
+                            // describe the source. Replace the chip with a
+                            // Format/Vector badge so the user reads "the
+                            // image scales to any poster size cleanly".
+                            if (viewModel.sourceIsSvg) {
+                                InfoChip(label = "Format", value = "Vector (SVG)")
+                            } else {
+                                InfoChip(label = "Resolution", value = meta.resolution)
+                            }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 InfoChip(label = "Aspect Ratio", value = meta.aspectRatioString)
                                 IconButton(onClick = { 
@@ -1465,8 +1473,10 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                 )
                                 // RC18: threshold is 150 DPI = 59.05 DPCM,
                                 // computed by the ViewModel based on units.
+                                // RC34: SVG sources skip the gate entirely
+                                // — vector scales cleanly to any size.
                                 val threshold = viewModel.lowResolutionThreshold
-                                if (!upscaleQueued && dpi > 0.1f && dpi < threshold) {
+                                if (!upscaleQueued && !viewModel.sourceIsSvg && dpi > 0.1f && dpi < threshold) {
                                     lowDpiPendingAction = action
                                 } else {
                                     action()
