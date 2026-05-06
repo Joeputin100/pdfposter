@@ -662,6 +662,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     // Debug & telemetry
     var debugLoggingEnabled by mutableStateOf(false)
+
+    // RC33: visual override for the credit badge so the user can preview
+    // the badge at arbitrary balances (e.g. four-digit values, or to
+    // trigger the digiflip on a known delta). null = use real balance;
+    // any Int = override the visible balance everywhere CreditBadge reads
+    // through the override-aware accessor in MainActivity.
+    var debugCreditOverride by mutableStateOf<Int?>(null)
     /** RC13b: A/B toggle — when true, model cards swap the AGSL holofoil
      *  glitter for a simpler light-pulse sweep (the same animated gradient
      *  the API 26-32 fallback uses). Visible only in debug builds via the

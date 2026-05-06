@@ -170,18 +170,11 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
         supportedScales = listOf(4),
         perOutputMp = 0.00125,
     ),
-    UpscaleOption(
-        model = UpscaleModel.TOPAZ,
-        displayName = "Topaz Gigapixel",
-        pros = "Best for text, line art & print-shop polish",
-        cons = "30× the cost for ~10–20% sharper edges",
-        scale = 4,
-        supportedScales = listOf(2, 4, 6, 8),
-        perOutputMp = 0.01,
-    ),
     // RC29: CCSR — second photo-faithful adjustable model. Sits between
     // ESRGAN (cheap, predictable) and Topaz (premium edges) on price, with
     // configurable scale (2/3/4×) so the user can dial detail vs. cost.
+    // RC33: positioned before Topaz so the grid reads in ascending-price
+    // order (NONE → FREE → RECRAFT → ESRGAN → AURASR → CCSR → TOPAZ).
     UpscaleOption(
         model = UpscaleModel.CCSR,
         displayName = "CCSR",
@@ -190,6 +183,15 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
         scale = 4,
         supportedScales = listOf(2, 3, 4),
         perOutputMp = 0.00125,
+    ),
+    UpscaleOption(
+        model = UpscaleModel.TOPAZ,
+        displayName = "Topaz Gigapixel",
+        pros = "Best for text, line art & print-shop polish",
+        cons = "30× the cost for ~10–20% sharper edges",
+        scale = 4,
+        supportedScales = listOf(2, 4, 6, 8),
+        perOutputMp = 0.01,
     ),
 )
 

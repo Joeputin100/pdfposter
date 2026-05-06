@@ -670,14 +670,28 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 // RC32: full-screen-width drawer per user request — overrides
                 // M3's default ~360dp pinning. fillMaxWidth() makes the sheet
                 // span the viewport on phones, foldables, and tablets.
+                // RC33: scroll moved off the sheet modifier and onto the
+                // inner Box so we can constrain content width (otherwise
+                // settings rows stretched to full tablet width and looked
+                // bad). Box aligns the constrained Column to TopStart.
                 modifier = Modifier
                     .fillMaxWidth()
                     .glassBackdrop(
                         shape = DrawerDefaults.shape,
                         tint = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.82f),
                     )
-                    .verticalScroll(rememberScrollState())
             ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    contentAlignment = Alignment.TopStart,
+                ) {
+                Column(
+                    modifier = Modifier
+                        .widthIn(max = 480.dp)
+                        .fillMaxWidth(),
+                ) {
                 Spacer(Modifier.height(12.dp))
                 Text(
                     stringResource(R.string.app_name),
@@ -721,6 +735,63 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          },
                      )
                  }
+
+                  // RC33: debug-only credit-badge override row. Lets the user
+                  // type any number into the badge to preview width/digit
+                  // count, plus a −111 button to exercise the digiflip
+                  // animation on a known delta. Hidden in release builds.
+                  if (com.posterpdf.BuildConfig.DEBUG) {
+                      var badgeOverrideText by remember {
+                          mutableStateOf(viewModel.debugCreditOverride?.toString() ?: "")
+                      }
+                      Surface(
+                          shape = RoundedCornerShape(12.dp),
+                          color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
+                          modifier = Modifier
+                              .fillMaxWidth()
+                              .padding(horizontal = 16.dp, vertical = 8.dp),
+                      ) {
+                          Column(modifier = Modifier.padding(12.dp)) {
+                              Text(
+                                  "Debug · token badge",
+                                  style = MaterialTheme.typography.labelMedium,
+                                  fontWeight = FontWeight.Bold,
+                              )
+                              Spacer(Modifier.height(8.dp))
+                              Row(verticalAlignment = Alignment.CenterVertically) {
+                                  OutlinedTextField(
+                                      value = badgeOverrideText,
+                                      onValueChange = {
+                                          badgeOverrideText = it.filter(Char::isDigit).take(6)
+                                      },
+                                      label = { Text("Set balance") },
+                                      singleLine = true,
+                                      modifier = Modifier.weight(1f),
+                                  )
+                                  Spacer(Modifier.width(8.dp))
+                                  Button(onClick = {
+                                      val n = badgeOverrideText.toIntOrNull()
+                                      if (n != null) viewModel.debugCreditOverride = n
+                                  }) { Text("Set") }
+                              }
+                              Spacer(Modifier.height(8.dp))
+                              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                  Button(onClick = {
+                                      val current = viewModel.debugCreditOverride ?: 0
+                                      val next = (current - 111).coerceAtLeast(0)
+                                      viewModel.debugCreditOverride = next
+                                      badgeOverrideText = next.toString()
+                                  }, modifier = Modifier.weight(1f)) {
+                                      Text("−111 (digiflip)")
+                                  }
+                                  TextButton(onClick = {
+                                      viewModel.debugCreditOverride = null
+                                      badgeOverrideText = ""
+                                  }) { Text("Clear") }
+                              }
+                          }
+                      }
+                  }
 
                   ListItem(
                       headlineContent = { Text(stringResource(R.string.drawer_debug_logging_title)) },
@@ -1050,6 +1121,8 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
+                }  // RC33: close inner Column (max-width content)
+                }  // RC33: close outer Box (scroll + TopStart alignment)
             }
         }
     ) {
@@ -1095,7 +1168,11 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                         // icon so the toolbar feels balanced.
                         Box(modifier = Modifier.padding(end = 12.dp)) {
                             CreditBadge(
-                                balance = creditBalance,
+                                // RC33: debug override lets the user preview
+                                // arbitrary balances (e.g. four-digit) and
+                                // exercise the digiflip animation by setting
+                                // delta jumps. null = real balance.
+                                balance = viewModel.debugCreditOverride ?: creditBalance,
                                 isAdmin = viewModel.isAdmin,
                                 onClick = {
                                     hapt.tap()
@@ -2186,10 +2263,8 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                     StorageBillingRow(sb)
                     Spacer(Modifier.height(8.dp))
                 }
-                if (com.posterpdf.BuildConfig.DEBUG) {
-                    DebugPushTestRow(viewModel)
-                    Spacer(Modifier.height(8.dp))
-                }
+                // RC33: DebugPushTestRow removed — fixture isn't needed
+                // now that storage-event pushes are validated end-to-end.
                 OutlinedButton(onClick = { viewModel.signOut() }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.AutoMirrored.Filled.Logout, null)
                     Spacer(Modifier.width(8.dp))
@@ -2258,52 +2333,9 @@ private fun StorageBillingRow(s: MainViewModel.StorageBillingAggregate) {
     }
 }
 
-/**
- * RC12c — debug-only fixture to fire each storage-event push without
- * waiting for the daily billing cron. Hidden from release builds at the
- * call site (BuildConfig.DEBUG check). Each chip hits
- * /v1/test/storage-event with a different `type` and the backend writes
- * the same `simulated: true` notification doc + FCM push that production
- * dailySweep would.
- */
-@Composable
-private fun DebugPushTestRow(viewModel: MainViewModel) {
-    androidx.compose.material3.Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.tertiaryContainer,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            Text(
-                "Debug · push test",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
-            )
-            Spacer(Modifier.height(6.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                listOf(
-                    "billed" to "Bill",
-                    "grace_started" to "Grace",
-                    "deletion_imminent" to "Warn 24h",
-                    "deleted" to "Deleted",
-                ).forEach { (type, label) ->
-                    AssistChip(
-                        onClick = { viewModel.runTestStorageEvent(type) },
-                        label = { Text(label) },
-                    )
-                }
-            }
-            // RC16: Glitter / Pulse FilterChips removed — glitter shader was
-            // dropped entirely per user feedback, sensor-driven pulse is now
-            // the sole effect. Toggle no longer needed.
-        }
-    }
-}
+// RC33: DebugPushTestRow removed (was RC12c fixture). Storage-event
+// pushes are validated end-to-end now; the test row was bloating the
+// account section in widescreen mode.
 
 /**
  * RC13: 242000 → "4 minutes 2 seconds", 65000 → "1 minute 5 seconds",

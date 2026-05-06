@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc32"  // RC32 (CCSR in pickers + full-width drawer + v4 signed URLs)
+        versionName = "1.0-rc33"  // RC33 (price-sorted models, drawer max-width, debug badge override, push test removed)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
