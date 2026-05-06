@@ -1071,11 +1071,23 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 FirstRunWizard(viewModel = viewModel, onDismiss = { viewModel.saveAllSettings() })
             }
 
-            Column(
+            // RC30: adaptive width wrap. On phones (<600dp width) the Column
+            // fills width as before. On foldables-unfolded and tablets the
+            // outer Box centers the Column and constrains it to 600dp so
+            // text/buttons don't sprawl edge-to-edge across a 10" screen.
+            // Phase 2 (true 2-column list/detail) is a future RC; this is
+            // the minimal-risk "looks acceptable on big screens" pass.
+            Box(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .verticalScroll(scrollState)
+                    .verticalScroll(scrollState),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 600.dp)
+                    .fillMaxWidth()
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -1482,6 +1494,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     }
                 }
             }
+            }  // RC30: Box wrapping the inner Column for adaptive max-width
         }
     }
 }

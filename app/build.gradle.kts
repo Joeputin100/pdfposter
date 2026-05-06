@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc29.1"  // RC29.1 (CCSR bird logo)
+        versionName = "1.0-rc30"  // RC30 (CCSR vector + adaptive max-width on tablets/foldables)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  CCSR model icon: stylised bluebird silhouette — used for CCSR.
+  CCSR's brand asset on FAL is an eastern bluebird photo; this is a
+  flat-fill vector reduction of that bird in the same single-tone
+  paper-cutout style as the other model icons (basic, clean, premium,
+  swirl). Single fill at the brand blue.
+
+  Composition:
+    • Round body angled slightly forward, perched
+    • Rounded head connected to body with a soft neck dip
+    • Short triangular beak pointing left
+    • Single curved wing on the body (carved as a cut-out path)
+    • Forked tail trailing right
+    • Two thin legs onto a small horizontal twig
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Bird silhouette: head + body + tail, one continuous outline -->
+    <path
+        android:fillColor="#FF1565C0"
+        android:pathData="
+            M5.6,9.4
+            C5.6,7.6 7.0,6.0 8.8,6.0
+            C9.6,6.0 10.3,6.3 10.9,6.8
+            L11.2,6.5
+            L9.6,5.0
+            C9.4,4.8 9.6,4.5 9.9,4.6
+            L11.6,5.4
+            L11.6,4.0
+            C11.6,3.7 12.0,3.7 12.0,4.0
+            L12.0,5.6
+            L13.4,6.4
+            C14.4,7.0 15.2,7.8 15.7,8.8
+            L20.5,12.4
+            C20.9,12.7 20.7,13.3 20.2,13.2
+            L17.0,12.8
+            L19.0,15.4
+            C19.3,15.8 18.8,16.3 18.4,16.0
+            L14.6,13.4
+            C13.8,14.6 12.4,15.4 10.8,15.4
+            L9.0,15.4
+            L8.6,17.6
+            C8.6,17.7 8.5,17.8 8.4,17.8
+            L8.0,17.8
+            C7.9,17.8 7.8,17.7 7.8,17.6
+            L7.7,16.6
+            L7.0,16.6
+            L6.9,17.6
+            C6.9,17.7 6.8,17.8 6.7,17.8
+            L6.3,17.8
+            C6.2,17.8 6.1,17.7 6.1,17.6
+            L6.5,15.0
+            C5.9,14.0 5.6,12.8 5.6,11.5
+            Z" />
+
+    <!-- Wing cut-out: a thin crescent gap on the body -->
+    <path
+        android:fillColor="#FFE3F2FD"
+        android:pathData="
+            M9.6,9.0
+            C10.6,9.0 11.4,9.6 11.7,10.5
+            C11.0,10.8 10.2,10.7 9.6,10.4
+            C9.0,10.1 8.7,9.6 9.0,9.2
+            C9.2,9.0 9.4,9.0 9.6,9.0
+            Z" />
+
+    <!-- Eye dot -->
+    <path
+        android:fillColor="#FF0D2A4F"
+        android:pathData="
+            M8.2,8.6
+            A0.45,0.45 0 1,0 8.2,9.5
+            A0.45,0.45 0 1,0 8.2,8.6 Z" />
+
+    <!-- Twig perch -->
+    <path
+        android:fillColor="#FF6D4C2D"
+        android:pathData="
+            M3.0,18.5
+            L11.0,18.5
+            C11.2,18.5 11.2,18.9 11.0,18.9
+            L3.0,18.9
+            C2.8,18.9 2.8,18.5 3.0,18.5 Z" />
+</vector>
