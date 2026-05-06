@@ -97,17 +97,16 @@ private enum class CompareModel(val label: String, val key: String) {
 }
 
 /** Subjects that have synthesized fallback outputs for given models.
- *  RC20.2: empty — every cell now has a real upscale. The remaining
- *  Gristmill→Recraft asset was generated via a one-shot FAL job
- *  (downscale source to 1024w → fal-ai/recraft/upscale/crisp → 4× output
- *  back to JPEG quality 88) on 2026-05-05. The downscaling sidesteps
- *  Recraft's 5 MB output cap; output is 4096×2732, matching the source
- *  aspect ratio so the slider lines up cleanly. */
-private val SYNTHESIZED_FALLBACKS: Set<Pair<CompareSubject, CompareModel>> =
-    // RC32: until CCSR comparison samples are baked, every (subject, CCSR)
-    // pair falls back to Topaz's asset and surfaces the "(synthesized
-    // fallback)" tag so the user knows it's not a real CCSR output.
-    CompareSubject.entries.map { it to CompareModel.Ccsr }.toSet()
+ *  RC35: empty again. RC32 added CCSR pairs here so the "(synthesized
+ *  fallback)" warning would surface for the four CCSR cells (which
+ *  fall back to Topaz output because we haven't baked real CCSR
+ *  comparison samples yet). User feedback on RC34: the warning reads
+ *  as a "demo unavailable" bug rather than honest disclosure, since
+ *  no other model surfaces it. Until we bake real fal-ai/ccsr outputs
+ *  for the four subjects (~$0.005 in FAL spend, deferred to a separate
+ *  asset-baking task), the load path silently falls back to Topaz's
+ *  upscale — CCSR-via-FAL still works in the real upscale flow. */
+private val SYNTHESIZED_FALLBACKS: Set<Pair<CompareSubject, CompareModel>> = emptySet()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

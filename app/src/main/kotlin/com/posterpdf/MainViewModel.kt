@@ -714,6 +714,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *  document via SupportRepository when the user taps Send. */
     var showSupport by mutableStateOf(false)
 
+    /** RC35: Credits history screen — per-event ledger of credit
+     *  purchases, upscale debits, signup bonus, refunds. Reached from
+     *  the top-bar account menu. Read from Firestore /upscaleTransactions
+     *  + /creditPurchases for the signed-in user. */
+    var showCreditsHistory by mutableStateOf(false)
+    /** RC35: Manage Account modal — credit balance, last activity,
+     *  Google profile, upgrade link, DANGER ZONE (erase account). Modal,
+     *  not a screen — closed by dismiss or by the action that triggers
+     *  the type-CANCEL confirm sub-modal. */
+    var showManageAccount by mutableStateOf(false)
+
     private var ignoreFlowUpdates = false
 
     init {

@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc34"  // RC34 (SVG: white raster background + suppress DPI warnings + Vector chip)
+        versionName = "1.0-rc35"  // RC35 (top bar redesign + account menu + digit cascade + price formatting)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

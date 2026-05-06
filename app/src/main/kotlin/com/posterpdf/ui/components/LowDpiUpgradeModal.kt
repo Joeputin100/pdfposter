@@ -877,8 +877,13 @@ private fun UpscaleOptionCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (credits > 0) {
+                // RC35: dropped the "· ~$X.XX" half. With 1¢ = 1 credit
+                // (Phase H final pricing) the USD is just credits/100, which
+                // is redundant alongside the credit count and was reading as
+                // a bug to users (e.g. "89 credits · ~$10.59" from a stale
+                // 0.119 multiplier). The credit count is the canonical price.
                 Text(
-                    if (usdStr == "—") "$credits credits" else "$credits credits · ~\$$usdStr",
+                    "$credits credits",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -1271,7 +1276,12 @@ private fun HeadroomRow(
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = onContainer.copy(alpha = 0.8f))
             }
             Text(
-                "${credits}¢",
+                // RC35: pretty-print prices ≥100¢ as $X.XX so "356¢" reads
+                // as "$3.56" and "89¢" stays as "89¢". Cents-only when the
+                // value would otherwise be "$0.XX" — keeping ¢ for sub-dollar
+                // amounts is friendlier than always-$X.XX in microtransaction
+                // contexts.
+                if (credits >= 100) "$${"%.2f".format(credits / 100.0)}" else "${credits}¢",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = if (isAffordable) onContainer else MaterialTheme.colorScheme.error,

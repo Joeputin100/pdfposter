@@ -1444,9 +1444,13 @@ fun PosterPreview(viewModel: MainViewModel) {
                     sourceIsSvg = viewModel.sourceIsSvg,
                     // TODO(G12): replace placeholder 0 with viewModel.creditBalance.collectAsState().value
                     creditBalance = 0,
-                    // TODO(G12): replace 0.119 with usdPerCredit derived from
-                    // pricing/current; 0.119 is the SKU-ladder default at 50% margin.
-                    usdPerCredit = 0.119,
+                    // RC35: 1¢ = 1 credit (Phase H final pricing). The old
+                    // 0.119 was a 50%-margin assumption from G12 that produced
+                    // misleading USD lines like "89 credits · ~$10.59" — at
+                    // 1¢/credit the USD half is just `credits / 100` and is
+                    // redundant alongside the credit count, so the call sites
+                    // that render `~$X` should treat == 0 as "hide USD".
+                    usdPerCredit = 0.01,
                     // RC3 fix: derive from actual auth session, not placeholder
                     isAnonymous = viewModel.authSession.isAnonymous || !viewModel.authSession.signedIn,
                     isAdmin = viewModel.isAdmin,

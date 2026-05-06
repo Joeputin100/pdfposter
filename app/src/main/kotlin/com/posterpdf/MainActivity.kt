@@ -55,16 +55,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.posterpdf.ui.components.AccountAvatarMenu
 import com.posterpdf.ui.components.CreditBadge
+import com.posterpdf.ui.components.CreditChip
 import com.posterpdf.ui.components.GlassCard
 import com.posterpdf.ui.components.glassBackdrop
 import com.posterpdf.ui.components.glintEffect
 import com.posterpdf.ui.components.pulseEffect
 import com.posterpdf.ui.components.ImagePickerHeader
+import com.posterpdf.ui.components.ManageAccountDialog
 import com.posterpdf.ui.components.PaperSizeCardRow
 import com.posterpdf.ui.components.PosterPreview
 import com.posterpdf.ui.components.PurchaseSheet
 import com.posterpdf.ui.components.UnitsToggleCard
+import com.posterpdf.ui.screens.CreditsHistoryScreen
 import com.posterpdf.ui.screens.FaqScreen
 import com.posterpdf.ui.screens.GettingStartedScreen
 import com.posterpdf.ui.screens.HelpScreen
@@ -219,6 +223,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     val screenKey = when {
         viewModel.showUpscaleComparison -> "compare"
         viewModel.showHistoryScreen -> "history"
+        viewModel.showCreditsHistory -> "credits_history"
         viewModel.showGettingStarted -> "getting_started"
         viewModel.showHelp -> "help"
         viewModel.showFaq -> "faq"
@@ -234,12 +239,13 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             val order = mapOf(
                 "main" to 0,
                 "history" to 1,
-                "compare" to 2,
-                "getting_started" to 3,
-                "help" to 4,
-                "faq" to 5,
-                "privacy" to 6,
-                "support" to 7,
+                "credits_history" to 2,
+                "compare" to 3,
+                "getting_started" to 4,
+                "help" to 5,
+                "faq" to 6,
+                "privacy" to 7,
+                "support" to 8,
             )
             val from = order[initialState] ?: 0
             val to = order[targetState] ?: 0
@@ -263,6 +269,10 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             "history" -> {
                 BackHandler { viewModel.showHistoryScreen = false }
                 HistoryScreen(viewModel = viewModel, onBack = { viewModel.showHistoryScreen = false })
+            }
+            "credits_history" -> {
+                BackHandler { viewModel.showCreditsHistory = false }
+                CreditsHistoryScreen(viewModel = viewModel, onBack = { viewModel.showCreditsHistory = false })
             }
             "getting_started" -> {
                 BackHandler { viewModel.showGettingStarted = false }
@@ -655,6 +665,32 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             onSignInClick = {
                 showPurchaseSheet = false
                 activity?.let { signInLauncher.launch(viewModel.googleSignInIntent(it)) }
+            },
+        )
+    }
+
+    // RC35: Manage Account modal — credit balance, profile, upgrade,
+    // DANGER ZONE (erase). Opened from the top-bar account-pfp menu.
+    if (viewModel.showManageAccount) {
+        ManageAccountDialog(
+            viewModel = viewModel,
+            creditBalance = viewModel.debugCreditOverride ?: creditBalance,
+            onDismiss = { viewModel.showManageAccount = false },
+            onUpgrade = {
+                viewModel.showManageAccount = false
+                showPurchaseSheet = true
+            },
+            onCreditsHistory = {
+                viewModel.showManageAccount = false
+                viewModel.showCreditsHistory = true
+            },
+            onEraseAccount = {
+                viewModel.showManageAccount = false
+                viewModel.logEvent(context, "Account erase confirmed")
+                // Backend wipe lands in a follow-up RC; for now we
+                // sign the user out locally so subsequent sessions
+                // are decoupled from the previous identity.
+                viewModel.signOut()
             },
         )
     }
@@ -1128,61 +1164,87 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     ) {
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(stringResource(R.string.app_name),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-                    },
-                    navigationIcon = {
-                         IconButton(onClick = {
-                             viewModel.logEvent(context, "Drawer opened")
-                             // RC18: emit auth-state diagnostic on every
-                             // drawer open so the saved log file actually
-                             // contains the photoUrl. Pre-RC18 the auth
-                             // logEvent fired only at the auth state's
-                             // initial emit, which was BEFORE the user
-                             // typically toggled debug logging on; result
-                             // was zero auth_session lines in the log
-                             // even when signed in.
-                             viewModel.logEvent(
-                                 context,
-                                 "auth_session_snapshot",
-                                 "signedIn=${viewModel.authSession.signedIn} " +
-                                 "anon=${viewModel.authSession.isAnonymous} " +
-                                 "email=${viewModel.authSession.email ?: "<null>"} " +
-                                 "photoUrl=${viewModel.authSession.photoUrl ?: "<null>"}",
-                             )
-                             scope.launch { drawerState.open() }
-                         }) {
-                             Icon(Icons.Default.Menu, "Settings")
-                         }
-                    },
-                    actions = {
-                        // RC23: 12dp end-padding (≈1/8 inch) — RC18's 6dp
-                        // wasn't enough on devices where the badge digit
-                        // hits 3+ characters (e.g., "100" credits) and
-                        // pushed the badge over the right edge. 12dp also
-                        // matches the start-edge padding on the navigation
-                        // icon so the toolbar feels balanced.
-                        Box(modifier = Modifier.padding(end = 12.dp)) {
-                            CreditBadge(
-                                // RC33: debug override lets the user preview
-                                // arbitrary balances (e.g. four-digit) and
-                                // exercise the digiflip animation by setting
-                                // delta jumps. null = real balance.
-                                balance = viewModel.debugCreditOverride ?: creditBalance,
-                                isAdmin = viewModel.isAdmin,
-                                onClick = {
-                                    hapt.tap()
-                                    viewModel.logEvent(context, "Credit badge tapped", "balance=$creditBalance")
-                                    showPurchaseSheet = true
-                                }
+                // RC35: OpenArt-style top bar — hamburger | halftone logo |
+                // credit chip (coin + balance + Upgrade) | account-pfp menu.
+                // Replaces the legacy CenterAlignedTopAppBar whose Badge
+                // clipped at 99 credits and didn't expose the account menu
+                // the user wanted. Built as a custom Surface row so we can
+                // place arbitrary widgets in the actions slot without the
+                // MD3 TopAppBar measurement constraints.
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp)
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        IconButton(onClick = {
+                            viewModel.logEvent(context, "Drawer opened")
+                            // RC18: auth-state diagnostic on every drawer open.
+                            viewModel.logEvent(
+                                context,
+                                "auth_session_snapshot",
+                                "signedIn=${viewModel.authSession.signedIn} " +
+                                    "anon=${viewModel.authSession.isAnonymous} " +
+                                    "email=${viewModel.authSession.email ?: "<null>"} " +
+                                    "photoUrl=${viewModel.authSession.photoUrl ?: "<null>"}",
                             )
+                            scope.launch { drawerState.open() }
+                        }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Settings")
                         }
+
+                        // Halftone Mona-Lisa-printer logo. The PDF generator
+                        // uses the same drawable; rendering it inline at 32dp
+                        // gives the brand mark a presence in the app chrome
+                        // matching what the user sees on the printed page.
+                        androidx.compose.foundation.Image(
+                            painter = painterResource(R.drawable.pdf_logo),
+                            contentDescription = stringResource(R.string.app_name),
+                            modifier = Modifier.size(32.dp),
+                        )
+
+                        Spacer(Modifier.weight(1f))
+
+                        CreditChip(
+                            // RC33: debug override lets the user preview
+                            // arbitrary balances (e.g. four-digit) and
+                            // exercise the digiflip animation. null = real.
+                            balance = viewModel.debugCreditOverride ?: creditBalance,
+                            isAdmin = viewModel.isAdmin,
+                            onTapBalance = {
+                                hapt.tap()
+                                viewModel.logEvent(context, "Credit chip tapped", "balance=$creditBalance")
+                                showPurchaseSheet = true
+                            },
+                            onTapUpgrade = {
+                                hapt.tap()
+                                viewModel.logEvent(context, "Upgrade button tapped")
+                                showPurchaseSheet = true
+                            },
+                        )
+
+                        AccountAvatarMenu(
+                            session = viewModel.authSession,
+                            onManageAccount = { viewModel.showManageAccount = true },
+                            onCreationHistory = { viewModel.showHistoryScreen = true },
+                            onCreditsHistory = { viewModel.showCreditsHistory = true },
+                            onSignOut = {
+                                viewModel.logEvent(context, "Sign out tapped")
+                                viewModel.signOut()
+                            },
+                            onSignIn = {
+                                activity?.let { signInLauncher.launch(viewModel.googleSignInIntent(it)) }
+                            },
+                        )
                     }
-                )
+                }
             }
         ) { padding ->
             if (viewModel.isFirstRun) {
