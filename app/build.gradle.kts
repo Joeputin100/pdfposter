@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc29"  // RC29 (CCSR added as 5th upscale model)
+        versionName = "1.0-rc29.1"  // RC29.1 (CCSR bird logo)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

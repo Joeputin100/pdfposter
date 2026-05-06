@@ -645,10 +645,9 @@ private fun iconForModel(model: UpscaleModel): Int = when (model) {
     UpscaleModel.RECRAFT -> R.drawable.ic_model_clean
     UpscaleModel.AURASR -> R.drawable.ic_model_swirl
     UpscaleModel.ESRGAN -> R.drawable.ic_model_basic
-    // RC29: CCSR — reuse the swirl icon as a placeholder until we ship a
-    // dedicated drawable. CCSR + AuraSR are both diffusion-flavored;
-    // visually distinguishable from the others in the grid.
-    UpscaleModel.CCSR -> R.drawable.ic_model_swirl
+    // RC29.1: CCSR's official logo is the eastern bluebird from FAL's
+    // model card (sourced from v3b.fal.media). 256×256 PNG.
+    UpscaleModel.CCSR -> R.drawable.ic_model_ccsr
     else -> R.drawable.ai_upscale_demo
 }
 
