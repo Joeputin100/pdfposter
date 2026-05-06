@@ -504,12 +504,21 @@ async function downloadAndStoreOutput(
   const buf = Buffer.from(resp.data);
   const bucket = getStorage().bucket();
   const objectPath = `upscaled/${uid}/${txId}.png`;
-  await bucket.file(objectPath).save(buf, {
+  const file = bucket.file(objectPath);
+  await file.save(buf, {
     contentType: 'image/png',
     resumable: false,
     metadata: { cacheControl: 'private, max-age=86400' },
   });
-  return `gs://${bucket.name}/${objectPath}`;
+  // RC25-fix: client uses java.net.URL().openStream() which doesn't
+  // recognize gs:// — return a 7-day signed HTTPS URL instead. Storage
+  // retention is tracked separately on userHistory.cloudStorageUri,
+  // so changing this field doesn't affect cleanup logic.
+  const [signedUrl] = await file.getSignedUrl({
+    action: 'read',
+    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+  });
+  return signedUrl;
 }
 
 export const requestUpscale = onCall(
