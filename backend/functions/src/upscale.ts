@@ -407,6 +407,28 @@ async function submitFalJob(
   return resp.data;
 }
 
+// RC23: FAL queue's `status_url` returns status info (queue position,
+// in_progress / completed flag) but NOT the result payload. The actual
+// result lives at `response_url` (same path, no `/status` suffix). When
+// the status hits COMPLETED we need ONE more GET against response_url to
+// retrieve the image url. Pre-RC23 this code only fetched status, so
+// extractOutputUrl always returned null and the caller threw "FAL
+// completed but returned no output URL."
+async function fetchFalResult(
+  responseUrl: string,
+  apiKey: string,
+): Promise<FalStatusResponse> {
+  const resp = await axios.get<FalStatusResponse>(responseUrl, {
+    headers: { Authorization: `Key ${apiKey}` },
+    timeout: 15_000,
+    validateStatus: () => true,
+  });
+  if (resp.status >= 400) {
+    throw new Error(`FAL result fetch failed: ${resp.status} ${JSON.stringify(resp.data)}`);
+  }
+  return resp.data;
+}
+
 async function pollFalJob(
   statusUrl: string,
   apiKey: string,
@@ -556,7 +578,17 @@ export const requestUpscale = onCall(
             .set({ status: 'in_progress' }, { merge: true });
           return { txId };
         }
-        resultPayload = finalStatus;
+        // RC23: status endpoint returns status info but NOT the result
+        // payload. Once FAL says COMPLETED we GET the response_url
+        // (which submit gave us) to fetch the actual { image: { url } }
+        // payload. Without this, extractOutputUrl always saw a status-
+        // only object and threw "FAL completed but returned no output
+        // URL." Fall back to status-as-payload only if response_url
+        // isn't available (legacy / inline-result models).
+        const responseUrl = submit.response_url;
+        resultPayload = responseUrl
+          ? await fetchFalResult(responseUrl, FAL_KEY.value())
+          : finalStatus;
       }
 
       const outputUrl = extractOutputUrl(resultPayload);

@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc23"  // RC23 (landscape rotate, NOW aspect, pulse boost, AI upscale deploy)
+        versionName = "1.0-rc24"  // RC24 (FAL response_url, retry/apology modal, indeterminate queue progress)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

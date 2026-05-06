@@ -157,6 +157,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *  Null during setup/teardown phases — UI hides the row in that case. */
     var aiUpscaleDetail by mutableStateOf<String?>(null)
         private set
+    /** RC24: when non-null, the AI-upscale failure dialog is shown with this
+     *  message + Retry/Close buttons. Set in the `onFailure`/catch paths
+     *  of [runAiUpscale] alongside (not instead of) the existing
+     *  errorMessage so the dialog is the primary surface and the snackbar
+     *  is retained as a fallback. Cleared by the dialog's onDismiss. */
+    var aiUpscaleFailure by mutableStateOf<String?>(null)
+    /** RC24: the last attempted model id, captured at runAiUpscale entry
+     *  so the failure dialog's Retry button can re-invoke the same upscale
+     *  without making the caller re-pass parameters. */
+    private var lastAiUpscaleModelId: String? = null
     private var aiUpscaleJob: kotlinx.coroutines.Job? = null
 
     /** RC13: tile-level upscale progress, exposed so the in-app modal can
@@ -385,6 +395,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun runAiUpscale(context: Context, modelId: String) {
         val uri = selectedImageUri ?: return
         val (srcW, srcH) = sourcePixelDimensions ?: return
+        // RC24: capture for the failure dialog's Retry button.
+        lastAiUpscaleModelId = modelId
+        aiUpscaleFailure = null
         val displayName = when (modelId) {
             "topaz" -> "Topaz Gigapixel"
             "recraft" -> "Recraft Crisp"
@@ -453,14 +466,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         bmp.recycle()
                     } else {
                         errorMessage = "Upscale completed but result image could not be decoded"
+                        aiUpscaleFailure = "Upscale completed but result image could not be decoded"
                     }
                 }.onFailure { t ->
                     logEvent(context, "ai_upscale: FAIL", t.message)
-                    errorMessage = "AI upscale failed: ${t.message ?: t.javaClass.simpleName}"
+                    val msg = "AI upscale failed: ${t.message ?: t.javaClass.simpleName}"
+                    errorMessage = msg
+                    // RC24: surface the failure as a dismissable modal with
+                    // Retry/Close buttons + a refund reassurance line.
+                    // Backend's refundAndFail already credited the user back
+                    // when the FAL job errored, so the dialog can promise
+                    // the refund truthfully.
+                    aiUpscaleFailure = msg
                 }
             } catch (t: Throwable) {
                 logEvent(context, "ai_upscale: exception", t.message)
-                errorMessage = "AI upscale error: ${t.message ?: t.javaClass.simpleName}"
+                val msg = "AI upscale error: ${t.message ?: t.javaClass.simpleName}"
+                errorMessage = msg
+                aiUpscaleFailure = msg
             } finally {
                 isAiUpscaling = false
                 pendingUpscaleModelLabel = null
@@ -473,6 +496,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         isAiUpscaling = false
         pendingUpscaleModelLabel = null
     }
+
+    /**
+     * RC24: re-run the AI upscale that just failed, using the same model id
+     * captured at the previous attempt. Called from the failure dialog's
+     * Retry button. No-op if no prior attempt was made.
+     */
+    fun retryAiUpscale(context: Context) {
+        val modelId = lastAiUpscaleModelId ?: return
+        aiUpscaleFailure = null
+        runAiUpscale(context, modelId)
+    }
+
 
     // Reactive inputs
     var selectedImageUri by mutableStateOf<Uri?>(null)

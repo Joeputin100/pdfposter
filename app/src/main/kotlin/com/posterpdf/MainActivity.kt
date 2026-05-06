@@ -480,22 +480,79 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                         )
                     }
                     Spacer(Modifier.height(12.dp))
-                    LinearProgressIndicator(
-                        progress = { viewModel.aiUpscaleProgress },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    // RC24: indeterminate progress bar while we're waiting in
+                    // queue WITHOUT a position estimate. As soon as the backend
+                    // reports a queuePosition (detail starts with "Queue
+                    // position"), or the job moves into download/save/etc.,
+                    // switch to the determinate fraction. The phase string is
+                    // "Waiting in queue…" while IN_QUEUE; pre-RC24 the bar sat
+                    // at 55 % (the placeholder fraction) the whole time, which
+                    // read as "stuck" rather than "waiting."
+                    val phaseText = viewModel.aiUpscalePhase
+                    val isIndeterminate = phaseText.startsWith("Waiting in queue") &&
+                        viewModel.aiUpscaleDetail?.startsWith("Queue position") != true
+                    if (isIndeterminate) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    } else {
+                        LinearProgressIndicator(
+                            progress = { viewModel.aiUpscaleProgress },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                     Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = "${(viewModel.aiUpscaleProgress * 100).toInt()}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    if (!isIndeterminate) {
+                        Text(
+                            text = "${(viewModel.aiUpscaleProgress * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             },
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { viewModel.cancelAiUpscale() }) {
                     Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
+    }
+
+    // RC24 — AI upscale failure dialog. When runAiUpscale's onFailure
+    // path sets aiUpscaleFailure (mutually exclusive with isAiUpscaling
+    // because of the `finally` block), show a modal that:
+    //   • Apologizes + names the failure
+    //   • Reassures the user their credits were refunded by the backend
+    //     (refundAndFail in upscale.ts handles this atomically)
+    //   • Offers Retry (re-run the same upscale) or Close (dismiss).
+    val failureMsg = viewModel.aiUpscaleFailure
+    if (!viewModel.isAiUpscaling && failureMsg != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.aiUpscaleFailure = null },
+            icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
+            title = { Text("Upscale didn't finish") },
+            text = {
+                Column {
+                    Text(
+                        text = "Sorry — that didn't work. Your credits have been refunded; you can try again or pick a different model.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Details: $failureMsg",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.retryAiUpscale(context) }) {
+                    Text("Retry")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.aiUpscaleFailure = null }) {
+                    Text("Close")
                 }
             },
         )
