@@ -197,12 +197,29 @@ function assertInputMp(m: unknown): number {
  * Throws HttpsError('failed-precondition', 'insufficient credits') if the
  * user does not have enough credits.
  */
+// RC23: admin emails (and users with `admin=true` custom claim) bypass the
+// credit check. Mirrors MainViewModel.kt's client-side `isAdmin` so the
+// app feels consistent end-to-end. The list lives here in code rather
+// than Firestore so changing it requires a redeploy (intentional —
+// keeps the bypass observable in version history).
+const ADMIN_EMAILS: ReadonlySet<string> = new Set([
+  'joeputin100@gmail.com',
+]);
+
+function isAdminCaller(request: { auth?: { token?: Record<string, unknown> } }): boolean {
+  const token = request.auth?.token ?? {};
+  if ((token as { admin?: boolean }).admin === true) return true;
+  const email = (token as { email?: string }).email;
+  return typeof email === 'string' && ADMIN_EMAILS.has(email.toLowerCase());
+}
+
 async function debitAndCreateTx(
   uid: string,
   modelId: UpscaleModel,
   inputUrl: string,
   inputMp: number,
   required: number,
+  isAdmin: boolean = false,
 ): Promise<string> {
   const db = getFirestore();
   const userRef = db.collection('users').doc(uid);
@@ -212,20 +229,30 @@ async function debitAndCreateTx(
   await db.runTransaction(async (t) => {
     const userSnap = await t.get(userRef);
     const credits = Number(userSnap.exists ? (userSnap.data()?.credits ?? 0) : 0);
-    if (credits < required) {
+    // RC23: admins bypass the insufficient-credits check + the actual debit.
+    // The tx and creditLog still get written so admin upscales are
+    // visible in the same audit trail as paid ones (just with
+    // amount=0 for the burn entry instead of -required).
+    if (!isAdmin && credits < required) {
       throw new HttpsError('failed-precondition', 'insufficient credits');
     }
-    t.set(
-      userRef,
-      {
-        credits: FieldValue.increment(-required),
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
+    if (!isAdmin) {
+      t.set(
+        userRef,
+        {
+          credits: FieldValue.increment(-required),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
     t.set(burnLogRef, {
-      type: 'burn',
-      amount: -required,
+      // RC23: admin runs are tagged 'admin_burn' so the audit trail
+      // distinguishes them from regular burns (which would appear as
+      // free-money in the user's history). Non-admin entries keep the
+      // 'burn' type for backward compatibility with prior log readers.
+      type: isAdmin ? 'admin_burn' : 'burn',
+      amount: isAdmin ? 0 : -required,
       modelId,
       txId: txRef.id,
       timestamp: FieldValue.serverTimestamp(),
@@ -488,8 +515,13 @@ export const requestUpscale = onCall(
     const scale = pickScale(modelId, inputMp, posterW, posterH, targetDpi);
     const required = computeCreditsForJob(modelId, inputMp, scale);
 
+    // RC23: admin emails (joeputin100@gmail.com etc.) and users with the
+    // `admin=true` custom claim bypass the credit debit so the project
+    // owner can test paid AI flows without buying SKUs from themselves.
+    const isAdmin = isAdminCaller(request);
+
     // 1. Debit credits + create tx atomically.
-    const txId = await debitAndCreateTx(uid, modelId, inputUrl, inputMp, required);
+    const txId = await debitAndCreateTx(uid, modelId, inputUrl, inputMp, required, isAdmin);
 
     // 2. Outside the transaction, kick off FAL.
     try {
