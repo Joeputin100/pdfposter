@@ -24,7 +24,7 @@ const FAL_KEY = defineSecret('FAL_KEY');
 //
 // RC3+ collapsed topaz_4x/topaz_8x → topaz; backend now picks the smallest
 // scale factor that meets the target DPI (saves 5-10× cost on typical posters).
-type UpscaleModel = 'topaz' | 'recraft' | 'aurasr' | 'esrgan';
+type UpscaleModel = 'topaz' | 'recraft' | 'aurasr' | 'esrgan' | 'ccsr';
 
 interface RequestUpscaleInput {
   modelId: UpscaleModel;
@@ -104,6 +104,21 @@ const MODELS: Record<UpscaleModel, ModelSpec> = {
       image_url: url,
       scale: 4,
       model: 'RealESRGAN_x4plus',
+      output_format: 'png',
+    }),
+  },
+  // RC29: CCSR — Cascaded Conditional Super-Resolution. Photo-faithful
+  // (deterministic-ish, not a creative regenerator) but with a configurable
+  // scale param like Topaz. Costs are GPU-second; rough budget ≈ AuraSR.
+  // Output format param appears undocumented but FAL's body parser
+  // ignores unknown fields, so pinning png is harmless.
+  ccsr: {
+    endpoint: 'fal-ai/ccsr',
+    supportedScales: [2, 3, 4],
+    costFn: (mp) => mp * 0.00125,
+    body: (url, scale) => ({
+      image_url: url,
+      scale,
       output_format: 'png',
     }),
   },

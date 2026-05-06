@@ -408,4 +408,27 @@ fun detailFor(model: UpscaleModel): ModelDetailCopy = when (model) {
             "tiny relative to the framing or paper. For day-to-day prints " +
             "where good-enough is fine, ESRGAN or AuraSR is the better value.",
     )
+    // RC29: CCSR — Cascaded Conditional Super-Resolution. Photo-faithful
+    // mid-tier alternative to ESRGAN, but with a configurable scale factor
+    // (2× / 3× / 4×) so the user can dial detail vs cost without jumping
+    // straight to Topaz pricing.
+    UpscaleModel.CCSR -> ModelDetailCopy(
+        bestFor = listOf("Photos", "Tunable scale", "Mid-tier"),
+        pickWhen = "When you want a photo-faithful upscaler with the option " +
+            "to dial in 2×, 3×, or 4× scale based on how much sharpening " +
+            "your poster size actually needs. Useful when ESRGAN's fixed " +
+            "4× would overspend on small posters or when you want a " +
+            "non-Topaz path with finer scale control.",
+        standsOut = "Cascaded super-resolution architecture — sharpens in " +
+            "stages rather than one big leap, which produces cleaner " +
+            "edges than ESRGAN on portraits and natural scenes. Doesn't " +
+            "regenerate or hallucinate detail (unlike Stable-Diffusion " +
+            "based upscalers), so text and product packaging stay faithful.",
+        worthThePrice = "Typically lands between ESRGAN and Topaz on cost " +
+            "depending on the scale you pick. The Headroom picker on this " +
+            "card lets you trade credits for detail in real time. For " +
+            "the absolute best edges on text or line art, Topaz still wins; " +
+            "for predictable-and-cheap, ESRGAN; for tunable photo polish, " +
+            "CCSR is the right middle ground.",
+    )
 }

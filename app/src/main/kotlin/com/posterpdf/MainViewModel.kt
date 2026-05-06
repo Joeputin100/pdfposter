@@ -412,6 +412,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             "recraft" -> "Recraft Crisp"
             "aurasr" -> "AuraSR"
             "esrgan" -> "ESRGAN"
+            "ccsr" -> "CCSR"
             else -> modelId
         }
         aiUpscaleJob?.cancel()
@@ -552,6 +553,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         "recraft" to (4 to 4096),
         "aurasr" to (4 to 16384),
         "esrgan" to (4 to 16384),
+        // RC29: CCSR max 4×, no observed dimensional cap — set conservatively
+        // high so we don't over-warn.
+        "ccsr" to (4 to 16384),
     )
 
     fun projectUpscale(modelId: String): UpscaleProjection? {
@@ -597,6 +601,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             "recraft" -> "Recraft Crisp"
             "aurasr" -> "AuraSR"
             "esrgan" -> "ESRGAN"
+            "ccsr" -> "CCSR"
             else -> modelId
         }
         aiUpscaleConfirm = AiUpscaleConfirmState(

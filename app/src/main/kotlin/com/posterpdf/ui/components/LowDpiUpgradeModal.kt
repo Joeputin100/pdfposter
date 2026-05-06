@@ -98,7 +98,7 @@ import kotlinx.coroutines.withContext
 
 private const val CREDIT_COST_BUDGET_USD = 0.00425
 
-enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN }
+enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR }
 
 internal data class UpscaleOption(
     val model: UpscaleModel,
@@ -178,6 +178,18 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
         scale = 4,
         supportedScales = listOf(2, 4, 6, 8),
         perOutputMp = 0.01,
+    ),
+    // RC29: CCSR — second photo-faithful adjustable model. Sits between
+    // ESRGAN (cheap, predictable) and Topaz (premium edges) on price, with
+    // configurable scale (2/3/4×) so the user can dial detail vs. cost.
+    UpscaleOption(
+        model = UpscaleModel.CCSR,
+        displayName = "CCSR",
+        pros = "Photo-faithful, scale-tunable mid-tier",
+        cons = "Slower than ESRGAN; less crisp on text than Topaz",
+        scale = 4,
+        supportedScales = listOf(2, 3, 4),
+        perOutputMp = 0.00125,
     ),
 )
 
@@ -604,7 +616,10 @@ fun LowDpiUpgradeModal(
             showPrimaryAction = open != UpscaleModel.NONE,
             onDismiss = { detailModel = null },
             extraContent = {
-                if (open == UpscaleModel.TOPAZ) {
+                // RC28 (Topaz) → RC29 (any multi-scale model). CCSR also
+                // qualifies, so generalise the visibility check rather than
+                // hard-coding TOPAZ.
+                if (option.supportedScales.size > 1) {
                     TopazHeadroomPicker(
                         option = option,
                         defaultScale = pickedDefault,
@@ -630,6 +645,10 @@ private fun iconForModel(model: UpscaleModel): Int = when (model) {
     UpscaleModel.RECRAFT -> R.drawable.ic_model_clean
     UpscaleModel.AURASR -> R.drawable.ic_model_swirl
     UpscaleModel.ESRGAN -> R.drawable.ic_model_basic
+    // RC29: CCSR — reuse the swirl icon as a placeholder until we ship a
+    // dedicated drawable. CCSR + AuraSR are both diffusion-flavored;
+    // visually distinguishable from the others in the grid.
+    UpscaleModel.CCSR -> R.drawable.ic_model_swirl
     else -> R.drawable.ai_upscale_demo
 }
 
