@@ -378,6 +378,12 @@ async function resolveFetchableUrl(inputUrl: string): Promise<string> {
     .bucket(bucketName)
     .file(objectPath)
     .getSignedUrl({
+      // RC32: switch from default v2 to v4 signed URLs. v2 is deprecated;
+      // some downstream HTTP clients (FAL's Recraft worker hit a 422
+      // image_load_error against v2 URLs from the .firebasestorage.app
+      // bucket on 2026-05-06) handle v4 cleanly. v4 also produces a
+      // shorter URL with a date-based signature scope.
+      version: 'v4',
       action: 'read',
       expires: Date.now() + 30 * 60 * 1000, // 30 min
     });
@@ -544,7 +550,9 @@ async function downloadAndStoreOutput(
   // recognize gs:// — return a 7-day signed HTTPS URL instead. Storage
   // retention is tracked separately on userHistory.cloudStorageUri,
   // so changing this field doesn't affect cleanup logic.
+  // RC32: v4 signing (matches resolveFetchableUrl).
   const [signedUrl] = await file.getSignedUrl({
+    version: 'v4',
     action: 'read',
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
   });

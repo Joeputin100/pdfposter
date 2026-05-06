@@ -90,6 +90,10 @@ private enum class CompareModel(val label: String, val key: String) {
     Recraft("Recraft", "recraft"),
     AuraSr("AuraSR", "aurasr"),
     Esrgan("ESRGAN", "esrgan"),
+    // RC32: CCSR added to the catalog in RC29; comparison samples haven't
+    // been baked yet for the four subjects, so the load path falls back to
+    // Topaz's asset and the synth-fallback tag surfaces.
+    Ccsr("CCSR", "ccsr"),
 }
 
 /** Subjects that have synthesized fallback outputs for given models.
@@ -99,7 +103,11 @@ private enum class CompareModel(val label: String, val key: String) {
  *  back to JPEG quality 88) on 2026-05-05. The downscaling sidesteps
  *  Recraft's 5 MB output cap; output is 4096×2732, matching the source
  *  aspect ratio so the slider lines up cleanly. */
-private val SYNTHESIZED_FALLBACKS: Set<Pair<CompareSubject, CompareModel>> = emptySet()
+private val SYNTHESIZED_FALLBACKS: Set<Pair<CompareSubject, CompareModel>> =
+    // RC32: until CCSR comparison samples are baked, every (subject, CCSR)
+    // pair falls back to Topaz's asset and surfaces the "(synthesized
+    // fallback)" tag so the user knows it's not a real CCSR output.
+    CompareSubject.entries.map { it to CompareModel.Ccsr }.toSet()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,7 +135,11 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
         sourceBmp = null
         upscaledBmp = null
         val srcId = resIdFor(context, "${subject.key}_source")
-        val upId = resIdFor(context, "${subject.key}_${model.key}")
+        // RC32: fall back to Topaz's asset when the chosen model has no
+        // baked sample yet (CCSR until samples are produced). resIdFor
+        // returns 0 for missing resources; if so, retry with topaz.
+        var upId = resIdFor(context, "${subject.key}_${model.key}")
+        if (upId == 0) upId = resIdFor(context, "${subject.key}_topaz")
         val (s, u) = withContext(Dispatchers.IO) {
             decodeRaw(context, srcId) to decodeRaw(context, upId)
         }

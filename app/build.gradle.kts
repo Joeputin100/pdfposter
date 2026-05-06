@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc31"  // RC31 (glassmorphic progress/warning/failure modals)
+        versionName = "1.0-rc32"  // RC32 (CCSR in pickers + full-width drawer + v4 signed URLs)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -667,7 +667,11 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             ModalDrawerSheet(
                 drawerContainerColor = Color.Transparent,
                 drawerTonalElevation = 0.dp,
+                // RC32: full-screen-width drawer per user request — overrides
+                // M3's default ~360dp pinning. fillMaxWidth() makes the sheet
+                // span the viewport on phones, foldables, and tablets.
                 modifier = Modifier
+                    .fillMaxWidth()
                     .glassBackdrop(
                         shape = DrawerDefaults.shape,
                         tint = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.82f),

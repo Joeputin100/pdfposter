@@ -264,6 +264,9 @@ private val ALL_MODELS = setOf(
     UpscaleModel.RECRAFT,
     UpscaleModel.AURASR,
     UpscaleModel.ESRGAN,
+    // RC32: CCSR was added to ALL_OPTIONS in RC29 but the picker filters
+    // through this set, so without this entry the card never rendered.
+    UpscaleModel.CCSR,
 )
 
 private const val DEFAULT_BYTES_PER_SECOND = 500_000L
