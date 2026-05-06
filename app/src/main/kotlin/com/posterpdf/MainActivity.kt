@@ -563,6 +563,45 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         )
     }
 
+    // RC27 — below-target-DPI confirm gate. requestAiUpscale() projects the
+    // chosen model's max output (4× scale, capped at the model's long-edge
+    // limit) and surfaces this dialog when the projected DPI on the user's
+    // poster size won't reach their target. Three of the four FAL models
+    // are 4×-locked, and Recraft additionally caps the long edge at 4096 px,
+    // so a low-res source on a large poster genuinely can't hit 150 DPI —
+    // the user should know that before paying for the run.
+    viewModel.aiUpscaleConfirm?.let { confirm ->
+        AlertDialog(
+            onDismissRequest = { viewModel.cancelAiUpscaleConfirm() },
+            icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
+            title = { Text("Below your target DPI") },
+            text = {
+                Column {
+                    Text(
+                        text = "${confirm.displayName} can sharpen this image, but the result on your poster will be about ${confirm.effectiveDpi} DPI — below your ${confirm.targetDpi} DPI target.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "The output (${confirm.outputW}×${confirm.outputH}) will look sharper than the original, but may not match your full target.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmAiUpscaleAfterWarning(context) }) {
+                    Text("Continue anyway")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.cancelAiUpscaleConfirm() }) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
     if (showPurchaseSheet) {
         PurchaseSheet(
             balance = creditBalance,

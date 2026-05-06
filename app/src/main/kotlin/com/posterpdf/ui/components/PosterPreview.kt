@@ -1442,9 +1442,11 @@ fun PosterPreview(viewModel: MainViewModel) {
                         viewModel.runFreeUpscale(context)
                     },
                     // RC19: wired end-to-end via AiUpscaleRepository.
+                    // RC27: route through requestAiUpscale so the
+                    // below-target-DPI confirm dialog can surface first.
                     onAiUpscale = { modelId ->
                         viewModel.showLowDpiModal = false
-                        viewModel.runAiUpscale(context, modelId)
+                        viewModel.requestAiUpscale(context, modelId)
                     },
                     // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
                     onPickAlreadyUpscaled = { viewModel.showLowDpiModal = false },

@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc26"  // RC26 (clear stale error banner on AI upscale retry)
+        versionName = "1.0-rc27"  // RC27 (below-target-DPI confirm gate before AI upscale)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

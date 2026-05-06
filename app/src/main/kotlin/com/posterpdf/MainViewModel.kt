@@ -513,6 +513,104 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         runAiUpscale(context, modelId)
     }
 
+    // RC27: Are-you-sure guard for upscales whose best achievable DPI is
+    // below the user's target. Three of the four FAL models (Recraft, AuraSR,
+    // ESRGAN) are locked at 4×; Recraft additionally caps the long edge at
+    // ~4096 px. For low-res sources on large posters, even the model's max
+    // scale won't hit target. We project the realistic output, and if it falls
+    // short, surface a confirm dialog instead of submitting blindly.
+
+    data class UpscaleProjection(
+        val effectiveDpi: Float,
+        val targetDpi: Float,
+        val outputW: Int,
+        val outputH: Int,
+    )
+
+    data class AiUpscaleConfirmState(
+        val modelId: String,
+        val displayName: String,
+        val effectiveDpi: Int,
+        val targetDpi: Int,
+        val outputW: Int,
+        val outputH: Int,
+    )
+
+    var aiUpscaleConfirm by mutableStateOf<AiUpscaleConfirmState?>(null)
+
+    // Per-model (max scale, max long-edge px). Caps observed empirically on
+    // FAL responses (Recraft: 4096) or set conservatively high so we don't
+    // over-warn (Topaz/AuraSR/ESRGAN). Bump if a model's real cap is lower.
+    private val modelLimits: Map<String, Pair<Int, Int>> = mapOf(
+        "topaz" to (8 to 16384),
+        "recraft" to (4 to 4096),
+        "aurasr" to (4 to 16384),
+        "esrgan" to (4 to 16384),
+    )
+
+    fun projectUpscale(modelId: String): UpscaleProjection? {
+        val (srcW, srcH) = sourcePixelDimensions ?: return null
+        val pwRaw = posterWidth.toDoubleOrNull() ?: return null
+        val phRaw = posterHeight.toDoubleOrNull() ?: return null
+        val pwIn = if (units == "Metric") pwRaw / 2.54 else pwRaw
+        val phIn = if (units == "Metric") phRaw / 2.54 else phRaw
+        if (pwIn <= 0 || phIn <= 0) return null
+
+        val (maxScale, maxLongEdge) = modelLimits[modelId] ?: (4 to 16384)
+        var outW = (srcW * maxScale).toDouble()
+        var outH = (srcH * maxScale).toDouble()
+        val longEdge = kotlin.math.max(outW, outH)
+        if (longEdge > maxLongEdge) {
+            val factor = maxLongEdge / longEdge
+            outW *= factor
+            outH *= factor
+        }
+        val dpiW = outW / pwIn
+        val dpiH = outH / phIn
+        return UpscaleProjection(
+            effectiveDpi = kotlin.math.min(dpiW, dpiH).toFloat(),
+            targetDpi = targetDpi.toFloat(),
+            outputW = outW.toInt(),
+            outputH = outH.toInt(),
+        )
+    }
+
+    /** Entry point for any UI surface that wants to start an AI upscale.
+     *  If projected output meets target DPI, kicks off runAiUpscale directly.
+     *  Otherwise sets aiUpscaleConfirm so MainActivity can show the modal. */
+    fun requestAiUpscale(context: Context, modelId: String) {
+        val proj = projectUpscale(modelId)
+        if (proj == null || proj.effectiveDpi >= proj.targetDpi) {
+            runAiUpscale(context, modelId)
+            return
+        }
+        val displayName = when (modelId) {
+            "topaz" -> "Topaz Gigapixel"
+            "recraft" -> "Recraft Crisp"
+            "aurasr" -> "AuraSR"
+            "esrgan" -> "ESRGAN"
+            else -> modelId
+        }
+        aiUpscaleConfirm = AiUpscaleConfirmState(
+            modelId = modelId,
+            displayName = displayName,
+            effectiveDpi = proj.effectiveDpi.toInt(),
+            targetDpi = proj.targetDpi.toInt(),
+            outputW = proj.outputW,
+            outputH = proj.outputH,
+        )
+    }
+
+    fun confirmAiUpscaleAfterWarning(context: Context) {
+        val s = aiUpscaleConfirm ?: return
+        aiUpscaleConfirm = null
+        runAiUpscale(context, s.modelId)
+    }
+
+    fun cancelAiUpscaleConfirm() {
+        aiUpscaleConfirm = null
+    }
+
 
     // Reactive inputs
     var selectedImageUri by mutableStateOf<Uri?>(null)
