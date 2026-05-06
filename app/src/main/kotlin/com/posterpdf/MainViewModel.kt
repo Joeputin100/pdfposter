@@ -398,6 +398,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // RC24: capture for the failure dialog's Retry button.
         lastAiUpscaleModelId = modelId
         aiUpscaleFailure = null
+        // RC26: clear the snackbar banners from any prior attempt so a
+        // successful retry doesn't leave the previous "AI upscale failed: …"
+        // text visible alongside the new success message.
+        errorMessage = null
+        successMessage = null
         val displayName = when (modelId) {
             "topaz" -> "Topaz Gigapixel"
             "recraft" -> "Recraft Crisp"

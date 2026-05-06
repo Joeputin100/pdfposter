@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc25"  // RC25 (real backdrop blur on glass surfaces + settings drawer)
+        versionName = "1.0-rc26"  // RC26 (clear stale error banner on AI upscale retry)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
