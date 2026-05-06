@@ -81,6 +81,11 @@ fun ModelDetailDialog(
     primaryActionLabel: String,
     onPrimaryAction: () -> Unit,
     showPrimaryAction: Boolean = true,
+    // RC28: optional slot rendered between the marketing detail sections
+    // and the primary-action footer. Used by Topaz to inject its "Headroom"
+    // segmented control without bloating the dialog signature for every
+    // other model.
+    extraContent: @Composable ColumnScope.() -> Unit = {},
 ) {
     // RC23: animate the dialog content scaling 0 → 1 on open and 1 → 0 on
     // close, so it visibly "grows" out of nothing and shrinks back to
@@ -210,6 +215,9 @@ fun ModelDetailDialog(
                         body = worthThePrice,
                         accent = MaterialTheme.colorScheme.primary,
                     )
+
+                    // RC28: optional model-specific extra controls (Topaz headroom)
+                    extraContent()
 
                     Spacer(Modifier.height(8.dp))
                 }

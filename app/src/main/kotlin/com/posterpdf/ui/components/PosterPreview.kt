@@ -1444,9 +1444,10 @@ fun PosterPreview(viewModel: MainViewModel) {
                     // RC19: wired end-to-end via AiUpscaleRepository.
                     // RC27: route through requestAiUpscale so the
                     // below-target-DPI confirm dialog can surface first.
-                    onAiUpscale = { modelId ->
+                    // RC28: minScale forwards the Topaz "Headroom" override.
+                    onAiUpscale = { modelId, minScale ->
                         viewModel.showLowDpiModal = false
-                        viewModel.requestAiUpscale(context, modelId)
+                        viewModel.requestAiUpscale(context, modelId, minScale)
                     },
                     // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
                     onPickAlreadyUpscaled = { viewModel.showLowDpiModal = false },

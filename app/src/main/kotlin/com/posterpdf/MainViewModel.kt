@@ -167,6 +167,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *  so the failure dialog's Retry button can re-invoke the same upscale
      *  without making the caller re-pass parameters. */
     private var lastAiUpscaleModelId: String? = null
+    /** RC28: same idea for minScale — Retry replays at the same headroom. */
+    private var lastAiUpscaleMinScale: Int? = null
     private var aiUpscaleJob: kotlinx.coroutines.Job? = null
 
     /** RC13: tile-level upscale progress, exposed so the in-app modal can
@@ -392,11 +394,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * internally inside requestUpscale, so the client just needs to
      * surface progress and react to the final outcome.
      */
-    fun runAiUpscale(context: Context, modelId: String) {
+    fun runAiUpscale(context: Context, modelId: String, minScale: Int? = null) {
         val uri = selectedImageUri ?: return
         val (srcW, srcH) = sourcePixelDimensions ?: return
         // RC24: capture for the failure dialog's Retry button.
         lastAiUpscaleModelId = modelId
+        // RC28: also capture minScale so Retry replays the same headroom.
+        lastAiUpscaleMinScale = minScale
         aiUpscaleFailure = null
         // RC26: clear the snackbar banners from any prior attempt so a
         // successful retry doesn't leave the previous "AI upscale failed: …"
@@ -433,6 +437,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     posterWidthInches = posterWIn,
                     posterHeightInches = posterHIn,
                     targetDpi = targetDpi,
+                    minScale = minScale,  // RC28
                 ) { phase, frac, detail ->
                     aiUpscalePhase = when (phase) {
                         com.posterpdf.data.backend.AiUpscaleRepository.Phase.UPLOADING -> "Uploading source…"
@@ -510,7 +515,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun retryAiUpscale(context: Context) {
         val modelId = lastAiUpscaleModelId ?: return
         aiUpscaleFailure = null
-        runAiUpscale(context, modelId)
+        runAiUpscale(context, modelId, minScale = lastAiUpscaleMinScale)
     }
 
     // RC27: Are-you-sure guard for upscales whose best achievable DPI is
@@ -534,6 +539,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val targetDpi: Int,
         val outputW: Int,
         val outputH: Int,
+        val minScale: Int? = null,  // RC28: forwarded through confirm flow
     )
 
     var aiUpscaleConfirm by mutableStateOf<AiUpscaleConfirmState?>(null)
@@ -577,11 +583,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Entry point for any UI surface that wants to start an AI upscale.
      *  If projected output meets target DPI, kicks off runAiUpscale directly.
-     *  Otherwise sets aiUpscaleConfirm so MainActivity can show the modal. */
-    fun requestAiUpscale(context: Context, modelId: String) {
+     *  Otherwise sets aiUpscaleConfirm so MainActivity can show the modal.
+     *  RC28: minScale forwards through the confirm flow if a Topaz "headroom"
+     *  override was selected on the detail card. */
+    fun requestAiUpscale(context: Context, modelId: String, minScale: Int? = null) {
         val proj = projectUpscale(modelId)
         if (proj == null || proj.effectiveDpi >= proj.targetDpi) {
-            runAiUpscale(context, modelId)
+            runAiUpscale(context, modelId, minScale = minScale)
             return
         }
         val displayName = when (modelId) {
@@ -598,13 +606,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             targetDpi = proj.targetDpi.toInt(),
             outputW = proj.outputW,
             outputH = proj.outputH,
+            minScale = minScale,
         )
     }
 
     fun confirmAiUpscaleAfterWarning(context: Context) {
         val s = aiUpscaleConfirm ?: return
         aiUpscaleConfirm = null
-        runAiUpscale(context, s.modelId)
+        runAiUpscale(context, s.modelId, minScale = s.minScale)
     }
 
     fun cancelAiUpscaleConfirm() {

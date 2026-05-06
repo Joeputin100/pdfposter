@@ -298,7 +298,10 @@ fun LowDpiUpgradeModal(
     usePulseEffect: Boolean = false,
     onDismiss: () -> Unit,
     onFreeUpscale: () -> Unit,
-    onAiUpscale: (modelId: String) -> Unit,
+    // RC28: minScale lets the Topaz "Headroom" picker tell the backend not
+    // to pick a scale below the chosen step. null = "smallest scale that
+    // meets target" (current behavior).
+    onAiUpscale: (modelId: String, minScale: Int?) -> Unit,
     onPickAlreadyUpscaled: () -> Unit,
     onShowBringYourOwnHelp: () -> Unit,
     onSignIn: () -> Unit,
@@ -502,7 +505,7 @@ fun LowDpiUpgradeModal(
                                 usePulseEffect = usePulseEffect,
                                 onCardClick = { selectedModel = option.model },
                                 onFreeUpscale = onFreeUpscale,
-                                onAiUpscale = { onAiUpscale(option.model.name.lowercase()) },
+                                onAiUpscale = { onAiUpscale(option.model.name.lowercase(), null) },
                                 onSignIn = onSignIn,
                                 onBuyCredits = onBuyCredits,
                                 onShowDetail = { detailModel = option.model },
@@ -570,14 +573,24 @@ fun LowDpiUpgradeModal(
     if (open != null) {
         val option = ALL_OPTIONS.first { it.model == open }
         val copy = detailFor(open)
+        // RC28: Topaz exposes a "Headroom" picker — three choices that
+        // override the backend's default smallest-scale-that-meets-target
+        // pick. null = default; >0 = floor in pickScale's supported list.
+        // Reset to null whenever the user opens a different model's dialog.
+        var topazMinScale by remember(open) { mutableStateOf<Int?>(null) }
+        val pickedDefault = pickScale(option, inputMp, posterWInches, posterHInches, targetDpi)
+        val effectiveScale = (topazMinScale?.takeIf { it > pickedDefault }
+            ?.let { ms -> option.supportedScales.firstOrNull { it >= ms } ?: option.supportedScales.last() }
+            ?: pickedDefault)
         val (actionLabel, action) = when {
             open == UpscaleModel.NONE -> "" to { }
             open == UpscaleModel.FREE_LOCAL -> "Use free upscaler" to onFreeUpscale
             isAnonymous -> "Sign in to upscale" to onSignIn
-            !(isAdmin || creditBalance >= creditsForOption(option, inputMp,
-                pickScale(option, inputMp, posterWInches, posterHInches, targetDpi))) ->
+            !(isAdmin || creditBalance >= creditsForOption(option, inputMp, effectiveScale)) ->
                 "Get more credits" to onBuyCredits
-            else -> "Upscale with ${option.displayName}" to { onAiUpscale(open.name.lowercase()) }
+            else -> "Upscale with ${option.displayName}" to {
+                onAiUpscale(open.name.lowercase(), topazMinScale)
+            }
         }
         ModelDetailDialog(
             displayName = option.displayName,
@@ -589,6 +602,19 @@ fun LowDpiUpgradeModal(
             onPrimaryAction = action,
             showPrimaryAction = open != UpscaleModel.NONE,
             onDismiss = { detailModel = null },
+            extraContent = {
+                if (open == UpscaleModel.TOPAZ) {
+                    TopazHeadroomPicker(
+                        option = option,
+                        defaultScale = pickedDefault,
+                        selected = topazMinScale,
+                        onSelect = { topazMinScale = it },
+                        inputMp = inputMp,
+                        creditBalance = creditBalance,
+                        isAdmin = isAdmin,
+                    )
+                }
+            },
         )
     }
 }
@@ -1113,6 +1139,118 @@ private fun LeverRow(title: String, body: String) {
                 body,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RC28: Topaz "Headroom" picker
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Topaz is the only model with multiple supported scales (2/4/6/8). The
+// backend's pickScale picks the smallest that meets target DPI, which
+// minimises cost — but the user may want to *exceed* target for sharper
+// results. This picker offers three choices:
+//
+//   • Just enough — null override (cheapest, current default behaviour)
+//   • Above target — next supported scale above the default pick
+//   • Maximum — clamp to the highest supported scale (8×)
+//
+// The card shows live credit cost for each option so the user sees the
+// trade-off before tapping the action button.
+@Composable
+private fun TopazHeadroomPicker(
+    option: UpscaleOption,
+    defaultScale: Int,
+    selected: Int?,
+    onSelect: (Int?) -> Unit,
+    inputMp: Double,
+    creditBalance: Int,
+    isAdmin: Boolean,
+) {
+    val above = option.supportedScales.firstOrNull { it > defaultScale } ?: defaultScale
+    val maxScale = option.supportedScales.last()
+    val justEnoughCredits = creditsForOption(option, inputMp, defaultScale)
+    val aboveCredits = creditsForOption(option, inputMp, above)
+    val maxCredits = creditsForOption(option, inputMp, maxScale)
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            "Headroom",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            "Topaz can scale 2× – 8×. By default we pick the smallest scale that meets your target DPI to keep credits low. Bump it up for extra crispness.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        HeadroomRow(
+            title = "Just enough",
+            subtitle = "${defaultScale}× scale · meets your target DPI",
+            credits = justEnoughCredits,
+            isSelected = selected == null,
+            isAffordable = isAdmin || creditBalance >= justEnoughCredits,
+            onClick = { onSelect(null) },
+        )
+        if (above > defaultScale) {
+            HeadroomRow(
+                title = "Above target",
+                subtitle = "${above}× scale · sharper edges, more credits",
+                credits = aboveCredits,
+                isSelected = selected == above,
+                isAffordable = isAdmin || creditBalance >= aboveCredits,
+                onClick = { onSelect(above) },
+            )
+        }
+        if (maxScale > above) {
+            HeadroomRow(
+                title = "Maximum",
+                subtitle = "${maxScale}× scale · max sharpness Topaz allows",
+                credits = maxCredits,
+                isSelected = selected == maxScale,
+                isAffordable = isAdmin || creditBalance >= maxCredits,
+                onClick = { onSelect(maxScale) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun HeadroomRow(
+    title: String,
+    subtitle: String,
+    credits: Int,
+    isSelected: Boolean,
+    isAffordable: Boolean,
+    onClick: () -> Unit,
+) {
+    val container = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant
+    val onContainer = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onSurfaceVariant
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = container,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = onContainer)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = onContainer.copy(alpha = 0.8f))
+            }
+            Text(
+                "${credits}¢",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (isAffordable) onContainer else MaterialTheme.colorScheme.error,
             )
         }
     }

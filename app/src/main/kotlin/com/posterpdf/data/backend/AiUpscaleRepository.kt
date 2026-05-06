@@ -56,6 +56,11 @@ class AiUpscaleRepository(private val auth: AuthRepository) {
         posterWidthInches: Double,
         posterHeightInches: Double,
         targetDpi: Int,
+        // RC28: optional override floor for backend pickScale. When set
+        // (currently only by Topaz's headroom picker), backend won't pick
+        // a scale below this — used to "exceed target by 1 step" or
+        // "always go to max scale".
+        minScale: Int? = null,
         // RC21: third arg `detail` carries human-readable progress detail
         // ("Queue position 3", "Inference 2.4 s", etc.) when available.
         // Null means "no detail to show this iteration." The MainViewModel
@@ -118,14 +123,18 @@ class AiUpscaleRepository(private val auth: AuthRepository) {
             // 3. Call requestUpscale.
             onPhase(Phase.IN_QUEUE, 0.50f, null)
             val functions = FirebaseFunctions.getInstance("us-central1")
-            val payload = mapOf(
-                "modelId" to modelId,
-                "inputUrl" to gsUri,
-                "inputMp" to inputMp,
-                "posterWidthInches" to posterWidthInches,
-                "posterHeightInches" to posterHeightInches,
-                "targetDpi" to targetDpi,
-            )
+            val payload = buildMap<String, Any> {
+                put("modelId", modelId)
+                put("inputUrl", gsUri)
+                put("inputMp", inputMp)
+                put("posterWidthInches", posterWidthInches)
+                put("posterHeightInches", posterHeightInches)
+                put("targetDpi", targetDpi)
+                // RC28: only include minScale when explicitly requested so
+                // existing callers (and the backend's `Partial<Input>`
+                // handling) keep working unchanged.
+                if (minScale != null) put("minScale", minScale)
+            }
             val callableResult = functions
                 .getHttpsCallable("requestUpscale")
                 .call(payload)

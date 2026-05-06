@@ -35,6 +35,10 @@ interface RequestUpscaleInput {
   posterWidthInches: number;
   posterHeightInches: number;
   targetDpi: number;
+  /** RC28 — Topaz "headroom" override. If set, pickScale will not pick
+   *  a scale below this floor (clamped to the model's supported scales).
+   *  Used by the Topaz detail card's "Above target" / "Maximum" buttons. */
+  minScale?: number;
 }
 
 interface GetStatusInput {
@@ -124,13 +128,24 @@ function pickScale(
   posterW: number,
   posterH: number,
   targetDpi: number,
+  minScale?: number,  // RC28: client-side override floor (Topaz "headroom" picker)
 ): number {
   const targetMp = (posterW * targetDpi) * (posterH * targetDpi) / 1_000_000;
   const scales = MODELS[modelId].supportedScales;
+  let picked = scales[scales.length - 1];  // fallback if no scale meets target
   for (const s of scales) {
-    if (inputMp * s * s >= targetMp) return s;
+    if (inputMp * s * s >= targetMp) { picked = s; break; }
   }
-  return scales[scales.length - 1];
+  // RC28: client may request a minimum scale (e.g. "exceed target by one
+  // step" or "always use max"). Floor to the smallest supported scale that
+  // is >= the requested minimum. Doesn't permit going *below* what
+  // pickScale would have chosen on its own — only above.
+  if (minScale && minScale > picked) {
+    const eligible = scales.filter((s) => s >= minScale);
+    if (eligible.length > 0) picked = eligible[0];
+    else picked = scales[scales.length - 1];
+  }
+  return picked;
 }
 
 /**
@@ -543,7 +558,9 @@ export const requestUpscale = onCall(
       ? data.posterHeightInches : 24;
     const targetDpi = typeof data.targetDpi === 'number' && data.targetDpi >= 75 && data.targetDpi <= 1200
       ? data.targetDpi : 150;
-    const scale = pickScale(modelId, inputMp, posterW, posterH, targetDpi);
+    const minScale = typeof data.minScale === 'number' && data.minScale >= 1 && data.minScale <= 16
+      ? data.minScale : undefined;
+    const scale = pickScale(modelId, inputMp, posterW, posterH, targetDpi, minScale);
     const required = computeCreditsForJob(modelId, inputMp, scale);
 
     // RC23: admin emails (joeputin100@gmail.com etc.) and users with the

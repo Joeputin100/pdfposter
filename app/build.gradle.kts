@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc27"  // RC27 (below-target-DPI confirm gate before AI upscale)
+        versionName = "1.0-rc28"  // RC28 (Topaz "Headroom" picker on detail dialog)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
