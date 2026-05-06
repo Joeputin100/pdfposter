@@ -416,6 +416,19 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             (done.toFloat() / total.toFloat()).coerceIn(0f, 1f)
         } else 0f
         AlertDialog(
+            // RC31: glass treatment shared across progress/warning/failure
+            // modals. Transparent container + 0 elevation + glassBackdrop
+            // modifier on the same shape clips the dialog to a 28dp rounded
+            // rectangle and draws the BackdropBlur layer underneath. Pre-API-31
+            // and dialogs whose composition can't reach the backdrop layer
+            // fall back to the translucent-gradient path inside glassBackdrop.
+            modifier = Modifier.glassBackdrop(
+                shape = RoundedCornerShape(28.dp),
+                tint = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+            ),
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+            shape = RoundedCornerShape(28.dp),
             onDismissRequest = { /* not dismissable — must Cancel or wait */ },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
             title = { Text("Sharpening your photo") },
@@ -462,6 +475,14 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     // the ViewModel (the repository does its own phase + fraction tracking).
     if (viewModel.isAiUpscaling) {
         AlertDialog(
+            // RC31: glass treatment (see free-upscale dialog above).
+            modifier = Modifier.glassBackdrop(
+                shape = RoundedCornerShape(28.dp),
+                tint = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+            ),
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+            shape = RoundedCornerShape(28.dp),
             onDismissRequest = { /* not dismissable — must Cancel or wait */ },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
             title = { Text("Sharpening with AI") },
@@ -533,6 +554,14 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     val failureMsg = viewModel.aiUpscaleFailure
     if (!viewModel.isAiUpscaling && failureMsg != null) {
         AlertDialog(
+            // RC31: glass treatment.
+            modifier = Modifier.glassBackdrop(
+                shape = RoundedCornerShape(28.dp),
+                tint = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+            ),
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+            shape = RoundedCornerShape(28.dp),
             onDismissRequest = { viewModel.aiUpscaleFailure = null },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
             title = { Text("Upscale didn't finish") },
@@ -572,6 +601,14 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     // the user should know that before paying for the run.
     viewModel.aiUpscaleConfirm?.let { confirm ->
         AlertDialog(
+            // RC31: glass treatment.
+            modifier = Modifier.glassBackdrop(
+                shape = RoundedCornerShape(28.dp),
+                tint = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+            ),
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+            shape = RoundedCornerShape(28.dp),
             onDismissRequest = { viewModel.cancelAiUpscaleConfirm() },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
             title = { Text("Below your target DPI") },
@@ -1467,6 +1504,14 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             }
                             lowDpiPendingAction?.let { action ->
                                 AlertDialog(
+                                    // RC31: glass treatment.
+                                    modifier = Modifier.glassBackdrop(
+                                        shape = RoundedCornerShape(28.dp),
+                                        tint = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                                    ),
+                                    containerColor = Color.Transparent,
+                                    tonalElevation = 0.dp,
+                                    shape = RoundedCornerShape(28.dp),
                                     onDismissRequest = { lowDpiPendingAction = null },
                                     title = { Text(stringResource(R.string.low_dpi_dialog_title)) },
                                     text = {
