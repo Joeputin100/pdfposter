@@ -57,6 +57,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.posterpdf.ui.components.CreditBadge
 import com.posterpdf.ui.components.GlassCard
+import com.posterpdf.ui.components.glassBackdrop
 import com.posterpdf.ui.components.glintEffect
 import com.posterpdf.ui.components.pulseEffect
 import com.posterpdf.ui.components.ImagePickerHeader
@@ -134,11 +135,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    var showSplash by remember { mutableStateOf(true) }
-                    if (showSplash) {
-                        SplashScreen { showSplash = false }
-                    } else {
-                        MainScreen()
+                    com.posterpdf.ui.components.BackdropBlur(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        var showSplash by remember { mutableStateOf(true) }
+                        if (showSplash) {
+                            SplashScreen { showSplash = false }
+                        } else {
+                            MainScreen()
+                        }
                     }
                 }
             }
@@ -584,7 +589,14 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                modifier = Modifier.verticalScroll(rememberScrollState())
+                drawerContainerColor = Color.Transparent,
+                drawerTonalElevation = 0.dp,
+                modifier = Modifier
+                    .glassBackdrop(
+                        shape = DrawerDefaults.shape,
+                        tint = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.82f),
+                    )
+                    .verticalScroll(rememberScrollState())
             ) {
                 Spacer(Modifier.height(12.dp))
                 Text(

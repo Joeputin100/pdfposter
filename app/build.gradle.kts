@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc24"  // RC24 (FAL response_url, retry/apology modal, indeterminate queue progress)
+        versionName = "1.0-rc25"  // RC25 (real backdrop blur on glass surfaces + settings drawer)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
