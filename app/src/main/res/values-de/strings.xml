@@ -794,4 +794,52 @@
     <string name="vm_phase_uploading_source">Quelle wird hochgeladen&#8230;</string>
     <string name="vm_success_upscaled_inline">Auf %1$d&#215;%2$d hochskaliert</string>
     <string name="vm_success_upscaled_via">Auf %1$d&#215;%2$d hochskaliert via %3$s</string>
+
+    <!-- Community (RC44) -->
+    <string name="drawer_community" tools:maxLength="20">Community</string>
+    <string name="community_screen_title">Community</string>
+    <string name="community_topic_all" tools:maxLength="14">Alle</string>
+    <string name="community_topic_release_notes" tools:maxLength="22">Versionshinweise</string>
+    <string name="community_topic_feature_requests" tools:maxLength="22">Feature-Wünsche</string>
+    <string name="community_topic_troubleshooting" tools:maxLength="28">Fehlerbehebung &amp; Hilfe</string>
+    <string name="community_topic_discussion" tools:maxLength="28">Community-Diskussion</string>
+    <string name="community_compose_fab_label" tools:maxLength="14">Neuer Beitrag</string>
+    <string name="community_compose_fab_cd">Neuen Beitrag schreiben</string>
+    <string name="community_compose_title">Neuer Beitrag</string>
+    <string name="community_compose_topic_label">Thema</string>
+    <string name="community_compose_subject_label">Titel</string>
+    <string name="community_compose_subject_placeholder">Ein kurzer, aussagekräftiger Titel</string>
+    <string name="community_compose_body_label">Inhalt</string>
+    <string name="community_compose_body_placeholder">Teile deine Gedanken, stelle eine Frage oder starte eine Diskussion&#8230;</string>
+    <string name="community_compose_post" tools:maxLength="14">Posten</string>
+    <string name="community_compose_posting" tools:maxLength="14">Poste&#8230;</string>
+    <string name="community_bbcode_hint">Formatierung: [b]fett[/b], [i]kursiv[/i], [url=https://&#8230;]Link[/url], [img]https://&#8230;[/img], [code]Code[/code]. Bild-URLs müssen https:// sein.</string>
+    <string name="community_signin_required">Mit Google anmelden, um zu posten oder zu antworten.</string>
+    <string name="community_no_posts_all">Noch keine Beiträge. Sei der Erste, der eine Diskussion startet.</string>
+    <string name="community_no_posts_topic">Noch keine Beiträge in diesem Thema.</string>
+    <string name="community_post_screen_title">Beitrag</string>
+    <string name="community_reply_count">%1$d Antworten</string>
+    <string name="community_reply_count_one">1 Antwort</string>
+    <string name="community_reply_count_zero">Noch keine Antworten</string>
+    <string name="community_reply_input_placeholder">Antwort schreiben&#8230;</string>
+    <string name="community_reply_send">Antworten</string>
+    <string name="community_post_deleted">[Beitrag gelöscht]</string>
+    <string name="community_reply_deleted">[Antwort gelöscht]</string>
+    <string name="community_delete_post_action">Löschen</string>
+    <string name="community_delete_reply_action">Antwort löschen</string>
+    <string name="community_delete_confirm_title">Löschen?</string>
+    <string name="community_delete_confirm">Diesen Beitrag löschen? Das lässt sich nicht rückgängig machen.</string>
+    <string name="community_delete_confirm_reply">Diese Antwort löschen? Das lässt sich nicht rückgängig machen.</string>
+    <string name="community_delete_yes" tools:maxLength="14">Löschen</string>
+    <string name="community_delete_no" tools:maxLength="14">Behalten</string>
+    <string name="community_post_success">Gepostet!</string>
+    <string name="community_post_failed">Posten fehlgeschlagen: %1$s</string>
+    <string name="community_reply_failed">Antwort fehlgeschlagen: %1$s</string>
+    <string name="community_load_failed">Beiträge konnten nicht geladen werden.</string>
+    <string name="community_refresh_cd">Aktualisieren</string>
+    <string name="community_relative_just_now">gerade eben</string>
+    <string name="community_relative_minutes_ago">vor %1$d Min.</string>
+    <string name="community_relative_hours_ago">vor %1$d Std.</string>
+    <string name="community_relative_days_ago">vor %1$d T.</string>
+    <string name="community_post_by_author">von %1$s</string>
 </resources>

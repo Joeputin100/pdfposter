@@ -794,4 +794,52 @@
     <string name="vm_phase_uploading_source">ソースをアップロード中&#8230;</string>
     <string name="vm_success_upscaled_inline">%1$d&#215;%2$d にアップスケール</string>
     <string name="vm_success_upscaled_via">%3$s で %1$d&#215;%2$d にアップスケール</string>
+
+    <!-- コミュニティ掲示板 -->
+    <string name="drawer_community" tools:maxLength="20">コミュニティ</string>
+    <string name="community_screen_title">コミュニティ</string>
+    <string name="community_topic_all" tools:maxLength="14">すべて</string>
+    <string name="community_topic_release_notes" tools:maxLength="22">リリースノート</string>
+    <string name="community_topic_feature_requests" tools:maxLength="22">機能リクエスト</string>
+    <string name="community_topic_troubleshooting" tools:maxLength="28">トラブルシューティング</string>
+    <string name="community_topic_discussion" tools:maxLength="28">コミュニティ討論</string>
+    <string name="community_compose_fab_label" tools:maxLength="14">新規投稿</string>
+    <string name="community_compose_fab_cd">新しい投稿を作成</string>
+    <string name="community_compose_title">新規投稿</string>
+    <string name="community_compose_topic_label">トピック</string>
+    <string name="community_compose_subject_label">タイトル</string>
+    <string name="community_compose_subject_placeholder">短くわかりやすいタイトル</string>
+    <string name="community_compose_body_label">本文</string>
+    <string name="community_compose_body_placeholder">考えを共有したり、質問したり、議論を始めましょう&#8230;</string>
+    <string name="community_compose_post" tools:maxLength="14">投稿</string>
+    <string name="community_compose_posting" tools:maxLength="14">投稿中&#8230;</string>
+    <string name="community_bbcode_hint">書式: [b]太字[/b]、[i]斜体[/i]、[url=https://&#8230;]リンク[/url]、[img]https://&#8230;[/img]、[code]コード[/code]。画像URLはhttps://である必要があります。</string>
+    <string name="community_signin_required">投稿または返信するにはGoogleでサインインしてください。</string>
+    <string name="community_no_posts_all">まだ投稿はありません。最初の議論を始めましょう。</string>
+    <string name="community_no_posts_topic">このトピックにはまだ投稿がありません。</string>
+    <string name="community_post_screen_title">投稿</string>
+    <string name="community_reply_count">返信 %1$d 件</string>
+    <string name="community_reply_count_one">返信 1 件</string>
+    <string name="community_reply_count_zero">まだ返信はありません</string>
+    <string name="community_reply_input_placeholder">返信を書く&#8230;</string>
+    <string name="community_reply_send">返信</string>
+    <string name="community_post_deleted">[投稿は削除されました]</string>
+    <string name="community_reply_deleted">[返信は削除されました]</string>
+    <string name="community_delete_post_action">削除</string>
+    <string name="community_delete_reply_action">返信を削除</string>
+    <string name="community_delete_confirm_title">削除しますか？</string>
+    <string name="community_delete_confirm">この投稿を削除しますか？元に戻せません。</string>
+    <string name="community_delete_confirm_reply">この返信を削除しますか？元に戻せません。</string>
+    <string name="community_delete_yes" tools:maxLength="14">削除</string>
+    <string name="community_delete_no" tools:maxLength="14">残す</string>
+    <string name="community_post_success">投稿しました！</string>
+    <string name="community_post_failed">投稿できませんでした: %1$s</string>
+    <string name="community_reply_failed">返信できませんでした: %1$s</string>
+    <string name="community_load_failed">投稿を読み込めませんでした。</string>
+    <string name="community_refresh_cd">更新</string>
+    <string name="community_relative_just_now">たった今</string>
+    <string name="community_relative_minutes_ago">%1$d分前</string>
+    <string name="community_relative_hours_ago">%1$d時間前</string>
+    <string name="community_relative_days_ago">%1$d日前</string>
+    <string name="community_post_by_author">投稿者: %1$s</string>
 </resources>

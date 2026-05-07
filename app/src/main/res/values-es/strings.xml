@@ -794,4 +794,52 @@
     <string name="vm_phase_uploading_source">Subiendo fuente&#8230;</string>
     <string name="vm_success_upscaled_inline">Ampliada a %1$d&#215;%2$d</string>
     <string name="vm_success_upscaled_via">Ampliada a %1$d&#215;%2$d con %3$s</string>
+
+    <!-- Comunidad (RC44) -->
+    <string name="drawer_community" tools:maxLength="20">Comunidad</string>
+    <string name="community_screen_title">Comunidad</string>
+    <string name="community_topic_all" tools:maxLength="14">Todos</string>
+    <string name="community_topic_release_notes" tools:maxLength="22">Notas de versión</string>
+    <string name="community_topic_feature_requests" tools:maxLength="22">Sugerencias</string>
+    <string name="community_topic_troubleshooting" tools:maxLength="28">Soporte y problemas</string>
+    <string name="community_topic_discussion" tools:maxLength="28">Debate de la comunidad</string>
+    <string name="community_compose_fab_label" tools:maxLength="14">Nuevo post</string>
+    <string name="community_compose_fab_cd">Escribir un nuevo post</string>
+    <string name="community_compose_title">Nuevo post</string>
+    <string name="community_compose_topic_label">Tema</string>
+    <string name="community_compose_subject_label">Título</string>
+    <string name="community_compose_subject_placeholder">Un título breve y descriptivo</string>
+    <string name="community_compose_body_label">Contenido</string>
+    <string name="community_compose_body_placeholder">Comparte tus ideas, haz una pregunta o inicia un debate&#8230;</string>
+    <string name="community_compose_post" tools:maxLength="14">Publicar</string>
+    <string name="community_compose_posting" tools:maxLength="14">Publicando&#8230;</string>
+    <string name="community_bbcode_hint">Formato: [b]negrita[/b], [i]cursiva[/i], [url=https://&#8230;]enlace[/url], [img]https://&#8230;[/img], [code]código[/code]. Las URL de imagen deben ser https://.</string>
+    <string name="community_signin_required">Inicia sesión con Google para publicar o responder.</string>
+    <string name="community_no_posts_all">Aún no hay posts. Sé el primero en iniciar un debate.</string>
+    <string name="community_no_posts_topic">Aún no hay posts en este tema.</string>
+    <string name="community_post_screen_title">Post</string>
+    <string name="community_reply_count">%1$d respuestas</string>
+    <string name="community_reply_count_one">1 respuesta</string>
+    <string name="community_reply_count_zero">Aún no hay respuestas</string>
+    <string name="community_reply_input_placeholder">Escribe una respuesta&#8230;</string>
+    <string name="community_reply_send">Responder</string>
+    <string name="community_post_deleted">[Post eliminado]</string>
+    <string name="community_reply_deleted">[Respuesta eliminada]</string>
+    <string name="community_delete_post_action">Eliminar</string>
+    <string name="community_delete_reply_action">Eliminar respuesta</string>
+    <string name="community_delete_confirm_title">¿Eliminar?</string>
+    <string name="community_delete_confirm">¿Eliminar este post? Esto no se puede deshacer.</string>
+    <string name="community_delete_confirm_reply">¿Eliminar esta respuesta? Esto no se puede deshacer.</string>
+    <string name="community_delete_yes" tools:maxLength="14">Eliminar</string>
+    <string name="community_delete_no" tools:maxLength="14">Conservar</string>
+    <string name="community_post_success">¡Publicado!</string>
+    <string name="community_post_failed">No se pudo publicar: %1$s</string>
+    <string name="community_reply_failed">No se pudo responder: %1$s</string>
+    <string name="community_load_failed">No se pudieron cargar los posts.</string>
+    <string name="community_refresh_cd">Actualizar</string>
+    <string name="community_relative_just_now">ahora mismo</string>
+    <string name="community_relative_minutes_ago">hace %1$dm</string>
+    <string name="community_relative_hours_ago">hace %1$dh</string>
+    <string name="community_relative_days_ago">hace %1$dd</string>
+    <string name="community_post_by_author">por %1$s</string>
 </resources>

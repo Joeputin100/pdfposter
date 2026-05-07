@@ -793,4 +793,52 @@
     <string name="vm_phase_uploading_source">جارٍ رفع المصدر&#8230;</string>
     <string name="vm_success_upscaled_inline">تمت الترقية إلى %1$d&#215;%2$d</string>
     <string name="vm_success_upscaled_via">تمت الترقية إلى %1$d&#215;%2$d عبر %3$s</string>
+
+    <!-- المجتمع (RC44) -->
+    <string name="drawer_community" tools:maxLength="20">المجتمع</string>
+    <string name="community_screen_title">المجتمع</string>
+    <string name="community_topic_all" tools:maxLength="14">الكل</string>
+    <string name="community_topic_release_notes" tools:maxLength="22">ملاحظات الإصدار</string>
+    <string name="community_topic_feature_requests" tools:maxLength="22">طلبات الميزات</string>
+    <string name="community_topic_troubleshooting" tools:maxLength="28">استكشاف الأخطاء والدعم</string>
+    <string name="community_topic_discussion" tools:maxLength="28">نقاشات المجتمع</string>
+    <string name="community_compose_fab_label" tools:maxLength="14">منشور جديد</string>
+    <string name="community_compose_fab_cd">كتابة منشور جديد</string>
+    <string name="community_compose_title">منشور جديد</string>
+    <string name="community_compose_topic_label">الموضوع</string>
+    <string name="community_compose_subject_label">العنوان</string>
+    <string name="community_compose_subject_placeholder">عنوان موجز ووصفي</string>
+    <string name="community_compose_body_label">المحتوى</string>
+    <string name="community_compose_body_placeholder">شارك أفكارك، اطرح سؤالاً، أو ابدأ نقاشاً&#8230;</string>
+    <string name="community_compose_post" tools:maxLength="14">نشر</string>
+    <string name="community_compose_posting" tools:maxLength="14">جارٍ النشر&#8230;</string>
+    <string name="community_bbcode_hint">التنسيق: [b]عريض[/b]، [i]مائل[/i]، [url=https://…]رابط[/url]، [img]https://…[/img]، [code]كود[/code]. يجب أن تبدأ روابط الصور بـ https://.</string>
+    <string name="community_signin_required">سجِّل الدخول بـ Google للنشر أو الرد.</string>
+    <string name="community_no_posts_all">لا توجد منشورات بعد. كن أول من يبدأ نقاشاً.</string>
+    <string name="community_no_posts_topic">لا توجد منشورات في هذا الموضوع بعد.</string>
+    <string name="community_post_screen_title">منشور</string>
+    <string name="community_reply_count">%1$d ردود</string>
+    <string name="community_reply_count_one">رد واحد</string>
+    <string name="community_reply_count_zero">لا توجد ردود بعد</string>
+    <string name="community_reply_input_placeholder">اكتب رداً&#8230;</string>
+    <string name="community_reply_send">رد</string>
+    <string name="community_post_deleted">[تم حذف المنشور]</string>
+    <string name="community_reply_deleted">[تم حذف الرد]</string>
+    <string name="community_delete_post_action">حذف</string>
+    <string name="community_delete_reply_action">حذف الرد</string>
+    <string name="community_delete_confirm_title">حذف؟</string>
+    <string name="community_delete_confirm">هل تريد حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="community_delete_confirm_reply">هل تريد حذف هذا الرد؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="community_delete_yes" tools:maxLength="14">حذف</string>
+    <string name="community_delete_no" tools:maxLength="14">إبقاء</string>
+    <string name="community_post_success">تم النشر!</string>
+    <string name="community_post_failed">تعذَّر النشر: %1$s</string>
+    <string name="community_reply_failed">تعذَّر الرد: %1$s</string>
+    <string name="community_load_failed">تعذَّر تحميل المنشورات.</string>
+    <string name="community_refresh_cd">تحديث</string>
+    <string name="community_relative_just_now">الآن</string>
+    <string name="community_relative_minutes_ago">منذ %1$dد</string>
+    <string name="community_relative_hours_ago">منذ %1$dس</string>
+    <string name="community_relative_days_ago">منذ %1$dي</string>
+    <string name="community_post_by_author">بواسطة %1$s</string>
 </resources>

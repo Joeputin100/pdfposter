@@ -794,4 +794,52 @@
     <string name="vm_phase_uploading_source">Téléversement de la source&#8230;</string>
     <string name="vm_success_upscaled_inline">Agrandi à %1$d&#215;%2$d</string>
     <string name="vm_success_upscaled_via">Agrandi à %1$d&#215;%2$d via %3$s</string>
+
+    <!-- RC44 — Tableau communautaire -->
+    <string name="drawer_community" tools:maxLength="20">Communauté</string>
+    <string name="community_screen_title">Communauté</string>
+    <string name="community_topic_all" tools:maxLength="14">Tous</string>
+    <string name="community_topic_release_notes" tools:maxLength="22">Notes de version</string>
+    <string name="community_topic_feature_requests" tools:maxLength="22">Demandes de fonctions</string>
+    <string name="community_topic_troubleshooting" tools:maxLength="28">Dépannage et assistance</string>
+    <string name="community_topic_discussion" tools:maxLength="28">Discussions</string>
+    <string name="community_compose_fab_label" tools:maxLength="14">Nouveau post</string>
+    <string name="community_compose_fab_cd">Écrire un nouveau post</string>
+    <string name="community_compose_title">Nouveau post</string>
+    <string name="community_compose_topic_label">Sujet</string>
+    <string name="community_compose_subject_label">Titre</string>
+    <string name="community_compose_subject_placeholder">Un titre court et descriptif</string>
+    <string name="community_compose_body_label">Contenu</string>
+    <string name="community_compose_body_placeholder">Partagez vos idées, posez une question ou lancez une discussion…</string>
+    <string name="community_compose_post" tools:maxLength="14">Publier</string>
+    <string name="community_compose_posting" tools:maxLength="14">Publication…</string>
+    <string name="community_bbcode_hint">Mise en forme : [b]gras[/b], [i]italique[/i], [url=https://…]lien[/url], [img]https://…[/img], [code]code[/code]. Les URL d\'images doivent être en https://.</string>
+    <string name="community_signin_required">Connectez-vous avec Google pour publier ou répondre.</string>
+    <string name="community_no_posts_all">Aucun post pour le moment. Soyez le premier à lancer une discussion.</string>
+    <string name="community_no_posts_topic">Aucun post dans ce sujet pour le moment.</string>
+    <string name="community_post_screen_title">Post</string>
+    <string name="community_reply_count">%1$d réponses</string>
+    <string name="community_reply_count_one">1 réponse</string>
+    <string name="community_reply_count_zero">Aucune réponse pour le moment</string>
+    <string name="community_reply_input_placeholder">Écrire une réponse…</string>
+    <string name="community_reply_send">Répondre</string>
+    <string name="community_post_deleted">[Post supprimé]</string>
+    <string name="community_reply_deleted">[Réponse supprimée]</string>
+    <string name="community_delete_post_action">Supprimer</string>
+    <string name="community_delete_reply_action">Supprimer la réponse</string>
+    <string name="community_delete_confirm_title">Supprimer ?</string>
+    <string name="community_delete_confirm">Supprimer ce post ? Cette action est irréversible.</string>
+    <string name="community_delete_confirm_reply">Supprimer cette réponse ? Cette action est irréversible.</string>
+    <string name="community_delete_yes" tools:maxLength="14">Supprimer</string>
+    <string name="community_delete_no" tools:maxLength="14">Conserver</string>
+    <string name="community_post_success">Publié !</string>
+    <string name="community_post_failed">Échec de la publication : %1$s</string>
+    <string name="community_reply_failed">Échec de la réponse : %1$s</string>
+    <string name="community_load_failed">Impossible de charger les posts.</string>
+    <string name="community_refresh_cd">Actualiser</string>
+    <string name="community_relative_just_now">à l\'instant</string>
+    <string name="community_relative_minutes_ago">il y a %1$d min</string>
+    <string name="community_relative_hours_ago">il y a %1$d h</string>
+    <string name="community_relative_days_ago">il y a %1$d j</string>
+    <string name="community_post_by_author">par %1$s</string>
 </resources>

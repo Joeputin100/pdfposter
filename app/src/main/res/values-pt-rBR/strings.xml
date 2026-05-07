@@ -794,4 +794,52 @@
     <string name="vm_phase_uploading_source">Enviando origem&#8230;</string>
     <string name="vm_success_upscaled_inline">Aprimorado para %1$d&#215;%2$d</string>
     <string name="vm_success_upscaled_via">Aprimorado para %1$d&#215;%2$d via %3$s</string>
+
+    <!-- RC44 Comunidade -->
+    <string name="drawer_community" tools:maxLength="20">Comunidade</string>
+    <string name="community_screen_title">Comunidade</string>
+    <string name="community_topic_all" tools:maxLength="14">Tudo</string>
+    <string name="community_topic_release_notes" tools:maxLength="22">Notas de versão</string>
+    <string name="community_topic_feature_requests" tools:maxLength="22">Sugestões</string>
+    <string name="community_topic_troubleshooting" tools:maxLength="28">Solução de problemas</string>
+    <string name="community_topic_discussion" tools:maxLength="28">Discussão da comunidade</string>
+    <string name="community_compose_fab_label" tools:maxLength="14">Nova postagem</string>
+    <string name="community_compose_fab_cd">Escrever uma nova postagem</string>
+    <string name="community_compose_title">Nova postagem</string>
+    <string name="community_compose_topic_label">Tópico</string>
+    <string name="community_compose_subject_label">Título</string>
+    <string name="community_compose_subject_placeholder">Um título breve e descritivo</string>
+    <string name="community_compose_body_label">Conteúdo</string>
+    <string name="community_compose_body_placeholder">Compartilhe suas ideias, faça uma pergunta ou inicie uma discussão&#8230;</string>
+    <string name="community_compose_post" tools:maxLength="14">Publicar</string>
+    <string name="community_compose_posting" tools:maxLength="14">Publicando&#8230;</string>
+    <string name="community_bbcode_hint">Formatação: [b]negrito[/b], [i]itálico[/i], [url=https://&#8230;]link[/url], [img]https://&#8230;[/img], [code]código[/code]. URLs de imagem devem ser https://.</string>
+    <string name="community_signin_required">Faça login com o Google para publicar ou responder.</string>
+    <string name="community_no_posts_all">Nenhuma postagem ainda. Seja o primeiro a iniciar uma discussão.</string>
+    <string name="community_no_posts_topic">Nenhuma postagem neste tópico ainda.</string>
+    <string name="community_post_screen_title">Postagem</string>
+    <string name="community_reply_count">%1$d respostas</string>
+    <string name="community_reply_count_one">1 resposta</string>
+    <string name="community_reply_count_zero">Nenhuma resposta ainda</string>
+    <string name="community_reply_input_placeholder">Escreva uma resposta&#8230;</string>
+    <string name="community_reply_send">Responder</string>
+    <string name="community_post_deleted">[Postagem excluída]</string>
+    <string name="community_reply_deleted">[Resposta excluída]</string>
+    <string name="community_delete_post_action">Excluir</string>
+    <string name="community_delete_reply_action">Excluir resposta</string>
+    <string name="community_delete_confirm_title">Excluir?</string>
+    <string name="community_delete_confirm">Excluir esta postagem? Isso não pode ser desfeito.</string>
+    <string name="community_delete_confirm_reply">Excluir esta resposta? Isso não pode ser desfeito.</string>
+    <string name="community_delete_yes" tools:maxLength="14">Excluir</string>
+    <string name="community_delete_no" tools:maxLength="14">Manter</string>
+    <string name="community_post_success">Publicado!</string>
+    <string name="community_post_failed">Não foi possível publicar: %1$s</string>
+    <string name="community_reply_failed">Não foi possível responder: %1$s</string>
+    <string name="community_load_failed">Não foi possível carregar as postagens.</string>
+    <string name="community_refresh_cd">Atualizar</string>
+    <string name="community_relative_just_now">agora mesmo</string>
+    <string name="community_relative_minutes_ago">há %1$dmin</string>
+    <string name="community_relative_hours_ago">há %1$dh</string>
+    <string name="community_relative_days_ago">há %1$dd</string>
+    <string name="community_post_by_author">por %1$s</string>
 </resources>

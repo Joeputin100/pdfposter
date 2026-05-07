@@ -794,4 +794,50 @@
     <string name="vm_phase_uploading_source">Загрузка источника&#8230;</string>
     <string name="vm_success_upscaled_inline">Масштабировано до %1$d×%2$d</string>
     <string name="vm_success_upscaled_via">Масштабировано до %1$d×%2$d через %3$s</string>
+    <string name="drawer_community" tools:maxLength="20">Сообщество</string>
+    <string name="community_screen_title">Сообщество</string>
+    <string name="community_topic_all" tools:maxLength="14">Все</string>
+    <string name="community_topic_release_notes" tools:maxLength="22">Новости версий</string>
+    <string name="community_topic_feature_requests" tools:maxLength="22">Идеи и пожелания</string>
+    <string name="community_topic_troubleshooting" tools:maxLength="28">Помощь и решения</string>
+    <string name="community_topic_discussion" tools:maxLength="28">Обсуждения</string>
+    <string name="community_compose_fab_label" tools:maxLength="14">Создать</string>
+    <string name="community_compose_fab_cd">Написать новый пост</string>
+    <string name="community_compose_title">Новый пост</string>
+    <string name="community_compose_topic_label">Тема</string>
+    <string name="community_compose_subject_label">Заголовок</string>
+    <string name="community_compose_subject_placeholder">Краткий, понятный заголовок</string>
+    <string name="community_compose_body_label">Текст</string>
+    <string name="community_compose_body_placeholder">Поделитесь мыслями, задайте вопрос или начните обсуждение&#8230;</string>
+    <string name="community_compose_post" tools:maxLength="14">Отправить</string>
+    <string name="community_compose_posting" tools:maxLength="14">Отправка&#8230;</string>
+    <string name="community_bbcode_hint">Форматирование: [b]жирный[/b], [i]курсив[/i], [url=https://&#8230;]ссылка[/url], [img]https://&#8230;[/img], [code]код[/code]. URL изображений только https://.</string>
+    <string name="community_signin_required">Войдите через Google, чтобы публиковать и отвечать.</string>
+    <string name="community_no_posts_all">Пока нет постов. Начните обсуждение первым.</string>
+    <string name="community_no_posts_topic">В этой теме пока нет постов.</string>
+    <string name="community_post_screen_title">Пост</string>
+    <string name="community_reply_count">%1$d ответов</string>
+    <string name="community_reply_count_one">1 ответ</string>
+    <string name="community_reply_count_zero">Ответов пока нет</string>
+    <string name="community_reply_input_placeholder">Написать ответ&#8230;</string>
+    <string name="community_reply_send">Ответить</string>
+    <string name="community_post_deleted">[Пост удалён]</string>
+    <string name="community_reply_deleted">[Ответ удалён]</string>
+    <string name="community_delete_post_action">Удалить</string>
+    <string name="community_delete_reply_action">Удалить ответ</string>
+    <string name="community_delete_confirm_title">Удалить?</string>
+    <string name="community_delete_confirm">Удалить этот пост? Действие необратимо.</string>
+    <string name="community_delete_confirm_reply">Удалить этот ответ? Действие необратимо.</string>
+    <string name="community_delete_yes" tools:maxLength="14">Удалить</string>
+    <string name="community_delete_no" tools:maxLength="14">Оставить</string>
+    <string name="community_post_success">Опубликовано!</string>
+    <string name="community_post_failed">Не удалось опубликовать: %1$s</string>
+    <string name="community_reply_failed">Не удалось ответить: %1$s</string>
+    <string name="community_load_failed">Не удалось загрузить посты.</string>
+    <string name="community_refresh_cd">Обновить</string>
+    <string name="community_relative_just_now">только что</string>
+    <string name="community_relative_minutes_ago">%1$d мин назад</string>
+    <string name="community_relative_hours_ago">%1$d ч назад</string>
+    <string name="community_relative_days_ago">%1$d дн назад</string>
+    <string name="community_post_by_author">от %1$s</string>
 </resources>

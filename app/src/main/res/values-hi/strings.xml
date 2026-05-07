@@ -793,4 +793,52 @@
     <string name="vm_phase_uploading_source">स्रोत अपलोड हो रहा है&#8230;</string>
     <string name="vm_success_upscaled_inline">%1$d×%2$d तक अपस्केल किया</string>
     <string name="vm_success_upscaled_via">%3$s के माध्यम से %1$d×%2$d तक अपस्केल किया</string>
+
+    <!-- कम्युनिटी (RC44) -->
+    <string name="drawer_community" tools:maxLength="20">कम्युनिटी</string>
+    <string name="community_screen_title">कम्युनिटी</string>
+    <string name="community_topic_all" tools:maxLength="14">सभी</string>
+    <string name="community_topic_release_notes" tools:maxLength="22">रिलीज़ नोट्स</string>
+    <string name="community_topic_feature_requests" tools:maxLength="22">फ़ीचर रिक्वेस्ट</string>
+    <string name="community_topic_troubleshooting" tools:maxLength="28">समस्या निवारण और सपोर्ट</string>
+    <string name="community_topic_discussion" tools:maxLength="28">कम्युनिटी चर्चा</string>
+    <string name="community_compose_fab_label" tools:maxLength="14">नई पोस्ट</string>
+    <string name="community_compose_fab_cd">नई पोस्ट लिखें</string>
+    <string name="community_compose_title">नई पोस्ट</string>
+    <string name="community_compose_topic_label">विषय</string>
+    <string name="community_compose_subject_label">शीर्षक</string>
+    <string name="community_compose_subject_placeholder">एक छोटा, स्पष्ट शीर्षक</string>
+    <string name="community_compose_body_label">मुख्य सामग्री</string>
+    <string name="community_compose_body_placeholder">अपने विचार साझा करें, सवाल पूछें, या चर्चा शुरू करें&#8230;</string>
+    <string name="community_compose_post" tools:maxLength="14">पोस्ट करें</string>
+    <string name="community_compose_posting" tools:maxLength="14">पोस्ट हो रहा&#8230;</string>
+    <string name="community_bbcode_hint">फ़ॉर्मैटिंग: [b]बोल्ड[/b], [i]इटैलिक[/i], [url=https://&#8230;]लिंक[/url], [img]https://&#8230;[/img], [code]कोड[/code]। इमेज URL https:// होना चाहिए।</string>
+    <string name="community_signin_required">पोस्ट या रिप्लाई करने के लिए Google से साइन इन करें।</string>
+    <string name="community_no_posts_all">अभी कोई पोस्ट नहीं है। चर्चा शुरू करने वाले पहले व्यक्ति बनें।</string>
+    <string name="community_no_posts_topic">इस विषय में अभी कोई पोस्ट नहीं है।</string>
+    <string name="community_post_screen_title">पोस्ट</string>
+    <string name="community_reply_count">%1$d रिप्लाई</string>
+    <string name="community_reply_count_one">1 रिप्लाई</string>
+    <string name="community_reply_count_zero">अभी कोई रिप्लाई नहीं</string>
+    <string name="community_reply_input_placeholder">रिप्लाई लिखें&#8230;</string>
+    <string name="community_reply_send">रिप्लाई करें</string>
+    <string name="community_post_deleted">[पोस्ट हटाई गई]</string>
+    <string name="community_reply_deleted">[रिप्लाई हटाई गई]</string>
+    <string name="community_delete_post_action">हटाएं</string>
+    <string name="community_delete_reply_action">रिप्लाई हटाएं</string>
+    <string name="community_delete_confirm_title">हटाएं?</string>
+    <string name="community_delete_confirm">यह पोस्ट हटाएं? इसे वापस नहीं लाया जा सकता।</string>
+    <string name="community_delete_confirm_reply">यह रिप्लाई हटाएं? इसे वापस नहीं लाया जा सकता।</string>
+    <string name="community_delete_yes" tools:maxLength="14">हटाएं</string>
+    <string name="community_delete_no" tools:maxLength="14">रहने दें</string>
+    <string name="community_post_success">पोस्ट हो गया!</string>
+    <string name="community_post_failed">पोस्ट नहीं हो सका: %1$s</string>
+    <string name="community_reply_failed">रिप्लाई नहीं हो सका: %1$s</string>
+    <string name="community_load_failed">पोस्ट लोड नहीं हो सके।</string>
+    <string name="community_refresh_cd">रीफ्रेश करें</string>
+    <string name="community_relative_just_now">अभी-अभी</string>
+    <string name="community_relative_minutes_ago">%1$dमि पहले</string>
+    <string name="community_relative_hours_ago">%1$dघं पहले</string>
+    <string name="community_relative_days_ago">%1$dदि पहले</string>
+    <string name="community_post_by_author">%1$s द्वारा</string>
 </resources>
