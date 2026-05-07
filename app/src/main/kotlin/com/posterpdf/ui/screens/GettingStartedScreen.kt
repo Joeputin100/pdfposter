@@ -1,11 +1,15 @@
 package com.posterpdf.ui.screens
 
+import android.media.MediaPlayer
+import android.net.Uri
+import android.widget.VideoView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,9 +38,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.posterpdf.R
 
 /**
  * H-P2.1 — Getting Started screen.
@@ -108,24 +116,34 @@ fun GettingStartedScreen(onBack: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            SectionHeader("3-Step Tour")
+            // RC37: 4-step tour. Each card embeds a 9:16 screen recording on
+            // the left of the text. Videos auto-play, loop, and are silenced
+            // (MediaPlayer.setVolume(0,0) on prepare). Pre-RC37 the cards had
+            // text-only "[screenshot: …]" placeholders.
+            SectionHeader("4-Step Tour")
             TourStep(
                 number = 1,
                 title = "Pick an image",
                 body = "Tap the photo card at the top. Use the highest-resolution copy you have — small phone screenshots will look pixelated when blown up to wall-poster size.",
-                screenshotHint = "[screenshot: image picker]",
+                videoRes = R.raw.gs_select_image,
             )
             TourStep(
                 number = 2,
                 title = "Set the size",
                 body = "Type the width and height of the finished poster. Lock the aspect ratio (the chain icon) to keep your image proportions, or unlock to crop. Pick a paper size that matches your printer — Letter is the home/office default in North America; A4 elsewhere.",
-                screenshotHint = "[screenshot: size + paper selector]",
+                videoRes = R.raw.gs_set_size,
             )
             TourStep(
                 number = 3,
                 title = "Generate",
                 body = "Tap View, Save, or Share. View opens the PDF in your reader; Save lets you choose a folder; Share hands the PDF to any app (email, Drive, print). If your image is below 150 DPI at the chosen size, we'll prompt you to upscale first.",
-                screenshotHint = "[screenshot: action buttons]",
+                videoRes = R.raw.gs_generate_pdf,
+            )
+            TourStep(
+                number = 4,
+                title = "Upscale (optional)",
+                body = "Below 150 DPI we offer an upscale to reach print quality. Free on-device 4×, or AI upscale (Topaz / Recraft / AuraSR / ESRGAN / CCSR) for higher fidelity at a credit cost. Compare the models side-by-side from the Sharpen for Print screen before you spend.",
+                videoRes = R.raw.gs_upscale,
             )
 
             Spacer(Modifier.height(24.dp))
@@ -156,45 +174,78 @@ private fun FreeFeature(icon: ImageVector, title: String, body: String) {
 }
 
 @Composable
-private fun TourStep(number: Int, title: String, body: String, screenshotHint: String) {
+private fun TourStep(number: Int, title: String, body: String, videoRes: Int) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.size(32.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            number.toString(),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }
-                }
-                Spacer(Modifier.width(10.dp))
-                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            }
-            Text(body, style = MaterialTheme.typography.bodySmall)
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.fillMaxWidth().height(120.dp),
+        // RC37: video on the left (9:16, 120dp wide → ~213dp tall), step
+        // content on the right. The video host is a VideoView wrapped in
+        // AndroidView so we can hook setOnPreparedListener for autoplay /
+        // loop / mute without bringing ExoPlayer into the tour-only screen.
+        Row(
+            modifier = Modifier.padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            LoopingMutedVideo(
+                videoRes = videoRes,
+                modifier = Modifier
+                    .width(120.dp)
+                    .aspectRatio(9f / 16f)
+                    .clip(RoundedCornerShape(12.dp)),
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Text(
-                        screenshotHint,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                number.toString(),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 }
+                Text(body, style = MaterialTheme.typography.bodySmall)
             }
         }
     }
+}
+
+/**
+ * Auto-playing, looping, muted video host. Uses VideoView so we don't have
+ * to add ExoPlayer just for the tour screen. The MediaPlayer's volume is
+ * zeroed in onPrepared (the recordings already have no audio track, but
+ * this keeps the contract explicit if a recording is later swapped for one
+ * that does).
+ */
+@Composable
+private fun LoopingMutedVideo(videoRes: Int, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val uri = "android.resource://${context.packageName}/$videoRes"
+    AndroidView(
+        modifier = modifier,
+        factory = { ctx ->
+            VideoView(ctx).apply {
+                setVideoURI(Uri.parse(uri))
+                setOnPreparedListener { mp: MediaPlayer ->
+                    mp.isLooping = true
+                    mp.setVolume(0f, 0f)
+                    start()
+                }
+            }
+        },
+    )
 }

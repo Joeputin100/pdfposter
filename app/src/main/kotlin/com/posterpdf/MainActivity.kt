@@ -1277,9 +1277,32 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     color = Color.Black
                                 )
                                 Spacer(Modifier.height(4.dp))
-                                Text(stringResource(R.string.nag_play_store_url),
+                                // RC37: live Play Store link. Try market:// first
+                                // (opens Play Store app directly), fall back to
+                                // https:// if Play isn't installed (e.g. emulator
+                                // without Play Services). The actual URL stays in
+                                // the string resource so locales can swap copy.
+                                Text(
+                                    stringResource(R.string.nag_play_store_url),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color.Black
+                                    color = Color.Black,
+                                    modifier = Modifier.clickable {
+                                        viewModel.logEvent(context, "Play Store link tapped")
+                                        val intent = android.content.Intent(
+                                            android.content.Intent.ACTION_VIEW,
+                                            android.net.Uri.parse("market://details?id=com.pdfposter"),
+                                        )
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (_: android.content.ActivityNotFoundException) {
+                                            context.startActivity(
+                                                android.content.Intent(
+                                                    android.content.Intent.ACTION_VIEW,
+                                                    android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.pdfposter"),
+                                                ),
+                                            )
+                                        }
+                                    },
                                 )
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {

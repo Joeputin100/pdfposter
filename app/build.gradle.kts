@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc36"  // RC36 (top bar status-bar inset + small-card prices + drop debug credit row + debug-log copy)
+        versionName = "1.0-rc37"  // RC37 (live Play Store link + Getting Started videos with upscale step)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
