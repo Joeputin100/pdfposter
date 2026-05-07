@@ -12,11 +12,13 @@ on:
     branches: [master, "feat/**"]
     paths:
       - 'app/**'
+      - 'benchmark/**'
       - '.github/workflows/test-battery.yml'
   pull_request:
     branches: [master]
     paths:
       - 'app/**'
+      - 'benchmark/**'
       - '.github/workflows/test-battery.yml'
   workflow_dispatch:
 
