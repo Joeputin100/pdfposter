@@ -772,62 +772,12 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                      )
                  }
 
-                  // RC33: debug-only credit-badge override row. Lets the user
-                  // type any number into the badge to preview width/digit
-                  // count, plus a −111 button to exercise the digiflip
-                  // animation on a known delta. Hidden in release builds.
-                  if (com.posterpdf.BuildConfig.DEBUG) {
-                      var badgeOverrideText by remember {
-                          mutableStateOf(viewModel.debugCreditOverride?.toString() ?: "")
-                      }
-                      Surface(
-                          shape = RoundedCornerShape(12.dp),
-                          color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
-                          modifier = Modifier
-                              .fillMaxWidth()
-                              .padding(horizontal = 16.dp, vertical = 8.dp),
-                      ) {
-                          Column(modifier = Modifier.padding(12.dp)) {
-                              Text(
-                                  "Debug · token badge",
-                                  style = MaterialTheme.typography.labelMedium,
-                                  fontWeight = FontWeight.Bold,
-                              )
-                              Spacer(Modifier.height(8.dp))
-                              Row(verticalAlignment = Alignment.CenterVertically) {
-                                  OutlinedTextField(
-                                      value = badgeOverrideText,
-                                      onValueChange = {
-                                          badgeOverrideText = it.filter(Char::isDigit).take(6)
-                                      },
-                                      label = { Text("Set balance") },
-                                      singleLine = true,
-                                      modifier = Modifier.weight(1f),
-                                  )
-                                  Spacer(Modifier.width(8.dp))
-                                  Button(onClick = {
-                                      val n = badgeOverrideText.toIntOrNull()
-                                      if (n != null) viewModel.debugCreditOverride = n
-                                  }) { Text("Set") }
-                              }
-                              Spacer(Modifier.height(8.dp))
-                              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                  Button(onClick = {
-                                      val current = viewModel.debugCreditOverride ?: 0
-                                      val next = (current - 111).coerceAtLeast(0)
-                                      viewModel.debugCreditOverride = next
-                                      badgeOverrideText = next.toString()
-                                  }, modifier = Modifier.weight(1f)) {
-                                      Text("−111 (digiflip)")
-                                  }
-                                  TextButton(onClick = {
-                                      viewModel.debugCreditOverride = null
-                                      badgeOverrideText = ""
-                                  }) { Text("Clear") }
-                              }
-                          }
-                      }
-                  }
+                  // RC36: debug set-credit / spend-credit UI removed (RC33
+                  // shipped it for digiflip testing; user confirmed the
+                  // animation works in RC35 so the controls aren't needed).
+                  // The viewModel.debugCreditOverride field stays so we can
+                  // re-introduce a similar affordance later without churning
+                  // the data model.
 
                   ListItem(
                       headlineContent = { Text(stringResource(R.string.drawer_debug_logging_title)) },
@@ -1177,8 +1127,14 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     tonalElevation = 0.dp,
                 ) {
                     Row(
+                        // RC36: statusBarsPadding pushes the top bar below
+                        // the status bar / camera cutout. Without it the
+                        // custom Surface (RC35) drew under the system UI
+                        // because it isn't a Material 3 TopAppBar — those
+                        // get the inset for free; arbitrary Surfaces don't.
                         modifier = Modifier
                             .fillMaxWidth()
+                            .statusBarsPadding()
                             .heightIn(min = 56.dp)
                             .padding(horizontal = 8.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,

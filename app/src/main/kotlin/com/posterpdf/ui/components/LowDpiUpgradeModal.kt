@@ -256,6 +256,16 @@ private fun usdEquivalent(credits: Int, usdPerCredit: Double): String {
     return "%.2f".format(credits * usdPerCredit)
 }
 
+/**
+ * RC36: pretty-print a credit count as USD under the 1¢=1-credit rule.
+ * Sub-dollar prices read as "89¢" (cleaner than "$0.89" in
+ * microtransaction contexts), ≥$1 prices read as "$X.XX" / "$XX.XX".
+ * Used by the small model cards and the headroom rows so the format
+ * stays consistent across the modal.
+ */
+internal fun formatCredits(credits: Int): String =
+    if (credits >= 100) "$${"%.2f".format(credits / 100.0)}" else "${credits}¢"
+
 // RC3+: all 5 model cards visible at once (NONE / FREE_LOCAL / TOPAZ /
 // RECRAFT / AURASR / ESRGAN) plus a BringYourOwn sentinel — no more
 // expansion link. Selected card gets a glow ring (see UpscaleOptionCard).
@@ -877,13 +887,13 @@ private fun UpscaleOptionCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (credits > 0) {
-                // RC35: dropped the "· ~$X.XX" half. With 1¢ = 1 credit
-                // (Phase H final pricing) the USD is just credits/100, which
-                // is redundant alongside the credit count and was reading as
-                // a bug to users (e.g. "89 credits · ~$10.59" from a stale
-                // 0.119 multiplier). The credit count is the canonical price.
+                // RC36: show "N credits · XX¢" or "N credits · $X.XX" — the
+                // RC35 fix dropped the misleading "$10.59" line entirely
+                // (it came from a stale 0.119 multiplier), but the user
+                // wants the price visible, just formatted correctly under
+                // 1¢ = 1 credit. ¢ for sub-dollar, $ for ≥$1.
                 Text(
-                    "$credits credits",
+                    "$credits credits · ${formatCredits(credits)}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -1276,12 +1286,9 @@ private fun HeadroomRow(
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = onContainer.copy(alpha = 0.8f))
             }
             Text(
-                // RC35: pretty-print prices ≥100¢ as $X.XX so "356¢" reads
-                // as "$3.56" and "89¢" stays as "89¢". Cents-only when the
-                // value would otherwise be "$0.XX" — keeping ¢ for sub-dollar
-                // amounts is friendlier than always-$X.XX in microtransaction
-                // contexts.
-                if (credits >= 100) "$${"%.2f".format(credits / 100.0)}" else "${credits}¢",
+                // RC35/36: shared formatCredits helper — ≥100¢ as "$X.XX",
+                // sub-dollar as "XX¢".
+                formatCredits(credits),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = if (isAffordable) onContainer else MaterialTheme.colorScheme.error,

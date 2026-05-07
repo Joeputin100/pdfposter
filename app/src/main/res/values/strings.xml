@@ -36,7 +36,7 @@
     <string name="drawer_settings_header">Settings</string>
     <string name="drawer_units_label">Units</string>
     <string name="drawer_debug_logging_title">Debug Logging</string>
-    <string name="drawer_debug_logging_subtitle">Write logs to Downloads folder</string>
+    <string name="drawer_debug_logging_subtitle">Record debug events for support tickets</string>
     <string name="drawer_posters_generated_title">Posters Generated</string>
     <string name="drawer_posters_generated_subtitle">Total posters created</string>
     <string name="drawer_default_paper_size">Default Paper Size</string>
