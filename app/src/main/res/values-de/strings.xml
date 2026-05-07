@@ -5,7 +5,7 @@
     <string name="brand_name">PosterPDF</string>
 
     <!-- Splash -->
-    <string name="splash_tap_to_skip">Zum Überspringen tippen</string>
+    <string name="splash_tap_to_skip">Überspringen</string>
 
     <!-- Allgemeine Schaltflächen / Dialoge -->
     <string name="common_ok">OK</string>
@@ -13,7 +13,7 @@
     <string name="common_cancel">Abbrechen</string>
     <string name="common_delete">Löschen</string>
     <string name="common_back">Zurück</string>
-    <string name="common_refresh">Aktualisieren</string>
+    <string name="common_refresh">Neu laden</string>
     <string name="common_got_it">Verstanden</string>
 
     <!-- Obere Leiste -->
@@ -59,7 +59,7 @@
 
     <!-- Bildinformationen -->
     <string name="info_chip_resolution">Auflösung</string>
-    <string name="info_chip_aspect_ratio">Seitenverhältnis</string>
+    <string name="info_chip_aspect_ratio">Bildformat</string>
     <string name="info_dialog_aspect_ratio_title">Seitenverhältnis</string>
     <string name="info_dialog_aspect_ratio_body">Dies ist das Verhältnis von Breite zu Höhe. Die gesperrte Skalierung stellt sicher, dass Ihr Poster exakt die Bildproportionen beibehält.</string>
 
@@ -72,7 +72,7 @@
     <string name="paper_layout_section">Papier &amp; Layout</string>
     <string name="paper_size_section">Papierformat</string>
     <string name="orientation_section">Ausrichtung</string>
-    <string name="orientation_best_fit">Optimale Passung</string>
+    <string name="orientation_best_fit">Optimal</string>
     <string name="orientation_portrait">Hochformat</string>
     <string name="orientation_landscape">Querformat</string>
     <string name="orientation_portrait_cd">Hochformat (Clarus the Dogcow stehend)</string>
@@ -88,7 +88,7 @@
 
     <!-- Papierformat-Karten -->
     <string name="paper_recommended">Empfohlen</string>
-    <string name="paper_custom">Benutzerdefiniert</string>
+    <string name="paper_custom">Eigenes</string>
 
     <!-- Einheiten -->
     <string name="units_inches">Zoll</string>
@@ -332,8 +332,8 @@
     <string name="upscale_card_credits_only">%1$d Credits</string>
     <string name="upscale_card_credits_with_usd">%1$d Credits · ~$%2$s</string>
     <string name="upscale_card_eta">ETA %1$s</string>
-    <string name="upscale_card_unavailable">Nicht verfügbar</string>
-    <string name="upscale_card_upscale_free">Kostenlos hochskalieren</string>
+    <string name="upscale_card_unavailable">Nicht aktiv</string>
+    <string name="upscale_card_upscale_free">Gratis-Upscale</string>
     <string name="upscale_card_sign_in">Anmelden</string>
     <string name="upscale_card_get_more_credits">Credits kaufen</string>
     <string name="upscale_card_upscale_with_credits">Upscale</string>
@@ -417,8 +417,8 @@
     <string name="account_menu_sign_out" tools:maxLength="12">Abmelden</string>
     <string name="account_menu_upgrade" tools:maxLength="12">Upgrade</string>
     <string name="common_close" tools:maxLength="10">Schließen</string>
-    <string name="common_continue_anyway" tools:maxLength="18">Trotzdem fortfahren</string>
-    <string name="common_retry" tools:maxLength="10">Erneut versuchen</string>
+    <string name="common_continue_anyway" tools:maxLength="18">Trotzdem weiter</string>
+    <string name="common_retry" tools:maxLength="10">Erneut</string>
     <string name="credits_history_back_cd">Zurück</string>
     <string name="credits_history_empty">Noch keine Transaktionen. Credit-Käufe und KI-Upscale-Aufträge erscheinen hier.</string>
     <string name="credits_history_loading">Laden&#8230;</string>

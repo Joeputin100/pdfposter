@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc39"  // RC39 (Phase-2 i18n: 288 more strings extracted + translated, support email swap)
+        versionName = "1.0-rc40"  // RC40 (German hot-fix: 9 maxLength overflows shortened to fit fixed-width UI)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
