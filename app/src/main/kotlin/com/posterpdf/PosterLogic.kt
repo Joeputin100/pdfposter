@@ -12,11 +12,95 @@ import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
+import com.tom_roush.pdfbox.pdmodel.font.PDFont
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
 import java.io.File
 import kotlin.math.ceil
+
+// ─── RC42: PDF-text helpers ───────────────────────────────────────────────────
+//
+// PdfBox-Android ships only Type1 (Helvetica) fonts, which are encoded in
+// WinAnsi (Latin-1ish). Calling showText() with characters outside that
+// encoding throws IllegalArgumentException and the whole PDF generation
+// fails — that's why CJK/Cyrillic/Devanagari/Arabic locales were producing
+// no PDF at all in RC39+.
+//
+// True fix is to embed Noto Sans + Noto Sans CJK as PDType0 fonts. That's
+// 5–25 MB of font assets and a separate ramp; deferred to a follow-up RC.
+// Interim fix: detect whether the user's locale produces Latin-1-safe
+// strings, and if not, fall back to the English Context for the PDF only
+// (UI stays in user locale). Better: a generated PDF in English than no
+// PDF at all.
+
+/** True if every char fits the WinAnsi/Latin-1 range PDType1Font accepts. */
+private fun String.isLatin1Safe(): Boolean = all { it.code < 0x100 }
+
+/**
+ * Returns a Context whose Resources resolve strings in English regardless
+ * of the user's locale preference. Used as a fallback for PDF text in
+ * locales whose script Type1 Helvetica can't encode.
+ */
+private fun englishFallbackContext(context: Context): Context {
+    val cfg = android.content.res.Configuration(context.resources.configuration)
+    cfg.setLocale(java.util.Locale.ENGLISH)
+    return context.createConfigurationContext(cfg)
+}
+
+/**
+ * Soft word-wrap: split [text] into lines that each fit within [maxWidth]
+ * points when rendered with [font] at [fontSize]. PdfBox-Android has no
+ * built-in wrapping — showText() just runs off the page edge. Translated
+ * strings (German +35%, French +20%, Hindi +30%) overflowed the diagram
+ * area in RC39+, hence this helper.
+ *
+ * Tokenises on whitespace; doesn't break inside a long word. If a single
+ * word exceeds maxWidth on its own, it's emitted on its own line and will
+ * still overrun — acceptable because it implies a degenerate input.
+ */
+private fun wrapText(
+    text: String,
+    font: PDFont,
+    fontSize: Float,
+    maxWidth: Float,
+): List<String> {
+    if (text.isEmpty()) return listOf("")
+    val words = text.split(' ')
+    val lines = mutableListOf<String>()
+    var current = StringBuilder()
+    for (word in words) {
+        val candidate = if (current.isEmpty()) word else "$current $word"
+        val widthPts = font.getStringWidth(candidate) / 1000f * fontSize
+        if (widthPts <= maxWidth || current.isEmpty()) {
+            if (current.isNotEmpty()) current.append(' ')
+            current.append(word)
+        } else {
+            lines.add(current.toString())
+            current = StringBuilder(word)
+        }
+    }
+    if (current.isNotEmpty()) lines.add(current.toString())
+    return lines
+}
+
+/**
+ * Emit pre-wrapped lines. Caller must already have called beginText() +
+ * setFont() + newLineAtOffset() to position the first line. We advance
+ * by [leadingY] (typically negative — PDF Y axis points up) between
+ * lines. Returns the number of lines emitted so caller can adjust
+ * subsequent vertical layout.
+ */
+private fun PDPageContentStream.showWrappedText(
+    lines: List<String>,
+    leadingY: Float,
+): Int {
+    for ((i, line) in lines.withIndex()) {
+        if (i > 0) newLineAtOffset(0f, leadingY)
+        showText(line)
+    }
+    return lines.size
+}
 
 /**
  * H-P2.7: render a QR code bitmap for the Play Store URL.
@@ -323,6 +407,19 @@ class PosterLogic {
         val cs = PDPageContentStream(doc, page)
         val isLandscapePage = pgw > pgh
 
+        // RC42: pick the effective Context for PDF text. PdfBox's bundled
+        // Type1 Helvetica only encodes Latin-1 — characters outside that
+        // range (Cyrillic, Devanagari, Arabic, CJK) throw on showText()
+        // and the entire PDF generation fails. We sample one representative
+        // body string; if it has any non-Latin-1 codepoint, fall back to
+        // English for ALL PDF text. UI continues in user's locale; only
+        // the printed instruction page reverts to English. A future RC
+        // can embed Noto Sans + Noto Sans CJK to translate the PDF too.
+        val sampleString = pdfCtx.getString(R.string.pdf_assembly_guide_title) +
+            pdfCtx.getString(R.string.pdf_brand_tagline) +
+            pdfCtx.getString(R.string.pdf_assemble_step1)
+        val pdfCtx = if (sampleString.isLatin1Safe()) context else englishFallbackContext(context)
+
         // Compute print DPI at current poster size (convert 1/72 pt back to inches)
         val posterWInches = pw / 72.0
         val posterHInches = ph / 72.0
@@ -357,7 +454,7 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA_OBLIQUE, 9f)
         cs.newLineAtOffset(50f, pgh.toFloat() - 64f)
-        cs.showText(context.getString(R.string.pdf_brand_tagline))
+        cs.showText(pdfCtx.getString(R.string.pdf_brand_tagline))
         cs.endText()
 
         // Section heading
@@ -365,7 +462,7 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA_BOLD, 14f)
         cs.newLineAtOffset(50f, pgh.toFloat() - 95f)
-        cs.showText(context.getString(R.string.pdf_assembly_guide_title))
+        cs.showText(pdfCtx.getString(R.string.pdf_assembly_guide_title))
         cs.endText()
 
         // Project details
@@ -384,42 +481,49 @@ class PosterLogic {
         val unitScale = if (isMetric) 2.54 else 1.0
         val dimPoster = "${"%.1f".format(posterWInches * unitScale)}x${"%.1f".format(posterHInches * unitScale)} $unitLabel"
         val dimPaper = "${"%.1f".format(pgw/72.0 * unitScale)}x${"%.1f".format(pgh/72.0 * unitScale)} $unitLabel"
-        cs.showText(context.getString(R.string.pdf_dimensions_label, dimPoster, dimPaper))
+        cs.showText(pdfCtx.getString(R.string.pdf_dimensions_label, dimPoster, dimPaper))
         cs.newLineAtOffset(0f, -13f)
         val dimMargin = "${"%.2f".format(m/72.0 * unitScale)} $unitLabel"
         val dimOverlap = "${"%.2f".format(o/72.0 * unitScale)} $unitLabel"
-        cs.showText(context.getString(R.string.pdf_margins_label, dimMargin, dimOverlap))
+        cs.showText(pdfCtx.getString(R.string.pdf_margins_label, dimMargin, dimOverlap))
         cs.newLineAtOffset(0f, -13f)
         // RC18: print-resolution label is DPI in Inches, DPCM in Metric.
         // 150 DPI = 59 DPCM, so the math is the same — just relabel.
         val resUnitLabel = if (units == "Metric") "DPCM" else "DPI"
         val resInUserUnit = if (units == "Metric") (minDpi / 2.54).toInt() else minDpi
-        cs.showText(context.getString(R.string.pdf_source_label, "${sourcePixelW}x${sourcePixelH}px", resInUserUnit, resUnitLabel))
+        cs.showText(pdfCtx.getString(R.string.pdf_source_label, "${sourcePixelW}x${sourcePixelH}px", resInUserUnit, resUnitLabel))
         cs.endText()
         cs.setNonStrokingColor(0f, 0f, 0f)
 
         // Low-DPI warning. RC15: suppress when an upscale is queued.
+        // RC42: word-wrap each warning line. In landscape the warning region
+        // is the left ~46% of the page (text column to the left of the
+        // diagram), so wrapWidth ≈ pgw * 0.42. In portrait it's full
+        // width minus margins.
         if (minDpi < 150 && !suppressLowDpiWarning) {
+            val warnWrapWidth = if (isLandscapePage) (pgw * 0.42f).toFloat() else (pgw - 100).toFloat()
             cs.beginText()
             cs.setFont(PDType1Font.HELVETICA_BOLD, 11f)
             cs.setNonStrokingColor(0.8f, 0.35f, 0.0f) // warm orange warning
             cs.newLineAtOffset(detailsX, detailsY - 55f)
-            cs.showText(context.getString(R.string.pdf_dpi_warning_line1))
+            cs.showText(pdfCtx.getString(R.string.pdf_dpi_warning_line1))
             cs.setFont(PDType1Font.HELVETICA, 9f)
             cs.setNonStrokingColor(0.25f, 0.25f, 0.28f)
             cs.newLineAtOffset(0f, -12f)
             // RC18: also unit-aware for the warning copy. 150 DPI ≈ 59 DPCM.
             val targetReadable = if (units == "Metric") "59+ DPCM" else "150+ DPI"
-            if (isLandscapePage) {
-                cs.showText(context.getString(R.string.pdf_dpi_warning_line2_landscape, resInUserUnit, resUnitLabel))
-                cs.newLineAtOffset(0f, -11f)
-                cs.showText(context.getString(R.string.pdf_dpi_warning_line3_landscape, targetReadable))
-                cs.newLineAtOffset(0f, -11f)
-                cs.showText(context.getString(R.string.pdf_dpi_warning_line4_landscape))
-            } else {
-                cs.showText(context.getString(R.string.pdf_dpi_warning_line2_portrait, resInUserUnit, resUnitLabel))
-                cs.newLineAtOffset(0f, -11f)
-                cs.showText(context.getString(R.string.pdf_dpi_warning_line3_portrait, targetReadable))
+            val warnLines = if (isLandscapePage) listOf(
+                pdfCtx.getString(R.string.pdf_dpi_warning_line2_landscape, resInUserUnit, resUnitLabel),
+                pdfCtx.getString(R.string.pdf_dpi_warning_line3_landscape, targetReadable),
+                pdfCtx.getString(R.string.pdf_dpi_warning_line4_landscape),
+            ) else listOf(
+                pdfCtx.getString(R.string.pdf_dpi_warning_line2_portrait, resInUserUnit, resUnitLabel),
+                pdfCtx.getString(R.string.pdf_dpi_warning_line3_portrait, targetReadable),
+            )
+            for ((i, raw) in warnLines.withIndex()) {
+                if (i > 0) cs.newLineAtOffset(0f, -11f)
+                val wrapped = wrapText(raw, PDType1Font.HELVETICA, 9f, warnWrapWidth)
+                cs.showWrappedText(wrapped, leadingY = -11f)
             }
             cs.endText()
             cs.setNonStrokingColor(0f, 0f, 0f)
@@ -639,16 +743,27 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA_BOLD, 12f)
         cs.newLineAtOffset(if (isLandscapePage) 42f else 50f, 120f)
-        cs.showText(context.getString(R.string.pdf_how_to_assemble_header))
+        cs.showText(pdfCtx.getString(R.string.pdf_how_to_assemble_header))
         cs.endText()
+        // RC42: word-wrap each assembly step. Footer text spans full page
+        // width minus margins; we leave 80pt for the QR code on the right.
+        val stepWrapWidth = (pgw - 100 - 80).toFloat()
+        val stepFont = PDType1Font.HELVETICA
+        val stepFontSize = 10f
+        val stepLeading = -13f
+        val steps = listOf(
+            R.string.pdf_assemble_step1,
+            R.string.pdf_assemble_step2,
+            R.string.pdf_assemble_step3,
+        ).map { pdfCtx.getString(it) }
         cs.beginText()
-        cs.setFont(PDType1Font.HELVETICA, 10f)
+        cs.setFont(stepFont, stepFontSize)
         cs.newLineAtOffset(if (isLandscapePage) 42f else 50f, 102f)
-        cs.showText(context.getString(R.string.pdf_assemble_step1))
-        cs.newLineAtOffset(0f, -13f)
-        cs.showText(context.getString(R.string.pdf_assemble_step2))
-        cs.newLineAtOffset(0f, -13f)
-        cs.showText(context.getString(R.string.pdf_assemble_step3))
+        for ((i, raw) in steps.withIndex()) {
+            if (i > 0) cs.newLineAtOffset(0f, stepLeading)
+            val wrapped = wrapText(raw, stepFont, stepFontSize, stepWrapWidth)
+            cs.showWrappedText(wrapped, leadingY = stepLeading)
+        }
         cs.endText()
 
         // Footer accent bar + credit
@@ -659,7 +774,7 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA, 8f)
         cs.newLineAtOffset(50f, 18f)
-        cs.showText(context.getString(R.string.pdf_footer_made_with, "Poster PDF"))
+        cs.showText(pdfCtx.getString(R.string.pdf_footer_made_with, "Poster PDF"))
         cs.endText()
         cs.setNonStrokingColor(0f, 0f, 0f)
 

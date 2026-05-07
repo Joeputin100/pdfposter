@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc41"  // RC41 (test-battery API 23-36 expansion + Macrobenchmark module — startup + scroll-jank)
+        versionName = "1.0-rc42"  // RC42 (PDF i18n hot-fix: word-wrap + non-Latin1 English fallback)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
