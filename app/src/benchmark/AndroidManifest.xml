@@ -12,7 +12,21 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <application tools:replace="android:debuggable">
+    <application>
+        <!--
+          The previous draft had `tools:replace="android:debuggable"` on the
+          <application> tag, which the manifest merger interprets as "I'm
+          overriding android:debuggable here" — but no new value was given,
+          so it failed with `tools:replace specified … but no new value
+          specified`. The merger also ran on unit-test builds because the
+          benchmark variant is part of every assemble pipeline, so the
+          error broke far more than just the macrobench job.
+
+          We don't actually need to override debuggable; the build.gradle.kts
+          for the benchmark variant already sets isDebuggable = false. This
+          overlay only contributes the <profileable> child element, which
+          merges automatically.
+        -->
         <profileable
             android:shell="true"
             tools:targetApi="29" />
