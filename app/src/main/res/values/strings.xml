@@ -241,7 +241,7 @@
     <string name="faq_q_custom_paper">Can I print at a non-standard paper size?</string>
     <string name="faq_a_custom_paper">Yes — pick \'Custom\' in the paper-size selector. You\'ll get two additional fields for paper width and height. Use this if your printer takes A5, B5, photo paper, or any size we don\'t list. The tile math works the same way; we just trust the dimensions you type.</string>
     <string name="faq_q_data_deletion">What if I want my data deleted?</string>
-    <string name="faq_a_data_deletion">Three paths, depending on scope. Local-only: Settings → Reset to Defaults wipes preferences and resets the app on this device. Per-poster cloud copy: open History, find the row, tap the cloud-off (red) icon. Account-wide deletion (auth record + all Firestore history + all cloud-stored PDFs): email support@joeputin.com from the address tied to your Google sign-in and we\'ll process the request manually within 7 days.</string>
+    <string name="faq_a_data_deletion">Three paths, depending on scope. Local-only: Settings → Reset to Defaults wipes preferences and resets the app on this device. Per-poster cloud copy: open History, find the row, tap the cloud-off (red) icon. Account-wide deletion (auth record + all Firestore history + all cloud-stored PDFs): email jc24q@pm.me from the address tied to your Google sign-in and we\'ll process the request manually within 7 days.</string>
 
     <!-- Getting started screen -->
     <string name="screen_getting_started_title">Getting Started</string>
@@ -271,7 +271,7 @@
 
     <!-- Privacy policy screen -->
     <string name="screen_privacy_title">Privacy Policy</string>
-    <string name="privacy_intro">Effective: 2026-05-03. We try to keep this short and accurate. If anything below doesn\'t match what the app actually does, treat that as a bug and email support@joeputin.com.</string>
+    <string name="privacy_intro">Effective: 2026-05-03. We try to keep this short and accurate. If anything below doesn\'t match what the app actually does, treat that as a bug and email jc24q@pm.me.</string>
     <string name="privacy_sec_collect_first_launch_title">What we collect at first launch</string>
     <string name="privacy_sec_collect_first_launch_body">An anonymous Firebase Auth UID — a random opaque string with no personally identifying information. This is what lets your history persist across app restarts on this device.</string>
     <string name="privacy_sec_google_title">What we collect if you sign in with Google</string>
@@ -286,11 +286,11 @@
     <string name="privacy_sec_retention_title">Retention</string>
     <string name="privacy_sec_retention_body">Set by your Settings → Cloud storage… choice. Free tier: 30 days. Paid tiers: 90 days, 1 year, or indefinite. History metadata in Firestore follows the same retention. Local files and local history stay on your device until you uninstall or tap Reset to Defaults.</string>
     <string name="privacy_sec_deletion_title">Deletion paths</string>
-    <string name="privacy_sec_deletion_body">Local data: Settings → Reset to Defaults wipes preferences and the on-device history index. Per-poster cloud copy: open History, tap the red cloud-off button on the row. Account-wide (auth + all Firestore history + all cloud PDFs): email support@joeputin.com from the address tied to your Google sign-in. We process within 7 days.</string>
+    <string name="privacy_sec_deletion_body">Local data: Settings → Reset to Defaults wipes preferences and the on-device history index. Per-poster cloud copy: open History, tap the red cloud-off button on the row. Account-wide (auth + all Firestore history + all cloud PDFs): email jc24q@pm.me from the address tied to your Google sign-in. We process within 7 days.</string>
     <string name="privacy_sec_third_party_title">Third-party services</string>
     <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (all Google Cloud); FAL.ai for AI upscale; Google Play Billing for credit purchases. We do not run any analytics or advertising SDK. We have no access to other apps on your phone.</string>
     <string name="privacy_sec_contact_title">Contact</string>
-    <string name="privacy_sec_contact_body">support@joeputin.com for any privacy question or deletion request. Source code is public at github.com/Joeputin/pdfposter — what you see in this policy matches what\'s in the code.</string>
+    <string name="privacy_sec_contact_body">jc24q@pm.me for any privacy question or deletion request. Source code is public at github.com/Joeputin/pdfposter — what you see in this policy matches what\'s in the code.</string>
 
     <!-- Upscale comparison screen -->
     <string name="screen_compare_title">Compare AI upscalers</string>
@@ -542,4 +542,373 @@
     <string name="pdf_assemble_step2">2. Match labels (A1, A2, B1&#8230;) to the grid above.</string>
     <string name="pdf_assemble_step3">3. Align overlapping edges and glue or tape from the back.</string>
     <string name="pdf_footer_made_with">Made with %1$s &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+
+    <!-- RC39: Phase-2 i18n cleanup — every user-visible English string -->
+
+    <!-- Image picker hero -->
+    <string name="image_picker_hero">Pick an image for your poster</string>
+    <string name="image_picker_change">Change Image</string>
+    <string name="image_picker_select_cd">Select Image</string>
+    <string name="image_picker_selected_cd">Selected Poster Image</string>
+
+    <!-- DPI summary chips -->
+    <string name="dpi_chip_original" tools:maxLength="14">Original</string>
+    <string name="dpi_chip_upscaled" tools:maxLength="14">Upscaled</string>
+    <string name="dpi_chip_target" tools:maxLength="14">Target</string>
+    <string name="dpi_chip_about_print_resolution_cd">About print resolution</string>
+
+    <!-- Info chip labels (vector-image format chip + content descriptions) -->
+    <string name="info_chip_format" tools:maxLength="14">Format</string>
+    <string name="info_chip_format_value_vector_svg">Vector (SVG)</string>
+
+    <!-- Project scope formatted -->
+    <string name="project_scope_inline">Project scope: %1$d pages (%2$d rows x %3$d columns)</string>
+
+    <!-- Width / Height with unit (poster + custom paper) -->
+    <string name="poster_width_with_unit_inline">Width (%1$s)</string>
+    <string name="poster_height_with_unit_inline">Height (%1$s)</string>
+
+    <!-- Sharpen-for-print CTA on main screen -->
+    <string name="sharpen_for_print_title">Sharpen for print</string>
+    <string name="sharpen_for_print_subtitle">Free or AI upscale — pick what fits.</string>
+
+    <!-- Drawer: target print resolution slider/help -->
+    <string name="drawer_target_print_resolution">Target print %1$s: %2$d</string>
+    <string name="drawer_target_dpi_help_metric">Higher DPCM → sharper print, more upscale credits used. 59 is standard for posters; 118 for photos; 236+ for fine art.</string>
+
+    <!-- Drawer: misc -->
+    <string name="drawer_settings_cd">Settings</string>
+    <string name="drawer_share_debug_subtitle_size">%1$d KB · tap to share</string>
+    <string name="drawer_share_debug_subtitle_empty">No log file yet — enable debug logging above first</string>
+    <string name="drawer_debug_log_email_subject">PosterPDF debug log</string>
+    <string name="drawer_share_debug_chooser">Share debug log</string>
+    <string name="drawer_build_label">Build %1$s</string>
+
+    <!-- Nag banner -->
+    <string name="nag_body_inline">You\'ve made %1$d posters! Please consider registering on the Play Store for just $2 to support development.</string>
+    <string name="nag_maybe_later_count">Maybe Later (%1$ds)</string>
+    <string name="nag_maybe_later_plain">Maybe Later</string>
+    <string name="nag_dismiss_cd">Dismiss</string>
+
+    <!-- Info dialogs (Aspect Ratio / Margin / Overlap) -->
+    <string name="info_aspect_title">Aspect Ratio</string>
+    <string name="info_aspect_body">This is the ratio of width to height. Locked scaling ensures your poster matches the image proportions perfectly.</string>
+    <string name="info_margin_title">Margin</string>
+    <string name="info_margin_body">The unprinted space around the edges of each page. Most home printers require at least 0.25in (0.64cm).</string>
+    <string name="info_overlap_title">Overlap</string>
+    <string name="info_overlap_body">The repeated area between tiles to help you align and glue them together. 0.25in to 0.5in is recommended.</string>
+
+    <!-- Chooser titles -->
+    <string name="chooser_title_open_pdf">Open PDF</string>
+    <string name="chooser_title_share_pdf">Share PDF</string>
+
+    <!-- Low DPI dialog body -->
+    <string name="low_dpi_dialog_body_inline">Your poster is currently around %1$d DPI. For a sharp print you want at least 150 DPI. Continue anyway, or upscale your image first?</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_step1_inline">Pick a high-resolution image above.</string>
+    <string name="onboarding_step2_inline">Set your final poster dimensions.</string>
+    <string name="onboarding_step3_inline">Select your paper size and orientation.</string>
+    <string name="onboarding_step4_inline">View or Save your print-ready PDF!</string>
+
+    <!-- Account / drawer fallbacks -->
+    <string name="account_signed_in_label">Signed in</string>
+    <string name="account_storage_label">Storage</string>
+    <string name="account_profile_picture_cd2">Profile picture</string>
+
+    <!-- History (drawer + screen) -->
+    <string name="history_view_all_n">View all (%1$d)</string>
+    <string name="history_view_all_plain">View all</string>
+    <string name="history_refresh_cd2">Refresh history</string>
+    <string name="history_dim_unknown">—</string>
+    <string name="history_dim_pages_grid">%1$d pages · %2$d×%3$d</string>
+    <string name="history_dim_poster">%1$s × %2$s %3$s</string>
+    <string name="history_empty_subtitle_inline">Generate a poster — it\'ll show up here.</string>
+
+    <!-- Compare subjects (enum labels) -->
+    <string name="compare_subject_disco_chicken_label">Disco chicken</string>
+    <string name="compare_subject_cat_label">Cat</string>
+    <string name="compare_subject_gristmill_label">Gristmill</string>
+    <string name="compare_subject_earth_label">Earth poster</string>
+
+    <!-- Compare screen footer attribution -->
+    <string name="compare_footer_attribution">Demo images: cat_shimmer (CC BY 2.0), gristmill (CC BY-SA 4.0), earth poster (CC BY 2.0, ESO). disco_chicken generated by Gemini Nano Banana.</string>
+    <string name="compare_back_cd">Back</string>
+    <string name="compare_source_cd">Source image</string>
+    <string name="compare_upscaled_cd">Upscaled image</string>
+
+    <!-- Units toggle labels -->
+    <string name="units_inches_label">Inches</string>
+    <string name="units_centimeters_label">Centimeters</string>
+
+    <!-- Purchase sku display names -->
+    <string name="purchase_sku_starter_name">Starter</string>
+    <string name="purchase_sku_small_name">Small</string>
+    <string name="purchase_sku_medium_name">Medium</string>
+    <string name="purchase_sku_large_name">Large</string>
+    <string name="purchase_balance_inline">Balance: %1$d</string>
+    <string name="purchase_sku_credits_price_inline">%1$d credits  -  %2$s</string>
+    <string name="purchase_credit_coin_cd">1¢ AI credit coin</string>
+
+    <!-- Live preview -->
+    <string name="preview_live_assembly_inline">Live Assembly Preview</string>
+    <string name="preview_legend_margin_inline">Margin</string>
+    <string name="preview_legend_overlap_inline">Overlap</string>
+    <string name="preview_low_dpi_inline">Low resolution: %1$d %2$s · Tap to upscale ↑</string>
+
+    <!-- Upscale option display names (extracted from data class init) -->
+    <string name="upscale_option_now_pixelated">Now (pixelated)</string>
+    <string name="upscale_option_free_upscale">Free upscale</string>
+    <string name="upscale_option_recraft_crisp">Recraft Crisp</string>
+    <string name="upscale_option_aurasr">AuraSR</string>
+    <string name="upscale_option_esrgan">ESRGAN</string>
+    <string name="upscale_option_ccsr">CCSR</string>
+    <string name="upscale_option_topaz_gigapixel">Topaz Gigapixel</string>
+
+    <!-- Upscale option pros/cons (extracted from data class init) -->
+    <string name="upscale_option_now_pros">Fastest, free, works on any device</string>
+    <string name="upscale_option_now_cons">Visible pixelation at large prints</string>
+    <string name="upscale_option_free_pros">Free, offline, works without internet</string>
+    <string name="upscale_option_free_cons">Slower on older phones; 4× max</string>
+    <string name="upscale_option_recraft_pros">Best for photos &amp; portraits — keeps the original look</string>
+    <string name="upscale_option_recraft_cons">Softer than Topaz on text and hard edges</string>
+    <string name="upscale_option_esrgan_pros">Budget cleanup — predictable open-source baseline</string>
+    <string name="upscale_option_esrgan_cons">Dated model; can over-smooth fine detail</string>
+    <string name="upscale_option_aurasr_pros">Best for art, anime &amp; illustrations — fast GAN polish</string>
+    <string name="upscale_option_aurasr_cons">Occasional artifacts on skies and skin</string>
+    <string name="upscale_option_ccsr_pros">Photo-faithful, scale-tunable mid-tier</string>
+    <string name="upscale_option_ccsr_cons">Slower than ESRGAN; less crisp on text than Topaz</string>
+    <string name="upscale_option_topaz_pros">Best for text, line art &amp; print-shop polish</string>
+    <string name="upscale_option_topaz_cons">30× the cost for ~10–20% sharper edges</string>
+
+    <!-- LowDpiUpgradeModal extra cards / lever rows / footer -->
+    <string name="lowdpi_header_svg_inline">Vector source — no upscale needed</string>
+    <string name="lowdpi_header_warning_inline">This poster will print at low resolution</string>
+    <string name="lowdpi_current_dpi_inline">Current: %1$d DPI  ·  %2$s\" × %3$s\"</string>
+    <string name="lowdpi_poster_size_only_inline">Poster size: %1$s\" × %2$s\"</string>
+    <string name="lowdpi_eta_estimating_inline">estimating…</string>
+    <string name="lowdpi_card_reduce_title">Reduce poster size</string>
+    <string name="lowdpi_card_reduce_body">Same source image, smaller print → higher DPI. Fastest fix, no upload needed.</string>
+    <string name="lowdpi_card_upgrade_title">Upgrade source</string>
+    <string name="lowdpi_card_upgrade_body">Upscale on-device (free, gated by RAM) or via AI (credits charged per model).</string>
+    <string name="lowdpi_card_byo_title">Bring your own</string>
+    <string name="lowdpi_card_byo_body">Already upscaled with Canva, OpenArt, Topaz Photo AI, or Magnific? Load the upscaled file directly. PosterPDF is free with any image source — AI credits only cover the inference cost.</string>
+    <string name="lowdpi_dismiss_svg_inline">Got it</string>
+    <string name="lowdpi_dismiss_warning_inline">Reduce poster size instead</string>
+    <string name="lowdpi_card_byo_inline">Bring your own</string>
+    <string name="lowdpi_more_about_model_cd">More about %1$s</string>
+    <string name="lowdpi_pixelated_preview_cd">Pixelated preview</string>
+    <string name="lowdpi_free_preview_cd">Free upscale preview (original image)</string>
+    <string name="lowdpi_model_preview_cd">%1$s preview</string>
+    <string name="lowdpi_card_credits_inline">%1$d credits · %2$s</string>
+    <string name="lowdpi_card_eta_on_device">%1$s on your device</string>
+    <string name="lowdpi_card_eta_unavailable">Unavailable</string>
+
+    <!-- Headroom picker -->
+    <string name="headroom_section_title">Headroom</string>
+    <string name="headroom_section_body">Topaz can scale 2× – 8×. By default we pick the smallest scale that meets your target DPI to keep credits low. Bump it up for extra crispness.</string>
+    <string name="headroom_just_enough_title">Just enough</string>
+    <string name="headroom_just_enough_subtitle">%1$d× scale · meets your target DPI</string>
+    <string name="headroom_above_title">Above target</string>
+    <string name="headroom_above_subtitle">%1$d× scale · sharper edges, more credits</string>
+    <string name="headroom_max_title">Maximum</string>
+    <string name="headroom_max_subtitle">%1$d× scale · max sharpness Topaz allows</string>
+
+    <!-- Model detail dialog action labels and section headers -->
+    <string name="model_detail_section_pick_when">Pick this when</string>
+    <string name="model_detail_section_what_stands_out">What stands out</string>
+    <string name="model_detail_section_worth_the_price">Worth the price?</string>
+    <string name="model_detail_best_for">Best for</string>
+    <string name="model_detail_close_cd">Close</string>
+    <string name="model_detail_action_use_free">Use free upscaler</string>
+    <string name="model_detail_action_sign_in">Sign in to upscale</string>
+    <string name="model_detail_action_get_credits">Get more credits</string>
+    <string name="model_detail_action_upscale_with">Upscale with %1$s</string>
+
+    <!-- Bring-your-own help dialog steps -->
+    <string name="byo_help_step1_title">Pick your tool</string>
+    <string name="byo_help_step1_body">Any of these will work — pick whichever you already have or fits your budget:</string>
+    <string name="byo_help_step2_title">Run upscale</string>
+    <string name="byo_help_step2_body">Open your chosen tool, upload the original image, and run upscale at 4× or 8×. Higher = sharper, but takes longer and costs more.</string>
+    <string name="byo_help_step3_title">Save to phone</string>
+    <string name="byo_help_step3_body">Download the result to your Downloads folder (or anywhere accessible by Android\'s file picker — Drive, Photos, etc. all work).</string>
+    <string name="byo_help_step4_title">Continue here</string>
+    <string name="byo_help_step4_body">Tap \'Choose file\' below — pick your upscaled file. PosterPDF will use it directly without running its own upscaler.</string>
+
+    <!-- BYO dialog tool names + notes (proper-noun tool names not localised; notes are) -->
+    <string name="byo_tool_canva_note_inline">Designer-friendly. Built-in upscaler under Edit Image → Magic Studio.</string>
+    <string name="byo_tool_openart_note_inline">Heavy AI library; the \'Upscaler\' tab handles 4× and 8×.</string>
+    <string name="byo_tool_fal_note_inline">Pay-per-image, no subscription. Professional-grade quality.</string>
+    <string name="byo_tool_magnific_note_inline">Premium creative upscaler. Slowest but most stylized.</string>
+
+    <!-- Getting Started screen -->
+    <string name="gs_screen_title">Getting Started</string>
+    <string name="gs_back_cd">Back</string>
+    <string name="gs_intro_body">PosterPDF turns any image into a printable wall poster, tiled across letter or A4 pages so you can assemble it at home. Pick a photo, set how big you want the finished poster, and we\'ll generate a print-ready PDF you can send straight to your printer.</string>
+    <string name="gs_section_what_you_get_for_free">What You Get for Free</string>
+    <string name="gs_feat_no_catch_title">No catch</string>
+    <string name="gs_feat_no_catch_body">No ads, no watermarks, no reduced functionality. Every feature works the same whether you spend a cent or not.</string>
+    <string name="gs_feat_poster_title">Poster generation</string>
+    <string name="gs_feat_poster_body">Tile any image across multiple pages — no watermarks, no page limit.</string>
+    <string name="gs_feat_paper_title">All paper sizes</string>
+    <string name="gs_feat_paper_body">Letter, Legal, Tabloid, A3, A4, plus a Custom size for unusual printers.</string>
+    <string name="gs_feat_upscale_title">On-device upscale</string>
+    <string name="gs_feat_upscale_body">4× upscale runs locally on your phone — no internet, no credits.</string>
+    <string name="gs_feat_storage_title">30-day cloud storage</string>
+    <string name="gs_feat_storage_body">We hold your generated PDFs for 30 days so you can re-download from another device.</string>
+    <string name="gs_feat_history_title">History forever</string>
+    <string name="gs_feat_history_body">Every poster you make stays in your local history on this phone.</string>
+    <string name="gs_paid_explainer">AI upscale (Topaz, Recraft, Magnific…) is opt-in and uses credits. We charge enough above the AI provider\'s per-image cost to cover Play Store fees and servers — see the FAQ for the exact margin breakdown.</string>
+    <string name="gs_section_4_step_tour">4-Step Tour</string>
+    <string name="gs_tour_pick_image_title">Pick an image</string>
+    <string name="gs_tour_pick_image_body">Tap the photo card at the top. Use the highest-resolution copy you have — small phone screenshots will look pixelated when blown up to wall-poster size.</string>
+    <string name="gs_tour_set_size_title">Set the size</string>
+    <string name="gs_tour_set_size_body">Type the width and height of the finished poster. Lock the aspect ratio (the chain icon) to keep your image proportions, or unlock to crop. Pick a paper size that matches your printer — Letter is the home/office default in North America; A4 elsewhere.</string>
+    <string name="gs_tour_generate_title">Generate</string>
+    <string name="gs_tour_generate_body">Tap View, Save, or Share. View opens the PDF in your reader; Save lets you choose a folder; Share hands the PDF to any app (email, Drive, print). If your image is below 150 DPI at the chosen size, we\'ll prompt you to upscale first.</string>
+    <string name="gs_tour_upscale_title">Upscale (optional)</string>
+    <string name="gs_tour_upscale_body">Below 150 DPI we offer an upscale to reach print quality. Free on-device 4×, or AI upscale (Topaz / Recraft / AuraSR / ESRGAN / CCSR) for higher fidelity at a credit cost. Compare the models side-by-side from the Sharpen for Print screen before you spend.</string>
+
+    <!-- Privacy Policy screen -->
+    <string name="privacy_screen_title">Privacy Policy</string>
+    <string name="privacy_back_cd">Back</string>
+    <string name="privacy_intro_inline">Effective: 2026-05-03. We try to keep this short and accurate. If anything below doesn\'t match what the app actually does, treat that as a bug and email jc24q@pm.me.</string>
+    <string name="privacy_first_launch_title">What we collect at first launch</string>
+    <string name="privacy_first_launch_body">An anonymous Firebase Auth UID — a random opaque string with no personally identifying information. This is what lets your history persist across app restarts on this device.</string>
+    <string name="privacy_google_title">What we collect if you sign in with Google</string>
+    <string name="privacy_google_body">Your Google account name and email address. We use these to show you who\'s signed in, sync your history across devices, and process account-wide deletion requests. We do NOT receive your Google password, contacts, calendar, drive, or other Google data.</string>
+    <string name="privacy_firestore_title">History metadata (Firestore)</string>
+    <string name="privacy_firestore_body">When you generate a poster, we record: poster width and height, paper size, orientation, margin, overlap, output DPI, page count, and a creation timestamp. This goes to Firestore at /users/{uid}/history. We do NOT store the source image bytes or any pixel data in Firestore.</string>
+    <string name="privacy_storage_title">PDF blobs (Cloud Storage) — opt-in</string>
+    <string name="privacy_storage_body">If you opt into cloud retention (Settings → Cloud storage…), we upload generated PDFs to Cloud Storage at gs://(project)/user-pdfs/{uid}/. The default retention is 30 days; paid tiers extend that. The default Settings choice is local-only — nothing leaves your device unless you opt in.</string>
+    <string name="privacy_fal_title">AI upscale (FAL.ai)</string>
+    <string name="privacy_fal_body">When you tap an AI upscale option (Topaz, Recraft, AuraSR, ESRGAN, Magnific), the source image is sent to FAL.ai for processing, and the upscaled result is returned. FAL.ai retains the input and output for the period set in their TOS — typically minutes to hours, but read their policy directly:</string>
+    <string name="privacy_retention_title">Retention</string>
+    <string name="privacy_retention_body">Set by your Settings → Cloud storage… choice. Free tier: 30 days. Paid tiers: 90 days, 1 year, or indefinite. History metadata in Firestore follows the same retention. Local files and local history stay on your device until you uninstall or tap Reset to Defaults.</string>
+    <string name="privacy_deletion_title">Deletion paths</string>
+    <string name="privacy_deletion_body">Local data: Settings → Reset to Defaults wipes preferences and the on-device history index. Per-poster cloud copy: open History, tap the red cloud-off button on the row. Account-wide (auth + all Firestore history + all cloud PDFs): email jc24q@pm.me from the address tied to your Google sign-in. We process within 7 days.</string>
+    <string name="privacy_third_party_title">Third-party services</string>
+    <string name="privacy_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (all Google Cloud); FAL.ai for AI upscale; Google Play Billing for credit purchases. We do not run any analytics or advertising SDK. We have no access to other apps on your phone.</string>
+    <string name="privacy_contact_title">Contact</string>
+    <string name="privacy_contact_body">jc24q@pm.me for any privacy question or deletion request. Source code is public at github.com/Joeputin/pdfposter — what you see in this policy matches what\'s in the code.</string>
+
+    <!-- Help screen -->
+    <string name="help_screen_title">Help</string>
+    <string name="help_back_cd">Back</string>
+    <string name="help_paper_sizes_title_inline">Paper sizes</string>
+    <string name="help_paper_sizes_body_inline">PosterPDF supports Letter (8.5×11 in), Legal (8.5×14 in), Tabloid (11×17 in), A4 (8.27×11.69 in), A3 (11.69×16.54 in), and a Custom size for unusual printers. Letter is the home/office default in North America; A4 is standard everywhere else. Pick whichever matches the paper actually loaded in your printer — the app will tile your poster across as many pages as needed.</string>
+    <string name="help_low_dpi_title_inline">Low-DPI warning</string>
+    <string name="help_low_dpi_body_inline">If your image has fewer pixels than the printed size demands, we show a yellow warning and tap-to-fix banner under the preview. 150 DPI is the rule-of-thumb minimum for sharp prints. Below that, your poster will look blurry or pixelated. Tap the banner to open the upscale modal — it shows what your output will actually look like at each upscale option, with cost in credits.</string>
+    <string name="help_upscale_title_inline">Upscale options</string>
+    <string name="help_upscale_body_inline">Five default cards: \'Now (pixelated)\' shows what you get with no upscale; \'Free upscale\' runs ESRGAN locally on your phone (no internet, no credits, ~30s); \'Topaz 4×\' is the highest-quality paid option; \'Recraft Crisp\' is photo-faithful and ~40× cheaper than Topaz; \'Bring your own\' lets you load a file you upscaled elsewhere (Canva, OpenArt, Magnific, or Topaz desktop). Tap \'See other AI options\' to expand to Topaz 8×, AuraSR, and ESRGAN.</string>
+    <string name="help_signin_title_inline">Sign-in</string>
+    <string name="help_signin_body_inline">First launch creates an anonymous Firebase Auth session — your history works immediately, no account needed. To keep history across devices (or restore after reinstalling), open the side menu and tap \'Sign in with Google\'. We only collect your name and email; we don\'t post on your behalf, read other Google data, or share with third parties.</string>
+    <string name="help_history_title_inline">History</string>
+    <string name="help_history_body_inline">Every poster you generate appears in the History list. Each row has 4 buttons: View opens the local PDF; Share hands it to email or messaging apps; Download (cloud icon) pulls a copy from cloud storage if you opted in; Delete (cloud-off icon) removes the cloud copy without touching your local file or history entry.</string>
+    <string name="help_sharing_title_inline">Sharing</string>
+    <string name="help_sharing_body_inline">The new \'Share…\' button on the main screen lets you send the current poster to any app — Gmail, WhatsApp, Drive, your printer\'s companion app, etc. The PDF is generated fresh each time so it always reflects the current settings.</string>
+
+    <!-- FAQ screen -->
+    <string name="faq_screen_title">FAQ</string>
+    <string name="faq_back_cd">Back</string>
+    <string name="faq_q_credits_inline">Why does it ask for credits?</string>
+    <string name="faq_a_credits_inline">Credits pay the AI services that sharpen your photo for big prints. We pass that cost on to you per upscale. Everything else — making posters, the free on-device sharpener, your history, and 30 days of cloud backup — is free, with any photo. You only spend credits when you tap one of the AI upscale options.</string>
+    <string name="faq_q_credit_value_inline">Why are my credits worth less than the price I paid?</string>
+    <string name="faq_a_credit_value_inline">Honest answer: most of what you pay goes to the AI service doing the actual work. The rest covers Play Store\'s cut, our servers, and a small slice that funds ongoing app development. We aim for about 50%% above the raw AI cost — enough to keep the lights on. Every credit pack shows the equivalent in dollars so you always know what you\'re buying.</string>
+    <string name="faq_q_offline_inline">Can I use it offline?</string>
+    <string name="faq_a_offline_inline">Yes for everything you actually do — picking a photo, making a poster, the free sharpener, and View / Save / Share all work without internet. You need a connection only for: signing in with Google, AI upscales, buying credits, and cloud backup. When you reconnect, your history syncs in the background.</string>
+    <string name="faq_q_out_of_credits_inline">What happens if I run out of credits?</string>
+    <string name="faq_a_out_of_credits_inline">Two things, and they\'re separate. (1) AI upscale options become unavailable — the buttons turn into \'Get more credits\' prompts. Free poster-making and the free sharpener keep working. (2) If you\'ve paid to keep posters in cloud storage longer than 30 days, we\'ll email a warning and hold them for 30 more days before deleting. Your local files and history list never go away.</string>
+    <string name="faq_q_pdf_time_inline">Why do PDFs take about 30 seconds to make?</string>
+    <string name="faq_a_pdf_time_inline">Each printed page is built separately at the right resolution — your image gets cropped and resharpened for every tile, then dressed up with rulers, page labels, crop marks, and the footer. A 4×4 poster means 16 page builds. We could cache the work, but redoing it each time is the most reliable way to keep edges sharp. Bigger posters take longer.</string>
+    <string name="faq_q_custom_paper_inline">Can I print at a non-standard paper size?</string>
+    <string name="faq_a_custom_paper_inline">Yes — pick \'Custom\' in the paper-size selector. You\'ll get fields for paper width and height. Use this if your printer takes A5, B5, photo paper, or anything we don\'t list. The math works the same way; we just trust the dimensions you type.</string>
+    <string name="faq_q_data_deletion_inline">What if I want my data deleted?</string>
+    <string name="faq_a_data_deletion_inline">Three paths, depending on what you mean. Just this device: Settings → Reset to Defaults clears your preferences and the on-device history. One cloud-stored poster: open History, find the row, tap the red cloud-with-line icon. Everything you\'ve ever done with us (your sign-in, all history, every cloud-stored PDF): email jc24q@pm.me from the address you signed in with. We\'ll process within 7 days.</string>
+
+    <!-- Support screen extras -->
+    <string name="support_intro_body">Tell us what went wrong, what you wish the app did, or what\'s confusing. We read every report.</string>
+    <string name="support_description_placeholder">What were you doing when it happened? What did you expect vs. what you saw?</string>
+    <string name="support_cat_bug">Bug report</string>
+    <string name="support_cat_feature">Feature request</string>
+    <string name="support_cat_billing">Billing question</string>
+    <string name="support_cat_other">Other</string>
+    <string name="support_cat_pick_cd">Pick category</string>
+    <string name="support_diag_label">Include diagnostic info</string>
+    <string name="support_diag_help">This helps us reproduce the bug faster.</string>
+    <string name="support_diag_hide">Hide details</string>
+    <string name="support_diag_show">What\'s included / what\'s not</string>
+    <string name="support_diag_send_header">We send:</string>
+    <string name="support_diag_no_send_header">We do NOT send:</string>
+    <string name="support_diag_send_device">Your device: %1$s</string>
+    <string name="support_diag_send_version">App version: %1$s</string>
+    <string name="support_diag_send_log">Last ~50 KB of your debug log — taps, image picks, error messages, upscale tile counts</string>
+    <string name="support_diag_send_account">Your account ID and email if signed in, so we can link your report to backend records</string>
+    <string name="support_diag_send_timestamp">A timestamp</string>
+    <string name="support_diag_no_photos">Any photos you\'ve imported into the app</string>
+    <string name="support_diag_no_pdfs">Any PDFs you\'ve generated</string>
+    <string name="support_diag_no_files">Files anywhere else on your phone</string>
+    <string name="support_diag_no_phone">Your phone number, contacts, or location</string>
+    <string name="support_diag_no_apps">A list of other apps installed on your phone</string>
+    <string name="support_diag_no_cloud">Any cloud-stored posters or their content</string>
+    <string name="support_diag_why">Why this helps: most bugs depend on a specific sequence of taps on a specific device. Without these clues we end up asking you a dozen follow-up questions. With them we can usually reproduce the issue on a matching test device the same day.</string>
+    <string name="support_replies_to">Replies go to %1$s.</string>
+    <string name="support_replies_signed_out">Sign in with Google to get a reply by email.</string>
+    <string name="support_thanks_toast">Thanks — feedback sent (%1$s)</string>
+    <string name="support_send_failed_toast">Couldn\'t send feedback: %1$s</string>
+    <string name="support_unknown_error">unknown error</string>
+
+    <!-- ViewModel — error/success messages -->
+    <string name="vm_phase_starting">Starting…</string>
+    <string name="vm_phase_uploading_source">Uploading source…</string>
+    <string name="vm_phase_in_queue">Waiting in queue…</string>
+    <string name="vm_phase_in_progress">Sharpening with %1$s…</string>
+    <string name="vm_phase_downloading">Downloading result…</string>
+    <string name="vm_phase_saving">Saving…</string>
+    <string name="vm_phase_done">Done</string>
+    <string name="vm_phase_failed">Failed</string>
+    <string name="vm_error_couldnt_open_image">Couldn\'t open the source image</string>
+    <string name="vm_error_sharpening_timed_out">Sharpening timed out after 15 minutes — try a smaller poster size or use an AI option instead.</string>
+    <string name="vm_error_upscale_failed_inline">Upscale failed: %1$s</string>
+    <string name="vm_success_upscaled_inline">Upscaled to %1$d×%2$d</string>
+    <string name="vm_success_upscaled_via">Upscaled to %1$d×%2$d via %3$s</string>
+    <string name="vm_error_decode_failed">Upscale completed but result image could not be decoded</string>
+    <string name="vm_error_ai_failed_prefix">AI upscale failed: %1$s</string>
+    <string name="vm_error_ai_error_prefix">AI upscale error: %1$s</string>
+
+    <!-- Free-upscale dialog body strings -->
+    <string name="free_upscale_preparing">Preparing tiles…</string>
+    <string name="free_upscale_saving">Saving…</string>
+    <string name="free_upscale_about_left">About %1$s left</string>
+    <string name="free_upscale_almost_done">Almost done…</string>
+    <string name="free_upscale_progress_inline">%1$d%% (%2$d of %3$d tiles)</string>
+
+    <!-- prettyDuration outputs (used by free-upscale dialog) -->
+    <string name="duration_one_second">1 second</string>
+    <string name="duration_n_seconds">%1$d seconds</string>
+    <string name="duration_one_minute">1 minute</string>
+    <string name="duration_n_minutes">%1$d minutes</string>
+    <string name="duration_one_hour">1 hour</string>
+    <string name="duration_n_hours">%1$d hours</string>
+
+    <!-- AI upscale support / Toast / placeholder labels -->
+    <string name="support_no_browser_toast">No browser installed to open the Support link.</string>
+
+    <!-- DPI summary chip — about icon CD -->
+    <string name="dpi_chip_about_resolution_cd">About print resolution</string>
+
+    <!-- Account fallback names + content descriptions -->
+    <string name="account_guest_label">Guest</string>
+    <string name="account_label_top_cd">Account</string>
+    <string name="account_sign_in_cd">Sign in</string>
+    <string name="credit_badge_cd_inline">AI credits</string>
+    <string name="paper_graphic_dogcow_cd">Orientation indicator (Clarus the DogCow)</string>
+    <string name="credits_history_label_ai_upscale">AI upscale</string>
+    <string name="credits_history_label_purchase">Purchase: %1$s</string>
+
+    <!-- Selectors / chips content descriptions -->
+    <string name="orientation_clarus_portrait_cd">Portrait orientation (Clarus the Dogcow standing)</string>
+    <string name="orientation_clarus_landscape_cd">Landscape orientation (Clarus the Dogcow on its side)</string>
+    <string name="orientation_clarus_best_fit_cd">Best fit orientation</string>
+
 </resources>

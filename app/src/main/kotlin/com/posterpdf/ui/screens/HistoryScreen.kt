@@ -152,7 +152,7 @@ private fun EmptyState(modifier: Modifier) {
         Text(stringResource(R.string.history_screen_no_history), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))
         Text(
-            "Generate a poster — it'll show up here.",
+            stringResource(R.string.history_empty_subtitle_inline),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -174,20 +174,20 @@ private fun HistoryCard(
     val fileName = item.localUri.substringAfterLast('/').ifEmpty { item.id }
     val createdLabel = item.createdAtMillis?.let {
         SimpleDateFormat("MMM d, yyyy · h:mm a", Locale.getDefault()).format(Date(it))
-    } ?: "—"
+    } ?: stringResource(R.string.history_dim_unknown)
     val dimensions = run {
         val rows = item.metadata["rows"] as? Number
         val cols = item.metadata["cols"] as? Number
         val pages = item.metadata["pages"] as? Number
         if (rows != null && cols != null && pages != null) {
-            "${pages.toInt()} pages · ${rows.toInt()}×${cols.toInt()}"
+            stringResource(R.string.history_dim_pages_grid, pages.toInt(), rows.toInt(), cols.toInt())
         } else null
     }
     val poster = run {
         val pw = item.metadata["posterWidth"]?.toString()
         val ph = item.metadata["posterHeight"]?.toString()
         val units = item.metadata["units"]?.toString()
-        if (!pw.isNullOrEmpty() && !ph.isNullOrEmpty()) "$pw × $ph ${units ?: ""}" else null
+        if (!pw.isNullOrEmpty() && !ph.isNullOrEmpty()) stringResource(R.string.history_dim_poster, pw, ph, units ?: "") else null
     }
 
     val hasCloud = item.cloudStorageUri.isNotEmpty()

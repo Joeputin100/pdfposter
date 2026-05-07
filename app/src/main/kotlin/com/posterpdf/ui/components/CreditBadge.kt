@@ -20,8 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.posterpdf.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -43,7 +45,7 @@ fun CreditBadgeInline(balance: Int, isAdmin: Boolean = false) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        FlippingCoin(sizeDp = 24.dp, contentDescription = "AI credits")
+        FlippingCoin(sizeDp = 24.dp, contentDescription = stringResource(R.string.credit_badge_cd_inline))
         if (isAdmin) {
             Text("∞", fontWeight = FontWeight.Bold)
         } else {

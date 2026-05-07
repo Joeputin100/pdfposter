@@ -68,7 +68,8 @@ import com.posterpdf.R
 fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     val context = LocalContext.current
     var subject by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Bug report") }
+    val defaultCategory = stringResource(R.string.support_cat_bug)
+    var category by remember { mutableStateOf(defaultCategory) }
     var description by remember { mutableStateOf("") }
     var includeDiagnostics by remember { mutableStateOf(true) }
     var detailsExpanded by remember { mutableStateOf(false) }
@@ -80,7 +81,7 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 title = { Text(stringResource(R.string.support_screen_title), fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.help_back_cd))
                     }
                 },
             )
@@ -95,8 +96,7 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                "Tell us what went wrong, what you wish the app did, " +
-                    "or what's confusing. We read every report.",
+                stringResource(R.string.support_intro_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -121,10 +121,7 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().height(160.dp),
                 label = { Text(stringResource(R.string.support_description_label)) },
                 placeholder = {
-                    Text(
-                        "What were you doing when it happened? " +
-                            "What did you expect vs. what you saw?",
-                    )
+                    Text(stringResource(R.string.support_description_placeholder))
                 },
             )
 
@@ -143,12 +140,12 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                         Spacer(Modifier.width(4.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
-                                "Include diagnostic info",
+                                stringResource(R.string.support_diag_label),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium,
                             )
                             Text(
-                                "This helps us reproduce the bug faster.",
+                                stringResource(R.string.support_diag_help),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -171,8 +168,8 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                if (detailsExpanded) "Hide details"
-                                else "What's included / what's not",
+                                if (detailsExpanded) stringResource(R.string.support_diag_hide)
+                                else stringResource(R.string.support_diag_show),
                             )
                         }
                     }
@@ -207,16 +204,16 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                                 onSuccess = { id ->
                                     Toast.makeText(
                                         context,
-                                        "Thanks — feedback sent (${id.take(6)})",
+                                        context.getString(R.string.support_thanks_toast, id.take(6)),
                                         Toast.LENGTH_LONG,
                                     ).show()
                                     onBack()
                                 },
                                 onFailure = { t ->
-                                    val msg = t.message ?: "unknown error"
+                                    val msg = t.message ?: context.getString(R.string.support_unknown_error)
                                     Toast.makeText(
                                         context,
-                                        "Couldn't send feedback: $msg",
+                                        context.getString(R.string.support_send_failed_toast, msg),
                                         Toast.LENGTH_LONG,
                                     ).show()
                                 },
@@ -232,9 +229,9 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
 
             Text(
                 if (viewModel.authSession.email != null)
-                    "Replies go to ${viewModel.authSession.email}."
+                    stringResource(R.string.support_replies_to, viewModel.authSession.email!!)
                 else
-                    "Sign in with Google to get a reply by email.",
+                    stringResource(R.string.support_replies_signed_out),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -245,7 +242,12 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryDropdown(value: String, onChange: (String) -> Unit) {
-    val categories = listOf("Bug report", "Feature request", "Billing question", "Other")
+    val categories = listOf(
+        stringResource(R.string.support_cat_bug),
+        stringResource(R.string.support_cat_feature),
+        stringResource(R.string.support_cat_billing),
+        stringResource(R.string.support_cat_other),
+    )
     var expanded by remember { mutableStateOf(false) }
     Box {
         OutlinedTextField(
@@ -256,7 +258,7 @@ private fun CategoryDropdown(value: String, onChange: (String) -> Unit) {
             readOnly = true,
             trailingIcon = {
                 IconButton(onClick = { expanded = !expanded }) {
-                    Icon(Icons.Default.ArrowDropDown, "Pick category")
+                    Icon(Icons.Default.ArrowDropDown, stringResource(R.string.support_cat_pick_cd))
                 }
             },
             singleLine = true,
@@ -297,36 +299,30 @@ private fun DiagnosticsBreakdown() {
     val versionLine = "${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})"
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         BreakdownSection(
-            title = "We send:",
+            title = stringResource(R.string.support_diag_send_header),
             color = MaterialTheme.colorScheme.tertiary,
             items = listOf(
-                "Your device: $deviceLine",
-                "App version: $versionLine",
-                "Last ~50 KB of your debug log — taps, image picks, " +
-                    "error messages, upscale tile counts",
-                "Your account ID and email if signed in, so we can link " +
-                    "your report to backend records",
-                "A timestamp",
+                stringResource(R.string.support_diag_send_device, deviceLine),
+                stringResource(R.string.support_diag_send_version, versionLine),
+                stringResource(R.string.support_diag_send_log),
+                stringResource(R.string.support_diag_send_account),
+                stringResource(R.string.support_diag_send_timestamp),
             ),
         )
         BreakdownSection(
-            title = "We do NOT send:",
+            title = stringResource(R.string.support_diag_no_send_header),
             color = MaterialTheme.colorScheme.error,
             items = listOf(
-                "Any photos you've imported into the app",
-                "Any PDFs you've generated",
-                "Files anywhere else on your phone",
-                "Your phone number, contacts, or location",
-                "A list of other apps installed on your phone",
-                "Any cloud-stored posters or their content",
+                stringResource(R.string.support_diag_no_photos),
+                stringResource(R.string.support_diag_no_pdfs),
+                stringResource(R.string.support_diag_no_files),
+                stringResource(R.string.support_diag_no_phone),
+                stringResource(R.string.support_diag_no_apps),
+                stringResource(R.string.support_diag_no_cloud),
             ),
         )
         Text(
-            "Why this helps: most bugs depend on a specific sequence of " +
-                "taps on a specific device. Without these clues we end up " +
-                "asking you a dozen follow-up questions. With them we " +
-                "can usually reproduce the issue on a matching test " +
-                "device the same day.",
+            stringResource(R.string.support_diag_why),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

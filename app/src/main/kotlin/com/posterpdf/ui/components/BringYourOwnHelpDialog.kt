@@ -49,10 +49,10 @@ fun BringYourOwnHelpDialog(
     // pricing tiers. Names + value props only — users will check the
     // current price on whichever tool they pick.
     val tools = listOf(
-        ToolOption("Canva", "Designer-friendly. Built-in upscaler under Edit Image → Magic Studio."),
-        ToolOption("OpenArt", "Heavy AI library; the 'Upscaler' tab handles 4× and 8×."),
-        ToolOption("FAL Topaz", "Pay-per-image, no subscription. Professional-grade quality."),
-        ToolOption("Magnific", "Premium creative upscaler. Slowest but most stylized."),
+        ToolOption("Canva", stringResource(R.string.byo_tool_canva_note_inline)),
+        ToolOption("OpenArt", stringResource(R.string.byo_tool_openart_note_inline)),
+        ToolOption("FAL Topaz", stringResource(R.string.byo_tool_fal_note_inline)),
+        ToolOption("Magnific", stringResource(R.string.byo_tool_magnific_note_inline)),
     )
 
     AlertDialog(
@@ -72,8 +72,8 @@ fun BringYourOwnHelpDialog(
             ) {
                 Step(
                     number = 1,
-                    title = "Pick your tool",
-                    body = "Any of these will work — pick whichever you already have or fits your budget:",
+                    title = stringResource(R.string.byo_help_step1_title),
+                    body = stringResource(R.string.byo_help_step1_body),
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     tools.forEach { ToolRow(it) }
@@ -81,18 +81,18 @@ fun BringYourOwnHelpDialog(
 
                 Step(
                     number = 2,
-                    title = "Run upscale",
-                    body = "Open your chosen tool, upload the original image, and run upscale at 4× or 8×. Higher = sharper, but takes longer and costs more.",
+                    title = stringResource(R.string.byo_help_step2_title),
+                    body = stringResource(R.string.byo_help_step2_body),
                 )
                 Step(
                     number = 3,
-                    title = "Save to phone",
-                    body = "Download the result to your Downloads folder (or anywhere accessible by Android's file picker — Drive, Photos, etc. all work).",
+                    title = stringResource(R.string.byo_help_step3_title),
+                    body = stringResource(R.string.byo_help_step3_body),
                 )
                 Step(
                     number = 4,
-                    title = "Continue here",
-                    body = "Tap 'Choose file' below — pick your upscaled file. PosterPDF will use it directly without running its own upscaler.",
+                    title = stringResource(R.string.byo_help_step4_title),
+                    body = stringResource(R.string.byo_help_step4_body),
                 )
             }
         },

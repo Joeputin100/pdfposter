@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -61,14 +62,14 @@ fun GettingStartedScreen(onBack: () -> Unit) {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "Getting Started",
+                        stringResource(R.string.gs_screen_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.gs_back_cd))
                     }
                 },
             )
@@ -83,14 +84,11 @@ fun GettingStartedScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                "PosterPDF turns any image into a printable wall poster, tiled across " +
-                    "letter or A4 pages so you can assemble it at home. Pick a photo, " +
-                    "set how big you want the finished poster, and we'll generate a " +
-                    "print-ready PDF you can send straight to your printer.",
+                stringResource(R.string.gs_intro_body),
                 style = MaterialTheme.typography.bodyMedium,
             )
 
-            SectionHeader("What You Get for Free")
+            SectionHeader(stringResource(R.string.gs_section_what_you_get_for_free))
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
@@ -100,18 +98,16 @@ fun GettingStartedScreen(onBack: () -> Unit) {
                     modifier = Modifier.padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    FreeFeature(Icons.Default.WorkspacePremium, "No catch", "No ads, no watermarks, no reduced functionality. Every feature works the same whether you spend a cent or not.")
-                    FreeFeature(Icons.Default.PictureAsPdf, "Poster generation", "Tile any image across multiple pages — no watermarks, no page limit.")
-                    FreeFeature(Icons.Default.CheckCircle, "All paper sizes", "Letter, Legal, Tabloid, A3, A4, plus a Custom size for unusual printers.")
-                    FreeFeature(Icons.Default.AutoAwesome, "On-device upscale", "4× upscale runs locally on your phone — no internet, no credits.")
-                    FreeFeature(Icons.Default.SdStorage, "30-day cloud storage", "We hold your generated PDFs for 30 days so you can re-download from another device.")
-                    FreeFeature(Icons.Default.History, "History forever", "Every poster you make stays in your local history on this phone.")
+                    FreeFeature(Icons.Default.WorkspacePremium, stringResource(R.string.gs_feat_no_catch_title), stringResource(R.string.gs_feat_no_catch_body))
+                    FreeFeature(Icons.Default.PictureAsPdf, stringResource(R.string.gs_feat_poster_title), stringResource(R.string.gs_feat_poster_body))
+                    FreeFeature(Icons.Default.CheckCircle, stringResource(R.string.gs_feat_paper_title), stringResource(R.string.gs_feat_paper_body))
+                    FreeFeature(Icons.Default.AutoAwesome, stringResource(R.string.gs_feat_upscale_title), stringResource(R.string.gs_feat_upscale_body))
+                    FreeFeature(Icons.Default.SdStorage, stringResource(R.string.gs_feat_storage_title), stringResource(R.string.gs_feat_storage_body))
+                    FreeFeature(Icons.Default.History, stringResource(R.string.gs_feat_history_title), stringResource(R.string.gs_feat_history_body))
                 }
             }
             Text(
-                "AI upscale (Topaz, Recraft, Magnific…) is opt-in and uses credits. " +
-                    "We charge enough above the AI provider's per-image cost to cover Play " +
-                    "Store fees and servers — see the FAQ for the exact margin breakdown.",
+                stringResource(R.string.gs_paid_explainer),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -120,29 +116,29 @@ fun GettingStartedScreen(onBack: () -> Unit) {
             // the left of the text. Videos auto-play, loop, and are silenced
             // (MediaPlayer.setVolume(0,0) on prepare). Pre-RC37 the cards had
             // text-only "[screenshot: …]" placeholders.
-            SectionHeader("4-Step Tour")
+            SectionHeader(stringResource(R.string.gs_section_4_step_tour))
             TourStep(
                 number = 1,
-                title = "Pick an image",
-                body = "Tap the photo card at the top. Use the highest-resolution copy you have — small phone screenshots will look pixelated when blown up to wall-poster size.",
+                title = stringResource(R.string.gs_tour_pick_image_title),
+                body = stringResource(R.string.gs_tour_pick_image_body),
                 videoRes = R.raw.gs_select_image,
             )
             TourStep(
                 number = 2,
-                title = "Set the size",
-                body = "Type the width and height of the finished poster. Lock the aspect ratio (the chain icon) to keep your image proportions, or unlock to crop. Pick a paper size that matches your printer — Letter is the home/office default in North America; A4 elsewhere.",
+                title = stringResource(R.string.gs_tour_set_size_title),
+                body = stringResource(R.string.gs_tour_set_size_body),
                 videoRes = R.raw.gs_set_size,
             )
             TourStep(
                 number = 3,
-                title = "Generate",
-                body = "Tap View, Save, or Share. View opens the PDF in your reader; Save lets you choose a folder; Share hands the PDF to any app (email, Drive, print). If your image is below 150 DPI at the chosen size, we'll prompt you to upscale first.",
+                title = stringResource(R.string.gs_tour_generate_title),
+                body = stringResource(R.string.gs_tour_generate_body),
                 videoRes = R.raw.gs_generate_pdf,
             )
             TourStep(
                 number = 4,
-                title = "Upscale (optional)",
-                body = "Below 150 DPI we offer an upscale to reach print quality. Free on-device 4×, or AI upscale (Topaz / Recraft / AuraSR / ESRGAN / CCSR) for higher fidelity at a credit cost. Compare the models side-by-side from the Sharpen for Print screen before you spend.",
+                title = stringResource(R.string.gs_tour_upscale_title),
+                body = stringResource(R.string.gs_tour_upscale_body),
                 videoRes = R.raw.gs_upscale,
             )
 

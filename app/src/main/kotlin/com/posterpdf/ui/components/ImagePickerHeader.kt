@@ -20,6 +20,8 @@ import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.posterpdf.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -65,12 +67,12 @@ fun ImagePickerHeader(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         imageVector = Icons.Default.AddPhotoAlternate,
-                        contentDescription = "Select Image",
+                        contentDescription = stringResource(R.string.image_picker_select_cd),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     Text(
-                        text = "Pick an image for your poster",
+                        text = stringResource(R.string.image_picker_hero),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
@@ -89,7 +91,7 @@ fun ImagePickerHeader(
                 ) {
                     AsyncImage(
                         model = selectedImageUri,
-                        contentDescription = "Selected Poster Image",
+                        contentDescription = stringResource(R.string.image_picker_selected_cd),
                         modifier = Modifier
                             .fillMaxSize()
                             .graphicsLayer {
@@ -118,7 +120,7 @@ fun ImagePickerHeader(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "Change Image",
+                        text = stringResource(R.string.image_picker_change),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }

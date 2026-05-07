@@ -236,7 +236,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         BitmapFactory.decodeStream(it)
                     }
                 } ?: run {
-                    errorMessage = "Couldn't open the source image"
+                    errorMessage = context.getString(R.string.vm_error_couldnt_open_image)
                     logEvent(context, "free_upscale: ABORT — source decode returned null")
                     return@launch
                 }
@@ -342,7 +342,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     resolution = "${upscaled.width}×${upscaled.height}",
                 )
                 wasUpscaled = true
-                successMessage = "Upscaled to ${upscaled.width}×${upscaled.height}"
+                successMessage = context.getString(R.string.vm_success_upscaled_inline, upscaled.width, upscaled.height)
                 pendingUpscaleModelLabel = null
                 logEvent(context, "free_upscale: SUCCESS", "wrote ${outFile.name}")
                 // RC11: success — clear the resume state so the next run
@@ -351,7 +351,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (src !== upscaled) src.recycle()
                 upscaled.recycle()
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                errorMessage = "Sharpening timed out after 15 minutes — try a smaller poster size or use an AI option instead."
+                errorMessage = context.getString(R.string.vm_error_sharpening_timed_out)
                 logEvent(context, "free_upscale: TIMEOUT — exceeded 15 min budget")
                 // Keep state on disk so the user can resume next launch.
             } catch (e: kotlinx.coroutines.CancellationException) {
@@ -360,7 +360,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 // offer to resume. Process kill leaves state untouched.
                 com.posterpdf.ml.UpscaleStateStore.clear(context)
             } catch (e: Throwable) {
-                errorMessage = "Upscale failed: ${e.message ?: "unknown error"}"
+                errorMessage = context.getString(R.string.vm_error_upscale_failed_inline, e.message ?: context.getString(R.string.support_unknown_error))
                 logEvent(
                     context,
                     "free_upscale: FAILED",
@@ -408,17 +408,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         errorMessage = null
         successMessage = null
         val displayName = when (modelId) {
-            "topaz" -> "Topaz Gigapixel"
-            "recraft" -> "Recraft Crisp"
-            "aurasr" -> "AuraSR"
-            "esrgan" -> "ESRGAN"
-            "ccsr" -> "CCSR"
+            "topaz" -> context.getString(R.string.upscale_option_topaz_gigapixel)
+            "recraft" -> context.getString(R.string.upscale_option_recraft_crisp)
+            "aurasr" -> context.getString(R.string.upscale_option_aurasr)
+            "esrgan" -> context.getString(R.string.upscale_option_esrgan)
+            "ccsr" -> context.getString(R.string.upscale_option_ccsr)
             else -> modelId
         }
         aiUpscaleJob?.cancel()
         aiUpscaleJob = viewModelScope.launch {
             isAiUpscaling = true
-            aiUpscalePhase = "Starting…"
+            aiUpscalePhase = context.getString(R.string.vm_phase_starting)
             aiUpscaleProgress = 0f
             pendingUpscaleModelLabel = displayName
             logEvent(context, "ai_upscale: start", "model=$modelId src=${srcW}x$srcH")
@@ -441,13 +441,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     minScale = minScale,  // RC28
                 ) { phase, frac, detail ->
                     aiUpscalePhase = when (phase) {
-                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.UPLOADING -> "Uploading source…"
-                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.IN_QUEUE -> "Waiting in queue…"
-                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.IN_PROGRESS -> "Sharpening with $displayName…"
-                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.DOWNLOADING -> "Downloading result…"
-                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.SAVING -> "Saving…"
-                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.SUCCEEDED -> "Done"
-                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.FAILED -> "Failed"
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.UPLOADING -> context.getString(R.string.vm_phase_uploading_source)
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.IN_QUEUE -> context.getString(R.string.vm_phase_in_queue)
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.IN_PROGRESS -> context.getString(R.string.vm_phase_in_progress, displayName)
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.DOWNLOADING -> context.getString(R.string.vm_phase_downloading)
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.SAVING -> context.getString(R.string.vm_phase_saving)
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.SUCCEEDED -> context.getString(R.string.vm_phase_done)
+                        com.posterpdf.data.backend.AiUpscaleRepository.Phase.FAILED -> context.getString(R.string.vm_phase_failed)
                     }
                     aiUpscaleProgress = frac
                     // RC21: detail is "Queue position 3", "Processing image",
@@ -472,16 +472,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             resolution = "${bmp.width}×${bmp.height}",
                         )
                         wasUpscaled = true
-                        successMessage = "Upscaled to ${bmp.width}×${bmp.height} via $displayName"
+                        successMessage = context.getString(R.string.vm_success_upscaled_via, bmp.width, bmp.height, displayName)
                         logEvent(context, "ai_upscale: SUCCESS", "${bmp.width}x${bmp.height}")
                         bmp.recycle()
                     } else {
-                        errorMessage = "Upscale completed but result image could not be decoded"
-                        aiUpscaleFailure = "Upscale completed but result image could not be decoded"
+                        errorMessage = context.getString(R.string.vm_error_decode_failed)
+                        aiUpscaleFailure = context.getString(R.string.vm_error_decode_failed)
                     }
                 }.onFailure { t ->
                     logEvent(context, "ai_upscale: FAIL", t.message)
-                    val msg = "AI upscale failed: ${t.message ?: t.javaClass.simpleName}"
+                    val msg = context.getString(R.string.vm_error_ai_failed_prefix, t.message ?: t.javaClass.simpleName)
                     errorMessage = msg
                     // RC24: surface the failure as a dismissable modal with
                     // Retry/Close buttons + a refund reassurance line.
@@ -492,7 +492,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (t: Throwable) {
                 logEvent(context, "ai_upscale: exception", t.message)
-                val msg = "AI upscale error: ${t.message ?: t.javaClass.simpleName}"
+                val msg = context.getString(R.string.vm_error_ai_error_prefix, t.message ?: t.javaClass.simpleName)
                 errorMessage = msg
                 aiUpscaleFailure = msg
             } finally {
@@ -925,7 +925,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         } catch (e: Exception) {
-            errorMessage = "Failed to load image info: ${e.message}"
+            errorMessage = appContext.getString(R.string.vm_error_load_image_info, e.message ?: "")
         }
     }
 
@@ -1130,7 +1130,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         } else {
                             BitmapFactory.decodeStream(input)
                         }
-                    } ?: throw Exception("Could not load image")
+                    } ?: throw Exception(appContext.getString(R.string.vm_error_could_not_load_image))
 
                     val pw = posterWidth.toDoubleOrNull() ?: if (units == "Metric") 60.96 else 24.0
                     val ph = posterHeight.toDoubleOrNull() ?: if (units == "Metric") 91.44 else 36.0
@@ -1173,7 +1173,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             // cheap compared to rendering.
                             val svg = context.contentResolver.openInputStream(uri)
                                 ?.use { SVG.getFromInputStream(it) }
-                                ?: throw Exception("Could not reopen SVG for tile")
+                                ?: throw Exception(appContext.getString(R.string.vm_error_could_not_reopen_svg))
 
                             // Force the doc to render at the full poster's
                             // pixel size, then we render with an offset Canvas
@@ -1237,7 +1237,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     
                      withContext(Dispatchers.Main) {
                          lastGeneratedFile = outputFile
-                         successMessage = "Poster generated: ${outputFile.name}"
+                         successMessage = appContext.getString(R.string.vm_success_poster_generated, outputFile.name)
                          // Only count a new poster if this image hasn't been counted yet
                          val hash = currentImageHash
                          if (hash != null && hash != lastCountedHash) {
@@ -1311,10 +1311,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val result = auth.handleGoogleSignInResult(data)
             if (result.isSuccess) {
-                successMessage = "Signed in"
+                successMessage = appContext.getString(R.string.vm_success_signed_in)
                 refreshHistory()
             } else {
-                errorMessage = "Sign-in failed: ${result.exceptionOrNull()?.message}"
+                errorMessage = appContext.getString(R.string.vm_error_signin_failed, result.exceptionOrNull()?.message ?: "")
             }
         }
     }

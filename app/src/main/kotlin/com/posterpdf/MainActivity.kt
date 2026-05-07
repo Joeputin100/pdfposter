@@ -450,16 +450,16 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     // tile counter underneath.
                     Text(
                         text = when {
-                            total == 0 -> "Preparing tiles…"
-                            isSaving -> "Saving…"
-                            smoothedRemainingMs > 0L -> "About ${prettyDuration(smoothedRemainingMs)} left"
-                            else -> "Almost done…"
+                            total == 0 -> stringResource(R.string.free_upscale_preparing)
+                            isSaving -> stringResource(R.string.free_upscale_saving)
+                            smoothedRemainingMs > 0L -> stringResource(R.string.free_upscale_about_left, prettyDuration(context, smoothedRemainingMs))
+                            else -> stringResource(R.string.free_upscale_almost_done)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     if (total > 0 && !isSaving) {
                         Text(
-                            text = "$pct% ($done of $total tiles)",
+                            text = stringResource(R.string.free_upscale_progress_inline, pct, done, total),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -499,7 +499,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             text = {
                 Column {
                     Text(
-                        text = viewModel.aiUpscalePhase.ifEmpty { "Starting…" },
+                        text = viewModel.aiUpscalePhase.ifEmpty { stringResource(R.string.vm_phase_starting) },
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     // RC21: detail line — "Queue position 3", "Processing image",
@@ -806,8 +806,8 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                       supportingContent = {
                           val f = MainViewModel.debugLogFile(context)
                           Text(
-                              text = if (f != null) "${f.length() / 1024} KB · tap to share"
-                              else "No log file yet — enable debug logging above first",
+                              text = if (f != null) stringResource(R.string.drawer_share_debug_subtitle_size, (f.length() / 1024).toInt())
+                              else stringResource(R.string.drawer_share_debug_subtitle_empty),
                               style = MaterialTheme.typography.bodySmall,
                           )
                       },
@@ -823,11 +823,11 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                               val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                                   type = "text/plain"
                                   putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                                  putExtra(android.content.Intent.EXTRA_SUBJECT, "PosterPDF debug log")
+                                  putExtra(android.content.Intent.EXTRA_SUBJECT, context.getString(R.string.drawer_debug_log_email_subject))
                                   addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                               }
                               context.startActivity(
-                                  android.content.Intent.createChooser(send, "Share debug log"),
+                                  android.content.Intent.createChooser(send, context.getString(R.string.drawer_share_debug_chooser)),
                               )
                           }
                       },
@@ -969,7 +969,11 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          Text(
                              // RC20: render in the user's chosen unit so the
                              // label matches the chip on the main page.
-                             "Target print ${viewModel.currentResolutionUnitLabel}: ${viewModel.targetDpiDisplay}",
+                             stringResource(
+                                 R.string.drawer_target_print_resolution,
+                                 viewModel.currentResolutionUnitLabel,
+                                 viewModel.targetDpiDisplay,
+                             ),
                              style = MaterialTheme.typography.labelLarge,
                          )
                      }
@@ -984,11 +988,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          // but the printer + comparison values need the right unit so they
                          // make sense in either mode.
                          if (viewModel.units == "Metric")
-                             "Higher DPCM → sharper print, more upscale credits used. " +
-                                 "59 is standard for posters; 118 for photos; 236+ for fine art."
+                             stringResource(R.string.drawer_target_dpi_help_metric)
                          else
-                             "Higher DPI → sharper print, more upscale credits used. " +
-                                 "150 is standard for posters; 300 for photos; 600+ for fine art.",
+                             stringResource(R.string.drawer_target_dpi_help),
                          style = MaterialTheme.typography.labelSmall,
                          color = MaterialTheme.colorScheme.onSurfaceVariant,
                      )
@@ -1066,7 +1068,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          } catch (e: android.content.ActivityNotFoundException) {
                              android.widget.Toast.makeText(
                                  context,
-                                 "No browser installed to open the Support link.",
+                                 context.getString(R.string.support_no_browser_toast),
                                  android.widget.Toast.LENGTH_SHORT,
                              ).show()
                          }
@@ -1102,7 +1104,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 // from app/build.gradle.kts defaultConfig.versionName, which
                 // we now bump per RC.
                 Text(
-                    "Build " + com.posterpdf.BuildConfig.VERSION_NAME,
+                    stringResource(R.string.drawer_build_label, com.posterpdf.BuildConfig.VERSION_NAME),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -1153,7 +1155,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             )
                             scope.launch { drawerState.open() }
                         }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Settings")
+                            Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.drawer_settings_cd))
                         }
 
                         // Halftone Mona-Lisa-printer logo. The PDF generator
@@ -1272,7 +1274,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    "You've made ${viewModel.postersMadeCount} posters! Please consider registering on the Play Store for just \$2 to support development.",
+                                    stringResource(R.string.nag_body_inline, viewModel.postersMadeCount),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color.Black
                                 )
@@ -1311,13 +1313,13 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     enabled = viewModel.nagwareCountdown <= 0
                                 ) {
                                     Text(
-                                        if (viewModel.nagwareCountdown > 0) "Maybe Later (${viewModel.nagwareCountdown}s)" else "Maybe Later",
+                                        if (viewModel.nagwareCountdown > 0) stringResource(R.string.nag_maybe_later_count, viewModel.nagwareCountdown) else stringResource(R.string.nag_maybe_later_plain),
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
                                 IconButton(onClick = { viewModel.dismissNagware() }) {
-                                    Icon(Icons.Default.Close, "Dismiss", tint = Color.Black)
+                                    Icon(Icons.Default.Close, stringResource(R.string.nag_dismiss_cd), tint = Color.Black)
                                 }
                             }
                         }
@@ -1340,14 +1342,16 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             // Format/Vector badge so the user reads "the
                             // image scales to any poster size cleanly".
                             if (viewModel.sourceIsSvg) {
-                                InfoChip(label = "Format", value = "Vector (SVG)")
+                                InfoChip(label = stringResource(R.string.info_chip_format), value = stringResource(R.string.info_chip_format_value_vector_svg))
                             } else {
-                                InfoChip(label = "Resolution", value = meta.resolution)
+                                InfoChip(label = stringResource(R.string.info_chip_resolution), value = meta.resolution)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                InfoChip(label = "Aspect Ratio", value = meta.aspectRatioString)
-                                IconButton(onClick = { 
-                                    infoDialogContent = "Aspect Ratio" to "This is the ratio of width to height. Locked scaling ensures your poster matches the image proportions perfectly."
+                                InfoChip(label = stringResource(R.string.info_chip_aspect_ratio), value = meta.aspectRatioString)
+                                val aspectTitle = stringResource(R.string.info_aspect_title)
+                                val aspectBody = stringResource(R.string.info_aspect_body)
+                                IconButton(onClick = {
+                                    infoDialogContent = aspectTitle to aspectBody
                                 }) {
                                     Icon(Icons.Default.Info, null, tint = MaterialTheme.colorScheme.primary)
                                 }
@@ -1373,9 +1377,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
                                         ConfigInput(
-                                            label = "Width ($unitLabel)",
+                                            label = stringResource(R.string.poster_width_with_unit_inline, unitLabel),
                                             value = viewModel.posterWidth,
-                                            onValueChange = { 
+                                            onValueChange = {
                                                 viewModel.updatePosterWidth(it)
                                                 viewModel.saveAllSettings()
                                             },
@@ -1395,9 +1399,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                         }
 
                                          ConfigInput(
-                                             label = "Height ($unitLabel)",
+                                             label = stringResource(R.string.poster_height_with_unit_inline, unitLabel),
                                              value = viewModel.posterHeight,
-                                             onValueChange = { 
+                                             onValueChange = {
                                                  viewModel.updatePosterHeight(it)
                                                  viewModel.saveAllSettings()
                                              },
@@ -1443,41 +1447,45 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     OrientationSelector(viewModel)
 
                                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                        val marginTitle = stringResource(R.string.info_margin_title)
+                                        val marginBody = stringResource(R.string.info_margin_body)
+                                        val overlapTitle = stringResource(R.string.info_overlap_title)
+                                        val overlapBody = stringResource(R.string.info_overlap_body)
                                         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                                              ConfigInput(
-                                                 label = "Margin ($unitLabel)",
+                                                 label = stringResource(R.string.margin_with_unit, unitLabel),
                                                  value = viewModel.margin,
-                                                 onValueChange = { 
+                                                 onValueChange = {
                                                      viewModel.margin = it
                                                      viewModel.logEvent(context, "Margin changed", "value=$it")
-                                                     viewModel.saveAllSettings() 
+                                                     viewModel.saveAllSettings()
                                                  },
                                                  modifier = Modifier.weight(1f)
                                              )
-                                            IconButton(onClick = { 
-                                                infoDialogContent = "Margin" to "The unprinted space around the edges of each page. Most home printers require at least 0.25in (0.64cm)."
+                                            IconButton(onClick = {
+                                                infoDialogContent = marginTitle to marginBody
                                             }) { Icon(Icons.Default.Info, null, Modifier.size(18.dp)) }
                                         }
                                         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                                              ConfigInput(
-                                                 label = "Overlap ($unitLabel)",
+                                                 label = stringResource(R.string.overlap_with_unit, unitLabel),
                                                  value = viewModel.overlap,
-                                                 onValueChange = { 
+                                                 onValueChange = {
                                                      viewModel.overlap = it
                                                      viewModel.logEvent(context, "Overlap changed", "value=$it")
-                                                     viewModel.saveAllSettings() 
+                                                     viewModel.saveAllSettings()
                                                  },
                                                  modifier = Modifier.weight(1f)
                                              )
-                                            IconButton(onClick = { 
-                                                infoDialogContent = "Overlap" to "The repeated area between tiles to help you align and glue them together. 0.25in to 0.5in is recommended."
+                                            IconButton(onClick = {
+                                                infoDialogContent = overlapTitle to overlapBody
                                             }) { Icon(Icons.Default.Info, null, Modifier.size(18.dp)) }
                                         }
                                     }
                                     
                                     viewModel.getPaneCount()?.let { (total, rows, cols) ->
                                         Text(
-                                            "Project scope: $total pages ($rows rows x $cols columns)",
+                                            stringResource(R.string.project_scope_inline, total, rows, cols),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             fontWeight = FontWeight.Bold
@@ -1546,7 +1554,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                         setDataAndType(uri, "application/pdf")
                                                         addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                                     }
-                                                    context.startActivity(android.content.Intent.createChooser(intent, "Open PDF"))
+                                                    context.startActivity(android.content.Intent.createChooser(intent, context.getString(R.string.chooser_title_open_pdf)))
                                                 }
                                             }
                                         },
@@ -1610,7 +1618,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                         putExtra(android.content.Intent.EXTRA_STREAM, uri)
                                                         addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                                     }
-                                                    context.startActivity(android.content.Intent.createChooser(intent, "Share PDF"))
+                                                    context.startActivity(android.content.Intent.createChooser(intent, context.getString(R.string.chooser_title_share_pdf)))
                                                 }
                                             }
                                         },
@@ -1648,8 +1656,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                     title = { Text(stringResource(R.string.low_dpi_dialog_title)) },
                                     text = {
                                         Text(
-                                            "Your poster is currently around ${viewModel.computeCurrentDpi().toInt()} DPI. " +
-                                                "For a sharp print you want at least 150 DPI. Continue anyway, or upscale your image first?"
+                                            stringResource(R.string.low_dpi_dialog_body_inline, viewModel.computeCurrentDpi().toInt())
                                         )
                                     },
                                     confirmButton = {
@@ -1686,10 +1693,10 @@ fun OnboardingView() {
         Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
         Text(stringResource(R.string.onboarding_how_to_get_started), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         
-        OnboardingStep(1, "Pick a high-resolution image above.")
-        OnboardingStep(2, "Set your final poster dimensions.")
-        OnboardingStep(3, "Select your paper size and orientation.")
-        OnboardingStep(4, "View or Save your print-ready PDF!")
+        OnboardingStep(1, stringResource(R.string.onboarding_step1_inline))
+        OnboardingStep(2, stringResource(R.string.onboarding_step2_inline))
+        OnboardingStep(3, stringResource(R.string.onboarding_step3_inline))
+        OnboardingStep(4, stringResource(R.string.onboarding_step4_inline))
     }
 }
 
@@ -1756,7 +1763,7 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
             val unitLabel = if (viewModel.units == "Metric") "cm" else "in"
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                  ConfigInput(
-                     label = "Width ($unitLabel)",
+                     label = stringResource(R.string.poster_width_with_unit_inline, unitLabel),
                      value = viewModel.customPaperWidth,
                      onValueChange = {
                          viewModel.customPaperWidth = it
@@ -1766,7 +1773,7 @@ fun PaperSizeSelector(viewModel: MainViewModel) {
                      modifier = Modifier.weight(1f)
                  )
                  ConfigInput(
-                     label = "Height ($unitLabel)",
+                     label = stringResource(R.string.poster_height_with_unit_inline, unitLabel),
                      value = viewModel.customPaperHeight,
                      onValueChange = {
                          viewModel.customPaperHeight = it
@@ -1803,8 +1810,15 @@ fun OrientationSelector(viewModel: MainViewModel) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             for (orient in orientations) {
+                val displayLabel = when (orient) {
+                    "Best Fit" -> stringResource(R.string.orientation_best_fit)
+                    "Portrait" -> stringResource(R.string.orientation_portrait)
+                    "Landscape" -> stringResource(R.string.orientation_landscape)
+                    else -> orient
+                }
                 OrientationCard(
-                    label = orient,
+                    storageKey = orient,
+                    displayLabel = displayLabel,
                     isSelected = viewModel.orientation == orient,
                     onClick = {
                         if (viewModel.orientation != orient) {
@@ -1828,7 +1842,8 @@ fun OrientationSelector(viewModel: MainViewModel) {
  */
 @Composable
 private fun OrientationCard(
-    label: String,
+    storageKey: String,
+    displayLabel: String,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -1863,16 +1878,16 @@ private fun OrientationCard(
                 // Clarus is a single-color trace. Use Icon with onSurface tint
                 // so it reads against both light and dark surfaceVariant backgrounds.
                 val dogcowTint = MaterialTheme.colorScheme.onSurface
-                when (label) {
+                when (storageKey) {
                     "Portrait" -> Icon(
                         painter = painterResource(id = com.posterpdf.R.drawable.clarus_portrait),
-                        contentDescription = "Portrait orientation (Clarus the Dogcow standing)",
+                        contentDescription = stringResource(R.string.orientation_clarus_portrait_cd),
                         tint = dogcowTint,
                         modifier = Modifier.size(56.dp),
                     )
                     "Landscape" -> Icon(
                         painter = painterResource(id = com.posterpdf.R.drawable.clarus_landscape),
-                        contentDescription = "Landscape orientation (Clarus the Dogcow on its side)",
+                        contentDescription = stringResource(R.string.orientation_clarus_landscape_cd),
                         tint = dogcowTint,
                         modifier = Modifier.size(56.dp),
                     )
@@ -1888,7 +1903,7 @@ private fun OrientationCard(
                         )
                         Icon(
                             painter = painterResource(id = com.posterpdf.R.drawable.clarus_landscape),
-                            contentDescription = "Best fit orientation",
+                            contentDescription = stringResource(R.string.orientation_clarus_best_fit_cd),
                             tint = dogcowTint,
                             modifier = Modifier.size(28.dp),
                         )
@@ -1896,7 +1911,7 @@ private fun OrientationCard(
                 }
             }
             Text(
-                label,
+                displayLabel,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 color = if (isSelected)
@@ -2162,7 +2177,7 @@ fun HistorySection(viewModel: MainViewModel, onViewAll: () -> Unit) {
             Text(stringResource(R.string.help_history_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(Modifier.weight(1f))
             IconButton(onClick = { viewModel.refreshHistory() }) {
-                Icon(Icons.Default.Refresh, "Refresh history", modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Refresh, stringResource(R.string.history_refresh_cd2), modifier = Modifier.size(20.dp))
             }
         }
 
@@ -2188,9 +2203,9 @@ fun HistorySection(viewModel: MainViewModel, onViewAll: () -> Unit) {
                     TextButton(onClick = onViewAll, modifier = Modifier.fillMaxWidth()) {
                         Text(
                             if (viewModel.historyItems.size > 5)
-                                "View all (${viewModel.historyItems.size})"
+                                stringResource(R.string.history_view_all_n, viewModel.historyItems.size)
                             else
-                                "View all",
+                                stringResource(R.string.history_view_all_plain),
                         )
                     }
                 }
@@ -2279,7 +2294,7 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                         )
                         coil.compose.AsyncImage(
                             model = s.photoUrl,
-                            contentDescription = "Profile picture",
+                            contentDescription = stringResource(R.string.account_profile_picture_cd2),
                             error = accountPainter,
                             fallback = accountPainter,
                             placeholder = accountPainter,
@@ -2290,14 +2305,14 @@ fun AccountSection(viewModel: MainViewModel, onSignInClick: () -> Unit) {
                     } else {
                         Icon(
                             Icons.Default.AccountCircle,
-                            contentDescription = "Profile picture",
+                            contentDescription = stringResource(R.string.account_profile_picture_cd2),
                             modifier = Modifier.size(40.dp),
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text(s.displayName ?: s.email ?: "Signed in", style = MaterialTheme.typography.bodyMedium)
+                        Text(s.displayName ?: s.email ?: stringResource(R.string.account_signed_in_label), style = MaterialTheme.typography.bodyMedium)
                         s.email?.let {
                             Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -2370,7 +2385,7 @@ private fun StorageBillingRow(s: MainViewModel.StorageBillingAggregate) {
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Storage",
+                    stringResource(R.string.account_storage_label),
                     style = MaterialTheme.typography.labelSmall,
                     color = onContainer.copy(alpha = 0.85f),
                 )
@@ -2399,17 +2414,29 @@ private fun StorageBillingRow(s: MainViewModel.StorageBillingAggregate) {
  * the two coarsest non-zero units; smaller granularity isn't useful
  * for ETAs.
  */
-private fun prettyDuration(ms: Long): String {
+private fun prettyDuration(context: android.content.Context, ms: Long): String {
     val total = ms / 1000
-    if (total < 60) return if (total == 1L) "1 second" else "$total seconds"
+    if (total < 60) return if (total == 1L)
+        context.getString(R.string.duration_one_second)
+    else
+        context.getString(R.string.duration_n_seconds, total.toInt())
     val hours = total / 3600
     val minutes = (total % 3600) / 60
     val seconds = total % 60
     val parts = mutableListOf<String>()
-    if (hours > 0) parts.add(if (hours == 1L) "1 hour" else "$hours hours")
-    if (minutes > 0) parts.add(if (minutes == 1L) "1 minute" else "$minutes minutes")
+    if (hours > 0) parts.add(
+        if (hours == 1L) context.getString(R.string.duration_one_hour)
+        else context.getString(R.string.duration_n_hours, hours.toInt())
+    )
+    if (minutes > 0) parts.add(
+        if (minutes == 1L) context.getString(R.string.duration_one_minute)
+        else context.getString(R.string.duration_n_minutes, minutes.toInt())
+    )
     if (hours == 0L && seconds > 0) {
-        parts.add(if (seconds == 1L) "1 second" else "$seconds seconds")
+        parts.add(
+            if (seconds == 1L) context.getString(R.string.duration_one_second)
+            else context.getString(R.string.duration_n_seconds, seconds.toInt())
+        )
     }
     return parts.joinToString(" ")
 }
@@ -2554,7 +2581,7 @@ private fun DpiSummaryRow(viewModel: MainViewModel) {
     // user reported "main page DPI is now showing as Original 256 — should
     // be Upscaled 256 with a checkmark since 256 is higher than the target."
     val sourceIsUpscaled = viewModel.wasUpscaled
-    val firstChipLabel = if (sourceIsUpscaled) "Upscaled" else "Original"
+    val firstChipLabel = if (sourceIsUpscaled) stringResource(R.string.dpi_chip_upscaled) else stringResource(R.string.dpi_chip_original)
     // RC18: unit-aware threshold + label. DPI in Inches mode, DPCM in Metric.
     val unitLabel = viewModel.currentResolutionUnitLabel
     val warnThreshold = viewModel.lowResolutionThreshold.toInt()
@@ -2574,12 +2601,12 @@ private fun DpiSummaryRow(viewModel: MainViewModel) {
             )
         }
         if (upscaledDpi != null) {
-            DpiChip(label = "Upscaled", dpi = upscaledDpi, unitLabel = unitLabel, isWarn = false, isHighlight = true)
+            DpiChip(label = stringResource(R.string.dpi_chip_upscaled), dpi = upscaledDpi, unitLabel = unitLabel, isWarn = false, isHighlight = true)
         }
-        DpiChip(label = "Target", dpi = targetDisplay, unitLabel = unitLabel, isWarn = false)
+        DpiChip(label = stringResource(R.string.dpi_chip_target), dpi = targetDisplay, unitLabel = unitLabel, isWarn = false)
         Spacer(Modifier.weight(1f))
         IconButton(onClick = { showHelp = true }) {
-            Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "About print resolution")
+            Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = stringResource(R.string.dpi_chip_about_print_resolution_cd))
         }
     }
 
@@ -2698,13 +2725,13 @@ private fun SharpenForPrintCta(usePulseEffect: Boolean = false, onClick: () -> U
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Sharpen for print",
+                    stringResource(R.string.sharpen_for_print_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
                 Text(
-                    "Free or AI upscale — pick what fits.",
+                    stringResource(R.string.sharpen_for_print_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
                 )

@@ -32,8 +32,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.posterpdf.R
 
 /**
  * H-P2.3 — FAQ screen.
@@ -46,52 +48,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun FaqScreen(onBack: () -> Unit) {
     val faqs = listOf(
-        "Why does it ask for credits?" to
-            "Credits pay the AI services that sharpen your photo for big prints. " +
-                "We pass that cost on to you per upscale. Everything else — making " +
-                "posters, the free on-device sharpener, your history, and 30 days " +
-                "of cloud backup — is free, with any photo. You only spend credits " +
-                "when you tap one of the AI upscale options.",
-        "Why are my credits worth less than the price I paid?" to
-            "Honest answer: most of what you pay goes to the AI service doing the " +
-                "actual work. The rest covers Play Store's cut, our servers, and a " +
-                "small slice that funds ongoing app development. We aim for about " +
-                "50% above the raw AI cost — enough to keep the lights on. Every " +
-                "credit pack shows the equivalent in dollars so you always know " +
-                "what you're buying.",
-        "Can I use it offline?" to
-            "Yes for everything you actually do — picking a photo, making a " +
-                "poster, the free sharpener, and View / Save / Share all work " +
-                "without internet. You need a connection only for: signing in with " +
-                "Google, AI upscales, buying credits, and cloud backup. When you " +
-                "reconnect, your history syncs in the background.",
-        "What happens if I run out of credits?" to
-            "Two things, and they're separate. (1) AI upscale options become " +
-                "unavailable — the buttons turn into 'Get more credits' prompts. " +
-                "Free poster-making and the free sharpener keep working. (2) If " +
-                "you've paid to keep posters in cloud storage longer than 30 days, " +
-                "we'll email a warning and hold them for 30 more days before " +
-                "deleting. Your local files and history list never go away.",
-        "Why do PDFs take about 30 seconds to make?" to
-            "Each printed page is built separately at the right resolution — your " +
-                "image gets cropped and resharpened for every tile, then dressed " +
-                "up with rulers, page labels, crop marks, and the footer. A 4×4 " +
-                "poster means 16 page builds. We could cache the work, but redoing " +
-                "it each time is the most reliable way to keep edges sharp. Bigger " +
-                "posters take longer.",
-        "Can I print at a non-standard paper size?" to
-            "Yes — pick 'Custom' in the paper-size selector. You'll get fields " +
-                "for paper width and height. Use this if your printer takes A5, " +
-                "B5, photo paper, or anything we don't list. The math works the " +
-                "same way; we just trust the dimensions you type.",
-        "What if I want my data deleted?" to
-            "Three paths, depending on what you mean. Just this device: " +
-                "Settings → Reset to Defaults clears your preferences and the " +
-                "on-device history. One cloud-stored poster: open History, find " +
-                "the row, tap the red cloud-with-line icon. Everything you've " +
-                "ever done with us (your sign-in, all history, every cloud-stored " +
-                "PDF): email support@joeputin.com from the address you signed in " +
-                "with. We'll process within 7 days.",
+        stringResource(R.string.faq_q_credits_inline) to stringResource(R.string.faq_a_credits_inline),
+        stringResource(R.string.faq_q_credit_value_inline) to stringResource(R.string.faq_a_credit_value_inline),
+        stringResource(R.string.faq_q_offline_inline) to stringResource(R.string.faq_a_offline_inline),
+        stringResource(R.string.faq_q_out_of_credits_inline) to stringResource(R.string.faq_a_out_of_credits_inline),
+        stringResource(R.string.faq_q_pdf_time_inline) to stringResource(R.string.faq_a_pdf_time_inline),
+        stringResource(R.string.faq_q_custom_paper_inline) to stringResource(R.string.faq_a_custom_paper_inline),
+        stringResource(R.string.faq_q_data_deletion_inline) to stringResource(R.string.faq_a_data_deletion_inline),
     )
 
     Scaffold(
@@ -99,14 +62,14 @@ fun FaqScreen(onBack: () -> Unit) {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "FAQ",
+                        stringResource(R.string.faq_screen_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.faq_back_cd))
                     }
                 },
             )

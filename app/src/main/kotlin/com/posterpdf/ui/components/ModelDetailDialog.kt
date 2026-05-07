@@ -41,6 +41,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.posterpdf.R
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -155,7 +157,7 @@ fun ModelDetailDialog(
                     // RC23: route through handleClose so the close button
                     // also triggers the shrink animation before dismissing.
                     IconButton(onClick = handleClose) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.model_detail_close_cd))
                     }
                 }
                 HorizontalDivider()
@@ -172,7 +174,7 @@ fun ModelDetailDialog(
                     if (bestFor.isNotEmpty()) {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                "Best for",
+                                stringResource(R.string.model_detail_best_for),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -198,21 +200,21 @@ fun ModelDetailDialog(
                     // Why pick this model
                     DetailSection(
                         icon = Icons.Default.Lightbulb,
-                        title = "Pick this when",
+                        title = stringResource(R.string.model_detail_section_pick_when),
                         body = pickWhen,
                         accent = MaterialTheme.colorScheme.tertiary,
                     )
                     // What stands out
                     DetailSection(
                         icon = Icons.Default.Star,
-                        title = "What stands out",
+                        title = stringResource(R.string.model_detail_section_what_stands_out),
                         body = standsOut,
                         accent = MaterialTheme.colorScheme.secondary,
                     )
                     // Worth the price
                     DetailSection(
                         icon = Icons.Default.LocalOffer,
-                        title = "Worth the price?",
+                        title = stringResource(R.string.model_detail_section_worth_the_price),
                         body = worthThePrice,
                         accent = MaterialTheme.colorScheme.primary,
                     )

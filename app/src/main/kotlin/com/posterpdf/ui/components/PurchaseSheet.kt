@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
 import com.posterpdf.R
 import com.posterpdf.ui.theme.BlueprintBlue700
 import com.posterpdf.ui.theme.TrimOrange500
@@ -44,16 +45,16 @@ import com.posterpdf.ui.theme.TrimOrange500
  */
 private data class CreditSku(
     val sku: String,
-    val label: String,
+    @StringRes val labelRes: Int,
     val credits: Int,
     val price: String,
 )
 
 private val PLACEHOLDER_SKUS = listOf(
-    CreditSku("credits_starter", "Starter", credits = 199,  price = "$1.99"),
-    CreditSku("credits_small",   "Small",   credits = 524,  price = "$4.99"),
-    CreditSku("credits_medium",  "Medium",  credits = 1074, price = "$9.99"),
-    CreditSku("credits_large",   "Large",   credits = 2199, price = "$19.99"),
+    CreditSku("credits_starter", R.string.purchase_sku_starter_name, credits = 199,  price = "$1.99"),
+    CreditSku("credits_small",   R.string.purchase_sku_small_name,   credits = 524,  price = "$4.99"),
+    CreditSku("credits_medium",  R.string.purchase_sku_medium_name,  credits = 1074, price = "$9.99"),
+    CreditSku("credits_large",   R.string.purchase_sku_large_name,   credits = 2199, price = "$19.99"),
 )
 
 /**
@@ -107,7 +108,7 @@ fun PurchaseSheet(
             ) {
                 FlippingCoin(
                     sizeDp = 56.dp,
-                    contentDescription = "1¢ AI credit coin",
+                    contentDescription = stringResource(R.string.purchase_credit_coin_cd),
                 )
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.purchase_ai_credits),
@@ -116,7 +117,7 @@ fun PurchaseSheet(
                         color = MaterialTheme.colorScheme.primary,
                     )
                     Text(
-                        "Balance: $balance",
+                        stringResource(R.string.purchase_balance_inline, balance),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -220,7 +221,7 @@ private fun SkuRow(item: CreditSku, onBuy: () -> Unit) {
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    item.label,
+                    stringResource(item.labelRes),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     // RC22: theme primary for dark-mode contrast (was the
@@ -228,7 +229,7 @@ private fun SkuRow(item: CreditSku, onBuy: () -> Unit) {
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    "${item.credits} credits  -  ${item.price}",
+                    stringResource(R.string.purchase_sku_credits_price_inline, item.credits, item.price),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

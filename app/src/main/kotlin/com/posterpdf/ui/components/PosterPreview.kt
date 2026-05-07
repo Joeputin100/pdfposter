@@ -345,7 +345,7 @@ fun PosterPreview(viewModel: MainViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Live Assembly Preview",
+            androidx.compose.ui.res.stringResource(R.string.preview_live_assembly_inline),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold
@@ -1345,8 +1345,8 @@ fun PosterPreview(viewModel: MainViewModel) {
 
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            LegendSwatch(Color(0xFF0A3D62).copy(alpha = 0.55f), "Margin")
-            LegendSwatch(Color(0xFFFF6F00).copy(alpha = 0.55f), "Overlap")
+            LegendSwatch(Color(0xFF0A3D62).copy(alpha = 0.55f), androidx.compose.ui.res.stringResource(R.string.preview_legend_margin_inline))
+            LegendSwatch(Color(0xFFFF6F00).copy(alpha = 0.55f), androidx.compose.ui.res.stringResource(R.string.preview_legend_overlap_inline))
         }
 
         // Low-DPI surface (Plan G10 Step 1+2). Computes effective DPI from the
@@ -1407,7 +1407,11 @@ fun PosterPreview(viewModel: MainViewModel) {
                                 R.string.preview_upscaling_card, pendingLabel, targetDpi,
                             )
                         } else {
-                            "Low resolution: ${currentDpi.toInt()} ${viewModel.currentResolutionUnitLabel} · Tap to upscale ↑"
+                            androidx.compose.ui.res.stringResource(
+                                R.string.preview_low_dpi_inline,
+                                currentDpi.toInt(),
+                                viewModel.currentResolutionUnitLabel,
+                            )
                         },
                         modifier = Modifier.padding(12.dp),
                         color = cardOnContainer,

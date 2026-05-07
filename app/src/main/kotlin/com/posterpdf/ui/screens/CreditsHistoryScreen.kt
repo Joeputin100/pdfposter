@@ -61,6 +61,8 @@ import java.util.Date
 @Composable
 fun CreditsHistoryScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     val uid = viewModel.authSession.uid
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val aiUpscaleFallback = stringResource(R.string.credits_history_label_ai_upscale)
 
     var entries by remember { mutableStateOf<List<CreditEntry>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
@@ -90,7 +92,7 @@ fun CreditsHistoryScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                         val ts = d.getTimestamp("createdAt")?.toDate() ?: return@mapNotNull null
                         CreditEntry(
                             kind = if (refunded) EntryKind.Refund else EntryKind.Debit,
-                            label = (d.getString("modelName") ?: d.getString("model") ?: "AI upscale"),
+                            label = (d.getString("modelName") ?: d.getString("model") ?: aiUpscaleFallback),
                             credits = if (refunded) cost else -cost,
                             timestamp = ts,
                         )
@@ -110,7 +112,7 @@ fun CreditsHistoryScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                         val ts = d.getTimestamp("createdAt")?.toDate() ?: return@mapNotNull null
                         CreditEntry(
                             kind = EntryKind.Purchase,
-                            label = "Purchase: $sku",
+                            label = context.getString(R.string.credits_history_label_purchase, sku),
                             credits = credits,
                             timestamp = ts,
                         )

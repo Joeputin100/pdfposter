@@ -77,6 +77,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
 import com.posterpdf.R
 import com.posterpdf.ml.Capability
 import com.posterpdf.ml.CapabilityTier
@@ -102,9 +103,9 @@ enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR
 
 internal data class UpscaleOption(
     val model: UpscaleModel,
-    val displayName: String,
-    val pros: String,
-    val cons: String,
+    @StringRes val displayNameRes: Int,
+    @StringRes val prosRes: Int,
+    @StringRes val consRes: Int,
     /** Default scale for display (used by NONE/FREE_LOCAL only). For paid
      *  models the actual scale is picked dynamically by [pickScale] using
      *  the same logic as backend/functions/src/upscale.ts pickScale. */
@@ -126,27 +127,27 @@ internal data class UpscaleOption(
 internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
     UpscaleOption(
         model = UpscaleModel.NONE,
-        displayName = "Now (pixelated)",
-        pros = "Fastest, free, works on any device",
-        cons = "Visible pixelation at large prints",
+        displayNameRes = R.string.upscale_option_now_pixelated,
+        prosRes = R.string.upscale_option_now_pros,
+        consRes = R.string.upscale_option_now_cons,
         scale = 1,
         supportedScales = listOf(1),
         perOutputMp = 0.0,
     ),
     UpscaleOption(
         model = UpscaleModel.FREE_LOCAL,
-        displayName = "Free upscale",
-        pros = "Free, offline, works without internet",
-        cons = "Slower on older phones; 4× max",
+        displayNameRes = R.string.upscale_option_free_upscale,
+        prosRes = R.string.upscale_option_free_pros,
+        consRes = R.string.upscale_option_free_cons,
         scale = 4,
         supportedScales = listOf(4),
         perOutputMp = 0.0,
     ),
     UpscaleOption(
         model = UpscaleModel.RECRAFT,
-        displayName = "Recraft Crisp",
-        pros = "Best for photos & portraits — keeps the original look",
-        cons = "Softer than Topaz on text and hard edges",
+        displayNameRes = R.string.upscale_option_recraft_crisp,
+        prosRes = R.string.upscale_option_recraft_pros,
+        consRes = R.string.upscale_option_recraft_cons,
         scale = 4,
         supportedScales = listOf(4),
         perOutputMp = 0.0,
@@ -154,18 +155,18 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
     ),
     UpscaleOption(
         model = UpscaleModel.ESRGAN,
-        displayName = "ESRGAN",
-        pros = "Budget cleanup — predictable open-source baseline",
-        cons = "Dated model; can over-smooth fine detail",
+        displayNameRes = R.string.upscale_option_esrgan,
+        prosRes = R.string.upscale_option_esrgan_pros,
+        consRes = R.string.upscale_option_esrgan_cons,
         scale = 4,
         supportedScales = listOf(4),
         perOutputMp = 0.00111,
     ),
     UpscaleOption(
         model = UpscaleModel.AURASR,
-        displayName = "AuraSR",
-        pros = "Best for art, anime & illustrations — fast GAN polish",
-        cons = "Occasional artifacts on skies and skin",
+        displayNameRes = R.string.upscale_option_aurasr,
+        prosRes = R.string.upscale_option_aurasr_pros,
+        consRes = R.string.upscale_option_aurasr_cons,
         scale = 4,
         supportedScales = listOf(4),
         perOutputMp = 0.00125,
@@ -177,18 +178,18 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
     // order (NONE → FREE → RECRAFT → ESRGAN → AURASR → CCSR → TOPAZ).
     UpscaleOption(
         model = UpscaleModel.CCSR,
-        displayName = "CCSR",
-        pros = "Photo-faithful, scale-tunable mid-tier",
-        cons = "Slower than ESRGAN; less crisp on text than Topaz",
+        displayNameRes = R.string.upscale_option_ccsr,
+        prosRes = R.string.upscale_option_ccsr_pros,
+        consRes = R.string.upscale_option_ccsr_cons,
         scale = 4,
         supportedScales = listOf(2, 3, 4),
         perOutputMp = 0.00125,
     ),
     UpscaleOption(
         model = UpscaleModel.TOPAZ,
-        displayName = "Topaz Gigapixel",
-        pros = "Best for text, line art & print-shop polish",
-        cons = "30× the cost for ~10–20% sharper edges",
+        displayNameRes = R.string.upscale_option_topaz_gigapixel,
+        prosRes = R.string.upscale_option_topaz_pros,
+        consRes = R.string.upscale_option_topaz_cons,
         scale = 4,
         supportedScales = listOf(2, 4, 6, 8),
         perOutputMp = 0.01,
@@ -360,8 +361,9 @@ fun LowDpiUpgradeModal(
     var msPerMp by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(context) { msPerMp = cachedMsPerMegapixel(context) }
     val localOutputMp = remember(inputMpInt) { inputMpInt.toLong() * 4 * 4 }
-    val localEtaText = remember(localOutputMp, msPerMp) {
-        etaForLocal(localOutputMp, msPerMp)?.let(::formatEta) ?: "estimating…"
+    val estimatingText = stringResource(R.string.lowdpi_eta_estimating_inline)
+    val localEtaText = remember(localOutputMp, msPerMp, estimatingText) {
+        etaForLocal(localOutputMp, msPerMp)?.let(::formatEta) ?: estimatingText
     }
 
     // Thumbnail prep — preserve aspect ratio.
@@ -444,8 +446,8 @@ fun LowDpiUpgradeModal(
                 )
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    if (sourceIsSvg) "Vector source — no upscale needed"
-                    else "This poster will print at low resolution",
+                    if (sourceIsSvg) stringResource(R.string.lowdpi_header_svg_inline)
+                    else stringResource(R.string.lowdpi_header_warning_inline),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -453,14 +455,23 @@ fun LowDpiUpgradeModal(
             }
             if (!sourceIsSvg) {
                 Text(
-                    "Current: ${currentDpi.toInt()} DPI  ·  ${"%.0f".format(posterWInches)}\" × ${"%.0f".format(posterHInches)}\"",
+                    stringResource(
+                        R.string.lowdpi_current_dpi_inline,
+                        currentDpi.toInt(),
+                        "%.0f".format(posterWInches),
+                        "%.0f".format(posterHInches),
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = severityColor,
                     fontWeight = FontWeight.SemiBold,
                 )
             } else {
                 Text(
-                    "Poster size: ${"%.0f".format(posterWInches)}\" × ${"%.0f".format(posterHInches)}\"",
+                    stringResource(
+                        R.string.lowdpi_poster_size_only_inline,
+                        "%.0f".format(posterWInches),
+                        "%.0f".format(posterHInches),
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
@@ -567,16 +578,16 @@ fun LowDpiUpgradeModal(
                     fontWeight = FontWeight.SemiBold,
                 )
                 LeverRow(
-                    title = "Reduce poster size",
-                    body = "Same source image, smaller print → higher DPI. Fastest fix, no upload needed.",
+                    title = stringResource(R.string.lowdpi_card_reduce_title),
+                    body = stringResource(R.string.lowdpi_card_reduce_body),
                 )
                 LeverRow(
-                    title = "Upgrade source",
-                    body = "Upscale on-device (free, gated by RAM) or via AI (credits charged per model).",
+                    title = stringResource(R.string.lowdpi_card_upgrade_title),
+                    body = stringResource(R.string.lowdpi_card_upgrade_body),
                 )
                 LeverRow(
-                    title = "Bring your own",
-                    body = "Already upscaled with Canva, OpenArt, Topaz Photo AI, or Magnific? Load the upscaled file directly. PosterPDF is free with any image source — AI credits only cover the inference cost.",
+                    title = stringResource(R.string.lowdpi_card_byo_title),
+                    body = stringResource(R.string.lowdpi_card_byo_body),
                 )
             }
 
@@ -587,7 +598,7 @@ fun LowDpiUpgradeModal(
                     .height(48.dp),
                 shape = RoundedCornerShape(16.dp),
             ) {
-                Text(if (sourceIsSvg) "Got it" else "Reduce poster size instead")
+                Text(if (sourceIsSvg) stringResource(R.string.lowdpi_dismiss_svg_inline) else stringResource(R.string.lowdpi_dismiss_warning_inline))
             }
 
             Spacer(Modifier.height(8.dp))
@@ -610,18 +621,19 @@ fun LowDpiUpgradeModal(
         val effectiveScale = (topazMinScale?.takeIf { it > pickedDefault }
             ?.let { ms -> option.supportedScales.firstOrNull { it >= ms } ?: option.supportedScales.last() }
             ?: pickedDefault)
+        val optionName = stringResource(option.displayNameRes)
         val (actionLabel, action) = when {
             open == UpscaleModel.NONE -> "" to { }
-            open == UpscaleModel.FREE_LOCAL -> "Use free upscaler" to onFreeUpscale
-            isAnonymous -> "Sign in to upscale" to onSignIn
+            open == UpscaleModel.FREE_LOCAL -> stringResource(R.string.model_detail_action_use_free) to onFreeUpscale
+            isAnonymous -> stringResource(R.string.model_detail_action_sign_in) to onSignIn
             !(isAdmin || creditBalance >= creditsForOption(option, inputMp, effectiveScale)) ->
-                "Get more credits" to onBuyCredits
-            else -> "Upscale with ${option.displayName}" to {
+                stringResource(R.string.model_detail_action_get_credits) to onBuyCredits
+            else -> stringResource(R.string.model_detail_action_upscale_with, optionName) to {
                 onAiUpscale(open.name.lowercase(), topazMinScale)
             }
         }
         ModelDetailDialog(
-            displayName = option.displayName,
+            displayName = optionName,
             bestFor = copy.bestFor,
             pickWhen = copy.pickWhen,
             standsOut = copy.standsOut,
@@ -771,7 +783,7 @@ private fun UpscaleOptionCard(
                     Spacer(Modifier.width(4.dp))
                 }
                 Text(
-                    option.displayName,
+                    stringResource(option.displayNameRes),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -812,7 +824,7 @@ private fun UpscaleOptionCard(
                         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                             Icon(
                                 Icons.Outlined.Info,
-                                contentDescription = "More about ${option.displayName}",
+                                contentDescription = stringResource(R.string.lowdpi_more_about_model_cd, stringResource(option.displayNameRes)),
                                 tint = Color.White,
                                 modifier = Modifier.size(16.dp),
                             )
@@ -824,7 +836,7 @@ private fun UpscaleOptionCard(
                         if (pixelatedThumb != null) {
                             Image(
                                 bitmap = pixelatedThumb,
-                                contentDescription = "Pixelated preview",
+                                contentDescription = stringResource(R.string.lowdpi_pixelated_preview_cd),
                                 contentScale = ContentScale.Fit,
                                 modifier = Modifier.fillMaxWidth().height(100.dp),
                             )
@@ -833,7 +845,7 @@ private fun UpscaleOptionCard(
                     UpscaleModel.FREE_LOCAL -> {
                         Image(
                             bitmap = onDeviceThumb,
-                            contentDescription = "Free upscale preview (original image)",
+                            contentDescription = stringResource(R.string.lowdpi_free_preview_cd),
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.fillMaxWidth().height(100.dp),
                         )
@@ -843,7 +855,7 @@ private fun UpscaleOptionCard(
                         // bottom-aligned brand stripe (model icon + 🪄).
                         Image(
                             bitmap = onDeviceThumb,
-                            contentDescription = "${option.displayName} preview",
+                            contentDescription = stringResource(R.string.lowdpi_model_preview_cd, stringResource(option.displayNameRes)),
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.fillMaxWidth().height(100.dp),
                         )
@@ -867,7 +879,7 @@ private fun UpscaleOptionCard(
                                 modifier = Modifier.size(18.dp),
                             )
                             Text(
-                                option.displayName,
+                                stringResource(option.displayNameRes),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Medium,
@@ -882,7 +894,7 @@ private fun UpscaleOptionCard(
 
             // DPI + cost
             Text(
-                "≈ ${outputDpi.toInt()} DPI",
+                stringResource(R.string.upscale_card_dpi_estimate, outputDpi.toInt()),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -893,13 +905,13 @@ private fun UpscaleOptionCard(
                 // wants the price visible, just formatted correctly under
                 // 1¢ = 1 credit. ¢ for sub-dollar, $ for ≥$1.
                 Text(
-                    "$credits credits · ${formatCredits(credits)}",
+                    stringResource(R.string.lowdpi_card_credits_inline, credits, formatCredits(credits)),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else if (option.model == UpscaleModel.FREE_LOCAL && localEtaText != null) {
                 Text(
-                    if (freeEnabled) "$localEtaText on your device" else (freeCapability?.reason ?: "Unavailable"),
+                    if (freeEnabled) stringResource(R.string.lowdpi_card_eta_on_device, localEtaText) else (freeCapability?.reason ?: stringResource(R.string.lowdpi_card_eta_unavailable)),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (freeEnabled) MaterialTheme.colorScheme.onSurfaceVariant
                     else MaterialTheme.colorScheme.error,
@@ -909,14 +921,14 @@ private fun UpscaleOptionCard(
             // Pros (green-tinted). RC20: 2 → 3 lines (pairs with the
             // bumped cardHeightDp so longer marketing copy fits cleanly).
             Text(
-                option.pros,
+                stringResource(option.prosRes),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF66BB6A),
                 maxLines = 3,
             )
             // Cons (amber-tinted)
             Text(
-                option.cons,
+                stringResource(option.consRes),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 3,
@@ -1096,7 +1108,7 @@ private fun BringYourOwnCard(onPick: () -> Unit, modifier: Modifier = Modifier) 
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
-                    "Bring your own",
+                    stringResource(R.string.lowdpi_card_byo_inline),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -1216,20 +1228,20 @@ private fun TopazHeadroomPicker(
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            "Headroom",
+            stringResource(R.string.headroom_section_title),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            "Topaz can scale 2× – 8×. By default we pick the smallest scale that meets your target DPI to keep credits low. Bump it up for extra crispness.",
+            stringResource(R.string.headroom_section_body),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         HeadroomRow(
-            title = "Just enough",
-            subtitle = "${defaultScale}× scale · meets your target DPI",
+            title = stringResource(R.string.headroom_just_enough_title),
+            subtitle = stringResource(R.string.headroom_just_enough_subtitle, defaultScale),
             credits = justEnoughCredits,
             isSelected = selected == null,
             isAffordable = isAdmin || creditBalance >= justEnoughCredits,
@@ -1237,8 +1249,8 @@ private fun TopazHeadroomPicker(
         )
         if (above > defaultScale) {
             HeadroomRow(
-                title = "Above target",
-                subtitle = "${above}× scale · sharper edges, more credits",
+                title = stringResource(R.string.headroom_above_title),
+                subtitle = stringResource(R.string.headroom_above_subtitle, above),
                 credits = aboveCredits,
                 isSelected = selected == above,
                 isAffordable = isAdmin || creditBalance >= aboveCredits,
@@ -1247,8 +1259,8 @@ private fun TopazHeadroomPicker(
         }
         if (maxScale > above) {
             HeadroomRow(
-                title = "Maximum",
-                subtitle = "${maxScale}× scale · max sharpness Topaz allows",
+                title = stringResource(R.string.headroom_max_title),
+                subtitle = stringResource(R.string.headroom_max_subtitle, maxScale),
                 credits = maxCredits,
                 isSelected = selected == maxScale,
                 isAffordable = isAdmin || creditBalance >= maxCredits,

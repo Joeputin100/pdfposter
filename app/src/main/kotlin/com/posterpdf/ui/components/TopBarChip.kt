@@ -126,7 +126,7 @@ fun AccountAvatarMenu(
             if (signedIn && photo != null) {
                 coil.compose.AsyncImage(
                     model = photo,
-                    contentDescription = "Account",
+                    contentDescription = stringResource(R.string.account_label_top_cd),
                     modifier = Modifier
                         .size(36.dp)
                         .clip(RoundedCornerShape(50)),
@@ -134,7 +134,7 @@ fun AccountAvatarMenu(
             } else {
                 Icon(
                     Icons.Filled.AccountCircle,
-                    contentDescription = "Sign in",
+                    contentDescription = stringResource(R.string.account_sign_in_cd),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(28.dp),
                 )

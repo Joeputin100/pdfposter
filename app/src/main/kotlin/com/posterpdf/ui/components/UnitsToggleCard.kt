@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.posterpdf.R
@@ -50,7 +51,7 @@ fun UnitsToggleCard(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         UnitsCard(
-            label = "Inches",
+            label = stringResource(R.string.units_inches_label),
             drawableRes = R.drawable.ruler_inches,
             isSelected = selectedUnits == "Inches",
             onClick = { onSelect("Inches") },
@@ -58,7 +59,7 @@ fun UnitsToggleCard(
             modifier = Modifier.weight(1f),
         )
         UnitsCard(
-            label = "Centimeters",
+            label = stringResource(R.string.units_centimeters_label),
             drawableRes = R.drawable.ruler_centimeters,
             // Backwards-compatible: stored as "Metric" inside the ViewModel.
             isSelected = selectedUnits == "Metric",

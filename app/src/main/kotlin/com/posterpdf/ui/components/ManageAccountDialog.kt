@@ -111,7 +111,7 @@ fun ManageAccountDialog(
                     }
                     Column {
                         Text(
-                            session.displayName ?: "Guest",
+                            session.displayName ?: stringResource(R.string.account_guest_label),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                         )

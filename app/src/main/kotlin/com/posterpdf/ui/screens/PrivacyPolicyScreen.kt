@@ -26,8 +26,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.posterpdf.R
 
 /**
  * H-P2.4 — Privacy Policy screen.
@@ -48,14 +50,14 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "Privacy Policy",
+                        stringResource(R.string.privacy_screen_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.privacy_back_cd))
                     }
                 },
             )
@@ -70,49 +72,30 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                "Effective: 2026-05-03. We try to keep this short and accurate. " +
-                    "If anything below doesn't match what the app actually does, " +
-                    "treat that as a bug and email support@joeputin.com.",
+                stringResource(R.string.privacy_intro_inline),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Section(
-                title = "What we collect at first launch",
-                body = "An anonymous Firebase Auth UID — a random opaque string with " +
-                    "no personally identifying information. This is what lets your " +
-                    "history persist across app restarts on this device.",
+                title = stringResource(R.string.privacy_first_launch_title),
+                body = stringResource(R.string.privacy_first_launch_body),
             )
             Section(
-                title = "What we collect if you sign in with Google",
-                body = "Your Google account name and email address. We use these to " +
-                    "show you who's signed in, sync your history across devices, and " +
-                    "process account-wide deletion requests. We do NOT receive your " +
-                    "Google password, contacts, calendar, drive, or other Google data.",
+                title = stringResource(R.string.privacy_google_title),
+                body = stringResource(R.string.privacy_google_body),
             )
             Section(
-                title = "History metadata (Firestore)",
-                body = "When you generate a poster, we record: poster width and height, " +
-                    "paper size, orientation, margin, overlap, output DPI, page count, " +
-                    "and a creation timestamp. This goes to Firestore at " +
-                    "/users/{uid}/history. We do NOT store the source image bytes or " +
-                    "any pixel data in Firestore.",
+                title = stringResource(R.string.privacy_firestore_title),
+                body = stringResource(R.string.privacy_firestore_body),
             )
             Section(
-                title = "PDF blobs (Cloud Storage) — opt-in",
-                body = "If you opt into cloud retention (Settings → Cloud storage…), " +
-                    "we upload generated PDFs to Cloud Storage at gs://(project)/" +
-                    "user-pdfs/{uid}/. The default retention is 30 days; paid tiers " +
-                    "extend that. The default Settings choice is local-only — nothing " +
-                    "leaves your device unless you opt in.",
+                title = stringResource(R.string.privacy_storage_title),
+                body = stringResource(R.string.privacy_storage_body),
             )
             Section(
-                title = "AI upscale (FAL.ai)",
-                body = "When you tap an AI upscale option (Topaz, Recraft, AuraSR, " +
-                    "ESRGAN, Magnific), the source image is sent to FAL.ai for " +
-                    "processing, and the upscaled result is returned. FAL.ai retains " +
-                    "the input and output for the period set in their TOS — typically " +
-                    "minutes to hours, but read their policy directly:",
+                title = stringResource(R.string.privacy_fal_title),
+                body = stringResource(R.string.privacy_fal_body),
             )
             ClickableLine(
                 "https://fal.ai/legal/privacy",
@@ -123,35 +106,20 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             )
 
             Section(
-                title = "Retention",
-                body = "Set by your Settings → Cloud storage… choice. Free tier: 30 " +
-                    "days. Paid tiers: 90 days, 1 year, or indefinite. History " +
-                    "metadata in Firestore follows the same retention. Local files " +
-                    "and local history stay on your device until you uninstall or " +
-                    "tap Reset to Defaults.",
+                title = stringResource(R.string.privacy_retention_title),
+                body = stringResource(R.string.privacy_retention_body),
             )
             Section(
-                title = "Deletion paths",
-                body = "Local data: Settings → Reset to Defaults wipes preferences and " +
-                    "the on-device history index. Per-poster cloud copy: open History, " +
-                    "tap the red cloud-off button on the row. Account-wide (auth + all " +
-                    "Firestore history + all cloud PDFs): email support@joeputin.com " +
-                    "from the address tied to your Google sign-in. We process within " +
-                    "7 days.",
+                title = stringResource(R.string.privacy_deletion_title),
+                body = stringResource(R.string.privacy_deletion_body),
             )
             Section(
-                title = "Third-party services",
-                body = "Firebase Auth, Cloud Firestore, Cloud Storage (all Google " +
-                    "Cloud); FAL.ai for AI upscale; Google Play Billing for credit " +
-                    "purchases. We do not run any analytics or advertising SDK. We " +
-                    "have no access to other apps on your phone.",
+                title = stringResource(R.string.privacy_third_party_title),
+                body = stringResource(R.string.privacy_third_party_body),
             )
             Section(
-                title = "Contact",
-                body = "support@joeputin.com for any privacy question or deletion " +
-                    "request. Source code is public at " +
-                    "github.com/Joeputin/pdfposter — what you see in this policy " +
-                    "matches what's in the code.",
+                title = stringResource(R.string.privacy_contact_title),
+                body = stringResource(R.string.privacy_contact_body),
             )
 
             Spacer(Modifier.height(24.dp))

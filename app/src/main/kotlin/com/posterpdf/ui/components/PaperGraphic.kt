@@ -113,7 +113,7 @@ fun PaperGraphic(
         if (showDogCow) {
             Image(
                 painter = painterResource(id = R.drawable.dogcow),
-                contentDescription = "Orientation indicator (Clarus the DogCow)",
+                contentDescription = androidx.compose.ui.res.stringResource(R.string.paper_graphic_dogcow_cd),
                 modifier = Modifier.size(boxSize * 0.45f)
             )
         }
