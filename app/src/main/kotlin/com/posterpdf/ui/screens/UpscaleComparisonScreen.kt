@@ -145,7 +145,22 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
             decodeRaw(context, srcId) to decodeRaw(context, upId)
         }
         sourceBmp = s?.asImageBitmap()
-        upscaledBmp = u?.asImageBitmap()
+        // RC45: when the baked "upscaled" asset is at the same resolution
+        // as the source, the asset-bake pipeline silently fell back to a
+        // re-encode of the source instead of running the real model
+        // (affects 6 combos: earth × {topaz, recraft, esrgan} and
+        // gristmill × {topaz, esrgan, aurasr}). The JPEG re-encode lands
+        // at lower quality, so the slider's right side shows visible
+        // compression artifacts that aren't in the original — the user
+        // sees the "upscale" *degrading* the image. Detect that case and
+        // render the source on both sides so the slider shows "no
+        // improvement" rather than "made it worse." Real fix is to
+        // re-bake from FAL outputs at lossless format (per memory rule).
+        upscaledBmp = if (s != null && u != null && u.width == s.width && u.height == s.height) {
+            s.asImageBitmap()
+        } else {
+            u?.asImageBitmap()
+        }
     }
 
     val isFallback = (subject to model) in SYNTHESIZED_FALLBACKS
