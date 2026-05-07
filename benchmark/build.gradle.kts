@@ -13,12 +13,17 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        // Macrobenchmark requires API 23+ on the device and the test runner
-        // class shipped by androidx.benchmark. minSdk 23 matches the app
-        // module's floor.
+        // Macrobenchmark requires API 23+ on the device. The runner is the
+        // standard AndroidJUnitRunner — macrobench-specific behavior comes
+        // from the MacrobenchmarkRule JUnit rule, not from a custom runner.
+        // (RC41 originally wired AndroidBenchmarkRunner, which is for
+        // microbench in-process measurements and lives in benchmark-junit4
+        // — wrong artifact and wrong runner; produced ClassNotFoundException
+        // at instrumentation start. The macrobench artifact we depend on
+        // (benchmark-macro-junit4) has no runner of its own.)
         minSdk = 23
         targetSdk = 36
-        testInstrumentationRunner = "androidx.benchmark.junit4.AndroidBenchmarkRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
