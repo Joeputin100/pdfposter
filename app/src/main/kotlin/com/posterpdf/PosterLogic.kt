@@ -415,9 +415,9 @@ class PosterLogic {
         // English for ALL PDF text. UI continues in user's locale; only
         // the printed instruction page reverts to English. A future RC
         // can embed Noto Sans + Noto Sans CJK to translate the PDF too.
-        val sampleString = pdfCtx.getString(R.string.pdf_assembly_guide_title) +
-            pdfCtx.getString(R.string.pdf_brand_tagline) +
-            pdfCtx.getString(R.string.pdf_assemble_step1)
+        val sampleString = context.getString(R.string.pdf_assembly_guide_title) +
+            context.getString(R.string.pdf_brand_tagline) +
+            context.getString(R.string.pdf_assemble_step1)
         val pdfCtx = if (sampleString.isLatin1Safe()) context else englishFallbackContext(context)
 
         // Compute print DPI at current poster size (convert 1/72 pt back to inches)
