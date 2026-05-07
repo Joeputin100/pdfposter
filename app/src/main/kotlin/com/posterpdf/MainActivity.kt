@@ -229,6 +229,9 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         viewModel.showFaq -> "faq"
         viewModel.showPrivacy -> "privacy"
         viewModel.showSupport -> "support"
+        viewModel.showCommunity && viewModel.composingCommunityPost -> "community_compose"
+        viewModel.showCommunity && viewModel.selectedCommunityPostId != null -> "community_post"
+        viewModel.showCommunity -> "community"
         else -> "main"
     }
     AnimatedContent(
@@ -246,6 +249,9 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                 "faq" to 6,
                 "privacy" to 7,
                 "support" to 8,
+                "community" to 9,
+                "community_post" to 10,
+                "community_compose" to 11,
             )
             val from = order[initialState] ?: 0
             val to = order[targetState] ?: 0
@@ -295,6 +301,30 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                 com.posterpdf.ui.screens.SupportScreen(
                     viewModel = viewModel,
                     onBack = { viewModel.showSupport = false },
+                )
+            }
+            "community" -> {
+                BackHandler { viewModel.showCommunity = false }
+                com.posterpdf.ui.screens.CommunityScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.showCommunity = false },
+                    onOpenPost = { id -> viewModel.selectedCommunityPostId = id },
+                    onCompose = { viewModel.composingCommunityPost = true },
+                )
+            }
+            "community_post" -> {
+                BackHandler { viewModel.selectedCommunityPostId = null }
+                com.posterpdf.ui.screens.CommunityPostScreen(
+                    viewModel = viewModel,
+                    postId = viewModel.selectedCommunityPostId.orEmpty(),
+                    onBack = { viewModel.selectedCommunityPostId = null },
+                )
+            }
+            "community_compose" -> {
+                BackHandler { viewModel.composingCommunityPost = false }
+                com.posterpdf.ui.screens.CommunityComposeScreen(
+                    viewModel = viewModel,
+                    onBack = { viewModel.composingCommunityPost = false },
                 )
             }
             else -> MainScreenContent(viewModel = viewModel)
@@ -1056,6 +1086,21 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          scope.launch { drawerState.close() }
                      },
                      icon = { Icon(Icons.AutoMirrored.Filled.Send, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
+                 // RC44: Community board — public-read discussion across
+                 // 4 topics (Release Notes / Feature Requests / Troubleshooting
+                 // / Discussion). Anyone can read; non-anonymous users can
+                 // post and reply. Release-Notes posting is admin-gated.
+                 NavigationDrawerItem(
+                     label = { Text(stringResource(R.string.drawer_community)) },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "Community opened")
+                         viewModel.showCommunity = true
+                         scope.launch { drawerState.close() }
+                     },
+                     icon = { Icon(Icons.Default.Forum, null) },
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
 

@@ -911,4 +911,52 @@
     <string name="orientation_clarus_landscape_cd">Landscape orientation (Clarus the Dogcow on its side)</string>
     <string name="orientation_clarus_best_fit_cd">Best fit orientation</string>
 
+    <!-- RC44: Community board -->
+    <string name="drawer_community" tools:maxLength="20">Community</string>
+    <string name="community_screen_title">Community</string>
+    <string name="community_topic_all" tools:maxLength="14">All</string>
+    <string name="community_topic_release_notes" tools:maxLength="22">Release Notes</string>
+    <string name="community_topic_feature_requests" tools:maxLength="22">Feature Requests</string>
+    <string name="community_topic_troubleshooting" tools:maxLength="28">Troubleshooting &amp; Support</string>
+    <string name="community_topic_discussion" tools:maxLength="28">Community Discussion</string>
+    <string name="community_compose_fab_label" tools:maxLength="14">New post</string>
+    <string name="community_compose_fab_cd">Write a new post</string>
+    <string name="community_compose_title">New post</string>
+    <string name="community_compose_topic_label">Topic</string>
+    <string name="community_compose_subject_label">Title</string>
+    <string name="community_compose_subject_placeholder">A brief, descriptive title</string>
+    <string name="community_compose_body_label">Body</string>
+    <string name="community_compose_body_placeholder">Share your thoughts, ask a question, or start a discussion…</string>
+    <string name="community_compose_post" tools:maxLength="14">Post</string>
+    <string name="community_compose_posting" tools:maxLength="14">Posting…</string>
+    <string name="community_bbcode_hint">Formatting: [b]bold[/b], [i]italic[/i], [url=https://…]link[/url], [img]https://…[/img], [code]code[/code]. Image URLs must be https://.</string>
+    <string name="community_signin_required">Sign in with Google to post or reply.</string>
+    <string name="community_no_posts_all">No posts yet. Be the first to start a discussion.</string>
+    <string name="community_no_posts_topic">No posts in this topic yet.</string>
+    <string name="community_post_screen_title">Post</string>
+    <string name="community_reply_count">%1$d replies</string>
+    <string name="community_reply_count_one">1 reply</string>
+    <string name="community_reply_count_zero">No replies yet</string>
+    <string name="community_reply_input_placeholder">Write a reply…</string>
+    <string name="community_reply_send">Reply</string>
+    <string name="community_post_deleted">[Post deleted]</string>
+    <string name="community_reply_deleted">[Reply deleted]</string>
+    <string name="community_delete_post_action">Delete</string>
+    <string name="community_delete_reply_action">Delete reply</string>
+    <string name="community_delete_confirm_title">Delete?</string>
+    <string name="community_delete_confirm">Delete this post? This can\'t be undone.</string>
+    <string name="community_delete_confirm_reply">Delete this reply? This can\'t be undone.</string>
+    <string name="community_delete_yes" tools:maxLength="14">Delete</string>
+    <string name="community_delete_no" tools:maxLength="14">Keep</string>
+    <string name="community_post_success">Posted!</string>
+    <string name="community_post_failed">Couldn\'t post: %1$s</string>
+    <string name="community_reply_failed">Couldn\'t reply: %1$s</string>
+    <string name="community_load_failed">Couldn\'t load posts.</string>
+    <string name="community_refresh_cd">Refresh</string>
+    <string name="community_relative_just_now">just now</string>
+    <string name="community_relative_minutes_ago">%1$dm ago</string>
+    <string name="community_relative_hours_ago">%1$dh ago</string>
+    <string name="community_relative_days_ago">%1$dd ago</string>
+    <string name="community_post_by_author">by %1$s</string>
+
 </resources>

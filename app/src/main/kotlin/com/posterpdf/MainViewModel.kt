@@ -725,6 +725,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *  the type-CANCEL confirm sub-modal. */
     var showManageAccount by mutableStateOf(false)
 
+    /** RC44: in-app community board. showCommunity drives the feed
+     *  screen; selectedCommunityPostId drills into a post; composing
+     *  toggles the new-post composer. The three are mutually exclusive
+     *  layers stacked above the main screen — the route is computed in
+     *  MainActivity from the combination. */
+    var showCommunity by mutableStateOf(false)
+    var selectedCommunityPostId by mutableStateOf<String?>(null)
+    var composingCommunityPost by mutableStateOf(false)
+
     private var ignoreFlowUpdates = false
 
     init {
