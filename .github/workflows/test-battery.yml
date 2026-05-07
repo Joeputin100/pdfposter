@@ -137,11 +137,7 @@ jobs:
         #     ~3×, faster wall clock for RC iteration.
         #   - master pushes + PRs to master → full 8-level matrix.
         #     Strong pre-merge gating with comprehensive coverage.
-        api-level: ${{ fromJson(
-          (github.event_name == 'pull_request' || github.ref == 'refs/heads/master')
-            && '[23, 26, 28, 30, 33, 34, 35, 36]'
-            || '[23, 33, 36]'
-        ) }}
+        api-level: ${{ fromJson((github.event_name == 'pull_request' || github.ref == 'refs/heads/master') && '[23, 26, 28, 30, 33, 34, 35, 36]' || '[23, 33, 36]') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
