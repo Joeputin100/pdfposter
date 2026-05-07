@@ -195,11 +195,56 @@ function assertSignedIn(request: CallableRequest<unknown>): string {
 }
 
 function assertModel(m: unknown): UpscaleModel {
-  if (m === 'topaz' || m === 'recraft' || m === 'aurasr' || m === 'esrgan') return m;
+  if (m === 'topaz' || m === 'recraft' || m === 'aurasr' || m === 'esrgan' || m === 'ccsr') return m;
   throw new HttpsError(
     'invalid-argument',
-    'modelId must be one of: topaz, recraft, aurasr, esrgan',
+    'modelId must be one of: topaz, recraft, aurasr, esrgan, ccsr',
   );
+}
+
+// RC47: per-model FAL caps. Each upscale endpoint has an undocumented limit
+// (GPU memory, image-decoder limits, etc.); jobs that exceed the cap return
+// 422 at FAL submit time, AFTER we'd otherwise have debited the user's
+// credits. Reject server-side with a clear error before any of that.
+//
+// IMPORTANT: never silently fall back to a different model when a cap is
+// hit. Topaz costs 8× CCSR's per-MP rate ($0.01 vs $0.00125), so a CCSR→
+// Topaz auto-substitute would 8× the user's bill without consent. Reject
+// the job and surface a clear error so the user can pick a different
+// model or shrink the poster.
+//
+// CCSR: empirically 4.2 MP outputs work; 11.2 MP outputs fail with "The
+//   final image size is too large." Cap at 8 MP output.
+//
+// Recraft (`crisp`): caps the INPUT at ~1024 max dim. A 1024×1024 input
+//   (~1.05 MP) works; 2048×1365 (~2.8 MP) returns 422. Cap at 1.5 MP
+//   input as a safe MP-based proxy (the cap is technically dimensional,
+//   but MP catches the common phone-photo-shaped inputs).
+//
+// Topaz / AuraSR / ESRGAN: no observed caps in our tests up to 11.2 MP
+//   output. If users start hitting limits at higher resolutions, add
+//   guards here following the same shape.
+const CCSR_MAX_OUTPUT_MP = 8;
+const RECRAFT_MAX_INPUT_MP = 1.5;
+
+function assertModelCapacity(modelId: UpscaleModel, inputMp: number, outputMp: number): void {
+  if (modelId === 'ccsr' && outputMp > CCSR_MAX_OUTPUT_MP) {
+    throw new HttpsError(
+      'invalid-argument',
+      `CCSR can only handle outputs up to ${CCSR_MAX_OUTPUT_MP} MP; ` +
+      `this job would produce ${outputMp.toFixed(1)} MP. ` +
+      `Pick a smaller poster size or a different model.`,
+    );
+  }
+  if (modelId === 'recraft' && inputMp > RECRAFT_MAX_INPUT_MP) {
+    throw new HttpsError(
+      'invalid-argument',
+      `Recraft can only handle inputs up to ${RECRAFT_MAX_INPUT_MP} MP ` +
+      `(roughly 1024×1024); your image is ${inputMp.toFixed(1)} MP. ` +
+      `Pick a different model — Topaz, AuraSR, ESRGAN, and CCSR all ` +
+      `accept larger inputs.`,
+    );
+  }
 }
 
 function assertInputUrl(u: unknown): string {
@@ -585,6 +630,12 @@ export const requestUpscale = onCall(
       ? data.minScale : undefined;
     const scale = pickScale(modelId, inputMp, posterW, posterH, targetDpi, minScale);
     const required = computeCreditsForJob(modelId, inputMp, scale);
+
+    // RC47: reject jobs that exceed the per-model FAL cap BEFORE debiting
+    // credits or hitting FAL. Otherwise the user pays, FAL 422s, and we
+    // have to refund — wasteful for a known-bad request shape.
+    // assertModelCapacity is a no-op for models without observed caps.
+    assertModelCapacity(modelId, inputMp, inputMp * scale * scale);
 
     // RC23: admin emails (joeputin100@gmail.com etc.) and users with the
     // `admin=true` custom claim bypass the credit debit so the project
