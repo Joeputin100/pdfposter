@@ -486,7 +486,7 @@
     <string name="preview_caption_taping">Nähte kleben</string>
     <string name="preview_caption_tightening">Lücken schließen</string>
     <string name="preview_upscaling_card">Hochskalieren mit %1$s auf %2$d DPI</string>
-    <string name="print_resolution_dialog_body">DPI (Punkte pro Zoll) gibt an, wie scharf Ihr Poster bei der gewählten Größe aussieht.\n\n&#8226; Original: Pixel des Quellbilds geteilt durch die Posterbreite.\n&#8226; Hochskaliert: der projizierte DPI-Wert nach dem KI-Schärfer (in der Regel 4&#215; das Original).\n&#8226; Ziel: Ihr Zielwert, eingestellt mit dem Regler in den Einstellungen. 150 DPI ist Standard für Poster; 300 für Fotodrucke.\n\nLiegt das Original unter dem Ziel, öffnet die Karte &#39;Für Druck schärfen&#39; die KI-Optionen, um den Unterschied auszugleichen.</string>
+    <string name="print_resolution_dialog_body">DPI (Punkte pro Zoll) gibt an, wie scharf Ihr Poster bei der gewählten Größe aussieht.\n\n&#8226; Original: Pixel des Quellbilds geteilt durch die Posterbreite.\n&#8226; Hochskaliert: der projizierte DPI-Wert nach dem KI-Schärfer (in der Regel 4&#215; das Original).\n&#8226; Ziel: Ihr Zielwert, eingestellt mit dem Regler in den Einstellungen. 150 DPI ist Standard für Poster; 300 für Fotodrucke.\n\nLiegt das Original unter dem Ziel, öffnet die Karte \'Für Druck schärfen\' die KI-Optionen, um den Unterschied auszugleichen.</string>
     <string name="print_resolution_dialog_title">Druckauflösung</string>
     <string name="storage_save_button" tools:maxLength="10">Speichern</string>
     <string name="support_category_label">Typ</string>
@@ -495,13 +495,13 @@
     <string name="support_send_button">Feedback senden</string>
     <string name="support_sending">Senden&#8230;</string>
     <string name="support_subject_label">Betreff</string>
-    <string name="support_subject_placeholder">Eine Zeile &#8212; was ist&#39;s Problem?</string>
+    <string name="support_subject_placeholder">Eine Zeile &#8212; was ist\'s Problem?</string>
     <string name="upscale_ai_dialog_title">KI-Schärfung</string>
     <string name="upscale_confirm_below_dpi_body">%1$s kann dieses Bild schärfen, aber das Ergebnis auf Ihrem Poster wird ca. %2$d DPI erreichen &#8212; unter Ihrem Ziel von %3$d DPI.</string>
     <string name="upscale_confirm_below_dpi_detail">Die Ausgabe (%1$d&#215;%2$d) wird schärfer als das Original sein, erreicht aber möglicherweise nicht Ihr volles Ziel.</string>
     <string name="upscale_confirm_below_dpi_title">Unter Ihrem Ziel-DPI</string>
-    <string name="upscale_failed_dialog_body">Leider hat&#39;s nicht funktioniert &#8212; Ihre Credits wurden erstattet. Versuchen Sie es erneut oder wählen Sie ein anderes Modell.</string>
+    <string name="upscale_failed_dialog_body">Leider hat\'s nicht funktioniert &#8212; Ihre Credits wurden erstattet. Versuchen Sie es erneut oder wählen Sie ein anderes Modell.</string>
     <string name="upscale_failed_dialog_details">Details: %1$s</string>
-    <string name="upscale_failed_dialog_title">Upscale hat&#39;s nicht geschafft</string>
+    <string name="upscale_failed_dialog_title">Upscale hat\'s nicht geschafft</string>
     <string name="upscale_free_dialog_title">Foto schärfen</string>
 </resources>

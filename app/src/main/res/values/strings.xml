@@ -497,7 +497,7 @@
     <!-- RC38: SupportScreen -->
     <string name="support_screen_title">Send feedback</string>
     <string name="support_subject_label">Subject</string>
-    <string name="support_subject_placeholder">One line &#8212; what&#39;s the issue?</string>
+    <string name="support_subject_placeholder">One line &#8212; what\'s the issue?</string>
     <string name="support_description_label">Tell us more</string>
     <string name="support_category_label">Type</string>
     <string name="support_sending">Sending&#8230;</string>
@@ -509,8 +509,8 @@
     <!-- RC38: MainActivity — sharpening / upscale-failure / DPI-confirm modals -->
     <string name="upscale_free_dialog_title">Sharpening your photo</string>
     <string name="upscale_ai_dialog_title">Sharpening with AI</string>
-    <string name="upscale_failed_dialog_title">Upscale didn&#39;t finish</string>
-    <string name="upscale_failed_dialog_body">Sorry &#8212; that didn&#39;t work. Your credits have been refunded; you can try again or pick a different model.</string>
+    <string name="upscale_failed_dialog_title">Upscale didn\'t finish</string>
+    <string name="upscale_failed_dialog_body">Sorry &#8212; that didn\'t work. Your credits have been refunded; you can try again or pick a different model.</string>
     <string name="upscale_failed_dialog_details">Details: %1$s</string>
     <string name="common_retry" tools:maxLength="10">Retry</string>
     <string name="upscale_confirm_below_dpi_title">Below your target DPI</string>
@@ -522,7 +522,7 @@
 
     <!-- RC38: print resolution help dialog (MainActivity) -->
     <string name="print_resolution_dialog_title">Print resolution</string>
-    <string name="print_resolution_dialog_body">DPI (dots per inch) is how sharp your poster will look at the chosen size.\n\n&#8226; Original: the source image&#39;s pixels divided by your poster width.\n&#8226; Upscaled: the projected DPI after the queued AI sharpener runs (usually 4&#215; the original).\n&#8226; Target: your goal, set with the slider in Settings. 150 DPI is the standard for posters; 300 for photo prints.\n\nIf Original is below Target, the Sharpen-for-print card opens the AI options to make up the gap.</string>
+    <string name="print_resolution_dialog_body">DPI (dots per inch) is how sharp your poster will look at the chosen size.\n\n&#8226; Original: the source image\'s pixels divided by your poster width.\n&#8226; Upscaled: the projected DPI after the queued AI sharpener runs (usually 4&#215; the original).\n&#8226; Target: your goal, set with the slider in Settings. 150 DPI is the standard for posters; 300 for photo prints.\n\nIf Original is below Target, the Sharpen-for-print card opens the AI options to make up the gap.</string>
 
     <!-- RC38: PDF strings (PosterLogic) — instruction page + per-tile labels -->
     <string name="pdf_tile_label">Tile %1$s (Row %2$d, Col %3$d)</string>
