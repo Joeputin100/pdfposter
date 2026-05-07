@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  RC41: Manifest overlay applied only to the `benchmark` build variant.
+  <profileable shell="true"> tells the OS to emit ATrace events for system
+  tracing (which Macrobenchmark reads to compute StartupTimingMetric and
+  FrameTimingMetric). Without this declaration the metrics come back empty.
+
+  The release manifest can't carry this attribute because <profileable>
+  with shell access leaks process-internal trace data, which we don't want
+  in user-facing builds. Restricting it to the benchmark variant is the
+  canonical Android pattern.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application tools:replace="android:debuggable">
+        <profileable
+            android:shell="true"
+            tools:targetApi="29" />
+    </application>
+</manifest>

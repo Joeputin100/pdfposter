@@ -107,11 +107,24 @@ jobs:
   instrumentation-tests:
     name: Instrumentation (API ${{ matrix.api-level }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # RC41: 60min ceiling — cold AVD cache + 8-level matrix means some legs take
+    # ~50min when emulator image isn't pre-cached on the runner.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        api-level: [23, 28, 33]
+        # RC41: minSdk is 23 (material3:1.5.0-alpha18 manifest); going lower
+        # would require dependency rework. 23 → 36 covers Android 6 (Marshmallow)
+        # through the live Android 16 preview. Picked levels span:
+        #   23  Android 6.0  Marshmallow (minSdk floor)
+        #   26  Android 8.0  Oreo (notification channels, foreground services)
+        #   28  Android 9    Pie (foldable hinge sensor, slice-as-window)
+        #   30  Android 11   R (scoped storage, package visibility)
+        #   33  Android 13   Tiramisu (POST_NOTIFICATIONS runtime perm — RC11)
+        #   34  Android 14   Upside Down Cake (BG-activity-launch lockdown)
+        #   35  Android 15   Vanilla Ice Cream (edge-to-edge default — RC F)
+        #   36  Android 16   Baklava (current targetSdk)
+        api-level: [23, 26, 28, 30, 33, 34, 35, 36]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -235,3 +248,128 @@ jobs:
             app/build/outputs/androidTest-results/
           if-no-files-found: warn
           retention-days: 7
+
+  # ───────────────────────────────────────────────────────────────────────
+  # RC41: Macrobenchmark — startup (cold/warm/hot) + scroll-jank metrics.
+  # Runs on a single recent API level (35) since macrobench results don't
+  # vary much across OS versions for this kind of UI workload, and
+  # spinning up 8 emulator legs of macrobench would be excessive. The
+  # numbers are emulator-quality (~10-20% noise) — useful for spotting
+  # regressions, not for absolute claims.
+  # ───────────────────────────────────────────────────────────────────────
+  macrobenchmark:
+    name: Macrobenchmark (API 35)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Gradle 8.11.1
+        run: |
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
+          sudo unzip -q /tmp/gradle.zip -d /opt
+          echo "/opt/gradle-8.11.1/bin" >> $GITHUB_PATH
+
+      - name: Decode keystore
+        env:
+          KS_B64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > release.keystore
+          else
+            touch release.keystore
+            echo "WARNING: RELEASE_KEYSTORE_BASE64 not set — signing will fail"
+          fi
+
+      - name: Decode google-services.json
+        env:
+          GS_B64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          if [ -n "$GS_B64" ]; then
+            echo "$GS_B64" | base64 -d > app/google-services.json
+          else
+            cat > app/google-services.json <<'EOF'
+          {
+            "project_info": {
+              "project_number": "000000000000",
+              "project_id": "stub",
+              "storage_bucket": "stub.appspot.com"
+            },
+            "client": [{
+              "client_info": {
+                "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+                "android_client_info": {"package_name": "com.posterpdf"}
+              },
+              "oauth_client": [],
+              "api_key": [{"current_key": "AIzaStubAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}],
+              "services": {"appinvite_service": {"other_platform_oauth_client": []}}
+            }],
+            "configuration_version": "1"
+          }
+          EOF
+          fi
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: AVD cache (API 35)
+        uses: actions/cache@v4
+        id: bench-avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: bench-avd-35-default-disk4g
+
+      - name: Create AVD + warm cache
+        if: steps.bench-avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          disk-size: 4096M
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: echo "AVD warmed"
+
+      - name: Run macrobenchmark
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          disk-size: 4096M
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          # The :benchmark module's `benchmark` build type targets :app's
+          # `benchmark` build type (matchingFallbacks). The Macrobench
+          # framework requires a non-debuggable target APK so startup
+          # numbers reflect the production code path.
+          script: gradle :benchmark:connectedBenchmarkAndroidTest --stacktrace
+
+      - name: Upload benchmark report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macrobenchmark-report
+          path: |
+            benchmark/build/outputs/connected_android_test_additional_output/
+            benchmark/build/reports/androidTests/
+          if-no-files-found: warn
+          retention-days: 14

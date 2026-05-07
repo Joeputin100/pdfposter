@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc40"  // RC40 (German hot-fix: 9 maxLength overflows shortened to fit fixed-width UI)
+        versionName = "1.0-rc41"  // RC41 (test-battery API 23-36 expansion + Macrobenchmark module — startup + scroll-jank)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -59,6 +59,23 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
+        }
+        // RC41: Macrobench needs a NON-debuggable variant of the target app
+        // (debuggable APKs skew startup numbers because of dex-debug paths).
+        // We mirror release but turn off minify so test names + crash traces
+        // stay readable in benchmark reports. This variant is only used by
+        // :benchmark — normal release ships continue to use the real
+        // release variant with R8 enabled.
+        create("benchmark") {
+            initWith(getByName("release"))
+            isMinifyEnabled = false
+            isShrinkResources = false
+            isDebuggable = false
+            // Required so :benchmark can reference us under matchingFallbacks.
+            matchingFallbacks += listOf("release")
+            // Macrobench reads StartupTimingMetric from system traces, which
+            // the OS only emits for "profileable" apps. The manifest property
+            // <profileable shell="true"> is added in benchmarkManifest below.
         }
     }
     compileOptions {
