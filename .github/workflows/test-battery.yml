@@ -263,6 +263,14 @@ jobs:
     name: Macrobenchmark (API 35)
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # RC44: macrobench is advisory, not gating. Emulator-quality numbers
+    # have ~10-20% noise even on a good run; the test exercise also runs
+    # into permission-grant flakes on Android 15 emulator (the runner can't
+    # always auto-grant runtime perms via `pm grant`). Real
+    # regression-tracking happens on physical devices via Firebase Test
+    # Lab when we cut a release. Keeping this advisory so an occasional
+    # emulator-quirk failure doesn't block RC pushes.
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
