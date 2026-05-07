@@ -662,6 +662,8 @@
     <string name="lowdpi_free_preview_cd">Pré-visualização do aprimoramento grátis (imagem original)</string>
     <string name="lowdpi_header_svg_inline">Fonte vetorial &#8212; nenhum aprimoramento necessário</string>
     <string name="lowdpi_header_warning_inline">Este pôster será impresso em baixa resolução</string>
+    <string name="lowdpi_header_already_sharp_inline">A imagem já está em alta resolução</string>
+    <string name="lowdpi_already_sharp_body_inline">Não é preciso melhorar nesse tamanho — mas você pode fazer mesmo assim.</string>
     <string name="lowdpi_model_preview_cd">Pré-visualização de %1$s</string>
     <string name="lowdpi_more_about_model_cd">Mais sobre %1$s</string>
     <string name="lowdpi_pixelated_preview_cd">Pré-visualização pixelada</string>

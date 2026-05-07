@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc44"  // RC44 (in-app community board: 4 topics, BBCode posts, Firestore-backed)
+        versionName = "1.0-rc45"  // RC45 (re-frame sharpen modal copy when source already exceeds target DPI)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

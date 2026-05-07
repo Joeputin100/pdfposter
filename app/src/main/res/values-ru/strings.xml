@@ -662,6 +662,8 @@
     <string name="lowdpi_free_preview_cd">Предпросмотр бесплатного масштабирования (исходное изображение)</string>
     <string name="lowdpi_header_svg_inline">Векторный источник — масштабирование не требуется</string>
     <string name="lowdpi_header_warning_inline">Постер будет напечатан с низким разрешением</string>
+    <string name="lowdpi_header_already_sharp_inline">Изображение уже в высоком разрешении</string>
+    <string name="lowdpi_already_sharp_body_inline">Для этого размера повышение чёткости не нужно — но можно запустить.</string>
     <string name="lowdpi_model_preview_cd">Предпросмотр %1$s</string>
     <string name="lowdpi_more_about_model_cd">Подробнее о %1$s</string>
     <string name="lowdpi_pixelated_preview_cd">Пикселизированный предпросмотр</string>

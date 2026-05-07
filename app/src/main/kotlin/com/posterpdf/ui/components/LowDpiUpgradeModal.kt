@@ -35,6 +35,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.outlined.Info
@@ -338,7 +339,14 @@ fun LowDpiUpgradeModal(
     onCompareModels: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    // RC45: source can also be ABOVE the target DPI (e.g. high-res photo
+    // on a small print). The modal still opens via the "Sharpen for print"
+    // CTA, but the warning framing is wrong — the user should see that
+    // their image is already sharp enough, with sharpening as an opt-in
+    // rather than a recommended fix.
+    val alreadyHighRes = !sourceIsSvg && currentDpi >= targetDpi.toFloat()
     val severityColor = when {
+        alreadyHighRes -> MaterialTheme.colorScheme.primary
         currentDpi < 100f -> MaterialTheme.colorScheme.error
         else -> Color(0xFFB58900)
     }
@@ -439,15 +447,18 @@ fun LowDpiUpgradeModal(
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Default.WarningAmber,
+                    if (alreadyHighRes) Icons.Default.CheckCircle else Icons.Default.WarningAmber,
                     contentDescription = null,
                     tint = severityColor,
                     modifier = Modifier.size(28.dp),
                 )
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    if (sourceIsSvg) stringResource(R.string.lowdpi_header_svg_inline)
-                    else stringResource(R.string.lowdpi_header_warning_inline),
+                    when {
+                        sourceIsSvg -> stringResource(R.string.lowdpi_header_svg_inline)
+                        alreadyHighRes -> stringResource(R.string.lowdpi_header_already_sharp_inline)
+                        else -> stringResource(R.string.lowdpi_header_warning_inline)
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -465,6 +476,13 @@ fun LowDpiUpgradeModal(
                     color = severityColor,
                     fontWeight = FontWeight.SemiBold,
                 )
+                if (alreadyHighRes) {
+                    Text(
+                        stringResource(R.string.lowdpi_already_sharp_body_inline),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             } else {
                 Text(
                     stringResource(

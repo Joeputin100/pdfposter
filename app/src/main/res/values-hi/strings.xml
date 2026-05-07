@@ -661,6 +661,8 @@
     <string name="lowdpi_free_preview_cd">मुफ़्त अपस्केल पूर्वावलोकन (मूल छवि)</string>
     <string name="lowdpi_header_svg_inline">वेक्टर स्रोत &#8212; अपस्केल की ज़रूरत नहीं</string>
     <string name="lowdpi_header_warning_inline">यह पोस्टर कम रिज़ॉल्यूशन पर प्रिंट होगा</string>
+    <string name="lowdpi_header_already_sharp_inline">इमेज पहले से हाई रिज़ॉल्यूशन की है</string>
+    <string name="lowdpi_already_sharp_body_inline">इस साइज़ पर शार्पनिंग की ज़रूरत नहीं है — लेकिन फिर भी कर सकते हैं।</string>
     <string name="lowdpi_model_preview_cd">%1$s पूर्वावलोकन</string>
     <string name="lowdpi_more_about_model_cd">%1$s के बारे में अधिक</string>
     <string name="lowdpi_pixelated_preview_cd">पिक्सेलयुक्त पूर्वावलोकन</string>

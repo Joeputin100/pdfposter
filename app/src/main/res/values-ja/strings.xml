@@ -662,6 +662,8 @@
     <string name="lowdpi_free_preview_cd">無料アップスケールプレビュー (元画像)</string>
     <string name="lowdpi_header_svg_inline">ベクターソース &#8212; アップスケール不要</string>
     <string name="lowdpi_header_warning_inline">このポスターは低解像度で印刷されます</string>
+    <string name="lowdpi_header_already_sharp_inline">画像はすでに高解像度です</string>
+    <string name="lowdpi_already_sharp_body_inline">このサイズでは鮮明化は不要ですが、実行することもできます。</string>
     <string name="lowdpi_model_preview_cd">%1$s プレビュー</string>
     <string name="lowdpi_more_about_model_cd">%1$s について詳しく</string>
     <string name="lowdpi_pixelated_preview_cd">ピクセル化プレビュー</string>

@@ -662,6 +662,8 @@
     <string name="lowdpi_free_preview_cd">Aperçu de mise à l\'échelle gratuite (image originale)</string>
     <string name="lowdpi_header_svg_inline">Source vectorielle &#8212; aucun agrandissement nécessaire</string>
     <string name="lowdpi_header_warning_inline">Cette affiche s\'imprimera en basse résolution</string>
+    <string name="lowdpi_header_already_sharp_inline">L\'image est déjà en haute résolution</string>
+    <string name="lowdpi_already_sharp_body_inline">Aucun affinage nécessaire à cette taille — mais vous pouvez le lancer quand même.</string>
     <string name="lowdpi_model_preview_cd">Aperçu %1$s</string>
     <string name="lowdpi_more_about_model_cd">En savoir plus sur %1$s</string>
     <string name="lowdpi_pixelated_preview_cd">Aperçu pixelisé</string>

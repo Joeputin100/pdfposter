@@ -662,6 +662,8 @@
     <string name="lowdpi_free_preview_cd">Vorschau Gratis-Upscaling (Originalbild)</string>
     <string name="lowdpi_header_svg_inline">Vektorquelle &#8212; kein Upscale nötig</string>
     <string name="lowdpi_header_warning_inline">Dieses Poster wird in niedriger Auflösung gedruckt</string>
+    <string name="lowdpi_header_already_sharp_inline">Bild ist bereits hochauflösend</string>
+    <string name="lowdpi_already_sharp_body_inline">Bei dieser Größe ist kein Schärfen nötig — du kannst es trotzdem starten.</string>
     <string name="lowdpi_model_preview_cd">%1$s-Vorschau</string>
     <string name="lowdpi_more_about_model_cd">Mehr über %1$s</string>
     <string name="lowdpi_pixelated_preview_cd">Pixelige Vorschau</string>

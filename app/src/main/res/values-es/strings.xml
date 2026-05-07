@@ -662,6 +662,8 @@
     <string name="lowdpi_free_preview_cd">Vista previa de mejora gratuita (imagen original)</string>
     <string name="lowdpi_header_svg_inline">Fuente vectorial — no se necesita ampliación</string>
     <string name="lowdpi_header_warning_inline">Este póster se imprimirá con baja resolución</string>
+    <string name="lowdpi_header_already_sharp_inline">La imagen ya tiene alta resolución</string>
+    <string name="lowdpi_already_sharp_body_inline">No hace falta enfocarla a este tamaño — pero puedes hacerlo igualmente.</string>
     <string name="lowdpi_model_preview_cd">Vista previa de %1$s</string>
     <string name="lowdpi_more_about_model_cd">Más sobre %1$s</string>
     <string name="lowdpi_pixelated_preview_cd">Vista previa pixelada</string>

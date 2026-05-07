@@ -684,7 +684,9 @@
     <!-- LowDpiUpgradeModal extra cards / lever rows / footer -->
     <string name="lowdpi_header_svg_inline">Vector source — no upscale needed</string>
     <string name="lowdpi_header_warning_inline">This poster will print at low resolution</string>
+    <string name="lowdpi_header_already_sharp_inline">Image is already high resolution</string>
     <string name="lowdpi_current_dpi_inline">Current: %1$d DPI  ·  %2$s\" × %3$s\"</string>
+    <string name="lowdpi_already_sharp_body_inline">Sharpening isn\'t needed at this size — but you can run it anyway.</string>
     <string name="lowdpi_poster_size_only_inline">Poster size: %1$s\" × %2$s\"</string>
     <string name="lowdpi_eta_estimating_inline">estimating…</string>
     <string name="lowdpi_card_reduce_title">Reduce poster size</string>

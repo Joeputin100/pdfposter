@@ -661,6 +661,8 @@
     <string name="lowdpi_free_preview_cd">免费提升预览（原始图像）</string>
     <string name="lowdpi_header_svg_inline">矢量来源 &#8212; 无需提升</string>
     <string name="lowdpi_header_warning_inline">此海报将以低分辨率打印</string>
+    <string name="lowdpi_header_already_sharp_inline">图片已是高分辨率</string>
+    <string name="lowdpi_already_sharp_body_inline">此尺寸下无需锐化 — 但你仍可以执行。</string>
     <string name="lowdpi_model_preview_cd">%1$s 预览</string>
     <string name="lowdpi_more_about_model_cd">更多关于 %1$s</string>
     <string name="lowdpi_pixelated_preview_cd">像素化预览</string>

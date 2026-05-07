@@ -661,6 +661,8 @@
     <string name="lowdpi_free_preview_cd">معاينة الترقية المجانية (الصورة الأصلية)</string>
     <string name="lowdpi_header_svg_inline">مصدر متجهي &#8212; لا حاجة للترقية</string>
     <string name="lowdpi_header_warning_inline">سيُطبع هذا الملصق بدقة منخفضة</string>
+    <string name="lowdpi_header_already_sharp_inline">الصورة عالية الدقة بالفعل</string>
+    <string name="lowdpi_already_sharp_body_inline">لا حاجة للتحسين بهذا الحجم — لكن يمكنك المتابعة على أي حال.</string>
     <string name="lowdpi_model_preview_cd">معاينة %1$s</string>
     <string name="lowdpi_more_about_model_cd">المزيد عن %1$s</string>
     <string name="lowdpi_pixelated_preview_cd">معاينة مبكسلة</string>
