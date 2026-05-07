@@ -409,4 +409,100 @@
     <string name="vm_error_generation_failed">Ошибка: %1$s</string>
     <string name="vm_success_signed_in">Вход выполнен</string>
     <string name="vm_error_signin_failed">Ошибка входа: %1$s</string>
+
+    <!-- RC38 i18n batch -->
+    <string name="account_menu_creation_history" tools:maxLength="20">История создания</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">История кредитов</string>
+    <string name="account_menu_manage_account" tools:maxLength="20">Управление аккаунтом</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">Выйти</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">Улучшить</string>
+    <string name="common_close" tools:maxLength="10">Закрыть</string>
+    <string name="common_continue_anyway" tools:maxLength="18">Всё равно продолжить</string>
+    <string name="common_retry" tools:maxLength="10">Повторить</string>
+    <string name="credits_history_back_cd">Назад</string>
+    <string name="credits_history_empty">Транзакций пока нет. Здесь появятся покупки кредитов и задания AI-масштабирования.</string>
+    <string name="credits_history_loading">Загрузка&#8230;</string>
+    <string name="credits_history_sign_in_prompt">Войдите, чтобы просмотреть историю кредитов.</string>
+    <string name="credits_history_title">История кредитов</string>
+    <string name="drawer_getting_started_label">С чего начать</string>
+    <string name="drawer_language">Язык</string>
+    <string name="drawer_share_debug_log">Поделиться журналом отладки</string>
+    <string name="erase_confirm_body">Это навсегда удалит ваш профиль, баланс кредитов, созданные постеры и все облачные копии масштабированных изображений. Мы храним только минимально необходимые финансовые записи, предусмотренные законом.</string>
+    <string name="erase_confirm_button">Удалить аккаунт</string>
+    <string name="erase_confirm_keep">Сохранить аккаунт</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_title">Удалить аккаунт?</string>
+    <string name="erase_confirm_type_instruction">Введите CANCEL ниже для подтверждения.</string>
+    <string name="history_screen_back_cd">Назад</string>
+    <string name="history_screen_delete_cloud_cd">Удалить облачную копию</string>
+    <string name="history_screen_download_cd">Загрузить из облака</string>
+    <string name="history_screen_no_history">История пуста</string>
+    <string name="history_screen_refresh_cd">Обновить</string>
+    <string name="history_screen_share_cd">Поделиться</string>
+    <string name="history_screen_view_cd">Просмотр</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_dialog_title">Выбор языка</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_fr">Français</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_pt_br">Português (Brasil)</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_system_default">Системный язык</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="manage_account_anonymous_hint">Анонимный (войдите, чтобы сохранить кредиты)</string>
+    <string name="manage_account_buy_credits">Купить кредиты</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">Баланс кредитов</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">ОПАСНАЯ ЗОНА</string>
+    <string name="manage_account_erase_button">Удалить аккаунт&#8230;</string>
+    <string name="manage_account_erase_explainer">Удалить аккаунт и все связанные данные. Мы сохраняем только минимально необходимые финансовые записи, предусмотренные законом (историю транзакций). Это действие необратимо.</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">Последняя активность</string>
+    <string name="manage_account_title">Управление аккаунтом</string>
+    <string name="manage_account_view_credits_history">Просмотр истории кредитов</string>
+    <string name="pdf_assemble_step1">1. Обрежьте каждую страницу по напечатанной линии обрезки (внутри зоны перекрытия).</string>
+    <string name="pdf_assemble_step2">2. Сопоставьте метки (A1, A2, B1&#8230;) с сеткой выше.</string>
+    <string name="pdf_assemble_step3">3. Совместите перекрывающиеся края и приклейте или скрепите скотчем с обратной стороны.</string>
+    <string name="pdf_assembly_guide_title">Инструкция по сборке</string>
+    <string name="pdf_brand_tagline">Разложите любое изображение на листы для печати постера</string>
+    <string name="pdf_dimensions_label">Размеры: %1$s | Бумага: %2$s</string>
+    <string name="pdf_dpi_warning_line1">! Предупреждение о низком разрешении печати</string>
+    <string name="pdf_dpi_warning_line2_landscape">Этот постер печатается примерно с разрешением %1$d %2$s.</string>
+    <string name="pdf_dpi_warning_line2_portrait">Этот постер будет напечатан приблизительно с разрешением %1$d %2$s. Для чёткой, профессиональной печати</string>
+    <string name="pdf_dpi_warning_line3_landscape">Для чёткого результата стремитесь к %1$s.</string>
+    <string name="pdf_dpi_warning_line3_portrait">стремитесь к %1$s. Рассмотрите AI-масштабирование или меньший размер постера.</string>
+    <string name="pdf_dpi_warning_line4_landscape">Рассмотрите AI-масштабирование или меньший размер постера.</string>
+    <string name="pdf_footer_made_with">Создано с помощью %1$s &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="pdf_how_to_assemble_header">Как собрать:</string>
+    <string name="pdf_margins_label">Поля: %1$s | Перекрытие: %2$s</string>
+    <string name="pdf_source_label">Источник: %1$s | Разрешение печати: ~%2$d %3$s</string>
+    <string name="pdf_tile_label">Фрагмент %1$s (ряд %2$d, столбец %3$d)</string>
+    <string name="preview_caption_arranging">Компоновка в постер</string>
+    <string name="preview_caption_cutting">Обрезка полей</string>
+    <string name="preview_caption_panning">Раскладываем на столе</string>
+    <string name="preview_caption_pinning">Закрепляем углы</string>
+    <string name="preview_caption_printing">Печатаем страницы…</string>
+    <string name="preview_caption_taping">Проклеиваем швы</string>
+    <string name="preview_caption_tightening">Устраняем зазоры</string>
+    <string name="preview_upscaling_card">Масштабирование с %1$s до %2$d DPI</string>
+    <string name="print_resolution_dialog_body">DPI (точек на дюйм) — показатель чёткости постера при выбранном размере.\n\n&#8226; Оригинал: пиксели исходного изображения, делённые на ширину постера.\n&#8226; После масштабирования: ожидаемый DPI после AI-увеличения в очереди (обычно 4&#215; от оригинала).\n&#8226; Целевой: ваш ориентир, задаётся ползунком в настройках. 150 DPI — стандарт для постеров; 300 — для фотопечати.\n\nЕсли «Оригинал» ниже «Целевого», карточка «Улучшить для печати» открывает AI-варианты для достижения нужного качества.</string>
+    <string name="print_resolution_dialog_title">Разрешение печати</string>
+    <string name="storage_save_button" tools:maxLength="10">Сохранить</string>
+    <string name="support_category_label">Тип</string>
+    <string name="support_description_label">Подробнее</string>
+    <string name="support_screen_title">Отправить отзыв</string>
+    <string name="support_send_button">Отправить отзыв</string>
+    <string name="support_sending">Отправка&#8230;</string>
+    <string name="support_subject_label">Тема</string>
+    <string name="support_subject_placeholder">Кратко &#8212; в чём суть вопроса?</string>
+    <string name="upscale_ai_dialog_title">Улучшение с помощью AI</string>
+    <string name="upscale_confirm_below_dpi_body">%1$s может улучшить это изображение, но результат на постере составит около %2$d DPI &#8212; ниже вашей цели в %3$d DPI.</string>
+    <string name="upscale_confirm_below_dpi_detail">Результат (%1$d&#215;%2$d) будет чётче оригинала, но может не достичь целевого значения.</string>
+    <string name="upscale_confirm_below_dpi_title">Ниже целевого DPI</string>
+    <string name="upscale_failed_dialog_body">Извините &#8212; что-то пошло не так. Кредиты возвращены; вы можете попробовать снова или выбрать другую модель.</string>
+    <string name="upscale_failed_dialog_details">Подробности: %1$s</string>
+    <string name="upscale_failed_dialog_title">Масштабирование не завершено</string>
+    <string name="upscale_free_dialog_title">Улучшение фото</string>
+
 </resources>

@@ -36,9 +36,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.posterpdf.R
 import com.google.firebase.firestore.Query
 import com.posterpdf.MainViewModel
 import kotlinx.coroutines.tasks.await
@@ -125,7 +127,7 @@ fun CreditsHistoryScreen(viewModel: MainViewModel, onBack: () -> Unit) {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "Credits history",
+                        stringResource(R.string.credits_history_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary,
@@ -133,7 +135,7 @@ fun CreditsHistoryScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.credits_history_back_cd))
                     }
                 },
             )
@@ -148,16 +150,16 @@ fun CreditsHistoryScreen(viewModel: MainViewModel, onBack: () -> Unit) {
             when {
                 loading -> {
                     Text(
-                        "Loading…",
+                        stringResource(R.string.credits_history_loading),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 uid == null -> {
-                    EmptyState(message = "Sign in to view your credit history.")
+                    EmptyState(message = stringResource(R.string.credits_history_sign_in_prompt))
                 }
                 entries.isEmpty() -> {
-                    EmptyState(message = "No transactions yet. Credit purchases and AI upscale jobs will appear here.")
+                    EmptyState(message = stringResource(R.string.credits_history_empty))
                 }
                 else -> {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {

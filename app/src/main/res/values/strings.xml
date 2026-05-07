@@ -448,4 +448,98 @@
     <string name="vm_error_generation_failed">Failed: %1$s</string>
     <string name="vm_success_signed_in">Signed in</string>
     <string name="vm_error_signin_failed">Sign-in failed: %1$s</string>
+
+    <!-- RC38 i18n extraction -->
+
+    <!-- RC38: account menu items (TopBarChip) -->
+    <string name="account_menu_manage_account" tools:maxLength="20">Manage account</string>
+    <string name="account_menu_creation_history" tools:maxLength="20">Creation history</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">Credits history</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">Sign out</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">Upgrade</string>
+
+    <!-- RC38: ManageAccountDialog -->
+    <string name="manage_account_title">Manage account</string>
+    <string name="manage_account_anonymous_hint">Anonymous (sign in to back up your credits)</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">Credit balance</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">Last activity</string>
+    <string name="manage_account_buy_credits">Buy credits</string>
+    <string name="manage_account_view_credits_history">View credits history</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">DANGER ZONE</string>
+    <string name="manage_account_erase_explainer">Erase your account and all data we hold about it. We keep only the minimum financial records required by law (transaction history). This cannot be undone.</string>
+    <string name="manage_account_erase_button">Erase my account&#8230;</string>
+    <string name="common_close" tools:maxLength="10">Close</string>
+
+    <!-- RC38: EraseAccountConfirmDialog -->
+    <string name="erase_confirm_title">Erase your account?</string>
+    <string name="erase_confirm_body">This permanently deletes your profile, credit balance, generated posters, and any cloud-stored upscales. We retain only minimum financial records required by law.</string>
+    <string name="erase_confirm_type_instruction">Type CANCEL below to confirm.</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_button">Erase account</string>
+    <string name="erase_confirm_keep">Keep account</string>
+
+    <!-- RC38: CreditsHistoryScreen -->
+    <string name="credits_history_title">Credits history</string>
+    <string name="credits_history_loading">Loading&#8230;</string>
+    <string name="credits_history_sign_in_prompt">Sign in to view your credit history.</string>
+    <string name="credits_history_empty">No transactions yet. Credit purchases and AI upscale jobs will appear here.</string>
+    <string name="credits_history_back_cd">Back</string>
+
+    <!-- RC38: HistoryScreen -->
+    <string name="history_screen_no_history">No history yet</string>
+    <string name="history_screen_back_cd">Back</string>
+    <string name="history_screen_refresh_cd">Refresh</string>
+    <string name="history_screen_view_cd">View</string>
+    <string name="history_screen_share_cd">Share</string>
+    <string name="history_screen_download_cd">Download from cloud</string>
+    <string name="history_screen_delete_cloud_cd">Delete cloud copy</string>
+
+    <!-- RC38: SupportScreen -->
+    <string name="support_screen_title">Send feedback</string>
+    <string name="support_subject_label">Subject</string>
+    <string name="support_subject_placeholder">One line &#8212; what&#39;s the issue?</string>
+    <string name="support_description_label">Tell us more</string>
+    <string name="support_category_label">Type</string>
+    <string name="support_sending">Sending&#8230;</string>
+    <string name="support_send_button">Send feedback</string>
+
+    <!-- RC38: StorageRetentionDialog -->
+    <string name="storage_save_button" tools:maxLength="10">Save</string>
+
+    <!-- RC38: MainActivity — sharpening / upscale-failure / DPI-confirm modals -->
+    <string name="upscale_free_dialog_title">Sharpening your photo</string>
+    <string name="upscale_ai_dialog_title">Sharpening with AI</string>
+    <string name="upscale_failed_dialog_title">Upscale didn&#39;t finish</string>
+    <string name="upscale_failed_dialog_body">Sorry &#8212; that didn&#39;t work. Your credits have been refunded; you can try again or pick a different model.</string>
+    <string name="upscale_failed_dialog_details">Details: %1$s</string>
+    <string name="common_retry" tools:maxLength="10">Retry</string>
+    <string name="upscale_confirm_below_dpi_title">Below your target DPI</string>
+    <string name="upscale_confirm_below_dpi_body">%1$s can sharpen this image, but the result on your poster will be about %2$d DPI &#8212; below your %3$d DPI target.</string>
+    <string name="upscale_confirm_below_dpi_detail">The output (%1$d&#215;%2$d) will look sharper than the original, but may not match your full target.</string>
+    <string name="common_continue_anyway" tools:maxLength="18">Continue anyway</string>
+    <string name="drawer_share_debug_log">Share debug log</string>
+    <string name="drawer_getting_started_label">Getting Started</string>
+
+    <!-- RC38: print resolution help dialog (MainActivity) -->
+    <string name="print_resolution_dialog_title">Print resolution</string>
+    <string name="print_resolution_dialog_body">DPI (dots per inch) is how sharp your poster will look at the chosen size.\n\n&#8226; Original: the source image&#39;s pixels divided by your poster width.\n&#8226; Upscaled: the projected DPI after the queued AI sharpener runs (usually 4&#215; the original).\n&#8226; Target: your goal, set with the slider in Settings. 150 DPI is the standard for posters; 300 for photo prints.\n\nIf Original is below Target, the Sharpen-for-print card opens the AI options to make up the gap.</string>
+
+    <!-- RC38: PDF strings (PosterLogic) — instruction page + per-tile labels -->
+    <string name="pdf_tile_label">Tile %1$s (Row %2$d, Col %3$d)</string>
+    <string name="pdf_brand_tagline">Tile any image into a printable poster</string>
+    <string name="pdf_assembly_guide_title">Assembly Guide</string>
+    <string name="pdf_dimensions_label">Dimensions: %1$s | Paper: %2$s</string>
+    <string name="pdf_margins_label">Margins: %1$s | Overlap: %2$s</string>
+    <string name="pdf_source_label">Source: %1$s | Print resolution: ~%2$d %3$s</string>
+    <string name="pdf_dpi_warning_line1">! Low Print Resolution Warning</string>
+    <string name="pdf_dpi_warning_line2_portrait">This poster will print at approximately %1$d %2$s. For sharp, professional-quality prints,</string>
+    <string name="pdf_dpi_warning_line3_portrait">aim for %1$s. Consider using AI upscaling or a smaller poster size.</string>
+    <string name="pdf_dpi_warning_line2_landscape">This poster prints at about %1$d %2$s.</string>
+    <string name="pdf_dpi_warning_line3_landscape">For sharp results, target %1$s.</string>
+    <string name="pdf_dpi_warning_line4_landscape">Consider AI upscaling or a smaller poster size.</string>
+    <string name="pdf_how_to_assemble_header">How to assemble:</string>
+    <string name="pdf_assemble_step1">1. Trim each page along the printed cut line (inside the overlap zone).</string>
+    <string name="pdf_assemble_step2">2. Match labels (A1, A2, B1&#8230;) to the grid above.</string>
+    <string name="pdf_assemble_step3">3. Align overlapping edges and glue or tape from the back.</string>
+    <string name="pdf_footer_made_with">Made with %1$s &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
 </resources>

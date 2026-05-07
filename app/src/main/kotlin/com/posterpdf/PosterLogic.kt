@@ -1,8 +1,10 @@
 package com.posterpdf
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
 import com.google.zxing.BarcodeFormat
+import com.posterpdf.R
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
@@ -107,6 +109,7 @@ class PosterLogic {
     private val SVG_TILE_DPI: Double = 300.0
 
     fun createTiledPoster(
+        context: Context,
         bitmap: Bitmap,
         posterW: Double,
         posterH: Double,
@@ -168,7 +171,7 @@ class PosterLogic {
             // fine for the diagram/preview — only the per-page tiles need
             // vector-quality fidelity.
             val instructionImage = image ?: LosslessFactory.createFromImage(doc, srgbBitmap)
-            addInstructionsPage(doc, instructionImage, posterW, posterH, pageW, pageH, margin, overlap, logoBitmap, sourcePixelW, sourcePixelH, suppressLowDpiWarning, units)
+            addInstructionsPage(context, doc, instructionImage, posterW, posterH, pageW, pageH, margin, overlap, logoBitmap, sourcePixelW, sourcePixelH, suppressLowDpiWarning, units)
         }
 
         val printableW = pageW - 2 * margin
@@ -289,7 +292,7 @@ class PosterLogic {
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10f)
                 contentStream.setLineDashPattern(floatArrayOf(), 0f)
                 contentStream.newLineAtOffset(margin.toFloat(), (pageH - margin + 5).toFloat())
-                contentStream.showText("Tile ${tile.label} (Row ${tile.row + 1}, Col ${tile.col + 1})")
+                contentStream.showText(context.getString(R.string.pdf_tile_label, tile.label, tile.row + 1, tile.col + 1))
                 contentStream.endText()
             }
             contentStream.close()
@@ -300,6 +303,7 @@ class PosterLogic {
     }
 
     private fun addInstructionsPage(
+        context: Context,
         doc: PDDocument,
         image: PDImageXObject,
         pw: Double,
@@ -353,7 +357,7 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA_OBLIQUE, 9f)
         cs.newLineAtOffset(50f, pgh.toFloat() - 64f)
-        cs.showText("Tile any image into a printable poster")
+        cs.showText(context.getString(R.string.pdf_brand_tagline))
         cs.endText()
 
         // Section heading
@@ -361,7 +365,7 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA_BOLD, 14f)
         cs.newLineAtOffset(50f, pgh.toFloat() - 95f)
-        cs.showText("Assembly Guide")
+        cs.showText(context.getString(R.string.pdf_assembly_guide_title))
         cs.endText()
 
         // Project details
@@ -378,15 +382,19 @@ class PosterLogic {
         val isMetric = units == "Metric"
         val unitLabel = if (isMetric) "cm" else "in"
         val unitScale = if (isMetric) 2.54 else 1.0
-        cs.showText("Dimensions: ${"%.1f".format(posterWInches * unitScale)}x${"%.1f".format(posterHInches * unitScale)} $unitLabel | Paper: ${"%.1f".format(pgw/72.0 * unitScale)}x${"%.1f".format(pgh/72.0 * unitScale)} $unitLabel")
+        val dimPoster = "${"%.1f".format(posterWInches * unitScale)}x${"%.1f".format(posterHInches * unitScale)} $unitLabel"
+        val dimPaper = "${"%.1f".format(pgw/72.0 * unitScale)}x${"%.1f".format(pgh/72.0 * unitScale)} $unitLabel"
+        cs.showText(context.getString(R.string.pdf_dimensions_label, dimPoster, dimPaper))
         cs.newLineAtOffset(0f, -13f)
-        cs.showText("Margins: ${"%.2f".format(m/72.0 * unitScale)} $unitLabel | Overlap: ${"%.2f".format(o/72.0 * unitScale)} $unitLabel")
+        val dimMargin = "${"%.2f".format(m/72.0 * unitScale)} $unitLabel"
+        val dimOverlap = "${"%.2f".format(o/72.0 * unitScale)} $unitLabel"
+        cs.showText(context.getString(R.string.pdf_margins_label, dimMargin, dimOverlap))
         cs.newLineAtOffset(0f, -13f)
         // RC18: print-resolution label is DPI in Inches, DPCM in Metric.
         // 150 DPI = 59 DPCM, so the math is the same — just relabel.
         val resUnitLabel = if (units == "Metric") "DPCM" else "DPI"
         val resInUserUnit = if (units == "Metric") (minDpi / 2.54).toInt() else minDpi
-        cs.showText("Source: ${sourcePixelW}x${sourcePixelH}px | Print resolution: ~$resInUserUnit $resUnitLabel")
+        cs.showText(context.getString(R.string.pdf_source_label, "${sourcePixelW}x${sourcePixelH}px", resInUserUnit, resUnitLabel))
         cs.endText()
         cs.setNonStrokingColor(0f, 0f, 0f)
 
@@ -396,22 +404,22 @@ class PosterLogic {
             cs.setFont(PDType1Font.HELVETICA_BOLD, 11f)
             cs.setNonStrokingColor(0.8f, 0.35f, 0.0f) // warm orange warning
             cs.newLineAtOffset(detailsX, detailsY - 55f)
-            cs.showText("! Low Print Resolution Warning")
+            cs.showText(context.getString(R.string.pdf_dpi_warning_line1))
             cs.setFont(PDType1Font.HELVETICA, 9f)
             cs.setNonStrokingColor(0.25f, 0.25f, 0.28f)
             cs.newLineAtOffset(0f, -12f)
             // RC18: also unit-aware for the warning copy. 150 DPI ≈ 59 DPCM.
             val targetReadable = if (units == "Metric") "59+ DPCM" else "150+ DPI"
             if (isLandscapePage) {
-                cs.showText("This poster prints at about $resInUserUnit $resUnitLabel.")
+                cs.showText(context.getString(R.string.pdf_dpi_warning_line2_landscape, resInUserUnit, resUnitLabel))
                 cs.newLineAtOffset(0f, -11f)
-                cs.showText("For sharp results, target $targetReadable.")
+                cs.showText(context.getString(R.string.pdf_dpi_warning_line3_landscape, targetReadable))
                 cs.newLineAtOffset(0f, -11f)
-                cs.showText("Consider AI upscaling or a smaller poster size.")
+                cs.showText(context.getString(R.string.pdf_dpi_warning_line4_landscape))
             } else {
-                cs.showText("This poster will print at approximately $resInUserUnit $resUnitLabel. For sharp, professional-quality prints,")
+                cs.showText(context.getString(R.string.pdf_dpi_warning_line2_portrait, resInUserUnit, resUnitLabel))
                 cs.newLineAtOffset(0f, -11f)
-                cs.showText("aim for $targetReadable. Consider using AI upscaling or a smaller poster size.")
+                cs.showText(context.getString(R.string.pdf_dpi_warning_line3_portrait, targetReadable))
             }
             cs.endText()
             cs.setNonStrokingColor(0f, 0f, 0f)
@@ -631,16 +639,16 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA_BOLD, 12f)
         cs.newLineAtOffset(if (isLandscapePage) 42f else 50f, 120f)
-        cs.showText("How to assemble:")
+        cs.showText(context.getString(R.string.pdf_how_to_assemble_header))
         cs.endText()
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA, 10f)
         cs.newLineAtOffset(if (isLandscapePage) 42f else 50f, 102f)
-        cs.showText("1. Trim each page along the printed cut line (inside the overlap zone).")
+        cs.showText(context.getString(R.string.pdf_assemble_step1))
         cs.newLineAtOffset(0f, -13f)
-        cs.showText("2. Match labels (A1, A2, B1\u2026) to the grid above.")
+        cs.showText(context.getString(R.string.pdf_assemble_step2))
         cs.newLineAtOffset(0f, -13f)
-        cs.showText("3. Align overlapping edges and glue or tape from the back.")
+        cs.showText(context.getString(R.string.pdf_assemble_step3))
         cs.endText()
 
         // Footer accent bar + credit
@@ -651,7 +659,7 @@ class PosterLogic {
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA, 8f)
         cs.newLineAtOffset(50f, 18f)
-        cs.showText("Made with Poster PDF \u2022 play.google.com/store/apps/details?id=com.posterpdf")
+        cs.showText(context.getString(R.string.pdf_footer_made_with, "Poster PDF"))
         cs.endText()
         cs.setNonStrokingColor(0f, 0f, 0f)
 

@@ -52,10 +52,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.posterpdf.MainViewModel
+import com.posterpdf.R
 import com.posterpdf.data.backend.HistoryItem
 import java.io.File
 import java.text.SimpleDateFormat
@@ -72,19 +74,19 @@ fun HistoryScreen(viewModel: MainViewModel, onBack: () -> Unit) {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "History",
+                        stringResource(R.string.history_screen_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.history_screen_back_cd))
                     }
                 },
                 actions = {
                     IconButton(onClick = { viewModel.refreshHistory() }) {
-                        Icon(Icons.Default.Refresh, "Refresh")
+                        Icon(Icons.Default.Refresh, stringResource(R.string.history_screen_refresh_cd))
                     }
                 },
             )
@@ -147,7 +149,7 @@ private fun EmptyState(modifier: Modifier) {
             tint = MaterialTheme.colorScheme.primary,
         )
         Spacer(Modifier.height(16.dp))
-        Text("No history yet", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.history_screen_no_history), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))
         Text(
             "Generate a poster — it'll show up here.",
@@ -237,17 +239,17 @@ private fun HistoryCard(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 IconButton(onClick = onView, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Default.Visibility, contentDescription = "View")
+                    Icon(Icons.Default.Visibility, contentDescription = stringResource(R.string.history_screen_view_cd))
                 }
                 IconButton(onClick = onShare, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Default.Share, contentDescription = "Share")
+                    Icon(Icons.Default.Share, contentDescription = stringResource(R.string.history_screen_share_cd))
                 }
                 IconButton(
                     onClick = onDownload,
                     enabled = hasCloud,
                     modifier = Modifier.weight(1f),
                 ) {
-                    Icon(Icons.Default.Download, contentDescription = "Download from cloud")
+                    Icon(Icons.Default.Download, contentDescription = stringResource(R.string.history_screen_download_cd))
                 }
                 IconButton(
                     onClick = { showDeleteConfirm = true },
@@ -256,7 +258,7 @@ private fun HistoryCard(
                 ) {
                     Icon(
                         Icons.Default.CloudOff,
-                        contentDescription = "Delete cloud copy",
+                        contentDescription = stringResource(R.string.history_screen_delete_cloud_cd),
                         tint = if (hasCloud) MaterialTheme.colorScheme.error
                                else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -268,22 +270,18 @@ private fun HistoryCard(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete cloud copy?") },
+            title = { Text(stringResource(R.string.history_delete_dialog_title)) },
             text = {
-                Text(
-                    "This removes the poster from cloud storage. Your local copy and this " +
-                        "history entry are unaffected — you'll just lose the ability to " +
-                        "re-download from cloud later. Frees up storage on your account.",
-                )
+                Text(stringResource(R.string.history_delete_dialog_body))
             },
             confirmButton = {
                 TextButton(onClick = {
                     onDeleteFromCloud()
                     showDeleteConfirm = false
-                }) { Text("Delete") }
+                }) { Text(stringResource(R.string.common_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(R.string.common_cancel)) }
             },
         )
     }

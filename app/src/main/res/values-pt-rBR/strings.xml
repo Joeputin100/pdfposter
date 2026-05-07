@@ -409,4 +409,100 @@
     <string name="vm_error_generation_failed">Falha: %1$s</string>
     <string name="vm_success_signed_in">Conectado</string>
     <string name="vm_error_signin_failed">Falha no login: %1$s</string>
+
+    <!-- RC38 i18n batch -->
+    <string name="account_menu_creation_history" tools:maxLength="20">Histórico de criações</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">Histórico de créditos</string>
+    <string name="account_menu_manage_account" tools:maxLength="20">Gerenciar conta</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">Sair</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">Assinar</string>
+    <string name="common_close" tools:maxLength="10">Fechar</string>
+    <string name="common_continue_anyway" tools:maxLength="18">Continuar mesmo assim</string>
+    <string name="common_retry" tools:maxLength="10">Tentar de novo</string>
+    <string name="credits_history_back_cd">Voltar</string>
+    <string name="credits_history_empty">Nenhuma transação ainda. Compras de créditos e melhorias por IA aparecerão aqui.</string>
+    <string name="credits_history_loading">Carregando&#8230;</string>
+    <string name="credits_history_sign_in_prompt">Entre para ver seu histórico de créditos.</string>
+    <string name="credits_history_title">Histórico de créditos</string>
+    <string name="drawer_getting_started_label">Primeiros passos</string>
+    <string name="drawer_language">Idioma</string>
+    <string name="drawer_share_debug_log">Compartilhar log de depuração</string>
+    <string name="erase_confirm_body">Isso exclui permanentemente seu perfil, saldo de créditos, pôsteres gerados e quaisquer melhorias armazenadas na nuvem. Mantemos apenas os registros financeiros mínimos exigidos por lei.</string>
+    <string name="erase_confirm_button">Excluir conta</string>
+    <string name="erase_confirm_keep">Manter conta</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_title">Excluir sua conta?</string>
+    <string name="erase_confirm_type_instruction">Digite CANCEL abaixo para confirmar.</string>
+    <string name="history_screen_back_cd">Voltar</string>
+    <string name="history_screen_delete_cloud_cd">Excluir cópia na nuvem</string>
+    <string name="history_screen_download_cd">Baixar da nuvem</string>
+    <string name="history_screen_no_history">Nenhum histórico ainda</string>
+    <string name="history_screen_refresh_cd">Atualizar</string>
+    <string name="history_screen_share_cd">Compartilhar</string>
+    <string name="history_screen_view_cd">Visualizar</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_dialog_title">Escolher idioma</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_fr">Français</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_pt_br">Português (Brasil)</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_system_default">Padrão do sistema</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="manage_account_anonymous_hint">Anônimo (entre para fazer backup dos seus créditos)</string>
+    <string name="manage_account_buy_credits">Comprar créditos</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">Saldo de créditos</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">ZONA DE RISCO</string>
+    <string name="manage_account_erase_button">Excluir minha conta&#8230;</string>
+    <string name="manage_account_erase_explainer">Exclua sua conta e todos os dados que temos sobre ela. Mantemos apenas os registros financeiros mínimos exigidos por lei (histórico de transações). Esta ação não pode ser desfeita.</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">Última atividade</string>
+    <string name="manage_account_title">Gerenciar conta</string>
+    <string name="manage_account_view_credits_history">Ver histórico de créditos</string>
+    <string name="pdf_assemble_step1">1. Recorte cada página ao longo da linha de corte impressa (dentro da zona de sobreposição).</string>
+    <string name="pdf_assemble_step2">2. Combine as etiquetas (A1, A2, B1&#8230;) com a grade acima.</string>
+    <string name="pdf_assemble_step3">3. Alinhe as bordas sobrepostas e cole ou use fita adesiva pelo verso.</string>
+    <string name="pdf_assembly_guide_title">Guia de montagem</string>
+    <string name="pdf_brand_tagline">Divida qualquer imagem em um pôster imprimível</string>
+    <string name="pdf_dimensions_label">Dimensões: %1$s | Papel: %2$s</string>
+    <string name="pdf_dpi_warning_line1">! Aviso de baixa resolução de impressão</string>
+    <string name="pdf_dpi_warning_line2_landscape">Este pôster será impresso em aproximadamente %1$d %2$s.</string>
+    <string name="pdf_dpi_warning_line2_portrait">Este pôster será impresso em aproximadamente %1$d %2$s. Para impressões nítidas e de qualidade profissional,</string>
+    <string name="pdf_dpi_warning_line3_landscape">Para resultados nítidos, tente atingir %1$s.</string>
+    <string name="pdf_dpi_warning_line3_portrait">tente atingir %1$s. Considere usar melhoria por IA ou um tamanho de pôster menor.</string>
+    <string name="pdf_dpi_warning_line4_landscape">Considere melhoria por IA ou um tamanho de pôster menor.</string>
+    <string name="pdf_footer_made_with">Criado com %1$s &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="pdf_how_to_assemble_header">Como montar:</string>
+    <string name="pdf_margins_label">Margens: %1$s | Sobreposição: %2$s</string>
+    <string name="pdf_source_label">Fonte: %1$s | Resolução de impressão: ~%2$d %3$s</string>
+    <string name="pdf_tile_label">Bloco %1$s (Linha %2$d, Col. %3$d)</string>
+    <string name="preview_caption_arranging">Montando o pôster</string>
+    <string name="preview_caption_cutting">Recortando as margens</string>
+    <string name="preview_caption_panning">Levando para a mesa</string>
+    <string name="preview_caption_pinning">Fixando as extremidades</string>
+    <string name="preview_caption_printing">Imprimindo as páginas…</string>
+    <string name="preview_caption_taping">Colando as emendas</string>
+    <string name="preview_caption_tightening">Fechando as lacunas</string>
+    <string name="preview_upscaling_card">Melhorando com %1$s para %2$d DPI</string>
+    <string name="print_resolution_dialog_body">DPI (pontos por polegada) indica a nitidez do seu pôster no tamanho escolhido.\n\n&#8226; Original: os pixels da imagem de origem divididos pela largura do pôster.\n&#8226; Melhorado: o DPI projetado após a melhoria por IA na fila ser concluída (geralmente 4&#215; o original).\n&#8226; Alvo: sua meta, definida com o controle deslizante em Configurações. 150 DPI é o padrão para pôsteres; 300 para fotos.\n\nSe o Original estiver abaixo do Alvo, o cartão Nitidez para impressão abre as opções de IA para compensar a diferença.</string>
+    <string name="print_resolution_dialog_title">Resolução de impressão</string>
+    <string name="storage_save_button" tools:maxLength="10">Salvar</string>
+    <string name="support_category_label">Tipo</string>
+    <string name="support_description_label">Conte-nos mais</string>
+    <string name="support_screen_title">Enviar feedback</string>
+    <string name="support_send_button">Enviar feedback</string>
+    <string name="support_sending">Enviando&#8230;</string>
+    <string name="support_subject_label">Assunto</string>
+    <string name="support_subject_placeholder">Em uma linha &#8212; qual é o problema?</string>
+    <string name="upscale_ai_dialog_title">Melhorando com IA</string>
+    <string name="upscale_confirm_below_dpi_body">%1$s pode melhorar esta imagem, mas o resultado no seu pôster ficará em torno de %2$d DPI &#8212; abaixo da sua meta de %3$d DPI.</string>
+    <string name="upscale_confirm_below_dpi_detail">A saída (%1$d&#215;%2$d) ficará mais nítida que o original, mas pode não atingir sua meta completa.</string>
+    <string name="upscale_confirm_below_dpi_title">Abaixo do DPI alvo</string>
+    <string name="upscale_failed_dialog_body">Desculpe &#8212; não funcionou. Seus créditos foram estornados; você pode tentar de novo ou escolher outro modelo.</string>
+    <string name="upscale_failed_dialog_details">Detalhes: %1$s</string>
+    <string name="upscale_failed_dialog_title">Melhoria não concluída</string>
+    <string name="upscale_free_dialog_title">Melhorando sua foto</string>
+
 </resources>

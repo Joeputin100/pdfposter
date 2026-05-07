@@ -409,4 +409,99 @@
     <string name="vm_error_generation_failed">生成失败：%1$s</string>
     <string name="vm_success_signed_in">已登录</string>
     <string name="vm_error_signin_failed">登录失败：%1$s</string>
+
+    <!-- RC38 i18n batch -->
+    <string name="account_menu_creation_history" tools:maxLength="20">创建历史</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">点数历史</string>
+    <string name="account_menu_manage_account" tools:maxLength="20">管理账户</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">退出登录</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">升级</string>
+    <string name="common_close" tools:maxLength="10">关闭</string>
+    <string name="common_continue_anyway" tools:maxLength="18">仍要继续</string>
+    <string name="common_retry" tools:maxLength="10">重试</string>
+    <string name="credits_history_back_cd">返回</string>
+    <string name="credits_history_empty">暂无交易记录。点数购买和 AI 放大任务将显示在此处。</string>
+    <string name="credits_history_loading">加载中&#8230;</string>
+    <string name="credits_history_sign_in_prompt">登录后查看点数历史。</string>
+    <string name="credits_history_title">点数历史</string>
+    <string name="drawer_getting_started_label">入门指南</string>
+    <string name="drawer_language">语言</string>
+    <string name="drawer_share_debug_log">分享调试日志</string>
+    <string name="erase_confirm_body">此操作将永久删除您的个人资料、点数余额、生成的海报及所有云端存储的放大文件。我们仅保留法律要求的最低限度财务记录。</string>
+    <string name="erase_confirm_button">注销账户</string>
+    <string name="erase_confirm_keep">保留账户</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_title">注销您的账户？</string>
+    <string name="erase_confirm_type_instruction">请在下方输入 CANCEL 以确认。</string>
+    <string name="history_screen_back_cd">返回</string>
+    <string name="history_screen_delete_cloud_cd">删除云端副本</string>
+    <string name="history_screen_download_cd">从云端下载</string>
+    <string name="history_screen_no_history">暂无历史记录</string>
+    <string name="history_screen_refresh_cd">刷新</string>
+    <string name="history_screen_share_cd">分享</string>
+    <string name="history_screen_view_cd">查看</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_dialog_title">选择语言</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_fr">Français</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_pt_br">Português (Brasil)</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_system_default">系统默认</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="manage_account_anonymous_hint">匿名用户（登录后可备份点数）</string>
+    <string name="manage_account_buy_credits">购买点数</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">点数余额</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">危险操作</string>
+    <string name="manage_account_erase_button">注销我的账户&#8230;</string>
+    <string name="manage_account_erase_explainer">注销账户并删除我们持有的所有相关数据。我们仅保留法律要求的最低限度财务记录（交易历史）。此操作不可撤销。</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">最近活动</string>
+    <string name="manage_account_title">管理账户</string>
+    <string name="manage_account_view_credits_history">查看点数历史</string>
+    <string name="pdf_assemble_step1">1. 沿印刷裁切线（重叠区域内侧）裁剪每页。</string>
+    <string name="pdf_assemble_step2">2. 将标签（A1、A2、B1&#8230;）与上方网格对应。</string>
+    <string name="pdf_assemble_step3">3. 对齐重叠边缘，从背面粘贴或用胶带固定。</string>
+    <string name="pdf_assembly_guide_title">拼装指南</string>
+    <string name="pdf_brand_tagline">将任意图片拼贴为可打印海报</string>
+    <string name="pdf_dimensions_label">尺寸：%1$s | 纸张：%2$s</string>
+    <string name="pdf_dpi_warning_line1">！ 打印分辨率偏低警告</string>
+    <string name="pdf_dpi_warning_line2_landscape">此海报打印分辨率约为 %1$d %2$s。</string>
+    <string name="pdf_dpi_warning_line2_portrait">此海报打印分辨率约为 %1$d %2$s。如需清晰、专业的打印效果，</string>
+    <string name="pdf_dpi_warning_line3_landscape">如需清晰效果，目标分辨率为 %1$s。</string>
+    <string name="pdf_dpi_warning_line3_portrait">请以 %1$s 为目标。建议使用 AI 放大或缩小海报尺寸。</string>
+    <string name="pdf_dpi_warning_line4_landscape">建议使用 AI 放大或缩小海报尺寸。</string>
+    <string name="pdf_footer_made_with">由 %1$s 制作 &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="pdf_how_to_assemble_header">拼装方法：</string>
+    <string name="pdf_margins_label">边距：%1$s | 重叠：%2$s</string>
+    <string name="pdf_source_label">来源：%1$s | 打印分辨率：~%2$d %3$s</string>
+    <string name="pdf_tile_label">拼图块 %1$s（第 %2$d 行，第 %3$d 列）</string>
+    <string name="preview_caption_arranging">拼装成海报</string>
+    <string name="preview_caption_cutting">裁去边距</string>
+    <string name="preview_caption_panning">摆放到桌上</string>
+    <string name="preview_caption_pinning">固定四角</string>
+    <string name="preview_caption_printing">打印页面…</string>
+    <string name="preview_caption_taping">粘贴拼缝</string>
+    <string name="preview_caption_tightening">消除间隙</string>
+    <string name="preview_upscaling_card">正在使用 %1$s 放大至 %2$d DPI</string>
+    <string name="print_resolution_dialog_body">DPI（每英寸点数）表示海报在所选尺寸下的清晰程度。\n\n&#8226; 原图：源图片像素数除以海报宽度所得的分辨率。\n&#8226; 放大后：队列中的 AI 锐化程序运行后预测的 DPI（通常为原图的 4&#215;）。\n&#8226; 目标：您在设置中通过滑块设定的目标值。海报推荐 150 DPI，照片打印推荐 300 DPI。\n\n若原图 DPI 低于目标值，"打印锐化"卡片将展开 AI 选项以弥补差距。</string>
+    <string name="print_resolution_dialog_title">打印分辨率</string>
+    <string name="storage_save_button" tools:maxLength="10">保存</string>
+    <string name="support_category_label">类型</string>
+    <string name="support_description_label">详细描述</string>
+    <string name="support_screen_title">发送反馈</string>
+    <string name="support_send_button">发送反馈</string>
+    <string name="support_sending">发送中&#8230;</string>
+    <string name="support_subject_label">主题</string>
+    <string name="support_subject_placeholder">一句话描述问题</string>
+    <string name="upscale_ai_dialog_title">AI 锐化中</string>
+    <string name="upscale_confirm_below_dpi_body">%1$s 可以锐化此图片，但海报上的效果约为 %2$d DPI &#8212; 低于您设定的 %3$d DPI 目标。</string>
+    <string name="upscale_confirm_below_dpi_detail">输出（%1$d&#215;%2$d）将比原图更清晰，但可能无法达到您的完整目标。</string>
+    <string name="upscale_confirm_below_dpi_title">低于目标 DPI</string>
+    <string name="upscale_failed_dialog_body">抱歉 &#8212; 操作未能完成。您的点数已退还，可以重试或选择其他模型。</string>
+    <string name="upscale_failed_dialog_details">详情：%1$s</string>
+    <string name="upscale_failed_dialog_title">放大未完成</string>
+    <string name="upscale_free_dialog_title">正在锐化您的照片</string>
 </resources>

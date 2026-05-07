@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc37"  // RC37 (live Play Store link + Getting Started videos with upscale step)
+        versionName = "1.0-rc38"  // RC38 (i18n: extract 93 hardcoded strings + translate to 9 locales + PDF instructions)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

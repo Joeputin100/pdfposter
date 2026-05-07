@@ -409,4 +409,99 @@
     <string name="vm_error_generation_failed">فشل: %1$s</string>
     <string name="vm_success_signed_in">تم تسجيل الدخول</string>
     <string name="vm_error_signin_failed">فشل تسجيل الدخول: %1$s</string>
+
+    <!-- RC38 i18n batch -->
+    <string name="account_menu_creation_history" tools:maxLength="20">سجل الإنشاء</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">سجل الأرصدة</string>
+    <string name="account_menu_manage_account" tools:maxLength="20">إدارة الحساب</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">تسجيل الخروج</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">ترقية</string>
+    <string name="common_close" tools:maxLength="10">إغلاق</string>
+    <string name="common_continue_anyway" tools:maxLength="18">المتابعة على أي حال</string>
+    <string name="common_retry" tools:maxLength="10">إعادة المحاولة</string>
+    <string name="credits_history_back_cd">رجوع</string>
+    <string name="credits_history_empty">لا توجد معاملات بعد. ستظهر هنا مشتريات الأرصدة ومهام تكبير الذكاء الاصطناعي.</string>
+    <string name="credits_history_loading">جارٍ التحميل&#8230;</string>
+    <string name="credits_history_sign_in_prompt">سجِّل دخولك لعرض سجل أرصدتك.</string>
+    <string name="credits_history_title">سجل الأرصدة</string>
+    <string name="drawer_getting_started_label">البدء السريع</string>
+    <string name="drawer_language">اللغة</string>
+    <string name="drawer_share_debug_log">مشاركة سجل التصحيح</string>
+    <string name="erase_confirm_body">سيؤدي هذا إلى حذف ملفك الشخصي ورصيدك وملصقاتك المُنشأة وأي تكبيرات مخزَّنة سحابياً بشكل دائم. نحتفظ فقط بالحد الأدنى من السجلات المالية المطلوبة قانوناً.</string>
+    <string name="erase_confirm_button">مسح الحساب</string>
+    <string name="erase_confirm_keep">الاحتفاظ بالحساب</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_title">مسح حسابك؟</string>
+    <string name="erase_confirm_type_instruction">اكتب CANCEL أدناه للتأكيد.</string>
+    <string name="history_screen_back_cd">رجوع</string>
+    <string name="history_screen_delete_cloud_cd">حذف النسخة السحابية</string>
+    <string name="history_screen_download_cd">تنزيل من السحابة</string>
+    <string name="history_screen_no_history">لا يوجد سجل بعد</string>
+    <string name="history_screen_refresh_cd">تحديث</string>
+    <string name="history_screen_share_cd">مشاركة</string>
+    <string name="history_screen_view_cd">عرض</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_dialog_title">اختر اللغة</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_fr">Français</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_pt_br">Português (Brasil)</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_system_default">الافتراضي للنظام</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="manage_account_anonymous_hint">مجهول الهوية (سجِّل دخولك لنسخ أرصدتك احتياطياً)</string>
+    <string name="manage_account_buy_credits">شراء أرصدة</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">رصيد الأرصدة</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">منطقة الخطر</string>
+    <string name="manage_account_erase_button">مسح حسابي&#8230;</string>
+    <string name="manage_account_erase_explainer">امسح حسابك وجميع بياناتك لدينا. نحتفظ فقط بالحد الأدنى من السجلات المالية المطلوبة قانوناً (سجل المعاملات). لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">آخر نشاط</string>
+    <string name="manage_account_title">إدارة الحساب</string>
+    <string name="manage_account_view_credits_history">عرض سجل الأرصدة</string>
+    <string name="pdf_assemble_step1">1. قص كل صفحة على طول خط القص المطبوع (داخل منطقة التداخل).</string>
+    <string name="pdf_assemble_step2">2. طابق التسميات (A1, A2, B1&#8230;) مع الشبكة أعلاه.</string>
+    <string name="pdf_assemble_step3">3. حاذِ الحواف المتداخلة والصقها أو ثبِّتها من الخلف.</string>
+    <string name="pdf_assembly_guide_title">دليل التجميع</string>
+    <string name="pdf_brand_tagline">بلِّل أي صورة لتصبح ملصقاً قابلاً للطباعة</string>
+    <string name="pdf_dimensions_label">الأبعاد: %1$s | الورق: %2$s</string>
+    <string name="pdf_dpi_warning_line1">! تحذير: دقة طباعة منخفضة</string>
+    <string name="pdf_dpi_warning_line2_landscape">يُطبع هذا الملصق بحوالي %1$d %2$s.</string>
+    <string name="pdf_dpi_warning_line2_portrait">سيُطبع هذا الملصق بحوالي %1$d %2$s. للحصول على طباعة حادة واحترافية،</string>
+    <string name="pdf_dpi_warning_line3_landscape">للحصول على نتائج حادة، استهدف %1$s.</string>
+    <string name="pdf_dpi_warning_line3_portrait">استهدف %1$s. فكِّر في استخدام التكبير بالذكاء الاصطناعي أو حجم ملصق أصغر.</string>
+    <string name="pdf_dpi_warning_line4_landscape">فكِّر في التكبير بالذكاء الاصطناعي أو حجم ملصق أصغر.</string>
+    <string name="pdf_footer_made_with">تم الإنشاء باستخدام %1$s &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="pdf_how_to_assemble_header">طريقة التجميع:</string>
+    <string name="pdf_margins_label">الهوامش: %1$s | التداخل: %2$s</string>
+    <string name="pdf_source_label">المصدر: %1$s | دقة الطباعة: ~%2$d %3$s</string>
+    <string name="pdf_tile_label">اللوحة %1$s (صف %2$d، عمود %3$d)</string>
+    <string name="preview_caption_arranging">ترتيب الصفحات في ملصق</string>
+    <string name="preview_caption_cutting">قص الهوامش</string>
+    <string name="preview_caption_panning">جلبها إلى الطاولة</string>
+    <string name="preview_caption_pinning">تثبيت الأركان</string>
+    <string name="preview_caption_printing">طباعة الصفحات…</string>
+    <string name="preview_caption_taping">تثبيت الوصلات بالشريط اللاصق</string>
+    <string name="preview_caption_tightening">إغلاق الفراغات</string>
+    <string name="preview_upscaling_card">جارٍ التكبير باستخدام %1$s إلى %2$d DPI</string>
+    <string name="print_resolution_dialog_body">DPI (نقطة لكل بوصة) يعكس مدى حدة ملصقك بالحجم المختار.\n\n&#8226; الأصلية: بكسلات الصورة المصدر مقسومة على عرض ملصقك.\n&#8226; بعد التكبير: DPI المتوقعة بعد تشغيل المُحسِّن بالذكاء الاصطناعي (عادةً 4&#215; الأصلية).\n&#8226; المستهدفة: هدفك، يُضبط بالشريط المنزلق في الإعدادات. 150 DPI هو المعيار للملصقات؛ 300 للصور الفوتوغرافية.\n\nإذا كانت الأصلية أدنى من المستهدفة، تفتح بطاقة \"تحسين الطباعة\" خيارات الذكاء الاصطناعي لسد الفجوة.</string>
+    <string name="print_resolution_dialog_title">دقة الطباعة</string>
+    <string name="storage_save_button" tools:maxLength="10">حفظ</string>
+    <string name="support_category_label">النوع</string>
+    <string name="support_description_label">أخبرنا بالمزيد</string>
+    <string name="support_screen_title">إرسال تعليقات</string>
+    <string name="support_send_button">إرسال تعليقات</string>
+    <string name="support_sending">جارٍ الإرسال&#8230;</string>
+    <string name="support_subject_label">الموضوع</string>
+    <string name="support_subject_placeholder">سطر واحد &#8212; ما المشكلة؟</string>
+    <string name="upscale_ai_dialog_title">التحسين بالذكاء الاصطناعي</string>
+    <string name="upscale_confirm_below_dpi_body">يمكن لـ %1$s تحسين هذه الصورة، لكن النتيجة على ملصقك ستكون حوالي %2$d DPI &#8212; أدنى من هدفك البالغ %3$d DPI.</string>
+    <string name="upscale_confirm_below_dpi_detail">الناتج (%1$d&#215;%2$d) سيبدو أحد من الأصل، لكنه قد لا يبلغ هدفك الكامل.</string>
+    <string name="upscale_confirm_below_dpi_title">أدنى من DPI المستهدفة</string>
+    <string name="upscale_failed_dialog_body">عذراً &#8212; حدث خطأ. تمت إعادة أرصدتك؛ يمكنك المحاولة مجدداً أو اختيار نموذج مختلف.</string>
+    <string name="upscale_failed_dialog_details">التفاصيل: %1$s</string>
+    <string name="upscale_failed_dialog_title">لم يكتمل التكبير</string>
+    <string name="upscale_free_dialog_title">تحسين صورتك</string>
 </resources>

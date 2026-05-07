@@ -1201,6 +1201,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         } else null
 
                     posterLogic.createTiledPoster(
+                        context = appContext,
                         bitmap = bitmap,
                         posterW = pw * unitScale,
                         posterH = ph * unitScale,

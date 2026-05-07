@@ -409,4 +409,99 @@
     <string name="vm_error_generation_failed">Error: %1$s</string>
     <string name="vm_success_signed_in">Sesión iniciada</string>
     <string name="vm_error_signin_failed">Error al iniciar sesión: %1$s</string>
+
+    <!-- RC38 i18n batch -->
+    <string name="account_menu_creation_history" tools:maxLength="20">Historial de creaciones</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">Historial de créditos</string>
+    <string name="account_menu_manage_account" tools:maxLength="20">Gestionar cuenta</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">Cerrar sesión</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">Actualizar</string>
+    <string name="common_close" tools:maxLength="10">Cerrar</string>
+    <string name="common_continue_anyway" tools:maxLength="18">Continuar de todos modos</string>
+    <string name="common_retry" tools:maxLength="10">Reintentar</string>
+    <string name="credits_history_back_cd">Atrás</string>
+    <string name="credits_history_empty">Aún no hay transacciones. Las compras de créditos y los trabajos de ampliación IA aparecerán aquí.</string>
+    <string name="credits_history_loading">Cargando&#8230;</string>
+    <string name="credits_history_sign_in_prompt">Inicia sesión para ver tu historial de créditos.</string>
+    <string name="credits_history_title">Historial de créditos</string>
+    <string name="drawer_getting_started_label">Primeros pasos</string>
+    <string name="drawer_language">Idioma</string>
+    <string name="drawer_share_debug_log">Compartir registro de depuración</string>
+    <string name="erase_confirm_body">Esto elimina permanentemente tu perfil, saldo de créditos, pósters generados y cualquier ampliación almacenada en la nube. Solo conservamos los registros financieros mínimos exigidos por ley.</string>
+    <string name="erase_confirm_button">Borrar cuenta</string>
+    <string name="erase_confirm_keep">Conservar cuenta</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_title">¿Borrar tu cuenta?</string>
+    <string name="erase_confirm_type_instruction">Escribe CANCEL abajo para confirmar.</string>
+    <string name="history_screen_back_cd">Atrás</string>
+    <string name="history_screen_delete_cloud_cd">Eliminar copia en la nube</string>
+    <string name="history_screen_download_cd">Descargar desde la nube</string>
+    <string name="history_screen_no_history">Aún no hay historial</string>
+    <string name="history_screen_refresh_cd">Actualizar</string>
+    <string name="history_screen_share_cd">Compartir</string>
+    <string name="history_screen_view_cd">Ver</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_dialog_title">Elegir idioma</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_fr">Français</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_pt_br">Português (Brasil)</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_system_default">Predeterminado del sistema</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="manage_account_anonymous_hint">Anónimo (inicia sesión para respaldar tus créditos)</string>
+    <string name="manage_account_buy_credits">Comprar créditos</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">Saldo de créditos</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">ZONA DE PELIGRO</string>
+    <string name="manage_account_erase_button">Borrar mi cuenta&#8230;</string>
+    <string name="manage_account_erase_explainer">Borra tu cuenta y todos los datos que conservamos sobre ella. Solo guardamos los registros financieros mínimos exigidos por ley (historial de transacciones). Esta acción no se puede deshacer.</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">Última actividad</string>
+    <string name="manage_account_title">Gestionar cuenta</string>
+    <string name="manage_account_view_credits_history">Ver historial de créditos</string>
+    <string name="pdf_assemble_step1">1. Recorta cada página por la línea de corte impresa (dentro de la zona de superposición).</string>
+    <string name="pdf_assemble_step2">2. Haz coincidir las etiquetas (A1, A2, B1&#8230;) con la cuadrícula de arriba.</string>
+    <string name="pdf_assemble_step3">3. Alinea los bordes superpuestos y pega o adhiere con cinta por el reverso.</string>
+    <string name="pdf_assembly_guide_title">Guía de ensamblaje</string>
+    <string name="pdf_brand_tagline">Divide cualquier imagen en un póster imprimible</string>
+    <string name="pdf_dimensions_label">Dimensiones: %1$s | Papel: %2$s</string>
+    <string name="pdf_dpi_warning_line1">! Advertencia de baja resolución de impresión</string>
+    <string name="pdf_dpi_warning_line2_landscape">Este póster se imprime a aproximadamente %1$d %2$s.</string>
+    <string name="pdf_dpi_warning_line2_portrait">Este póster se imprimirá a aproximadamente %1$d %2$s. Para impresiones nítidas y de calidad profesional,</string>
+    <string name="pdf_dpi_warning_line3_landscape">Para resultados nítidos, apunta a %1$s.</string>
+    <string name="pdf_dpi_warning_line3_portrait">apunta a %1$s. Considera usar la ampliación IA o un tamaño de póster más pequeño.</string>
+    <string name="pdf_dpi_warning_line4_landscape">Considera la ampliación IA o un tamaño de póster más pequeño.</string>
+    <string name="pdf_footer_made_with">Creado con %1$s &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="pdf_how_to_assemble_header">Cómo ensamblar:</string>
+    <string name="pdf_margins_label">Márgenes: %1$s | Superposición: %2$s</string>
+    <string name="pdf_source_label">Fuente: %1$s | Resolución de impresión: ~%2$d %3$s</string>
+    <string name="pdf_tile_label">Mosaico %1$s (Fila %2$d, Col %3$d)</string>
+    <string name="preview_caption_arranging">Ordenando en un póster</string>
+    <string name="preview_caption_cutting">Recortando los márgenes</string>
+    <string name="preview_caption_panning">Llevándolos a la mesa</string>
+    <string name="preview_caption_pinning">Sujetando las esquinas</string>
+    <string name="preview_caption_printing">Imprimiendo las páginas…</string>
+    <string name="preview_caption_taping">Pegando con cinta las uniones</string>
+    <string name="preview_caption_tightening">Cerrando los espacios</string>
+    <string name="preview_upscaling_card">Ampliando con %1$s a %2$d DPI</string>
+    <string name="print_resolution_dialog_body">DPI (puntos por pulgada) indica qué tan nítido se verá tu póster al tamaño elegido.\n\n&#8226; Original: los píxeles de la imagen fuente divididos por el ancho de tu póster.\n&#8226; Ampliado: el DPI proyectado tras ejecutar el optimizador IA en cola (normalmente 4&#215; el original).\n&#8226; Objetivo: tu meta, ajustada con el deslizador en Ajustes. 150 DPI es el estándar para pósters; 300 para impresiones fotográficas.\n\nSi el Original está por debajo del Objetivo, la tarjeta Nitidez para impresión abre las opciones de IA para compensar la diferencia.</string>
+    <string name="print_resolution_dialog_title">Resolución de impresión</string>
+    <string name="storage_save_button" tools:maxLength="10">Guardar</string>
+    <string name="support_category_label">Tipo</string>
+    <string name="support_description_label">Cuéntanos más</string>
+    <string name="support_screen_title">Enviar comentarios</string>
+    <string name="support_send_button">Enviar comentarios</string>
+    <string name="support_sending">Enviando&#8230;</string>
+    <string name="support_subject_label">Asunto</string>
+    <string name="support_subject_placeholder">Una línea &#8212; ¿cuál es el problema?</string>
+    <string name="upscale_ai_dialog_title">Mejorando con IA</string>
+    <string name="upscale_confirm_below_dpi_body">%1$s puede mejorar esta imagen, pero el resultado en tu póster será de aproximadamente %2$d DPI &#8212; por debajo de tu objetivo de %3$d DPI.</string>
+    <string name="upscale_confirm_below_dpi_detail">El resultado (%1$d&#215;%2$d) se verá más nítido que el original, pero puede que no alcance tu objetivo completo.</string>
+    <string name="upscale_confirm_below_dpi_title">Por debajo de tu DPI objetivo</string>
+    <string name="upscale_failed_dialog_body">Lo sentimos &#8212; algo salió mal. Tus créditos han sido reembolsados; puedes intentarlo de nuevo o elegir un modelo diferente.</string>
+    <string name="upscale_failed_dialog_details">Detalles: %1$s</string>
+    <string name="upscale_failed_dialog_title">La ampliación no se completó</string>
+    <string name="upscale_free_dialog_title">Mejorando tu foto</string>
 </resources>

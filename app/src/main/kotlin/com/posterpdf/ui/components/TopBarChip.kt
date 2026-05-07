@@ -31,8 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.posterpdf.R
 import com.posterpdf.data.backend.AuthSession
 
 /**
@@ -82,7 +84,7 @@ fun CreditChip(
                     .padding(horizontal = 12.dp, vertical = 6.dp),
             ) {
                 Text(
-                    "Upgrade",
+                    stringResource(R.string.account_menu_upgrade),
                     color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
@@ -140,22 +142,22 @@ fun AccountAvatarMenu(
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(
-                text = { Text("Manage account") },
+                text = { Text(stringResource(R.string.account_menu_manage_account)) },
                 onClick = { open = false; onManageAccount() },
                 leadingIcon = { Icon(Icons.Filled.ManageAccounts, contentDescription = null) },
             )
             DropdownMenuItem(
-                text = { Text("Creation history") },
+                text = { Text(stringResource(R.string.account_menu_creation_history)) },
                 onClick = { open = false; onCreationHistory() },
                 leadingIcon = { Icon(Icons.Filled.PhotoLibrary, contentDescription = null) },
             )
             DropdownMenuItem(
-                text = { Text("Credits history") },
+                text = { Text(stringResource(R.string.account_menu_credits_history)) },
                 onClick = { open = false; onCreditsHistory() },
                 leadingIcon = { Icon(Icons.Filled.History, contentDescription = null) },
             )
             DropdownMenuItem(
-                text = { Text("Sign out") },
+                text = { Text(stringResource(R.string.account_menu_sign_out)) },
                 onClick = { open = false; onSignOut() },
                 leadingIcon = { Icon(Icons.Filled.Logout, contentDescription = null) },
             )

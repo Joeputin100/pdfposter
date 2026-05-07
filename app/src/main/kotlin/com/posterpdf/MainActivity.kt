@@ -441,7 +441,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             shape = RoundedCornerShape(28.dp),
             onDismissRequest = { /* not dismissable — must Cancel or wait */ },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
-            title = { Text("Sharpening your photo") },
+            title = { Text(stringResource(R.string.upscale_free_dialog_title)) },
             text = {
                 Column {
                     val pct = (progress * 100).toInt()
@@ -495,7 +495,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             shape = RoundedCornerShape(28.dp),
             onDismissRequest = { /* not dismissable — must Cancel or wait */ },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
-            title = { Text("Sharpening with AI") },
+            title = { Text(stringResource(R.string.upscale_ai_dialog_title)) },
             text = {
                 Column {
                     Text(
@@ -574,16 +574,16 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             shape = RoundedCornerShape(28.dp),
             onDismissRequest = { viewModel.aiUpscaleFailure = null },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
-            title = { Text("Upscale didn't finish") },
+            title = { Text(stringResource(R.string.upscale_failed_dialog_title)) },
             text = {
                 Column {
                     Text(
-                        text = "Sorry — that didn't work. Your credits have been refunded; you can try again or pick a different model.",
+                        text = stringResource(R.string.upscale_failed_dialog_body),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Details: $failureMsg",
+                        text = stringResource(R.string.upscale_failed_dialog_details, failureMsg),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -591,12 +591,12 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.retryAiUpscale(context) }) {
-                    Text("Retry")
+                    Text(stringResource(R.string.common_retry))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.aiUpscaleFailure = null }) {
-                    Text("Close")
+                    Text(stringResource(R.string.common_close))
                 }
             },
         )
@@ -621,16 +621,16 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             shape = RoundedCornerShape(28.dp),
             onDismissRequest = { viewModel.cancelAiUpscaleConfirm() },
             icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
-            title = { Text("Below your target DPI") },
+            title = { Text(stringResource(R.string.upscale_confirm_below_dpi_title)) },
             text = {
                 Column {
                     Text(
-                        text = "${confirm.displayName} can sharpen this image, but the result on your poster will be about ${confirm.effectiveDpi} DPI — below your ${confirm.targetDpi} DPI target.",
+                        text = stringResource(R.string.upscale_confirm_below_dpi_body, confirm.displayName, confirm.effectiveDpi, confirm.targetDpi),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "The output (${confirm.outputW}×${confirm.outputH}) will look sharper than the original, but may not match your full target.",
+                        text = stringResource(R.string.upscale_confirm_below_dpi_detail, confirm.outputW, confirm.outputH),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -638,12 +638,12 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmAiUpscaleAfterWarning(context) }) {
-                    Text("Continue anyway")
+                    Text(stringResource(R.string.common_continue_anyway))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.cancelAiUpscaleConfirm() }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )
@@ -802,7 +802,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                   // the app's external-files dir which most file managers
                   // can't browse on Android 11+ scoped storage.
                   ListItem(
-                      headlineContent = { Text("Share debug log") },
+                      headlineContent = { Text(stringResource(R.string.drawer_share_debug_log)) },
                       supportingContent = {
                           val f = MainViewModel.debugLogFile(context)
                           Text(
@@ -996,7 +996,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
 
                  // H-P2.1 / H-P2.2 / H-P2.3 / H-P2.4 / H-P2.5: content drawer entries.
                  NavigationDrawerItem(
-                     label = { Text("Getting Started") },
+                     label = { Text(stringResource(R.string.drawer_getting_started_label)) },
                      selected = false,
                      onClick = {
                          viewModel.logEvent(context, "Getting Started opened")
@@ -2587,19 +2587,9 @@ private fun DpiSummaryRow(viewModel: MainViewModel) {
         AlertDialog(
             onDismissRequest = { showHelp = false },
             icon = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null) },
-            title = { Text("Print resolution") },
+            title = { Text(stringResource(R.string.print_resolution_dialog_title)) },
             text = {
-                Text(
-                    "DPI (dots per inch) is how sharp your poster will look at the chosen " +
-                        "size.\n\n" +
-                        "• Original: the source image’s pixels divided by your poster width.\n" +
-                        "• Upscaled: the projected DPI after the queued AI sharpener runs " +
-                        "(usually 4× the original).\n" +
-                        "• Target: your goal, set with the slider in Settings. 150 DPI is the " +
-                        "standard for posters; 300 for photo prints.\n\n" +
-                        "If Original is below Target, the Sharpen-for-print card opens the AI " +
-                        "options to make up the gap.",
-                )
+                Text(stringResource(R.string.print_resolution_dialog_body))
             },
             confirmButton = {
                 TextButton(onClick = { showHelp = false }) {

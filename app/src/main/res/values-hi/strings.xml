@@ -409,4 +409,99 @@
     <string name="vm_error_generation_failed">विफल: %1$s</string>
     <string name="vm_success_signed_in">साइन इन हो गए</string>
     <string name="vm_error_signin_failed">साइन-इन विफल: %1$s</string>
+
+    <!-- RC38 i18n batch -->
+    <string name="account_menu_creation_history" tools:maxLength="20">निर्माण इतिहास</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">क्रेडिट इतिहास</string>
+    <string name="account_menu_manage_account" tools:maxLength="20">अकाउंट प्रबंधित करें</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">साइन आउट</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">अपग्रेड करें</string>
+    <string name="common_close" tools:maxLength="10">बंद करें</string>
+    <string name="common_continue_anyway" tools:maxLength="18">फिर भी जारी रखें</string>
+    <string name="common_retry" tools:maxLength="10">फिर कोशिश करें</string>
+    <string name="credits_history_back_cd">वापस</string>
+    <string name="credits_history_empty">अभी कोई लेनदेन नहीं। क्रेडिट खरीद और AI अपस्केल जॉब यहाँ दिखेंगे।</string>
+    <string name="credits_history_loading">लोड हो रहा है&#8230;</string>
+    <string name="credits_history_sign_in_prompt">क्रेडिट इतिहास देखने के लिए साइन इन करें।</string>
+    <string name="credits_history_title">क्रेडिट इतिहास</string>
+    <string name="drawer_getting_started_label">शुरुआत कैसे करें</string>
+    <string name="drawer_language">भाषा</string>
+    <string name="drawer_share_debug_log">डीबग लॉग शेयर करें</string>
+    <string name="erase_confirm_body">यह आपकी प्रोफ़ाइल, क्रेडिट बैलेंस, बनाए गए पोस्टर और क्लाउड-स्टोर अपस्केल स्थायी रूप से हटा देता है। हम केवल कानूनी रूप से ज़रूरी न्यूनतम वित्तीय रिकॉर्ड रखते हैं।</string>
+    <string name="erase_confirm_button">अकाउंट मिटाएं</string>
+    <string name="erase_confirm_keep">अकाउंट रखें</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_title">अपना अकाउंट मिटाएं?</string>
+    <string name="erase_confirm_type_instruction">पुष्टि के लिए नीचे CANCEL टाइप करें।</string>
+    <string name="history_screen_back_cd">वापस</string>
+    <string name="history_screen_delete_cloud_cd">क्लाउड कॉपी हटाएं</string>
+    <string name="history_screen_download_cd">क्लाउड से डाउनलोड करें</string>
+    <string name="history_screen_no_history">अभी कोई इतिहास नहीं</string>
+    <string name="history_screen_refresh_cd">रीफ्रेश करें</string>
+    <string name="history_screen_share_cd">शेयर करें</string>
+    <string name="history_screen_view_cd">देखें</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_dialog_title">भाषा चुनें</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_fr">Français</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_pt_br">Português (Brasil)</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_system_default">सिस्टम डिफ़ॉल्ट</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="manage_account_anonymous_hint">गुमनाम (क्रेडिट बैकअप के लिए साइन इन करें)</string>
+    <string name="manage_account_buy_credits">क्रेडिट खरीदें</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">क्रेडिट बैलेंस</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">DANGER ZONE</string>
+    <string name="manage_account_erase_button">मेरा अकाउंट मिटाएं&#8230;</string>
+    <string name="manage_account_erase_explainer">अपना अकाउंट और सभी डेटा स्थायी रूप से हटाएं। हम केवल कानूनी रूप से ज़रूरी न्यूनतम वित्तीय रिकॉर्ड (लेनदेन इतिहास) रखते हैं। यह पूर्ववत नहीं हो सकता।</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">अंतिम गतिविधि</string>
+    <string name="manage_account_title">अकाउंट प्रबंधित करें</string>
+    <string name="manage_account_view_credits_history">क्रेडिट इतिहास देखें</string>
+    <string name="pdf_assemble_step1">1. हर पेज को प्रिंटेड कट लाइन (ओवरलैप ज़ोन के अंदर) के साथ ट्रिम करें।</string>
+    <string name="pdf_assemble_step2">2. लेबल (A1, A2, B1&#8230;) को ऊपर के ग्रिड से मिलाएं।</string>
+    <string name="pdf_assemble_step3">3. ओवरलैपिंग किनारे अलाइन करें और पीछे से गोंद या टेप लगाएं।</string>
+    <string name="pdf_assembly_guide_title">असेंबली गाइड</string>
+    <string name="pdf_brand_tagline">किसी भी इमेज को प्रिंटेबल पोस्टर में टाइल करें</string>
+    <string name="pdf_dimensions_label">आयाम: %1$s | कागज़: %2$s</string>
+    <string name="pdf_dpi_warning_line1">! कम प्रिंट रेज़ोल्यूशन की चेतावनी</string>
+    <string name="pdf_dpi_warning_line2_landscape">यह पोस्टर लगभग %1$d %2$s पर प्रिंट होता है।</string>
+    <string name="pdf_dpi_warning_line2_portrait">यह पोस्टर लगभग %1$d %2$s पर प्रिंट होगा। तेज़, प्रोफेशनल प्रिंट के लिए,</string>
+    <string name="pdf_dpi_warning_line3_landscape">तेज़ नतीजे के लिए %1$s का लक्ष्य रखें।</string>
+    <string name="pdf_dpi_warning_line3_portrait">%1$s का लक्ष्य रखें। AI अपस्केल या छोटा पोस्टर साइज़ आज़माएं।</string>
+    <string name="pdf_dpi_warning_line4_landscape">AI अपस्केल या छोटा पोस्टर साइज़ आज़माएं।</string>
+    <string name="pdf_footer_made_with">%1$s से बना &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="pdf_how_to_assemble_header">असेंबल कैसे करें:</string>
+    <string name="pdf_margins_label">मार्जिन: %1$s | ओवरलैप: %2$s</string>
+    <string name="pdf_source_label">स्रोत: %1$s | प्रिंट रेज़ोल्यूशन: ~%2$d %3$s</string>
+    <string name="pdf_tile_label">टाइल %1$s (पंक्ति %2$d, कॉलम %3$d)</string>
+    <string name="preview_caption_arranging">पोस्टर में व्यवस्थित करना</string>
+    <string name="preview_caption_cutting">मार्जिन काटना</string>
+    <string name="preview_caption_panning">मेज़ पर लाना</string>
+    <string name="preview_caption_pinning">कोने पिन करना</string>
+    <string name="preview_caption_printing">पेज प्रिंट हो रहे हैं…</string>
+    <string name="preview_caption_taping">सीम टेप करना</string>
+    <string name="preview_caption_tightening">अंतराल बंद करना</string>
+    <string name="preview_upscaling_card">%1$s से %2$d DPI पर अपस्केल हो रहा है</string>
+    <string name="print_resolution_dialog_body">DPI (dots per inch) यह है कि चुने गए साइज़ पर आपका पोस्टर कितना तेज़ दिखेगा।\n\n&#8226; Original: सोर्स इमेज के पिक्सल आपकी पोस्टर चौड़ाई से विभाजित।\n&#8226; Upscaled: कतारबद्ध AI शार्पनर चलने के बाद अनुमानित DPI (आमतौर पर Original का 4&#215;)।\n&#8226; Target: आपका लक्ष्य, Settings में स्लाइडर से सेट होता है। पोस्टर के लिए 150 DPI मानक है; फ़ोटो प्रिंट के लिए 300।\n\nअगर Original, Target से कम है, तो Sharpen-for-print कार्ड अंतर पूरा करने के लिए AI विकल्प खोलता है।</string>
+    <string name="print_resolution_dialog_title">प्रिंट रेज़ोल्यूशन</string>
+    <string name="storage_save_button" tools:maxLength="10">सहेजें</string>
+    <string name="support_category_label">प्रकार</string>
+    <string name="support_description_label">और बताएं</string>
+    <string name="support_screen_title">फ़ीडबैक भेजें</string>
+    <string name="support_send_button">फ़ीडबैक भेजें</string>
+    <string name="support_sending">भेजा जा रहा है&#8230;</string>
+    <string name="support_subject_label">विषय</string>
+    <string name="support_subject_placeholder">एक पंक्ति &#8212; समस्या क्या है?</string>
+    <string name="upscale_ai_dialog_title">AI से शार्प हो रहा है</string>
+    <string name="upscale_confirm_below_dpi_body">%1$s इस इमेज को शार्प कर सकता है, लेकिन आपके पोस्टर पर नतीजा लगभग %2$d DPI होगा &#8212; आपके %3$d DPI लक्ष्य से कम।</string>
+    <string name="upscale_confirm_below_dpi_detail">आउटपुट (%1$d&#215;%2$d) मूल से तेज़ दिखेगा, लेकिन आपके पूरे लक्ष्य से मेल नहीं खा सकता।</string>
+    <string name="upscale_confirm_below_dpi_title">आपके लक्ष्य DPI से कम</string>
+    <string name="upscale_failed_dialog_body">खेद है &#8212; यह काम नहीं आया। आपके क्रेडिट वापस कर दिए गए हैं; आप फिर कोशिश कर सकते हैं या कोई अलग मॉडल चुन सकते हैं।</string>
+    <string name="upscale_failed_dialog_details">विवरण: %1$s</string>
+    <string name="upscale_failed_dialog_title">अपस्केल पूरा नहीं हुआ</string>
+    <string name="upscale_free_dialog_title">आपकी फ़ोटो शार्प हो रही है</string>
 </resources>

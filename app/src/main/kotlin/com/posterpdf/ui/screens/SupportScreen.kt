@@ -41,12 +41,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import android.os.Build
 import android.widget.Toast
 import com.posterpdf.BuildConfig
 import com.posterpdf.MainViewModel
+import com.posterpdf.R
 
 /**
  * RC17 — Support / feedback form.
@@ -75,7 +77,7 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Send feedback", fontWeight = FontWeight.SemiBold) },
+                title = { Text(stringResource(R.string.support_screen_title), fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
@@ -104,8 +106,8 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 value = subject,
                 onValueChange = { subject = it.take(120) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Subject") },
-                placeholder = { Text("One line — what's the issue?") },
+                label = { Text(stringResource(R.string.support_subject_label)) },
+                placeholder = { Text(stringResource(R.string.support_subject_placeholder)) },
                 singleLine = true,
             )
 
@@ -117,7 +119,7 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 value = description,
                 onValueChange = { description = it.take(4000) },
                 modifier = Modifier.fillMaxWidth().height(160.dp),
-                label = { Text("Tell us more") },
+                label = { Text(stringResource(R.string.support_description_label)) },
                 placeholder = {
                     Text(
                         "What were you doing when it happened? " +
@@ -225,7 +227,7 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 enabled = canSubmit,
             ) {
-                if (submitting) Text("Sending…") else Text("Send feedback")
+                if (submitting) Text(stringResource(R.string.support_sending)) else Text(stringResource(R.string.support_send_button))
             }
 
             Text(
@@ -250,7 +252,7 @@ private fun CategoryDropdown(value: String, onChange: (String) -> Unit) {
             value = value,
             onValueChange = {},
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Type") },
+            label = { Text(stringResource(R.string.support_category_label)) },
             readOnly = true,
             trailingIcon = {
                 IconButton(onClick = { expanded = !expanded }) {

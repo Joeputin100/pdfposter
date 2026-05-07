@@ -375,6 +375,101 @@
     <string name="byo_step4_body">下の「ファイルを選択」をタップし、アップスケール済みのファイルを選びます。PosterPDFはそのファイルを直接使用し、独自のアップスケールは実行しません。</string>
     <string name="byo_choose_file">ファイルを選択</string>
 
+    <!-- RC38 i18n batch -->
+    <string name="account_menu_creation_history" tools:maxLength="20">作成履歴</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">クレジット履歴</string>
+    <string name="account_menu_manage_account" tools:maxLength="20">アカウント管理</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">ログアウト</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">アップグレード</string>
+    <string name="common_close" tools:maxLength="10">閉じる</string>
+    <string name="common_continue_anyway" tools:maxLength="18">続行</string>
+    <string name="common_retry" tools:maxLength="10">再試行</string>
+    <string name="credits_history_back_cd">戻る</string>
+    <string name="credits_history_empty">取引はまだありません。クレジット購入とAIアップスケールの履歴がここに表示されます。</string>
+    <string name="credits_history_loading">読み込み中&#8230;</string>
+    <string name="credits_history_sign_in_prompt">クレジット履歴を表示するにはログインしてください。</string>
+    <string name="credits_history_title">クレジット履歴</string>
+    <string name="drawer_getting_started_label">はじめかた</string>
+    <string name="drawer_language">言語</string>
+    <string name="drawer_share_debug_log">デバッグログを共有</string>
+    <string name="erase_confirm_body">プロフィール、クレジット残高、生成したポスター、クラウド保存のアップスケール画像をすべて完全に削除します。法律で義務付けられている最低限の財務記録のみ保持されます。</string>
+    <string name="erase_confirm_button">アカウントを削除</string>
+    <string name="erase_confirm_keep">アカウントを保持</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_title">アカウントを削除しますか？</string>
+    <string name="erase_confirm_type_instruction">確認のため、下に CANCEL と入力してください。</string>
+    <string name="history_screen_back_cd">戻る</string>
+    <string name="history_screen_delete_cloud_cd">クラウドコピーを削除</string>
+    <string name="history_screen_download_cd">クラウドからダウンロード</string>
+    <string name="history_screen_no_history">履歴がありません</string>
+    <string name="history_screen_refresh_cd">更新</string>
+    <string name="history_screen_share_cd">共有</string>
+    <string name="history_screen_view_cd">表示</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_dialog_title">言語を選択</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_fr">Français</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_pt_br">Português (Brasil)</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_system_default">システムデフォルト</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="manage_account_anonymous_hint">匿名（クレジットをバックアップするにはログインしてください）</string>
+    <string name="manage_account_buy_credits">クレジットを購入</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">クレジット残高</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">DANGER ZONE</string>
+    <string name="manage_account_erase_button">アカウントを削除&#8230;</string>
+    <string name="manage_account_erase_explainer">アカウントとすべての関連データを削除します。法律上必要な最低限の財務記録（取引履歴）のみ保持されます。この操作は取り消せません。</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">最終アクティビティ</string>
+    <string name="manage_account_title">アカウント管理</string>
+    <string name="manage_account_view_credits_history">クレジット履歴を見る</string>
+    <string name="pdf_assemble_step1">1. 各ページの印刷されたカットラインに沿って（重なりゾーンの内側で）切り取ります。</string>
+    <string name="pdf_assemble_step2">2. ラベル（A1、A2、B1&#8230;）を上のグリッドに合わせます。</string>
+    <string name="pdf_assemble_step3">3. 重なる辺を合わせて、裏側からのりまたはテープで貼り付けます。</string>
+    <string name="pdf_assembly_guide_title">組み立てガイド</string>
+    <string name="pdf_brand_tagline">任意の画像を印刷可能なポスターにタイリング</string>
+    <string name="pdf_dimensions_label">サイズ：%1$s | 用紙：%2$s</string>
+    <string name="pdf_dpi_warning_line1">! 低印刷解像度の警告</string>
+    <string name="pdf_dpi_warning_line2_landscape">このポスターの印刷解像度は約%1$d %2$sです。</string>
+    <string name="pdf_dpi_warning_line2_portrait">このポスターは約%1$d %2$sで印刷されます。鮮明でプロ品質の印刷には、</string>
+    <string name="pdf_dpi_warning_line3_landscape">鮮明な結果には%1$sを目標にしてください。</string>
+    <string name="pdf_dpi_warning_line3_portrait">%1$sを目標にしてください。AIアップスケールまたは小さめのポスターサイズをご検討ください。</string>
+    <string name="pdf_dpi_warning_line4_landscape">AIアップスケールまたは小さめのポスターサイズをご検討ください。</string>
+    <string name="pdf_footer_made_with">%1$s で作成 &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="pdf_how_to_assemble_header">組み立て方：</string>
+    <string name="pdf_margins_label">マージン：%1$s | 重なり：%2$s</string>
+    <string name="pdf_source_label">ソース：%1$s | 印刷解像度：約%2$d %3$s</string>
+    <string name="pdf_tile_label">タイル %1$s（%2$d行、%3$d列）</string>
+    <string name="preview_caption_arranging">ポスターに配置中</string>
+    <string name="preview_caption_cutting">余白を切り取り中</string>
+    <string name="preview_caption_panning">テーブルに並べ中</string>
+    <string name="preview_caption_pinning">角を固定中</string>
+    <string name="preview_caption_printing">ページを印刷中…</string>
+    <string name="preview_caption_taping">継ぎ目をテープ貼り中</string>
+    <string name="preview_caption_tightening">隙間を閉じ中</string>
+    <string name="preview_upscaling_card">%1$s で %2$d DPI にアップスケール中</string>
+    <string name="print_resolution_dialog_body">DPI（ドット毎インチ）は、選択したサイズでポスターがどれだけ鮮明に見えるかを示します。\n\n&#8226; オリジナル：元画像のピクセル数をポスター幅で割った値。\n&#8226; アップスケール後：キューに入っているAIシャープナーが実行された後の推定DPI（通常はオリジナルの4&#215;）。\n&#8226; 目標：設定のスライダーで設定する目標値。ポスターは150 DPI、写真プリントは300 DPIが標準です。\n\nオリジナルが目標を下回る場合、「印刷用シャープ化」カードからAIオプションを開いて不足を補えます。</string>
+    <string name="print_resolution_dialog_title">印刷解像度</string>
+    <string name="storage_save_button" tools:maxLength="10">保存</string>
+    <string name="support_category_label">種別</string>
+    <string name="support_description_label">詳細を入力</string>
+    <string name="support_screen_title">フィードバックを送信</string>
+    <string name="support_send_button">フィードバックを送信</string>
+    <string name="support_sending">送信中&#8230;</string>
+    <string name="support_subject_label">件名</string>
+    <string name="support_subject_placeholder">一行で &#8212; どのような問題ですか？</string>
+    <string name="upscale_ai_dialog_title">AIでシャープ化中</string>
+    <string name="upscale_confirm_below_dpi_body">%1$s でこの画像をシャープ化できますが、ポスターの仕上がりは約%2$d DPI になります &#8212; 目標の%3$d DPI を下回ります。</string>
+    <string name="upscale_confirm_below_dpi_detail">出力（%1$d&#215;%2$d）はオリジナルより鮮明になりますが、目標には届かない場合があります。</string>
+    <string name="upscale_confirm_below_dpi_title">目標DPIを下回ります</string>
+    <string name="upscale_failed_dialog_body">申し訳ありません &#8212; 処理が完了しませんでした。クレジットは返金されました。再試行するか、別のモデルをお試しください。</string>
+    <string name="upscale_failed_dialog_details">詳細：%1$s</string>
+    <string name="upscale_failed_dialog_title">アップスケールが完了しませんでした</string>
+    <string name="upscale_free_dialog_title">写真をシャープ化中</string>
+
     <!-- アップスケールプログレスバー -->
     <string name="upscale_progress_uploading">アップロード中… %1$d%%</string>
     <string name="upscale_progress_queued">キュー待機中…</string>

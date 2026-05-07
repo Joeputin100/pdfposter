@@ -409,4 +409,99 @@
     <string name="vm_error_generation_failed">Fehlgeschlagen: %1$s</string>
     <string name="vm_success_signed_in">Angemeldet</string>
     <string name="vm_error_signin_failed">Anmeldung fehlgeschlagen: %1$s</string>
+
+    <!-- RC38 i18n batch -->
+    <string name="account_menu_creation_history" tools:maxLength="20">Erstellungsverlauf</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">Credit-Verlauf</string>
+    <string name="account_menu_manage_account" tools:maxLength="20">Konto verwalten</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">Abmelden</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">Upgrade</string>
+    <string name="common_close" tools:maxLength="10">Schließen</string>
+    <string name="common_continue_anyway" tools:maxLength="18">Trotzdem fortfahren</string>
+    <string name="common_retry" tools:maxLength="10">Erneut versuchen</string>
+    <string name="credits_history_back_cd">Zurück</string>
+    <string name="credits_history_empty">Noch keine Transaktionen. Credit-Käufe und KI-Upscale-Aufträge erscheinen hier.</string>
+    <string name="credits_history_loading">Laden&#8230;</string>
+    <string name="credits_history_sign_in_prompt">Melden Sie sich an, um Ihren Credit-Verlauf zu sehen.</string>
+    <string name="credits_history_title">Credit-Verlauf</string>
+    <string name="drawer_getting_started_label">Erste Schritte</string>
+    <string name="drawer_language">Sprache</string>
+    <string name="drawer_share_debug_log">Debug-Protokoll teilen</string>
+    <string name="erase_confirm_body">Dies löscht dauerhaft Ihr Profil, Ihr Credit-Guthaben, generierte Poster und alle in der Cloud gespeicherten Upscales. Wir behalten nur die gesetzlich vorgeschriebenen Mindest-Finanzdaten.</string>
+    <string name="erase_confirm_button">Konto löschen</string>
+    <string name="erase_confirm_keep">Konto behalten</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_title">Konto löschen?</string>
+    <string name="erase_confirm_type_instruction">Geben Sie unten CANCEL ein, um zu bestätigen.</string>
+    <string name="history_screen_back_cd">Zurück</string>
+    <string name="history_screen_delete_cloud_cd">Cloud-Kopie löschen</string>
+    <string name="history_screen_download_cd">Aus Cloud herunterladen</string>
+    <string name="history_screen_no_history">Noch kein Verlauf</string>
+    <string name="history_screen_refresh_cd">Aktualisieren</string>
+    <string name="history_screen_share_cd">Teilen</string>
+    <string name="history_screen_view_cd">Anzeigen</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_dialog_title">Sprache wählen</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_fr">Français</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_pt_br">Português (Brasil)</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_system_default">Systemstandard</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="manage_account_anonymous_hint">Anonym (anmelden, um Credits zu sichern)</string>
+    <string name="manage_account_buy_credits">Credits kaufen</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">Credit-Guthaben</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">GEFAHRENZONE</string>
+    <string name="manage_account_erase_button">Konto löschen&#8230;</string>
+    <string name="manage_account_erase_explainer">Konto und alle gespeicherten Daten löschen. Wir behalten nur die gesetzlich vorgeschriebenen Mindest-Finanzdaten (Transaktionsverlauf). Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">Letzte Aktivität</string>
+    <string name="manage_account_title">Konto verwalten</string>
+    <string name="manage_account_view_credits_history">Credit-Verlauf anzeigen</string>
+    <string name="pdf_assemble_step1">1. Schneiden Sie jede Seite entlang der gedruckten Schnittlinie (innerhalb der Überlappungszone) zu.</string>
+    <string name="pdf_assemble_step2">2. Ordnen Sie die Beschriftungen (A1, A2, B1&#8230;) dem obigen Raster zu.</string>
+    <string name="pdf_assemble_step3">3. Richten Sie überlappende Kanten aus und kleben oder kleben Sie von hinten.</string>
+    <string name="pdf_assembly_guide_title">Montageanleitung</string>
+    <string name="pdf_brand_tagline">Jedes Bild als druckbares Poster kacheln</string>
+    <string name="pdf_dimensions_label">Abmessungen: %1$s | Papier: %2$s</string>
+    <string name="pdf_dpi_warning_line1">! Warnung: Niedrige Druckauflösung</string>
+    <string name="pdf_dpi_warning_line2_landscape">Dieses Poster druckt bei ca. %1$d %2$s.</string>
+    <string name="pdf_dpi_warning_line2_portrait">Dieses Poster druckt bei ca. %1$d %2$s. Für scharfe, professionelle Drucke</string>
+    <string name="pdf_dpi_warning_line3_landscape">Für scharfe Ergebnisse: %1$s anstreben.</string>
+    <string name="pdf_dpi_warning_line3_portrait">empfehlen wir %1$s. KI-Upscale oder kleineres Posterformat erwägen.</string>
+    <string name="pdf_dpi_warning_line4_landscape">KI-Upscale oder kleineres Posterformat erwägen.</string>
+    <string name="pdf_footer_made_with">Erstellt mit %1$s &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="pdf_how_to_assemble_header">So montieren Sie:</string>
+    <string name="pdf_margins_label">Ränder: %1$s | Überlappung: %2$s</string>
+    <string name="pdf_source_label">Quelle: %1$s | Druckauflösung: ~%2$d %3$s</string>
+    <string name="pdf_tile_label">Kachel %1$s (Zeile %2$d, Spalte %3$d)</string>
+    <string name="preview_caption_arranging">Zu einem Poster anordnen</string>
+    <string name="preview_caption_cutting">Ränder abschneiden</string>
+    <string name="preview_caption_panning">Alles auf den Tisch bringen</string>
+    <string name="preview_caption_pinning">Ecken feststecken</string>
+    <string name="preview_caption_printing">Seiten drucken…</string>
+    <string name="preview_caption_taping">Nähte kleben</string>
+    <string name="preview_caption_tightening">Lücken schließen</string>
+    <string name="preview_upscaling_card">Hochskalieren mit %1$s auf %2$d DPI</string>
+    <string name="print_resolution_dialog_body">DPI (Punkte pro Zoll) gibt an, wie scharf Ihr Poster bei der gewählten Größe aussieht.\n\n&#8226; Original: Pixel des Quellbilds geteilt durch die Posterbreite.\n&#8226; Hochskaliert: der projizierte DPI-Wert nach dem KI-Schärfer (in der Regel 4&#215; das Original).\n&#8226; Ziel: Ihr Zielwert, eingestellt mit dem Regler in den Einstellungen. 150 DPI ist Standard für Poster; 300 für Fotodrucke.\n\nLiegt das Original unter dem Ziel, öffnet die Karte &#39;Für Druck schärfen&#39; die KI-Optionen, um den Unterschied auszugleichen.</string>
+    <string name="print_resolution_dialog_title">Druckauflösung</string>
+    <string name="storage_save_button" tools:maxLength="10">Speichern</string>
+    <string name="support_category_label">Typ</string>
+    <string name="support_description_label">Weitere Details</string>
+    <string name="support_screen_title">Feedback senden</string>
+    <string name="support_send_button">Feedback senden</string>
+    <string name="support_sending">Senden&#8230;</string>
+    <string name="support_subject_label">Betreff</string>
+    <string name="support_subject_placeholder">Eine Zeile &#8212; was ist&#39;s Problem?</string>
+    <string name="upscale_ai_dialog_title">KI-Schärfung</string>
+    <string name="upscale_confirm_below_dpi_body">%1$s kann dieses Bild schärfen, aber das Ergebnis auf Ihrem Poster wird ca. %2$d DPI erreichen &#8212; unter Ihrem Ziel von %3$d DPI.</string>
+    <string name="upscale_confirm_below_dpi_detail">Die Ausgabe (%1$d&#215;%2$d) wird schärfer als das Original sein, erreicht aber möglicherweise nicht Ihr volles Ziel.</string>
+    <string name="upscale_confirm_below_dpi_title">Unter Ihrem Ziel-DPI</string>
+    <string name="upscale_failed_dialog_body">Leider hat&#39;s nicht funktioniert &#8212; Ihre Credits wurden erstattet. Versuchen Sie es erneut oder wählen Sie ein anderes Modell.</string>
+    <string name="upscale_failed_dialog_details">Details: %1$s</string>
+    <string name="upscale_failed_dialog_title">Upscale hat&#39;s nicht geschafft</string>
+    <string name="upscale_free_dialog_title">Foto schärfen</string>
 </resources>

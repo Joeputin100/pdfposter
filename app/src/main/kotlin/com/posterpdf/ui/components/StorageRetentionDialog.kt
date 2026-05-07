@@ -53,34 +53,26 @@ fun StorageRetentionDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Your local copies and the history list always stay forever. " +
-                        "This choice is only about cloud-stored poster PDFs.",
+                    stringResource(R.string.storage_dialog_body),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 ChoiceRow(
                     selected = selected == "auto-delete",
                     onClick = { selected = "auto-delete" },
-                    title = "Auto-delete after 30 days",
-                    body = "Keeps your storage bill at zero. After 30 days the cloud " +
-                        "copy is removed; local + history-list stay intact.",
+                    title = stringResource(R.string.storage_auto_delete_title),
+                    body = stringResource(R.string.storage_auto_delete_body),
                 )
                 ChoiceRow(
                     selected = selected == "paid",
                     onClick = { selected = "paid" },
-                    title = "Keep storing them",
-                    body = "About 4 credits per GB-month after the first 30 days, " +
-                        "deducted from your credit balance (typical 10 MB poster ≈ " +
-                        "1 credit/month minimum, scaling up as you store more). " +
-                        "If you run out of credits we hold for 30 more days and " +
-                        "send a push 24h before deleting — or you can switch back " +
-                        "to local-only any time and keep your posters without " +
-                        "paying for cloud storage.",
+                    title = stringResource(R.string.storage_paid_title),
+                    body = stringResource(R.string.storage_paid_body),
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(selected) }) { Text("Save") }
+            TextButton(onClick = { onConfirm(selected) }) { Text(stringResource(R.string.storage_save_button)) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.storage_decide_later)) }

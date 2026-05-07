@@ -409,4 +409,99 @@
     <string name="vm_error_generation_failed">Échec : %1$s</string>
     <string name="vm_success_signed_in">Connecté</string>
     <string name="vm_error_signin_failed">Échec de la connexion : %1$s</string>
+
+    <!-- RC38 i18n batch -->
+    <string name="account_menu_creation_history" tools:maxLength="20">Historique de création</string>
+    <string name="account_menu_credits_history" tools:maxLength="20">Historique des crédits</string>
+    <string name="account_menu_manage_account" tools:maxLength="20">Gérer le compte</string>
+    <string name="account_menu_sign_out" tools:maxLength="12">Déconnexion</string>
+    <string name="account_menu_upgrade" tools:maxLength="12">Passer Pro</string>
+    <string name="common_close" tools:maxLength="10">Fermer</string>
+    <string name="common_continue_anyway" tools:maxLength="18">Continuer quand même</string>
+    <string name="common_retry" tools:maxLength="10">Réessayer</string>
+    <string name="credits_history_back_cd">Retour</string>
+    <string name="credits_history_empty">Aucune transaction pour l\'instant. Les achats de crédits et les agrandissements IA s\'afficheront ici.</string>
+    <string name="credits_history_loading">Chargement&#8230;</string>
+    <string name="credits_history_sign_in_prompt">Connectez-vous pour voir votre historique de crédits.</string>
+    <string name="credits_history_title">Historique des crédits</string>
+    <string name="drawer_getting_started_label">Démarrage rapide</string>
+    <string name="drawer_language">Langue</string>
+    <string name="drawer_share_debug_log">Partager le journal de débogage</string>
+    <string name="erase_confirm_body">Cela supprime définitivement votre profil, votre solde de crédits, vos affiches générées et vos agrandissements stockés dans le cloud. Nous conservons uniquement les documents financiers minimaux requis par la loi.</string>
+    <string name="erase_confirm_button">Supprimer le compte</string>
+    <string name="erase_confirm_keep">Conserver le compte</string>
+    <string name="erase_confirm_placeholder">CANCEL</string>
+    <string name="erase_confirm_title">Supprimer votre compte ?</string>
+    <string name="erase_confirm_type_instruction">Tapez CANCEL ci-dessous pour confirmer.</string>
+    <string name="history_screen_back_cd">Retour</string>
+    <string name="history_screen_delete_cloud_cd">Supprimer la copie cloud</string>
+    <string name="history_screen_download_cd">Télécharger depuis le cloud</string>
+    <string name="history_screen_no_history">Aucun historique pour l\'instant</string>
+    <string name="history_screen_refresh_cd">Actualiser</string>
+    <string name="history_screen_share_cd">Partager</string>
+    <string name="history_screen_view_cd">Afficher</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_dialog_title">Choisir la langue</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_fr">Français</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_pt_br">Português (Brasil)</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_system_default">Langue du système</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="manage_account_anonymous_hint">Anonyme (connectez-vous pour sauvegarder vos crédits)</string>
+    <string name="manage_account_buy_credits">Acheter des crédits</string>
+    <string name="manage_account_credit_balance_label" tools:maxLength="16">Solde de crédits</string>
+    <string name="manage_account_danger_zone" tools:maxLength="16">ZONE DANGEREUSE</string>
+    <string name="manage_account_erase_button">Supprimer mon compte&#8230;</string>
+    <string name="manage_account_erase_explainer">Supprime votre compte et toutes les données associées. Nous conservons uniquement les documents financiers minimaux requis par la loi (historique des transactions). Cette action est irréversible.</string>
+    <string name="manage_account_last_activity_label" tools:maxLength="16">Dernière activité</string>
+    <string name="manage_account_title">Gérer le compte</string>
+    <string name="manage_account_view_credits_history">Voir l\'historique des crédits</string>
+    <string name="pdf_assemble_step1">1. Découpez chaque page le long du trait de coupe imprimé (à l\'intérieur de la zone de chevauchement).</string>
+    <string name="pdf_assemble_step2">2. Associez les étiquettes (A1, A2, B1&#8230;) à la grille ci-dessus.</string>
+    <string name="pdf_assemble_step3">3. Alignez les bords superposés et collez ou scotchez par l\'arrière.</string>
+    <string name="pdf_assembly_guide_title">Guide d\'assemblage</string>
+    <string name="pdf_brand_tagline">Divisez n\'importe quelle image en affiche imprimable</string>
+    <string name="pdf_dimensions_label">Dimensions : %1$s | Papier : %2$s</string>
+    <string name="pdf_dpi_warning_line1">! Avertissement — faible résolution d\'impression</string>
+    <string name="pdf_dpi_warning_line2_landscape">Cette affiche s\'imprime à environ %1$d %2$s.</string>
+    <string name="pdf_dpi_warning_line2_portrait">Cette affiche s\'imprimera à environ %1$d %2$s. Pour des impressions nettes et de qualité professionnelle,</string>
+    <string name="pdf_dpi_warning_line3_landscape">Pour un résultat net, visez %1$s.</string>
+    <string name="pdf_dpi_warning_line3_portrait">visez %1$s. Envisagez l\'agrandissement IA ou un format d\'affiche plus petit.</string>
+    <string name="pdf_dpi_warning_line4_landscape">Envisagez l\'agrandissement IA ou un format d\'affiche plus petit.</string>
+    <string name="pdf_footer_made_with">Créé avec %1$s &#8226; play.google.com/store/apps/details?id=com.posterpdf</string>
+    <string name="pdf_how_to_assemble_header">Comment assembler :</string>
+    <string name="pdf_margins_label">Marges : %1$s | Chevauchement : %2$s</string>
+    <string name="pdf_source_label">Source : %1$s | Résolution d\'impression : ~%2$d %3$s</string>
+    <string name="pdf_tile_label">Tuile %1$s (Rangée %2$d, Col. %3$d)</string>
+    <string name="preview_caption_arranging">Assemblage en affiche</string>
+    <string name="preview_caption_cutting">Découpe des marges</string>
+    <string name="preview_caption_panning">Disposition sur la table</string>
+    <string name="preview_caption_pinning">Épinglage des coins</string>
+    <string name="preview_caption_printing">Impression des pages…</string>
+    <string name="preview_caption_taping">Fixation des jointures</string>
+    <string name="preview_caption_tightening">Comblement des espaces</string>
+    <string name="preview_upscaling_card">Agrandissement avec %1$s à %2$d DPI</string>
+    <string name="print_resolution_dialog_body">Le DPI (points par pouce) indique la netteté de votre affiche à la taille choisie.\n\n&#8226; Original : les pixels de l\'image source divisés par la largeur de l\'affiche.\n&#8226; Agrandi : le DPI projeté après exécution de l\'optimiseur IA (généralement 4&#215; l\'original).\n&#8226; Cible : votre objectif, défini avec le curseur dans les Paramètres. 150 DPI est la norme pour les affiches ; 300 pour les photos.\n\nSi l\'Original est en dessous de la Cible, la carte Optimiser pour l\'impression ouvre les options IA pour combler l\'écart.</string>
+    <string name="print_resolution_dialog_title">Résolution d\'impression</string>
+    <string name="storage_save_button" tools:maxLength="10">Enregistrer</string>
+    <string name="support_category_label">Type</string>
+    <string name="support_description_label">Décrivez votre problème</string>
+    <string name="support_screen_title">Envoyer un commentaire</string>
+    <string name="support_send_button">Envoyer un commentaire</string>
+    <string name="support_sending">Envoi&#8230;</string>
+    <string name="support_subject_label">Objet</string>
+    <string name="support_subject_placeholder">En une ligne &#8212; quel est le problème ?</string>
+    <string name="upscale_ai_dialog_title">Agrandissement avec l\'IA</string>
+    <string name="upscale_confirm_below_dpi_body">%1$s peut améliorer cette image, mais le résultat sur votre affiche sera d\'environ %2$d DPI &#8212; en dessous de votre objectif de %3$d DPI.</string>
+    <string name="upscale_confirm_below_dpi_detail">Le résultat (%1$d&#215;%2$d) sera plus net que l\'original, mais peut ne pas atteindre votre objectif complet.</string>
+    <string name="upscale_confirm_below_dpi_title">En dessous de votre DPI cible</string>
+    <string name="upscale_failed_dialog_body">Désolé &#8212; cela n\'a pas fonctionné. Vos crédits ont été remboursés ; vous pouvez réessayer ou choisir un autre modèle.</string>
+    <string name="upscale_failed_dialog_details">Détails : %1$s</string>
+    <string name="upscale_failed_dialog_title">L\'agrandissement n\'a pas abouti</string>
+    <string name="upscale_free_dialog_title">Amélioration de votre photo</string>
 </resources>

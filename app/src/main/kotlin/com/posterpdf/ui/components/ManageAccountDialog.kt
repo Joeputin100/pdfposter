@@ -34,11 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.posterpdf.MainViewModel
+import com.posterpdf.R
 import java.text.DateFormat
 import java.util.Date
 
@@ -82,7 +84,7 @@ fun ManageAccountDialog(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(
-                    "Manage account",
+                    stringResource(R.string.manage_account_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold,
                 )
@@ -121,7 +123,7 @@ fun ManageAccountDialog(
                             )
                         } else if (session.isAnonymous) {
                             Text(
-                                "Anonymous (sign in to back up your credits)",
+                                stringResource(R.string.manage_account_anonymous_hint),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -137,12 +139,12 @@ fun ManageAccountDialog(
                 // now we lean on the auth session's lastActivity if set.
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     StatBlock(
-                        label = "Credit balance",
+                        label = stringResource(R.string.manage_account_credit_balance_label),
                         value = if (viewModel.isAdmin) "∞" else creditBalance.toString(),
                         modifier = Modifier.weight(1f),
                     )
                     StatBlock(
-                        label = "Last activity",
+                        label = stringResource(R.string.manage_account_last_activity_label),
                         value = formatLastActivity(viewModel),
                         modifier = Modifier.weight(1f),
                     )
@@ -154,13 +156,13 @@ fun ManageAccountDialog(
                 ) {
                     Icon(Icons.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.size(8.dp))
-                    Text("Buy credits")
+                    Text(stringResource(R.string.manage_account_buy_credits))
                 }
                 OutlinedButton(
                     onClick = onCreditsHistory,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("View credits history")
+                    Text(stringResource(R.string.manage_account_view_credits_history))
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -188,16 +190,14 @@ fun ManageAccountDialog(
                         )
                         Spacer(Modifier.size(8.dp))
                         Text(
-                            "DANGER ZONE",
+                            stringResource(R.string.manage_account_danger_zone),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.error,
                         )
                     }
                     Text(
-                        "Erase your account and all data we hold about it. " +
-                            "We keep only the minimum financial records required by law (transaction history). " +
-                            "This cannot be undone.",
+                        stringResource(R.string.manage_account_erase_explainer),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -208,12 +208,12 @@ fun ManageAccountDialog(
                         ),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("Erase my account…")
+                        Text(stringResource(R.string.manage_account_erase_button))
                     }
                 }
 
                 TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                    Text("Close")
+                    Text(stringResource(R.string.common_close))
                 }
             }
         }
@@ -272,17 +272,15 @@ private fun EraseAccountConfirmDialog(onCancel: () -> Unit, onConfirm: () -> Uni
                 tint = MaterialTheme.colorScheme.error,
             )
         },
-        title = { Text("Erase your account?") },
+        title = { Text(stringResource(R.string.erase_confirm_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    "This permanently deletes your profile, credit balance, generated posters, " +
-                        "and any cloud-stored upscales. We retain only minimum financial records " +
-                        "required by law.",
+                    stringResource(R.string.erase_confirm_body),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
-                    "Type CANCEL below to confirm.",
+                    stringResource(R.string.erase_confirm_type_instruction),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -290,7 +288,7 @@ private fun EraseAccountConfirmDialog(onCancel: () -> Unit, onConfirm: () -> Uni
                     value = typed,
                     onValueChange = { typed = it },
                     singleLine = true,
-                    placeholder = { Text("CANCEL") },
+                    placeholder = { Text(stringResource(R.string.erase_confirm_placeholder)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -303,12 +301,12 @@ private fun EraseAccountConfirmDialog(onCancel: () -> Unit, onConfirm: () -> Uni
                     contentColor = MaterialTheme.colorScheme.error,
                 ),
             ) {
-                Text("Erase account", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.erase_confirm_button), fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onCancel) {
-                Text("Keep account")
+                Text(stringResource(R.string.erase_confirm_keep))
             }
         },
     )
