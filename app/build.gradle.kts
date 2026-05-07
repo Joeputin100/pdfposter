@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc45"  // RC45 (re-frame sharpen modal copy when source already exceeds target DPI)
+        versionName = "1.0-rc46"  // RC46 (re-bake comparison demo assets via real FAL outputs at PNG-lossless)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
