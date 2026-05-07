@@ -87,20 +87,23 @@ object CommunityRepository {
     suspend fun fetchPost(postId: String): Result<CommunityPost> = try {
         val d = db.collection("community").document("posts")
             .collection("items").document(postId).get().await()
-        if (!d.exists()) return Result.failure(NoSuchElementException("post $postId not found"))
-        Result.success(
-            CommunityPost(
-                id = d.id,
-                uid = d.getString("uid") ?: "",
-                authorName = d.getString("authorName") ?: "",
-                authorPhoto = d.getString("authorPhoto"),
-                topic = d.getString("topic") ?: Topic.DISCUSSION,
-                title = d.getString("title") ?: "",
-                body = d.getString("body") ?: "",
-                createdAt = d.getTimestamp("createdAt")?.toDate() ?: Date(),
-                deletedAt = d.getTimestamp("deletedAt")?.toDate(),
-            ),
-        )
+        if (!d.exists()) {
+            Result.failure(NoSuchElementException("post $postId not found"))
+        } else {
+            Result.success(
+                CommunityPost(
+                    id = d.id,
+                    uid = d.getString("uid") ?: "",
+                    authorName = d.getString("authorName") ?: "",
+                    authorPhoto = d.getString("authorPhoto"),
+                    topic = d.getString("topic") ?: Topic.DISCUSSION,
+                    title = d.getString("title") ?: "",
+                    body = d.getString("body") ?: "",
+                    createdAt = d.getTimestamp("createdAt")?.toDate() ?: Date(),
+                    deletedAt = d.getTimestamp("deletedAt")?.toDate(),
+                ),
+            )
+        }
     } catch (t: Throwable) {
         Log.w(TAG, "fetchPost failed: ${t.message}")
         Result.failure(t)
