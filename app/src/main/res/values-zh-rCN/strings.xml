@@ -264,7 +264,7 @@
     <string name="privacy_sec_third_party_title">第三方服务</string>
     <string name="privacy_sec_third_party_body">Firebase Auth、Cloud Firestore、Cloud Storage（均为 Google Cloud）；FAL.ai 用于 AI 放大；Google Play Billing 用于点数购买。我们不集成任何分析或广告 SDK，也无法访问您手机上的其他应用。</string>
     <string name="privacy_sec_contact_title">联系方式</string>
-    <string name="privacy_sec_contact_body">如有隐私问题或删除请求，请发送邮件至 jc24q@pm.me。源代码公开于 github.com/Joeputin/pdfposter——本政策内容与代码保持一致。</string>
+    <string name="privacy_sec_contact_body">如有隐私问题或删除请求，请发送邮件至 jc24q@pm.me。源代码公开于 github.com/Joeputin100/pdfposter——本政策内容与代码保持一致。</string>
 
     <!-- 放大效果对比页 -->
     <string name="screen_compare_title">对比 AI 放大效果</string>
@@ -693,7 +693,7 @@
     <string name="preview_live_assembly_inline">实时组装预览</string>
     <string name="preview_low_dpi_inline">低分辨率：%1$d %2$s · 点击提升 &#8593;</string>
     <string name="privacy_back_cd">返回</string>
-    <string name="privacy_contact_body">如有任何隐私问题或删除请求，请发送邮件至 jc24q@pm.me。源代码在 github.com/Joeputin/pdfposter 公开 &#8212; 本政策中所述与代码完全一致。</string>
+    <string name="privacy_contact_body">如有任何隐私问题或删除请求，请发送邮件至 jc24q@pm.me。源代码在 github.com/Joeputin100/pdfposter 公开 &#8212; 本政策中所述与代码完全一致。</string>
     <string name="privacy_contact_title">联系</string>
     <string name="privacy_deletion_body">本地数据：设置 &#8594; 重置为默认值会清除偏好和本地历史索引。单张海报云端副本：打开历史记录，点击该行的红色云断开按钮。账号范围（认证 + 全部 Firestore 历史 + 全部云端 PDF）：使用与您 Google 登录绑定的邮箱发送邮件至 jc24q@pm.me。我们将在 7 天内处理。</string>
     <string name="privacy_deletion_title">删除途径</string>

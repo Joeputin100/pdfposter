@@ -264,7 +264,7 @@
     <string name="privacy_sec_third_party_title">तीसरे पक्ष की सेवाएं</string>
     <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (सभी Google Cloud); AI अपस्केल के लिए FAL.ai; क्रेडिट खरीद के लिए Google Play Billing। हम कोई एनालिटिक्स या विज्ञापन SDK नहीं चलाते। आपके फ़ोन पर अन्य ऐप्स तक हमारी कोई पहुँच नहीं है।</string>
     <string name="privacy_sec_contact_title">संपर्क</string>
-    <string name="privacy_sec_contact_body">किसी भी गोपनीयता प्रश्न या डिलीशन रिक्वेस्ट के लिए jc24q@pm.me। सोर्स कोड github.com/Joeputin/pdfposter पर सार्वजनिक है — इस नीति में जो लिखा है वही कोड में है।</string>
+    <string name="privacy_sec_contact_body">किसी भी गोपनीयता प्रश्न या डिलीशन रिक्वेस्ट के लिए jc24q@pm.me। सोर्स कोड github.com/Joeputin100/pdfposter पर सार्वजनिक है — इस नीति में जो लिखा है वही कोड में है।</string>
 
     <!-- अपस्केल कम्पेयर स्क्रीन -->
     <string name="screen_compare_title">AI अपस्केलर्स की तुलना करें</string>
@@ -693,7 +693,7 @@
     <string name="preview_live_assembly_inline">लाइव असेंबली पूर्वावलोकन</string>
     <string name="preview_low_dpi_inline">कम रिज़ॉल्यूशन: %1$d %2$s · अपस्केल करने के लिए टैप करें ↑</string>
     <string name="privacy_back_cd">वापस</string>
-    <string name="privacy_contact_body">किसी भी गोपनीयता प्रश्न या हटाने के अनुरोध के लिए jc24q@pm.me। स्रोत कोड github.com/Joeputin/pdfposter पर सार्वजनिक है &#8212; इस नीति में आप जो देखते हैं वह कोड में मौजूद चीज़ों से मेल खाता है।</string>
+    <string name="privacy_contact_body">किसी भी गोपनीयता प्रश्न या हटाने के अनुरोध के लिए jc24q@pm.me। स्रोत कोड github.com/Joeputin100/pdfposter पर सार्वजनिक है &#8212; इस नीति में आप जो देखते हैं वह कोड में मौजूद चीज़ों से मेल खाता है।</string>
     <string name="privacy_contact_title">संपर्क</string>
     <string name="privacy_deletion_body">स्थानीय डेटा: सेटिंग्स → डिफ़ॉल्ट पर रीसेट प्राथमिकताएं और ऑन-डिवाइस इतिहास इंडेक्स मिटा देता है। प्रति-पोस्टर क्लाउड प्रति: इतिहास खोलें, पंक्ति पर लाल क्लाउड-ऑफ़ बटन पर टैप करें। खाता-व्यापी (auth + सारा Firestore इतिहास + सारे क्लाउड PDF): अपने Google साइन-इन से जुड़े पते से jc24q@pm.me पर ईमेल करें। हम 7 दिनों के भीतर प्रक्रिया करते हैं।</string>
     <string name="privacy_deletion_title">हटाने के मार्ग</string>

@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc42"  // RC42 (PDF i18n hot-fix: word-wrap + non-Latin1 English fallback)
+        versionName = "1.0-rc43"  // RC43 (merge Support+Feedback drawer items + fix Joeputin → Joeputin100 URL)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

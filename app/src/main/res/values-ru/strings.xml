@@ -264,7 +264,7 @@
     <string name="privacy_sec_third_party_title">Сторонние сервисы</string>
     <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (все — Google Cloud); FAL.ai для AI-масштабирования; Google Play Billing для покупки кредитов. Мы не используем никакие аналитические или рекламные SDK. У нас нет доступа к другим приложениям на вашем телефоне.</string>
     <string name="privacy_sec_contact_title">Контакт</string>
-    <string name="privacy_sec_contact_body">jc24q@pm.me — для любых вопросов о конфиденциальности или запросов на удаление. Исходный код опубликован на github.com/Joeputin/pdfposter — то, что описано в этой политике, соответствует коду.</string>
+    <string name="privacy_sec_contact_body">jc24q@pm.me — для любых вопросов о конфиденциальности или запросов на удаление. Исходный код опубликован на github.com/Joeputin100/pdfposter — то, что описано в этой политике, соответствует коду.</string>
 
     <!-- Экран сравнения AI-масштабировщиков -->
     <string name="screen_compare_title">Сравнить AI-масштабировщики</string>
@@ -694,7 +694,7 @@
     <string name="preview_live_assembly_inline">Живой просмотр сборки</string>
     <string name="preview_low_dpi_inline">Низкое разрешение: %1$d %2$s · Нажмите для масштабирования ↑</string>
     <string name="privacy_back_cd">Назад</string>
-    <string name="privacy_contact_body">jc24q@pm.me — для любых вопросов о конфиденциальности или запросов на удаление. Исходный код опубликован на github.com/Joeputin/pdfposter — то, что описано в этой политике, соответствует коду.</string>
+    <string name="privacy_contact_body">jc24q@pm.me — для любых вопросов о конфиденциальности или запросов на удаление. Исходный код опубликован на github.com/Joeputin100/pdfposter — то, что описано в этой политике, соответствует коду.</string>
     <string name="privacy_contact_title">Контакт</string>
     <string name="privacy_deletion_body">Локальные данные: Настройки → Сбросить настройки — удаляет параметры и локальный индекс истории. Облачная копия одного постера: откройте Историю, нажмите красную кнопку «облако с крестом» на нужной строке. Удаление аккаунта целиком (Auth + вся история Firestore + все PDF в облаке): напишите на jc24q@pm.me с адреса, привязанного к вашему Google-аккаунту. Мы обработаем запрос в течение 7 дней.</string>
     <string name="privacy_deletion_title">Способы удаления данных</string>

@@ -264,7 +264,7 @@
     <string name="privacy_sec_third_party_title">Serviços de terceiros</string>
     <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (todos Google Cloud); FAL.ai para melhoria por IA; Google Play Billing para compra de créditos. Não usamos nenhum SDK de análise ou publicidade. Não temos acesso a outros apps no seu celular.</string>
     <string name="privacy_sec_contact_title">Contato</string>
-    <string name="privacy_sec_contact_body">jc24q@pm.me para qualquer dúvida sobre privacidade ou solicitação de exclusão. O código-fonte é público em github.com/Joeputin/pdfposter — o que você vê nesta política corresponde ao que está no código.</string>
+    <string name="privacy_sec_contact_body">jc24q@pm.me para qualquer dúvida sobre privacidade ou solicitação de exclusão. O código-fonte é público em github.com/Joeputin100/pdfposter — o que você vê nesta política corresponde ao que está no código.</string>
 
     <!-- Tela de comparação de melhorias de IA -->
     <string name="screen_compare_title">Comparar melhorias de IA</string>
@@ -694,7 +694,7 @@
     <string name="preview_live_assembly_inline">Prévia de montagem ao vivo</string>
     <string name="preview_low_dpi_inline">Baixa resolução: %1$d %2$s &#8226; Toque para aprimorar &#8593;</string>
     <string name="privacy_back_cd">Voltar</string>
-    <string name="privacy_contact_body">jc24q@pm.me para qualquer dúvida sobre privacidade ou solicitação de exclusão. O código-fonte é público em github.com/Joeputin/pdfposter &#8212; o que você vê nesta política corresponde ao que está no código.</string>
+    <string name="privacy_contact_body">jc24q@pm.me para qualquer dúvida sobre privacidade ou solicitação de exclusão. O código-fonte é público em github.com/Joeputin100/pdfposter &#8212; o que você vê nesta política corresponde ao que está no código.</string>
     <string name="privacy_contact_title">Contato</string>
     <string name="privacy_deletion_body">Dados locais: Configurações &#8594; Restaurar padrões apaga as preferências e o índice de histórico no dispositivo. Cópia na nuvem por pôster: abra o Histórico, toque no botão vermelho de nuvem desativada na linha. Exclusão de toda a conta (autenticação + todo o histórico do Firestore + todos os PDFs na nuvem): envie um e-mail para jc24q@pm.me a partir do endereço vinculado ao seu login Google. Processamos em até 7 dias.</string>
     <string name="privacy_deletion_title">Caminhos de exclusão</string>

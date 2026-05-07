@@ -264,7 +264,7 @@
     <string name="privacy_sec_third_party_title">Services tiers</string>
     <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (tous Google Cloud) ; FAL.ai pour l\'agrandissement IA ; Google Play Billing pour les achats de crédits. Nous n\'exécutons aucun SDK d\'analyse ou de publicité. Nous n\'avons pas accès aux autres applications de votre téléphone.</string>
     <string name="privacy_sec_contact_title">Contact</string>
-    <string name="privacy_sec_contact_body">jc24q@pm.me pour toute question de confidentialité ou demande de suppression. Le code source est public sur github.com/Joeputin/pdfposter — ce que vous voyez dans cette politique correspond à ce qui est dans le code.</string>
+    <string name="privacy_sec_contact_body">jc24q@pm.me pour toute question de confidentialité ou demande de suppression. Le code source est public sur github.com/Joeputin100/pdfposter — ce que vous voyez dans cette politique correspond à ce qui est dans le code.</string>
 
     <!-- Écran de comparaison des agrandisseurs IA -->
     <string name="screen_compare_title">Comparer les agrandisseurs IA</string>
@@ -694,7 +694,7 @@
     <string name="preview_live_assembly_inline">Aperçu d\'assemblage en direct</string>
     <string name="preview_low_dpi_inline">Basse résolution : %1$d %2$s · Appuyer pour agrandir &#8593;</string>
     <string name="privacy_back_cd">Retour</string>
-    <string name="privacy_contact_body">jc24q@pm.me pour toute question de confidentialité ou demande de suppression. Le code source est public sur github.com/Joeputin/pdfposter &#8212; ce que vous voyez dans cette politique correspond à ce qui est dans le code.</string>
+    <string name="privacy_contact_body">jc24q@pm.me pour toute question de confidentialité ou demande de suppression. Le code source est public sur github.com/Joeputin100/pdfposter &#8212; ce que vous voyez dans cette politique correspond à ce qui est dans le code.</string>
     <string name="privacy_contact_title">Contact</string>
     <string name="privacy_deletion_body">Données locales : Paramètres &#8594; Rétablir les valeurs par défaut efface les préférences et l\'index d\'historique sur l\'appareil. Copie cloud par affiche : ouvrez l\'Historique, appuyez sur le bouton cloud barré rouge sur la ligne. Compte complet (auth + tout l\'historique Firestore + tous les PDF cloud) : envoyez un e-mail à jc24q@pm.me depuis l\'adresse liée à votre connexion Google. Nous traitons la demande dans les 7 jours.</string>
     <string name="privacy_deletion_title">Méthodes de suppression</string>

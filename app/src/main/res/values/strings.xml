@@ -290,7 +290,7 @@
     <string name="privacy_sec_third_party_title">Third-party services</string>
     <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (all Google Cloud); FAL.ai for AI upscale; Google Play Billing for credit purchases. We do not run any analytics or advertising SDK. We have no access to other apps on your phone.</string>
     <string name="privacy_sec_contact_title">Contact</string>
-    <string name="privacy_sec_contact_body">jc24q@pm.me for any privacy question or deletion request. Source code is public at github.com/Joeputin/pdfposter — what you see in this policy matches what\'s in the code.</string>
+    <string name="privacy_sec_contact_body">jc24q@pm.me for any privacy question or deletion request. Source code is public at github.com/Joeputin100/pdfposter — what you see in this policy matches what\'s in the code.</string>
 
     <!-- Upscale comparison screen -->
     <string name="screen_compare_title">Compare AI upscalers</string>
@@ -790,7 +790,7 @@
     <string name="privacy_third_party_title">Third-party services</string>
     <string name="privacy_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (all Google Cloud); FAL.ai for AI upscale; Google Play Billing for credit purchases. We do not run any analytics or advertising SDK. We have no access to other apps on your phone.</string>
     <string name="privacy_contact_title">Contact</string>
-    <string name="privacy_contact_body">jc24q@pm.me for any privacy question or deletion request. Source code is public at github.com/Joeputin/pdfposter — what you see in this policy matches what\'s in the code.</string>
+    <string name="privacy_contact_body">jc24q@pm.me for any privacy question or deletion request. Source code is public at github.com/Joeputin100/pdfposter — what you see in this policy matches what\'s in the code.</string>
 
     <!-- Help screen -->
     <string name="help_screen_title">Help</string>

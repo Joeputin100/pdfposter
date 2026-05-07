@@ -264,7 +264,7 @@
     <string name="privacy_sec_third_party_title">Drittanbieter-Dienste</string>
     <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (alle Google Cloud); FAL.ai für KI-Upscale; Google Play Billing für Credit-Käufe. Wir verwenden keine Analyse- oder Werbe-SDKs. Wir haben keinen Zugriff auf andere Apps auf Ihrem Telefon.</string>
     <string name="privacy_sec_contact_title">Kontakt</string>
-    <string name="privacy_sec_contact_body">jc24q@pm.me für Datenschutzfragen oder Löschanfragen. Der Quellcode ist öffentlich unter github.com/Joeputin/pdfposter — was in dieser Richtlinie steht, entspricht dem Code.</string>
+    <string name="privacy_sec_contact_body">jc24q@pm.me für Datenschutzfragen oder Löschanfragen. Der Quellcode ist öffentlich unter github.com/Joeputin100/pdfposter — was in dieser Richtlinie steht, entspricht dem Code.</string>
 
     <!-- Upscale-Vergleichsbildschirm -->
     <string name="screen_compare_title">KI-Upscaler vergleichen</string>
@@ -694,7 +694,7 @@
     <string name="preview_live_assembly_inline">Live-Montagevorschau</string>
     <string name="preview_low_dpi_inline">Niedrige Auflösung: %1$d %2$s &#183; Zum Hochskalieren tippen &#8593;</string>
     <string name="privacy_back_cd">Zurück</string>
-    <string name="privacy_contact_body">jc24q@pm.me für Datenschutzfragen oder Löschanfragen. Der Quellcode ist öffentlich unter github.com/Joeputin/pdfposter &#8212; was Sie in dieser Richtlinie sehen, entspricht dem Code.</string>
+    <string name="privacy_contact_body">jc24q@pm.me für Datenschutzfragen oder Löschanfragen. Der Quellcode ist öffentlich unter github.com/Joeputin100/pdfposter &#8212; was Sie in dieser Richtlinie sehen, entspricht dem Code.</string>
     <string name="privacy_contact_title">Kontakt</string>
     <string name="privacy_deletion_body">Lokale Daten: Einstellungen &#8594; Zurücksetzen löscht Präferenzen und den lokalen Verlaufsindex auf dem Gerät. Pro-Poster-Cloud-Kopie: Öffnen Sie den Verlauf, tippen Sie auf die rote Cloud-aus-Schaltfläche in der Zeile. Kontoweite Löschung (Auth + alle Firestore-Verlaufsdaten + alle Cloud-PDFs): Schreiben Sie an jc24q@pm.me von der Adresse, die mit Ihrer Google-Anmeldung verknüpft ist. Wir bearbeiten innerhalb von 7 Tagen.</string>
     <string name="privacy_deletion_title">Löschungsmöglichkeiten</string>

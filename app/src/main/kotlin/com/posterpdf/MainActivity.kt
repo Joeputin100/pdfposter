@@ -1041,8 +1041,12 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                      icon = { Icon(Icons.Default.PrivacyTip, null) },
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
-                 // RC17: Send-feedback / support form. Opt-in diagnostic
-                 // payload submitted to Firestore /support/{auto-id}.
+                 // RC17: Support / feedback form. Opt-in diagnostic payload
+                 // submitted to Firestore /support/{auto-id}.
+                 // RC43: merged the separate "Support" GitHub-issues entry
+                 // into this single item — both feedback and support requests
+                 // now flow through the in-app form (Firestore ticket system),
+                 // so the user has one obvious place to write us.
                  NavigationDrawerItem(
                      label = { Text(stringResource(R.string.drawer_send_feedback)) },
                      selected = false,
@@ -1052,29 +1056,6 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          scope.launch { drawerState.close() }
                      },
                      icon = { Icon(Icons.AutoMirrored.Filled.Send, null) },
-                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                 )
-                 NavigationDrawerItem(
-                     label = { Text(stringResource(R.string.drawer_support)) },
-                     selected = false,
-                     onClick = {
-                         viewModel.logEvent(context, "Support tapped")
-                         val intent = android.content.Intent(
-                             android.content.Intent.ACTION_VIEW,
-                             android.net.Uri.parse("https://github.com/Joeputin/pdfposter/issues/new/choose"),
-                         )
-                         try {
-                             context.startActivity(intent)
-                         } catch (e: android.content.ActivityNotFoundException) {
-                             android.widget.Toast.makeText(
-                                 context,
-                                 context.getString(R.string.support_no_browser_toast),
-                                 android.widget.Toast.LENGTH_SHORT,
-                             ).show()
-                         }
-                         scope.launch { drawerState.close() }
-                     },
-                     icon = { Icon(Icons.Default.Forum, null) },
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
 

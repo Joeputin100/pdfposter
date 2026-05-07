@@ -264,7 +264,7 @@
     <string name="privacy_sec_third_party_title">サードパーティサービス</string>
     <string name="privacy_sec_third_party_body">Firebase Auth・Cloud Firestore・Cloud Storage（すべてGoogle Cloud）、AIアップスケール向けのFAL.ai、クレジット購入向けのGoogle Play Billingを使用しています。アナリティクスや広告SDKは一切使用していません。他のアプリへのアクセスもありません。</string>
     <string name="privacy_sec_contact_title">お問い合わせ</string>
-    <string name="privacy_sec_contact_body">プライバシーに関するご質問や削除依頼はjc24q@pm.meまで。ソースコードはgithub.com/Joeputin/pdfposterで公開しており、このポリシーの内容はコードと一致しています。</string>
+    <string name="privacy_sec_contact_body">プライバシーに関するご質問や削除依頼はjc24q@pm.meまで。ソースコードはgithub.com/Joeputin100/pdfposterで公開しており、このポリシーの内容はコードと一致しています。</string>
 
     <!-- アップスケール比較画面 -->
     <string name="screen_compare_title">AIアップスケーラーを比較</string>
@@ -694,7 +694,7 @@
     <string name="preview_live_assembly_inline">ライブ組み立てプレビュー</string>
     <string name="preview_low_dpi_inline">低解像度: %1$d %2$s · タップでアップスケール ↑</string>
     <string name="privacy_back_cd">戻る</string>
-    <string name="privacy_contact_body">プライバシーに関するご質問や削除依頼は jc24q@pm.me までお願いします。ソースコードは github.com/Joeputin/pdfposter で公開されています &#8212; このポリシーの内容はコードと一致します。</string>
+    <string name="privacy_contact_body">プライバシーに関するご質問や削除依頼は jc24q@pm.me までお願いします。ソースコードは github.com/Joeputin100/pdfposter で公開されています &#8212; このポリシーの内容はコードと一致します。</string>
     <string name="privacy_contact_title">お問い合わせ</string>
     <string name="privacy_deletion_body">ローカルデータ: 設定 → 既定値にリセットで設定とオンデバイス履歴インデックスを消去します。ポスター単位のクラウドコピー: 履歴を開き、該当行の赤いクラウドオフボタンをタップします。アカウント全体(認証 + すべてのFirestore履歴 + すべてのクラウドPDF): Googleログインに紐づくアドレスから jc24q@pm.me までメールしてください。7日以内に処理いたします。</string>
     <string name="privacy_deletion_title">削除の経路</string>

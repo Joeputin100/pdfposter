@@ -264,7 +264,7 @@
     <string name="privacy_sec_third_party_title">خدمات الأطراف الثالثة</string>
     <string name="privacy_sec_third_party_body">Firebase Auth وCloud Firestore وCloud Storage (جميعها Google Cloud)؛ وFAL.ai لتكبير الذكاء الاصطناعي؛ وGoogle Play Billing لشراء الأرصدة. لا نُشغِّل أي حزمة تحليلات أو إعلانات. لا يمكننا الوصول إلى تطبيقات أخرى على هاتفك.</string>
     <string name="privacy_sec_contact_title">التواصل</string>
-    <string name="privacy_sec_contact_body">jc24q@pm.me لأي سؤال متعلق بالخصوصية أو طلب حذف. الكود المصدري متاح للعموم على github.com/Joeputin/pdfposter — ما تراه في هذه السياسة يطابق ما هو في الكود.</string>
+    <string name="privacy_sec_contact_body">jc24q@pm.me لأي سؤال متعلق بالخصوصية أو طلب حذف. الكود المصدري متاح للعموم على github.com/Joeputin100/pdfposter — ما تراه في هذه السياسة يطابق ما هو في الكود.</string>
 
     <!-- شاشة مقارنة أدوات التكبير -->
     <string name="screen_compare_title">مقارنة أدوات التكبير بالذكاء الاصطناعي</string>
@@ -693,7 +693,7 @@
     <string name="preview_live_assembly_inline">معاينة التجميع المباشرة</string>
     <string name="preview_low_dpi_inline">دقة منخفضة: %1$d %2$s &#183; اضغط للترقية &#8593;</string>
     <string name="privacy_back_cd">رجوع</string>
-    <string name="privacy_contact_body">jc24q@pm.me لأي سؤال يتعلق بالخصوصية أو طلب حذف. الكود المصدري متاح للعموم على github.com/Joeputin/pdfposter &#8212; ما تراه في هذه السياسة يطابق ما في الكود.</string>
+    <string name="privacy_contact_body">jc24q@pm.me لأي سؤال يتعلق بالخصوصية أو طلب حذف. الكود المصدري متاح للعموم على github.com/Joeputin100/pdfposter &#8212; ما تراه في هذه السياسة يطابق ما في الكود.</string>
     <string name="privacy_contact_title">التواصل</string>
     <string name="privacy_deletion_body">البيانات المحلية: الإعدادات &#8594; إعادة التعيين إلى الافتراضي تمسح التفضيلات وفهرس السجل على الجهاز. نسخة سحابية لكل ملصق: افتح السجل، واضغط زر \"سحابة مشطوبة\" الأحمر في الصف. على مستوى الحساب (المصادقة + كل سجل Firestore + كل ملفات PDF السحابية): راسل jc24q@pm.me من العنوان المرتبط بتسجيل دخولك بحساب Google. نعالج الطلب خلال 7 أيام.</string>
     <string name="privacy_deletion_title">مسارات الحذف</string>

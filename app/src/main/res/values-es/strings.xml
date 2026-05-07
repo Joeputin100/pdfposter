@@ -264,7 +264,7 @@
     <string name="privacy_sec_third_party_title">Servicios de terceros</string>
     <string name="privacy_sec_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (todos Google Cloud); FAL.ai para ampliación IA; Google Play Billing para compras de créditos. No usamos ningún SDK de analítica ni publicidad. No tenemos acceso a otras apps de tu teléfono.</string>
     <string name="privacy_sec_contact_title">Contacto</string>
-    <string name="privacy_sec_contact_body">jc24q@pm.me para cualquier consulta de privacidad o solicitud de eliminación. El código fuente es público en github.com/Joeputin/pdfposter — lo que ves en esta política coincide con lo que hay en el código.</string>
+    <string name="privacy_sec_contact_body">jc24q@pm.me para cualquier consulta de privacidad o solicitud de eliminación. El código fuente es público en github.com/Joeputin100/pdfposter — lo que ves en esta política coincide con lo que hay en el código.</string>
 
     <!-- Pantalla de comparación de ampliadores IA -->
     <string name="screen_compare_title">Comparar ampliadores IA</string>
@@ -694,7 +694,7 @@
     <string name="preview_live_assembly_inline">Vista previa de ensamblaje en vivo</string>
     <string name="preview_low_dpi_inline">Resolución baja: %1$d %2$s &#183; Toca para ampliar &#8593;</string>
     <string name="privacy_back_cd">Atrás</string>
-    <string name="privacy_contact_body">jc24q@pm.me para cualquier consulta de privacidad o solicitud de eliminación. El código fuente es público en github.com/Joeputin/pdfposter — lo que ves en esta política coincide con lo que hay en el código.</string>
+    <string name="privacy_contact_body">jc24q@pm.me para cualquier consulta de privacidad o solicitud de eliminación. El código fuente es público en github.com/Joeputin100/pdfposter — lo que ves en esta política coincide con lo que hay en el código.</string>
     <string name="privacy_contact_title">Contacto</string>
     <string name="privacy_deletion_body">Datos locales: Ajustes &#8594; Restablecer valores predeterminados borra las preferencias y el índice del historial en el dispositivo. Copia en la nube por póster: abre el Historial y toca el botón rojo de nube tachada en la fila. Eliminación completa de la cuenta (autenticación + todo el historial de Firestore + todos los PDF en la nube): envía un correo a jc24q@pm.me desde la dirección vinculada a tu inicio de sesión de Google. Lo procesamos en 7 días.</string>
     <string name="privacy_deletion_title">Formas de eliminar datos</string>
