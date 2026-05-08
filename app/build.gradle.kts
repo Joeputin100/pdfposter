@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc51"  // RC51 (top-bar no-wrap + margin guide visibility match legend)
+        versionName = "1.0-rc52"  // RC52 (construction preview starts with printer+stack visible, pans to grid)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

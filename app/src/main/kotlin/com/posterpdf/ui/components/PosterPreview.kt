@@ -192,16 +192,35 @@ fun PosterPreview(viewModel: MainViewModel) {
     val userZoom = remember { mutableFloatStateOf(1f) }
     androidx.compose.runtime.SideEffect {
         val panTarget = boxSize.height * 0.15f
+        // RC52: at the start of the cycle, position the camera high enough
+        // that the printer body + the output-page stack below it are both
+        // in the viewport. The printer lives at canvas y ≈ -printerBodyH
+        // (above the grid's layoutTop), and the page stack rests just below
+        // the printer's slot. printerVisibleOffset shifts the canvas down by
+        // ~30% of viewport height — empirically enough to bring both into
+        // frame across phone aspect ratios. The grid then pans into view as
+        // construction proceeds. Pre-RC52 the cycle started at 0 (grid
+        // centered, printer off-screen above), so the user never saw the
+        // printer or stack — the cycle felt like it began mid-action.
+        val printerVisibleOffset = boxSize.height * 0.30f
         val animY = if (!cycleEnabled) 0f else when (phase) {
-            AssemblyPhase.Printing -> 0f
+            AssemblyPhase.Printing -> printerVisibleOffset
             AssemblyPhase.Panning -> {
+                // Animate from printer-view (positive offset) DOWN to
+                // grid-view (-panTarget). Same ease as before but bridging
+                // the new start point to the existing hold target.
                 val k = phaseT
                 val eased = if (k < 0.5f) 2f * k * k
                     else 1f - (-2f * k + 2f) * (-2f * k + 2f) / 2f
-                -panTarget * eased
+                printerVisibleOffset * (1f - eased) + (-panTarget) * eased
             }
-            AssemblyPhase.Reset -> -panTarget * (1f - phaseT)
-            else -> -panTarget // Hold panned-down through Arranging..Pinning.
+            AssemblyPhase.Reset -> {
+                // Animate from grid-view (-panTarget) back to printer-view
+                // (printerVisibleOffset) so the next cycle starts where this
+                // one began. Linear is fine here — Reset is short.
+                -panTarget + (printerVisibleOffset - (-panTarget)) * phaseT
+            }
+            else -> -panTarget // Hold grid-view through Arranging..Pinning..Cutting.
         }
         val maxAbsX = boxSize.width * 1.5f
         val maxAbsY = boxSize.height * 1.5f
