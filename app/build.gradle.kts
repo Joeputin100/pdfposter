@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc49"  // RC49 (RC48 fix bundle: construction preview, auth race, top-bar insets, all earlier RC48 work)
+        versionName = "1.0-rc50"  // RC50 (top-bar Login/Sign Up button no-wrap)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

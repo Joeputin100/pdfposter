@@ -124,10 +124,17 @@ fun AccountAvatarMenu(
                 horizontal = 12.dp, vertical = 6.dp,
             ),
         ) {
+            // RC49: maxLines=1 + softWrap=false keeps "Login / Sign Up"
+            // on a single line even when the top-bar Row is tight on width.
+            // Without these, the Text composable defaults to wrapping at any
+            // soft break (the / counts), producing a 2-line button that
+            // throws off the top bar's vertical alignment.
             Text(
                 stringResource(R.string.top_bar_login_signup),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                softWrap = false,
             )
         }
         return
