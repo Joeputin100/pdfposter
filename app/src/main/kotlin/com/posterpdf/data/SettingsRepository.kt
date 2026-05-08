@@ -27,6 +27,12 @@ class SettingsRepository(private val context: Context) {
         val IS_FIRST_RUN = booleanPreferencesKey("is_first_run")
         val DEBUG_LOGGING_ENABLED = booleanPreferencesKey("debug_logging_enabled")
         val POSTERS_MADE_COUNT = intPreferencesKey("posters_made_count")
+        // RC54: persist the file URI of the imported source image so the
+        // app can resurrect it after process death (Android killing the
+        // backgrounded process for memory). updateImage() copies the
+        // picked content URI's bytes to an app-private file, then writes
+        // that local file:// URI here so loadSettings can restore it.
+        val SELECTED_IMAGE_URI = stringPreferencesKey("selected_image_uri")
     }
 
     val settingsFlow: Flow<Map<Preferences.Key<*>, Any>> = context.dataStore.data

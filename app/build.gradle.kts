@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc54"  // RC54 (notification dismisses on upscale cancel)
+        versionName = "1.0-rc55"  // RC55 (notification dismisses on cancel + image survives process death)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

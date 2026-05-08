@@ -322,6 +322,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
                 selectedImageUri = Uri.fromFile(outFile)
+                // RC54: persist the upscale output URI so the user keeps
+                // their upscaled image after process death.
+                viewModelScope.launch {
+                    repository.saveSetting(
+                        SettingsRepository.SELECTED_IMAGE_URI,
+                        selectedImageUri.toString(),
+                    )
+                }
                 sourcePixelDimensions = upscaled.width to upscaled.height
                 // RC16: also refresh imageMetadata so the PDF generator's
                 // sourcePixelW/H reflect the upscaled dimensions instead of
@@ -465,6 +473,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val bmp = android.graphics.BitmapFactory.decodeFile(outFile.absolutePath)
                     if (bmp != null) {
                         selectedImageUri = Uri.fromFile(outFile)
+                        // RC54: persist the AI upscale output so it survives
+                        // process death (same rationale as the free upscale
+                        // path above).
+                        viewModelScope.launch {
+                            repository.saveSetting(
+                                SettingsRepository.SELECTED_IMAGE_URI,
+                                selectedImageUri.toString(),
+                            )
+                        }
                         sourcePixelDimensions = bmp.width to bmp.height
                         // RC21: same "%.1f:1.0" format as the initial-load path
                         // and the FREE_LOCAL upscale path so the chip reads
@@ -810,6 +827,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 settings[SettingsRepository.IS_FIRST_RUN]?.let { isFirstRun = it as Boolean } ?: run { isFirstRun = true }
                 settings[SettingsRepository.DEBUG_LOGGING_ENABLED]?.let { debugLoggingEnabled = it as Boolean }
                 settings[SettingsRepository.POSTERS_MADE_COUNT]?.let { postersMadeCount = it as Int }
+                // RC54: restore the imported source image after process death
+                // by re-decoding the persisted file URI. Only fires once per
+                // settings emit, and only when selectedImageUri is currently
+                // null (so we don't clobber an in-session change).
+                if (selectedImageUri == null) {
+                    (settings[SettingsRepository.SELECTED_IMAGE_URI] as? String)?.let { uriStr ->
+                        val uri = runCatching { Uri.parse(uriStr) }.getOrNull()
+                        if (uri != null) {
+                            val file = uri.path?.let { java.io.File(it) }
+                            if (file != null && file.exists()) {
+                                // Use the in-class restore path so the bitmap +
+                                // metadata caches all repopulate.
+                                updateImage(appContext, uri)
+                            } else {
+                                // The file is gone (rare — would mean user cleared
+                                // app data without clearing settings, or filesDir
+                                // got wiped). Drop the stale pointer.
+                                viewModelScope.launch {
+                                    repository.saveSetting(
+                                        SettingsRepository.SELECTED_IMAGE_URI, "",
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -894,14 +937,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateImage(context: Context, uri: Uri) {
-        selectedImageUri = uri
+        // RC54: copy the picked content into app-private storage so the URI
+        // we keep in state can be reopened after process death. The URI we
+        // get from ActivityResultContracts.GetContent() is only readable
+        // for the lifetime of the calling Activity — Android killing the
+        // backgrounded process invalidates it, and the user's image was
+        // gone on relaunch. Copying once to filesDir/imported_image.bin
+        // means the URI is durable across kills.
+        val resolvedUri: Uri = try {
+            if (uri.scheme == "file") {
+                // Already a file URI (e.g. our own upscale output) — no copy.
+                uri
+            } else {
+                val dest = java.io.File(context.filesDir, "imported_image.bin")
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    dest.outputStream().use { output -> input.copyTo(output) }
+                }
+                Uri.fromFile(dest)
+            }
+        } catch (t: Throwable) {
+            android.util.Log.w("MainViewModel", "image-copy failed: ${t.message}")
+            uri  // Fall back to the original URI; will work for this session.
+        }
+        selectedImageUri = resolvedUri
+        // Persist URI string so a relaunch after process death can restore.
+        viewModelScope.launch {
+            repository.saveSetting(SettingsRepository.SELECTED_IMAGE_URI, resolvedUri.toString())
+        }
         // RC16: clear the wasUpscaled flag whenever the user picks a fresh
         // image (this fn is only called for picker results; the post-upscale
         // selectedImageUri = Uri.fromFile(outFile) write skips it).
         wasUpscaled = false
         try {
             // Compute image content hash for per-image counter
-            val imageBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            val imageBytes = context.contentResolver.openInputStream(resolvedUri)?.use { it.readBytes() }
             currentImageHash = imageBytes?.let { computeSha256(it) }
 
             // Phase H-P1.13: robust SVG detection — MIME first, extension second,
