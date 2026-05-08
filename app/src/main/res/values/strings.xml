@@ -228,7 +228,7 @@
     <string name="help_history_title">History</string>
     <string name="help_history_body">Every poster you generate appears in the History list. Each row has 4 buttons: View opens the local PDF; Share hands it to email or messaging apps; Download (cloud icon) pulls a copy from cloud storage if you opted in; Delete (cloud-off icon) removes the cloud copy without touching your local file or history entry.</string>
     <string name="help_sharing_title">Sharing</string>
-    <string name="help_sharing_body">The new \'Share…\' button on the main screen lets you send the current poster to any app — Gmail, WhatsApp, Drive, your printer\'s companion app, etc. The PDF is generated fresh each time so it always reflects the current settings.</string>
+    <string name="help_sharing_body">The \'Share\' button on the main screen lets you send the current poster to any app — Gmail, WhatsApp, Drive, your printer\'s companion app, etc. The PDF is generated fresh each time so it always reflects the current settings.</string>
 
     <!-- FAQ screen -->
     <string name="screen_faq_title">FAQ</string>
@@ -812,7 +812,7 @@
     <string name="help_history_title_inline">History</string>
     <string name="help_history_body_inline">Every poster you generate appears in the History list. Each row has 4 buttons: View opens the local PDF; Share hands it to email or messaging apps; Download (cloud icon) pulls a copy from cloud storage if you opted in; Delete (cloud-off icon) removes the cloud copy without touching your local file or history entry.</string>
     <string name="help_sharing_title_inline">Sharing</string>
-    <string name="help_sharing_body_inline">The new \'Share…\' button on the main screen lets you send the current poster to any app — Gmail, WhatsApp, Drive, your printer\'s companion app, etc. The PDF is generated fresh each time so it always reflects the current settings.</string>
+    <string name="help_sharing_body_inline">The \'Share\' button on the main screen lets you send the current poster to any app — Gmail, WhatsApp, Drive, your printer\'s companion app, etc. The PDF is generated fresh each time so it always reflects the current settings.</string>
 
     <!-- FAQ screen -->
     <string name="faq_screen_title">FAQ</string>

@@ -2518,16 +2518,11 @@ fun ConfigInput(
 @Composable
 private fun LanguageDrawerCell(onClick: () -> Unit) {
     // RC17: same fix as the dialog read — prefer LocaleManager on API 33+.
+    // RC48: also fall back if LocaleManager returns empty even after a per-app
+    // override was set via AppCompatDelegate (some devices/timing combos).
     val ctxForLocale = LocalContext.current
     val activeTag = remember {
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
-            val lm = ctxForLocale.getSystemService(android.app.LocaleManager::class.java)
-            val l = lm?.applicationLocales
-            if (l == null || l.isEmpty) "" else l.toLanguageTags().substringBefore(',')
-        } else {
-            val list = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
-            if (list.isEmpty) "" else list.toLanguageTags().substringBefore(',')
-        }
+        readActiveLocaleTag(ctxForLocale)
     }
     // Native word for "Language" per locale. Order matches the dialog.
     val words: List<Pair<String, String>> = listOf(
@@ -2566,7 +2561,7 @@ private fun LanguageDrawerCell(onClick: () -> Unit) {
                 .padding(start = 40.dp),
         ) {
             words.forEach { (tag, word) ->
-                val isActive = tag == activeTag
+                val isActive = localeTagsMatch(tag, activeTag)
                 Text(
                     text = word,
                     style = if (isActive) MaterialTheme.typography.titleMedium
@@ -2578,6 +2573,52 @@ private fun LanguageDrawerCell(onClick: () -> Unit) {
             }
         }
     }
+}
+
+/**
+ * RC48: detect the currently active locale tag for the per-app locale.
+ * On API 33+ LocaleManager is the platform source of truth, but AppCompat
+ * sometimes propagates the override before LocaleManager picks it up
+ * (notably on first launch after install) — read both, prefer non-empty.
+ * Returns "" when no per-app override is set (system default).
+ */
+internal fun readActiveLocaleTag(context: android.content.Context): String {
+    val managerTag = if (android.os.Build.VERSION.SDK_INT >= 33) {
+        val lm = context.getSystemService(android.app.LocaleManager::class.java)
+        val l = lm?.applicationLocales
+        if (l == null || l.isEmpty) "" else l.toLanguageTags().substringBefore(',')
+    } else {
+        ""
+    }
+    if (managerTag.isNotEmpty()) return managerTag
+    val appCompat = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+    return if (appCompat.isEmpty) "" else appCompat.toLanguageTags().substringBefore(',')
+}
+
+/**
+ * RC48: locale-tag matcher that handles "de" vs "de-DE" cleanly.
+ *
+ * The bug it fixes: literal-string equality on language tags broke on
+ * devices where LocaleManager returned a region-suffixed form ("de-DE")
+ * while the picker entries used the bare language ("de"). With nothing
+ * exact-matched, the highlight fell on whichever entry happened to share
+ * a word with the active language — Spanish and Portuguese-BR both
+ * write "language" as "Idioma," so picking German could highlight Idioma
+ * if the matcher silently failed and the FlowRow rendering fell through
+ * to a default-styled first item.
+ *
+ * Match rule: same primary language code; if either side has a region,
+ * the other must agree or be unspecified. So "de" matches "de-DE" and
+ * vice versa, but "pt-BR" never matches "pt-PT".
+ */
+internal fun localeTagsMatch(a: String, b: String): Boolean {
+    if (a.equals(b, ignoreCase = true)) return true
+    if (a.isEmpty() || b.isEmpty()) return false
+    val al = java.util.Locale.forLanguageTag(a)
+    val bl = java.util.Locale.forLanguageTag(b)
+    if (al.language.isEmpty() || al.language != bl.language) return false
+    if (al.country.isEmpty() || bl.country.isEmpty()) return true
+    return al.country.equals(bl.country, ignoreCase = true)
 }
 
 /**

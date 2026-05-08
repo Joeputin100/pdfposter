@@ -57,22 +57,17 @@ fun LanguagePickerDialog(
     )
 
     // RC17: read from LocaleManager on API 33+ (the platform source of
-    // truth) and fall back to AppCompatDelegate on older. The pre-RC17
-    // path read only AppCompatDelegate, which on a ComponentActivity-
-    // hosted app falls out of sync with the platform's actual locale,
-    // so the dialog kept showing "System default" even after a switch.
+    // truth) and fall back to AppCompatDelegate on older.
+    // RC48: extracted to readActiveLocaleTag (with AppCompat fallback even
+    // on API 33+) and matched with localeTagsMatch (handles de vs de-DE).
     val context = androidx.compose.ui.platform.LocalContext.current
-    val current = remember {
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
-            val lm = context.getSystemService(android.app.LocaleManager::class.java)
-            val l = lm?.applicationLocales
-            if (l == null || l.isEmpty) "" else l.toLanguageTags().substringBefore(',')
-        } else {
-            val active = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
-            if (active.isEmpty) "" else active.toLanguageTags().substringBefore(',')
-        }
+    val current = remember { com.posterpdf.readActiveLocaleTag(context) }
+    var selected by remember {
+        mutableStateOf(
+            options.firstOrNull { com.posterpdf.localeTagsMatch(it.first, current) }?.first
+                ?: current
+        )
     }
-    var selected by remember { mutableStateOf(current) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -85,18 +80,19 @@ fun LanguagePickerDialog(
                     .verticalScroll(rememberScrollState()),
             ) {
                 options.forEach { (tag, labelRes) ->
+                    val isSelected = com.posterpdf.localeTagsMatch(selected, tag)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .selectable(
-                                selected = selected == tag,
+                                selected = isSelected,
                                 onClick = { selected = tag },
                                 role = Role.RadioButton,
                             )
                             .padding(vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        RadioButton(selected = selected == tag, onClick = null)
+                        RadioButton(selected = isSelected, onClick = null)
                         Spacer(Modifier.width(12.dp))
                         Text(
                             stringResource(labelRes),
