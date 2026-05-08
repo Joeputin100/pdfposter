@@ -233,7 +233,7 @@
     <!-- FAQ screen -->
     <string name="screen_faq_title">FAQ</string>
     <string name="faq_q_credits">Why does it ask for credits?</string>
-    <string name="faq_a_credits">Credits pay for AI upscale calls — Topaz, Recraft, AuraSR, Magnific. Each provider charges per image, so we charge credits per image. PosterPDF itself (poster generation, on-device upscale, history, 30-day cloud storage) is free with any image source. Credits only apply when you choose an AI upscale option.</string>
+    <string name="faq_a_credits">Credits pay for AI upscale calls — Topaz, Recraft, AuraSR, Magnific. Each provider charges per image, so we charge credits per image. PosterPDF itself (poster generation, on-device upscale, history) is free with any image source. The 30-day cloud storage is included only for AI-upscaled images and the PDFs generated from them — non-upscaled posters, on-device-upscaled posters, offline output, and posters made while signed out all stay on your device, where they\'re already free.</string>
     <string name="faq_q_credit_value">Why are my credits worth less than the price I paid?</string>
     <string name="faq_a_credit_value">Margin transparency: the underlying AI providers charge us about two-thirds of what you pay. The other third covers Play Store\'s 15%% cut, server costs (Cloud Functions + Firestore + Storage), and leaves a small margin to fund development. We aim for ~50%% above raw FAL.ai cost — that\'s enough to keep the lights on, not enough to make us rich. The exact USD-equivalent is shown on every credit pack so there are no surprises.</string>
     <string name="faq_q_offline">Can I use it offline?</string>
@@ -286,7 +286,7 @@
     <string name="privacy_sec_storage_body">If you opt into cloud retention (Settings → Cloud storage…), we upload generated PDFs to Cloud Storage at gs://(project)/user-pdfs/{uid}/. The default retention is 30 days; paid tiers extend that. The default Settings choice is local-only — nothing leaves your device unless you opt in.</string>
     <string name="privacy_sec_fal_title">AI upscale (FAL.ai)</string>
     <string name="privacy_sec_fal_body">When you tap an AI upscale option (Topaz, Recraft, AuraSR, ESRGAN, Magnific), the source image is sent to FAL.ai for processing, and the upscaled result is returned. FAL.ai retains the input and output for the period set in their TOS — typically minutes to hours, but read their policy directly:</string>
-    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Retention</string>
     <string name="privacy_sec_retention_body">Set by your Settings → Cloud storage… choice. Free tier: 30 days. Paid tiers: 90 days, 1 year, or indefinite. History metadata in Firestore follows the same retention. Local files and local history stay on your device until you uninstall or tap Reset to Defaults.</string>
     <string name="privacy_sec_deletion_title">Deletion paths</string>
@@ -818,7 +818,7 @@
     <string name="faq_screen_title">FAQ</string>
     <string name="faq_back_cd">Back</string>
     <string name="faq_q_credits_inline">Why does it ask for credits?</string>
-    <string name="faq_a_credits_inline">Credits pay the AI services that sharpen your photo for big prints. We pass that cost on to you per upscale. Everything else — making posters, the free on-device sharpener, your history, and 30 days of cloud backup — is free, with any photo. You only spend credits when you tap one of the AI upscale options.</string>
+    <string name="faq_a_credits_inline">Credits pay the AI services that sharpen your photo for big prints. We pass that cost on to you per upscale. Making posters, the free on-device sharpener, and your history are free with any photo. The 30-day cloud backup is included only for AI-upscaled photos and their PDFs — non-upscaled posters, on-device-sharpened posters, offline output, and posters made while signed out all stay on your device. You only spend credits when you tap one of the AI upscale options.</string>
     <string name="faq_q_credit_value_inline">Why are my credits worth less than the price I paid?</string>
     <string name="faq_a_credit_value_inline">Honest answer: most of what you pay goes to the AI service doing the actual work. The rest covers Play Store\'s cut, our servers, and a small slice that funds ongoing app development. We aim for about 50%% above the raw AI cost — enough to keep the lights on. Every credit pack shows the equivalent in dollars so you always know what you\'re buying.</string>
     <string name="faq_q_offline_inline">Can I use it offline?</string>

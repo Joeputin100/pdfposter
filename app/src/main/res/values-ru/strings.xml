@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_body">Если вы включили облачное хранение (Настройки → Облачное хранилище…), созданные PDF загружаются в Cloud Storage по пути gs://(проект)/user-pdfs/{uid}/. По умолчанию срок хранения — 30 дней; платные тарифы увеличивают его. По умолчанию выбрано локальное хранение — данные не покидают устройство, пока вы не включите эту функцию.</string>
     <string name="privacy_sec_fal_title">AI-масштабирование (FAL.ai)</string>
     <string name="privacy_sec_fal_body">При выборе AI-масштабирования (Topaz, Recraft, AuraSR, ESRGAN, Magnific) исходное изображение отправляется на FAL.ai для обработки, после чего возвращается масштабированный результат. FAL.ai хранит входные и выходные данные в течение срока, указанного в их пользовательском соглашении — обычно от минут до часов; ознакомьтесь с их политикой напрямую:</string>
-    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Сроки хранения</string>
     <string name="privacy_sec_retention_body">Определяются вашим выбором в Настройки → Облачное хранилище…. Бесплатный тариф: 30 дней. Платные тарифы: 90 дней, 1 год или бессрочно. Метаданные истории в Firestore хранятся так же. Локальные файлы и локальная история остаются на устройстве до удаления приложения или сброса настроек.</string>
     <string name="privacy_sec_deletion_title">Способы удаления данных</string>

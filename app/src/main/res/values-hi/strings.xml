@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_body">अगर आप क्लाउड रिटेंशन (Settings → Cloud storage…) में ऑप्ट इन करते हैं, तो हम बनाए PDF को gs://(project)/user-pdfs/{uid}/ पर Cloud Storage में अपलोड करते हैं। डिफ़ॉल्ट रिटेंशन 30 दिन है; पेड टियर इसे बढ़ाते हैं। डिफ़ॉल्ट सेटिंग्स का विकल्प केवल-लोकल है — जब तक आप ऑप्ट इन न करें, कुछ भी डिवाइस नहीं छोड़ता।</string>
     <string name="privacy_sec_fal_title">AI अपस्केल (FAL.ai)</string>
     <string name="privacy_sec_fal_body">जब आप AI अपस्केल विकल्प (Topaz, Recraft, AuraSR, ESRGAN, Magnific) टैप करते हैं, तो सोर्स इमेज प्रोसेसिंग के लिए FAL.ai को भेजी जाती है, और अपस्केल नतीजा वापस आता है। FAL.ai इनपुट और आउटपुट अपनी TOS में निर्धारित अवधि के लिए रखता है — आमतौर पर मिनटों से घंटों तक, लेकिन उनकी पॉलिसी सीधे पढ़ें:</string>
-    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">रिटेंशन</string>
     <string name="privacy_sec_retention_body">आपकी Settings → Cloud storage… पसंद से तय होता है। फ्री टियर: 30 दिन। पेड टियर: 90 दिन, 1 साल, या अनिश्चितकाल। Firestore में हिस्ट्री मेटाडेटा भी उतने ही समय के लिए। लोकल फ़ाइलें और लोकल हिस्ट्री तब तक बनी रहती है जब तक आप अनइंस्टॉल न करें या Reset to Defaults न टैप करें।</string>
     <string name="privacy_sec_deletion_title">डिलीशन के रास्ते</string>

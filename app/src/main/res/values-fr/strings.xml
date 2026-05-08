@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_body">Si vous activez la conservation cloud (Paramètres → Stockage cloud…), nous téléversons les PDF générés vers Cloud Storage à gs://(projet)/user-pdfs/{uid}/. La conservation par défaut est de 30 jours ; les niveaux payants prolongent cette durée. Le choix par défaut dans Paramètres est local uniquement — rien ne quitte votre appareil sauf si vous activez l\'option.</string>
     <string name="privacy_sec_fal_title">Agrandissement IA (FAL.ai)</string>
     <string name="privacy_sec_fal_body">Lorsque vous appuyez sur une option d\'agrandissement IA (Topaz, Recraft, AuraSR, ESRGAN, Magnific), l\'image source est envoyée à FAL.ai pour traitement, et le résultat agrandi est renvoyé. FAL.ai conserve les entrées et sorties pendant la période définie dans leurs CGU — généralement de quelques minutes à quelques heures, mais lisez directement leur politique :</string>
-    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Conservation</string>
     <string name="privacy_sec_retention_body">Définie par votre choix dans Paramètres → Stockage cloud…. Niveau gratuit : 30 jours. Niveaux payants : 90 jours, 1 an ou indéfini. Les métadonnées d\'historique dans Firestore suivent la même conservation. Les fichiers locaux et l\'historique local restent sur votre appareil jusqu\'à la désinstallation ou jusqu\'à ce que vous appuyiez sur Rétablir les valeurs par défaut.</string>
     <string name="privacy_sec_deletion_title">Méthodes de suppression</string>

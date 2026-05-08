@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_body">クラウド保持（設定 → クラウドストレージ…）を選択した場合、生成されたPDFはCloud StorageのBucket（gs://(project)/user-pdfs/{uid}/）にアップロードされます。デフォルトの保持期間は30日で、有料プランでは延長できます。デフォルト設定はローカル保存のみで、オプトインしない限りデータは端末外に送信されません。</string>
     <string name="privacy_sec_fal_title">AIアップスケール（FAL.ai）</string>
     <string name="privacy_sec_fal_body">AIアップスケール（Topaz、Recraft、AuraSR、ESRGAN、Magnific）を選択すると、元画像が処理のためFAL.aiに送信され、アップスケール結果が返されます。FAL.aiは入出力データをTOSに定められた期間（通常は数分〜数時間）保持します。FAL.aiのポリシーは直接ご確認ください：</string>
-    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">保持期間</string>
     <string name="privacy_sec_retention_body">設定 → クラウドストレージ… の選択によって異なります。無料プラン：30日。有料プラン：90日、1年、または無期限。FirestoreのメタデータもFirestoreの履歴も同じ保持期間に従います。ローカルファイルとローカル履歴はアンインストールまたは「デフォルトに戻す」を実行するまで端末上に残ります。</string>
     <string name="privacy_sec_deletion_title">削除方法</string>

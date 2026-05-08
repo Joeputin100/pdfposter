@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_body">إذا اخترت الاحتفاظ السحابي (الإعدادات → التخزين السحابي…)، نرفع ملفات PDF إلى Cloud Storage في gs://(project)/user-pdfs/{uid}/. الاحتفاظ الافتراضي هو 30 يوماً؛ التيارات المدفوعة تمتد أكثر. الخيار الافتراضي هو التخزين المحلي فقط — لا شيء يغادر جهازك إلا إذا اخترت ذلك.</string>
     <string name="privacy_sec_fal_title">تكبير الذكاء الاصطناعي (FAL.ai)</string>
     <string name="privacy_sec_fal_body">عند اختيار خيار تكبير بالذكاء الاصطناعي (Topaz أو Recraft أو AuraSR أو ESRGAN أو Magnific)، تُرسَل الصورة المصدر إلى FAL.ai للمعالجة ويُعاد الناتج المكبَّر. تحتفظ FAL.ai بالمدخلات والمخرجات للمدة المحددة في شروط خدمتها — عادةً دقائق إلى ساعات، لكن اقرأ سياستهم مباشرة:</string>
-    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">الاحتفاظ</string>
     <string name="privacy_sec_retention_body">يُحدَّد باختيارك في الإعدادات → التخزين السحابي…. التيار المجاني: 30 يوماً. التيارات المدفوعة: 90 يوماً أو سنة أو إلى أجل غير مسمى. بيانات السجل في Firestore تتبع نفس فترة الاحتفاظ. الملفات المحلية والسجل المحلي تبقى على جهازك حتى تُلغي التثبيت أو تنقر إعادة الضبط الافتراضي.</string>
     <string name="privacy_sec_deletion_title">مسارات الحذف</string>

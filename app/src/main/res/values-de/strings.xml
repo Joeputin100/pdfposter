@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_body">Wenn Sie Cloud-Aufbewahrung aktivieren (Einstellungen → Cloud-Speicher…), laden wir generierte PDFs in Cloud Storage unter gs://(Projekt)/user-pdfs/{uid}/ hoch. Die Standard-Aufbewahrungszeit beträgt 30 Tage; kostenpflichtige Tarife verlängern dies. Die Standard-Einstellung ist nur lokal — nichts verlässt Ihr Gerät, sofern Sie sich nicht dafür entscheiden.</string>
     <string name="privacy_sec_fal_title">KI-Upscale (FAL.ai)</string>
     <string name="privacy_sec_fal_body">Wenn Sie eine KI-Upscale-Option tippen (Topaz, Recraft, AuraSR, ESRGAN, Magnific), wird das Quellbild zur Verarbeitung an FAL.ai gesendet und das hochskalierte Ergebnis zurückgegeben. FAL.ai behält Ein- und Ausgabe für den in ihren AGB festgelegten Zeitraum — typischerweise Minuten bis Stunden, aber lesen Sie deren Richtlinien direkt:</string>
-    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Aufbewahrung</string>
     <string name="privacy_sec_retention_body">Festgelegt durch Ihre Wahl unter Einstellungen → Cloud-Speicher…. Kostenloser Tarif: 30 Tage. Kostenpflichtige Tarife: 90 Tage, 1 Jahr oder unbegrenzt. Verlaufsmetadaten in Firestore folgen derselben Aufbewahrung. Lokale Dateien und der lokale Verlauf verbleiben auf Ihrem Gerät, bis Sie deinstallieren oder Zurücksetzen tippen.</string>
     <string name="privacy_sec_deletion_title">Löschungsmöglichkeiten</string>

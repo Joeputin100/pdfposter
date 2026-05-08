@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_body">若您在设置 → 云存储… 中选择云端保留，生成的 PDF 将上传至 Cloud Storage 的 gs://(project)/user-pdfs/{uid}/ 路径。默认保留期为 30 天，付费方案可延长。默认设置仅保存本地——除非您主动选择，否则数据不会离开您的设备。</string>
     <string name="privacy_sec_fal_title">AI 放大（FAL.ai）</string>
     <string name="privacy_sec_fal_body">当您点击 AI 放大选项（Topaz、Recraft、AuraSR、ESRGAN、Magnific）时，源图片将发送至 FAL.ai 进行处理，放大后的结果将返回给您。FAL.ai 按其服务条款规定的期限保留输入和输出——通常为数分钟至数小时，请直接参阅其隐私政策：</string>
-    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">数据保留</string>
     <string name="privacy_sec_retention_body">由设置 → 云存储… 中的选择决定。免费方案：30 天。付费方案：90 天、1 年或无限期。Firestore 中的历史元数据遵循相同保留策略。本地文件和本地历史记录保存在您的设备上，直到您卸载应用或点击恢复默认设置。</string>
     <string name="privacy_sec_deletion_title">数据删除方式</string>

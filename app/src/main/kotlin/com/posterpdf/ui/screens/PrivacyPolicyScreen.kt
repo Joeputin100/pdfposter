@@ -98,9 +98,9 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
                 body = stringResource(R.string.privacy_fal_body),
             )
             ClickableLine(
-                "https://fal.ai/legal/privacy",
+                "https://fal.ai/legal/privacy-policy",
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://fal.ai/legal/privacy"))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://fal.ai/legal/privacy-policy"))
                     context.startActivity(intent)
                 },
             )

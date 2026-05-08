@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_body">Se você optar pela retenção em nuvem (Configurações → Armazenamento em nuvem…), fazemos upload dos PDFs gerados para o Cloud Storage em gs://(projeto)/user-pdfs/{uid}/. A retenção padrão é de 30 dias; planos pagos estendem esse prazo. A escolha padrão nas Configurações é somente local — nada sai do seu dispositivo a não ser que você opte por isso.</string>
     <string name="privacy_sec_fal_title">Melhoria por IA (FAL.ai)</string>
     <string name="privacy_sec_fal_body">Quando você toca em uma opção de melhoria por IA (Topaz, Recraft, AuraSR, ESRGAN, Magnific), a imagem de origem é enviada ao FAL.ai para processamento e o resultado melhorado é retornado. O FAL.ai retém a entrada e a saída pelo período definido em seus Termos de Serviço — geralmente de minutos a horas, mas leia a política deles diretamente:</string>
-    <string name="privacy_fal_link">https://fal.ai/legal/privacy</string>
+    <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Retenção</string>
     <string name="privacy_sec_retention_body">Definida pela sua escolha em Configurações → Armazenamento em nuvem…. Plano gratuito: 30 dias. Planos pagos: 90 dias, 1 ano ou indefinidamente. Os metadados do histórico no Firestore seguem a mesma retenção. Arquivos locais e histórico local permanecem no seu dispositivo até você desinstalar o app ou tocar em Restaurar padrões.</string>
     <string name="privacy_sec_deletion_title">Caminhos de exclusão</string>
