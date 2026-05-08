@@ -120,12 +120,27 @@ object PaneGeometry {
                 // poster translated, so the unfilled portion stays blank paper.
                 // We mirror that here: imageContent* shrinks by the same ratio the
                 // source rect was clamped by, leaving blank paper on the trailing edge.
-                val imageContentWidth = if (sourceFracWidthUnclamped > 0f)
-                    imageDstWidth * (sourceFracWidth / sourceFracWidthUnclamped)
-                else imageDstWidth
-                val imageContentHeight = if (sourceFracHeightUnclamped > 0f)
-                    imageDstHeight * (sourceFracHeight / sourceFracHeightUnclamped)
-                else imageDstHeight
+                //
+                // RC48: special case — when rows == 1 && cols == 1 (poster fits on a
+                // single page), there are no neighboring tiles, no overlap region,
+                // and no "edge clip" semantics to honor. The image should occupy
+                // the full printable rect (imageDst*). User-reported bug: a small
+                // 1-page poster previously rendered shrunk-to-poster-scale with
+                // blank paper around it, which was correct for tiled posters but
+                // nonsensical for single-page output where there's nothing to tile.
+                val singlePane = rows == 1 && cols == 1
+                val imageContentWidth = when {
+                    singlePane -> imageDstWidth
+                    sourceFracWidthUnclamped > 0f ->
+                        imageDstWidth * (sourceFracWidth / sourceFracWidthUnclamped)
+                    else -> imageDstWidth
+                }
+                val imageContentHeight = when {
+                    singlePane -> imageDstHeight
+                    sourceFracHeightUnclamped > 0f ->
+                        imageDstHeight * (sourceFracHeight / sourceFracHeightUnclamped)
+                    else -> imageDstHeight
+                }
 
                 panes.add(
                     Pane(
