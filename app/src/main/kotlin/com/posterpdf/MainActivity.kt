@@ -1160,9 +1160,21 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                         // custom Surface (RC35) drew under the system UI
                         // because it isn't a Material 3 TopAppBar — those
                         // get the inset for free; arbitrary Surfaces don't.
+                        // RC48: also include horizontal insets via
+                        // safeDrawing.only(Top + Horizontal) so the trailing
+                        // account avatar doesn't get clipped by camera
+                        // cutouts in portrait or overlap the system 3-button
+                        // nav bar in landscape (where the back button can
+                        // dock on the right side of the screen). We restrict
+                        // to Top + Horizontal — adding Bottom would push
+                        // every top-bar widget down by the nav bar height.
                         modifier = Modifier
                             .fillMaxWidth()
-                            .statusBarsPadding()
+                            .windowInsetsPadding(
+                                WindowInsets.safeDrawing.only(
+                                    WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
+                                ),
+                            )
                             .heightIn(min = 56.dp)
                             .padding(horizontal = 8.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
