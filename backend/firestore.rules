@@ -121,7 +121,14 @@ service cloud.firestore {
     //
     // Body validation includes BBCode markup; we cap at 8000 chars to
     // accommodate inline [img] URLs without enabling pathological pasting.
-    match /community/posts/{postId} {
+    // RC47 path correction: CommunityRepository uses
+    //   db.collection("community").document("posts").collection("items")
+    // which writes to /community/posts/items/{postId}. The original RC44
+    // rules matched /community/posts/{postId} (a collection, not a sub-
+    // collection under the doc), so all reads silently returned permission
+    // denied — the client surfaced "Couldn't load posts" as a result.
+    // Aligning the rule path with where data actually lives.
+    match /community/posts/items/{postId} {
       allow read: if true;
 
       allow create: if isRegistered()
