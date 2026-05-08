@@ -1704,7 +1704,16 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                         }) { Text(stringResource(R.string.low_dpi_dialog_continue)) }
                                     },
                                     dismissButton = {
-                                        TextButton(onClick = { lowDpiPendingAction = null }) {
+                                        // RC53: "Upscale source" routes to the upscale picker
+                                        // (LowDpiUpgradeModal). Pre-RC53 it just dismissed the
+                                        // dialog, dropping the user back at the main screen with
+                                        // no path forward — confusing because the button copy
+                                        // implied an action ("Upgrade source first"). Now the
+                                        // user lands directly on the upscale options.
+                                        TextButton(onClick = {
+                                            lowDpiPendingAction = null
+                                            viewModel.showLowDpiModal = true
+                                        }) {
                                             Text(stringResource(R.string.low_dpi_dialog_upgrade))
                                         }
                                     },
@@ -2001,22 +2010,50 @@ fun AdvancedOptionsSection(viewModel: MainViewModel) {
                         }
                     )
 
-                     Row(verticalAlignment = Alignment.CenterVertically) {
-                         Checkbox(checked = viewModel.labelPanes, onCheckedChange = { 
-                             viewModel.labelPanes = it
-                             viewModel.logEvent(context, "Label panes toggled", "enabled=$it")
-                             viewModel.saveAllSettings() 
-                         })
-                         Text(stringResource(R.string.advanced_label_panes))
+                     // RC53: each checkbox row gets a body explainer below the
+                     // label so the section is visually consistent with the
+                     // Page-borders block above (title + body + control). The
+                     // checkbox itself stays inline with the title; the body
+                     // sits below at the same left-indent so the layout feels
+                     // intentional rather than jagged.
+                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                         Row(verticalAlignment = Alignment.CenterVertically) {
+                             Checkbox(checked = viewModel.labelPanes, onCheckedChange = {
+                                 viewModel.labelPanes = it
+                                 viewModel.logEvent(context, "Label panes toggled", "enabled=$it")
+                                 viewModel.saveAllSettings()
+                             })
+                             Text(
+                                 stringResource(R.string.advanced_label_panes),
+                                 style = MaterialTheme.typography.labelLarge,
+                             )
+                         }
+                         Text(
+                             stringResource(R.string.advanced_label_panes_body),
+                             style = MaterialTheme.typography.bodySmall,
+                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                             modifier = Modifier.padding(start = 56.dp),
+                         )
                      }
 
-                     Row(verticalAlignment = Alignment.CenterVertically) {
-                         Checkbox(checked = viewModel.includeInstructions, onCheckedChange = { 
-                             viewModel.includeInstructions = it
-                             viewModel.logEvent(context, "Include instructions toggled", "enabled=$it")
-                             viewModel.saveAllSettings() 
-                         })
-                         Text(stringResource(R.string.advanced_include_instructions))
+                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                         Row(verticalAlignment = Alignment.CenterVertically) {
+                             Checkbox(checked = viewModel.includeInstructions, onCheckedChange = {
+                                 viewModel.includeInstructions = it
+                                 viewModel.logEvent(context, "Include instructions toggled", "enabled=$it")
+                                 viewModel.saveAllSettings()
+                             })
+                             Text(
+                                 stringResource(R.string.advanced_include_instructions),
+                                 style = MaterialTheme.typography.labelLarge,
+                             )
+                         }
+                         Text(
+                             stringResource(R.string.advanced_include_instructions_body),
+                             style = MaterialTheme.typography.bodySmall,
+                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                             modifier = Modifier.padding(start = 56.dp),
+                         )
                      }
                 }
             }

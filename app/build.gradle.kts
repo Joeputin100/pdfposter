@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc52"  // RC52 (construction preview starts with printer+stack visible, pans to grid)
+        versionName = "1.0-rc53"  // RC53 (BYO Choose-file wired + Advanced Styling consistency + Upscale-source button retarget)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

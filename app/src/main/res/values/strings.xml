@@ -129,7 +129,9 @@
     <string name="advanced_borders_title">Page borders &amp; crop marks</string>
     <string name="advanced_borders_body">Printed on each page to help you trim and align after printing. \"Crop Marks\" prints corner ticks showing where to cut, like a pro print shop. Solid/dashed/dotted draw a full border at varying weights. Pick \"None\" if you want clean edges.</string>
     <string name="advanced_label_panes">Label Each Pane (A1, B2...)</string>
+    <string name="advanced_label_panes_body">Stamps a small grid coordinate on every printed page so you can match each panel to its position in the assembly grid. Helpful for big posters where pages all look similar.</string>
     <string name="advanced_include_instructions">Include Assembly Instructions</string>
+    <string name="advanced_include_instructions_body">Adds a final page with the full assembly diagram, ruler, and tile order. Skip it if you\'ve done this before and don\'t need the reference page.</string>
 
     <!-- Outline preview -->
     <string name="outline_none">None</string>
@@ -145,7 +147,7 @@
     <string name="low_dpi_dialog_title">This will print at low resolution</string>
     <string name="low_dpi_dialog_body">Your poster is currently around %1$d DPI. For a sharp print you want at least 150 DPI. Continue anyway, or upscale your image first?</string>
     <string name="low_dpi_dialog_continue">Continue anyway</string>
-    <string name="low_dpi_dialog_upgrade">Upgrade source first</string>
+    <string name="low_dpi_dialog_upgrade">Upscale source</string>
 
     <!-- First run wizard -->
     <string name="first_run_title">Welcome to Poster PDF!</string>

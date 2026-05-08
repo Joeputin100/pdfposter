@@ -1511,14 +1511,28 @@ fun PosterPreview(viewModel: MainViewModel) {
                     },
                 )
             }
+            // RC53: actually wire the BringYourOwn "Choose file" button.
+            // Pre-RC53 the handler was a TODO that just dismissed the dialog
+            // (left over from the H-P2.6 staging). Now the launcher opens
+            // the system image picker, and the picked URI gets handed to
+            // viewModel.updateImage(...) — same flow as the main image
+            // picker, so the user's already-upscaled image becomes the
+            // new source.
+            val byoCtx = androidx.compose.ui.platform.LocalContext.current
+            val byoLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                contract = androidx.activity.result.contract.ActivityResultContracts.GetContent(),
+            ) { uri ->
+                if (uri != null) {
+                    viewModel.updateImage(byoCtx, uri)
+                    viewModel.showLowDpiModal = false
+                }
+            }
             if (showBringYourOwnHelp) {
                 com.posterpdf.ui.components.BringYourOwnHelpDialog(
                     onDismiss = { showBringYourOwnHelp = false },
                     onPickAlreadyUpscaled = {
                         showBringYourOwnHelp = false
-                        // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage().
-                        // The button currently dismisses; the actual file-picker
-                        // launch is staged for the same VM hookup as the modal.
+                        byoLauncher.launch("image/*")
                     },
                 )
             }
