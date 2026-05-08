@@ -29,7 +29,8 @@
     <string name="drawer_posters_generated_subtitle">ポスターの合計作成数</string>
     <string name="drawer_default_paper_size">デフォルト用紙サイズ</string>
     <string name="drawer_supported_file_types_label">対応ファイル形式：</string>
-    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP, GIF</string>
+    <string name="top_bar_login_signup" tools:maxLength="20">ログイン / 登録</string>
     <string name="drawer_cloud_storage">クラウドストレージ…</string>
     <string name="drawer_target_dpi_label">目標印刷DPI：%1$d</string>
     <string name="drawer_target_dpi_help">DPIが高いほど鮮明な印刷になりますが、アップスケールクレジットを多く消費します。ポスターは150が標準、写真は300、アート印刷は600以上が目安です。</string>

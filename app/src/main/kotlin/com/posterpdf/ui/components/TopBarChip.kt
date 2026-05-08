@@ -113,17 +113,37 @@ fun AccountAvatarMenu(
     var open by remember { mutableStateOf(false) }
     val signedIn = session.signedIn && !session.isAnonymous
 
+    if (!signedIn) {
+        // RC48: anonymous users see an explicit Login / Sign Up button
+        // instead of the generic-anonymous-pfp icon. The icon was
+        // ambiguous (read as "current account" rather than "tap to sign
+        // in"); the button copy makes the CTA unmistakable.
+        androidx.compose.material3.OutlinedButton(
+            onClick = onSignIn,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                horizontal = 12.dp, vertical = 6.dp,
+            ),
+        ) {
+            Text(
+                stringResource(R.string.top_bar_login_signup),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+        return
+    }
+
     Box {
         Box(
             modifier = Modifier
                 .size(36.dp)
                 .clip(RoundedCornerShape(50))
-                .clickable { if (signedIn) open = true else onSignIn() }
+                .clickable { open = true }
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50)),
             contentAlignment = Alignment.Center,
         ) {
             val photo = session.photoUrl
-            if (signedIn && photo != null) {
+            if (photo != null) {
                 coil.compose.AsyncImage(
                     model = photo,
                     contentDescription = stringResource(R.string.account_label_top_cd),
@@ -134,7 +154,7 @@ fun AccountAvatarMenu(
             } else {
                 Icon(
                     Icons.Filled.AccountCircle,
-                    contentDescription = stringResource(R.string.account_sign_in_cd),
+                    contentDescription = stringResource(R.string.account_label_top_cd),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(28.dp),
                 )

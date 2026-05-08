@@ -29,7 +29,8 @@
     <string name="drawer_posters_generated_subtitle">Всего постеров создано</string>
     <string name="drawer_default_paper_size">Формат бумаги по умолчанию</string>
     <string name="drawer_supported_file_types_label">Поддерживаемые форматы:</string>
-    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP, GIF</string>
+    <string name="top_bar_login_signup" tools:maxLength="20">Войти / Регистрация</string>
     <string name="drawer_cloud_storage">Облачное хранилище…</string>
     <string name="drawer_target_dpi_label">Целевое DPI печати: %1$d</string>
     <string name="drawer_target_dpi_help">Выше DPI → чётче печать, больше кредитов на масштабирование. 150 — стандарт для постеров; 300 — для фото; 600+ — для изобразительного искусства.</string>

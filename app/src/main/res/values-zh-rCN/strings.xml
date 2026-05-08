@@ -29,7 +29,8 @@
     <string name="drawer_posters_generated_subtitle">累计生成数量</string>
     <string name="drawer_default_paper_size">默认纸张大小</string>
     <string name="drawer_supported_file_types_label">支持的文件类型：</string>
-    <string name="drawer_supported_file_types_value">PNG、JPG / JPEG、SVG、WEBP、BMP</string>
+    <string name="drawer_supported_file_types_value">PNG、JPG / JPEG、SVG、WEBP、BMP、GIF</string>
+    <string name="top_bar_login_signup" tools:maxLength="20">登录 / 注册</string>
     <string name="drawer_cloud_storage">云存储…</string>
     <string name="drawer_target_dpi_label">目标打印 DPI：%1$d</string>
     <string name="drawer_target_dpi_help">DPI 越高 → 打印越清晰，使用的放大点数越多。海报推荐 150，照片推荐 300，艺术精印推荐 600+。</string>

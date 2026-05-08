@@ -41,7 +41,11 @@
     <string name="drawer_posters_generated_subtitle">Total posters created</string>
     <string name="drawer_default_paper_size">Default Paper Size</string>
     <string name="drawer_supported_file_types_label">Supported File Types:</string>
-    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP, GIF</string>
+
+    <!-- RC48: top-bar wordmark + sign-in CTA -->
+    <string name="top_bar_wordmark" translatable="false">PosterPDF</string>
+    <string name="top_bar_login_signup" tools:maxLength="20">Login / Sign Up</string>
     <string name="drawer_cloud_storage">Cloud storage…</string>
     <!-- Language picker (RC5) -->
     <string name="drawer_language">Language</string>

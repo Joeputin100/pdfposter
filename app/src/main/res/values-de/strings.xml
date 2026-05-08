@@ -29,7 +29,8 @@
     <string name="drawer_posters_generated_subtitle">Poster insgesamt erstellt</string>
     <string name="drawer_default_paper_size">Standard-Papierformat</string>
     <string name="drawer_supported_file_types_label">Unterstützte Dateitypen:</string>
-    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP, GIF</string>
+    <string name="top_bar_login_signup" tools:maxLength="20">Anmelden / Konto</string>
     <string name="drawer_cloud_storage">Cloud-Speicher…</string>
     <string name="drawer_target_dpi_label">Ziel-DPI: %1$d</string>
     <string name="drawer_target_dpi_help">Höhere DPI → schärferer Druck, mehr Upscale-Credits verbraucht. 150 ist Standard für Poster; 300 für Fotos; 600+ für Fine Art.</string>

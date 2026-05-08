@@ -29,7 +29,8 @@
     <string name="drawer_posters_generated_subtitle">Total des affiches créées</string>
     <string name="drawer_default_paper_size">Format de papier par défaut</string>
     <string name="drawer_supported_file_types_label">Formats de fichiers pris en charge :</string>
-    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP, GIF</string>
+    <string name="top_bar_login_signup" tools:maxLength="20">Connexion / Compte</string>
     <string name="drawer_cloud_storage">Stockage cloud…</string>
     <string name="drawer_target_dpi_label">DPI d\'impression cible : %1$d</string>
     <string name="drawer_target_dpi_help">DPI plus élevé → impression plus nette, plus de crédits d\'agrandissement utilisés. 150 est la norme pour les affiches ; 300 pour les photos ; 600+ pour les beaux-arts.</string>

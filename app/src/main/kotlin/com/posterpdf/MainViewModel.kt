@@ -113,7 +113,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * client's ID-token cache otherwise).
      */
     val isAdmin: Boolean
-        get() = authSession.email == "joeputin100@gmail.com"
+        get() = authSession.email?.lowercase() in ADMIN_EMAILS
+
+    private companion object {
+        // RC48: client-side mirror of backend ADMIN_EMAILS (upscale.ts).
+        // Drives the ∞ symbol on the credit badge purely as UI feedback;
+        // the authoritative credit-bypass check still runs server-side.
+        // Keep in sync with backend/functions/src/upscale.ts.
+        private val ADMIN_EMAILS = setOf(
+            "joeputin100@gmail.com",
+            "mojo.xanadu.2@gmail.com",
+        )
+    }
 
     /**
      * RC3+ target print DPI. Default 150 (industry-standard poster quality).

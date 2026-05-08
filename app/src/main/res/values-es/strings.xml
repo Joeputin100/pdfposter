@@ -29,7 +29,8 @@
     <string name="drawer_posters_generated_subtitle">Total de pósters creados</string>
     <string name="drawer_default_paper_size">Tamaño de papel predeterminado</string>
     <string name="drawer_supported_file_types_label">Tipos de archivo compatibles:</string>
-    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP, GIF</string>
+    <string name="top_bar_login_signup" tools:maxLength="20">Entrar / Crear</string>
     <string name="drawer_cloud_storage">Almacenamiento en la nube…</string>
     <string name="drawer_target_dpi_label">DPI de impresión objetivo: %1$d</string>
     <string name="drawer_target_dpi_help">Mayor DPI → impresión más nítida, más créditos de ampliación usados. 150 es estándar para pósters; 300 para fotos; 600+ para arte fino.</string>

@@ -29,7 +29,8 @@
     <string name="drawer_posters_generated_subtitle">إجمالي الملصقات التي تم إنشاؤها</string>
     <string name="drawer_default_paper_size">حجم الورق الافتراضي</string>
     <string name="drawer_supported_file_types_label">أنواع الملفات المدعومة:</string>
-    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP, GIF</string>
+    <string name="top_bar_login_signup" tools:maxLength="20">تسجيل الدخول / إنشاء</string>
     <string name="drawer_cloud_storage">التخزين السحابي…</string>
     <string name="drawer_target_dpi_label">دقة الطباعة المستهدفة: %1$d DPI</string>
     <string name="drawer_target_dpi_help">كلما زادت الدقة (DPI) كانت الطباعة أوضح، واستُهلك المزيد من أرصدة التكبير. 150 هو المعيار للملصقات؛ 300 للصور الفوتوغرافية؛ 600+ للفنون الدقيقة.</string>

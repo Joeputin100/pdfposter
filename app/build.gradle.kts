@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc46"  // RC46 (re-bake comparison demo assets via real FAL outputs at PNG-lossless)
+        versionName = "1.0-rc48"  // RC48 (top-bar wordmark + Login/Sign Up CTA + GIF support + Mojo beta admin)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

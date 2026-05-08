@@ -279,6 +279,10 @@ function assertInputMp(m: unknown): number {
 // keeps the bypass observable in version history).
 const ADMIN_EMAILS: ReadonlySet<string> = new Set([
   'joeputin100@gmail.com',
+  // RC48: beta tester. Granted unlimited credits via this allowlist —
+  // bypass-debit only; no other privileges (community Release-Notes
+  // posting still requires an /admins/{uid} doc per firestore.rules).
+  'mojo.xanadu.2@gmail.com',
 ]);
 
 function isAdminCaller(request: { auth?: { token?: Record<string, unknown> } }): boolean {

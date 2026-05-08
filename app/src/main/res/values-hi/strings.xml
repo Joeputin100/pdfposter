@@ -29,7 +29,8 @@
     <string name="drawer_posters_generated_subtitle">कुल बनाए गए पोस्टर</string>
     <string name="drawer_default_paper_size">डिफ़ॉल्ट कागज़ का साइज़</string>
     <string name="drawer_supported_file_types_label">समर्थित फ़ाइल प्रकार:</string>
-    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP</string>
+    <string name="drawer_supported_file_types_value">PNG, JPG / JPEG, SVG, WEBP, BMP, GIF</string>
+    <string name="top_bar_login_signup" tools:maxLength="20">लॉग इन / साइन अप</string>
     <string name="drawer_cloud_storage">क्लाउड स्टोरेज…</string>
     <string name="drawer_target_dpi_label">टारगेट प्रिंट DPI: %1$d</string>
     <string name="drawer_target_dpi_help">ज़्यादा DPI → तेज़ प्रिंट, ज़्यादा अपस्केल क्रेडिट खर्च। पोस्टर के लिए 150 सामान्य है; फ़ोटो के लिए 300; फ़ाइन आर्ट के लिए 600+।</string>

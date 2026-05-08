@@ -1184,14 +1184,15 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.drawer_settings_cd))
                         }
 
-                        // Halftone Mona-Lisa-printer logo. The PDF generator
-                        // uses the same drawable; rendering it inline at 32dp
-                        // gives the brand mark a presence in the app chrome
-                        // matching what the user sees on the printed page.
-                        androidx.compose.foundation.Image(
-                            painter = painterResource(R.drawable.pdf_logo),
-                            contentDescription = stringResource(R.string.app_name),
-                            modifier = Modifier.size(32.dp),
+                        // RC48: brand wordmark replaces the halftone Mona-Lisa
+                        // logo. Text reads instantly at top-bar size; the
+                        // halftone mark survives where it actually adds
+                        // brand presence (the generated PDF cover page).
+                        Text(
+                            text = stringResource(R.string.top_bar_wordmark),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary,
                         )
 
                         Spacer(Modifier.weight(1f))
