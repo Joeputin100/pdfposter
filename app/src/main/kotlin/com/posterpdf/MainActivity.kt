@@ -1200,32 +1200,58 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                         // logo. Text reads instantly at top-bar size; the
                         // halftone mark survives where it actually adds
                         // brand presence (the generated PDF cover page).
+                        // RC56: dropped from titleLarge → titleMedium and
+                        // added maxLines=1+softWrap=false. titleLarge at
+                        // ExtraBold measured ~160dp intrinsic, which on
+                        // 360dp portrait left no room for the trailing
+                        // avatar — Row's measure-in-order behavior squeezed
+                        // the last child (avatar Box) below 36dp, so the
+                        // RoundedCornerShape(50) clip rendered as an ellipse.
+                        // titleMedium frees ~45dp horizontally; the maxLines
+                        // guard prevents wrap-eats-row in case a translation
+                        // is longer.
                         Text(
                             text = stringResource(R.string.top_bar_wordmark),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            softWrap = false,
                         )
 
                         Spacer(Modifier.weight(1f))
 
-                        CreditChip(
-                            // RC33: debug override lets the user preview
-                            // arbitrary balances (e.g. four-digit) and
-                            // exercise the digiflip animation. null = real.
-                            balance = viewModel.debugCreditOverride ?: creditBalance,
-                            isAdmin = viewModel.isAdmin,
-                            onTapBalance = {
-                                hapt.tap()
-                                viewModel.logEvent(context, "Credit chip tapped", "balance=$creditBalance")
-                                showPurchaseSheet = true
-                            },
-                            onTapUpgrade = {
-                                hapt.tap()
-                                viewModel.logEvent(context, "Upgrade button tapped")
-                                showPurchaseSheet = true
-                            },
-                        )
+                        // RC56: only render the credit chip when the user
+                        // actually has an account. Anonymous users have no
+                        // meaningful balance (always 0) and the "Upgrade"
+                        // pill on the chip needs a Google account to land
+                        // anywhere useful — so the chip both wastes ~140dp
+                        // of top-bar width and presents a misleading CTA
+                        // for signed-out users. Hiding it here frees space
+                        // for the trailing "Login / Sign Up" button to
+                        // render its full label without truncation in
+                        // portrait orientation.
+                        val signedInForChip = viewModel.authSession.signedIn &&
+                            !viewModel.authSession.isAnonymous
+                        if (signedInForChip) {
+                            CreditChip(
+                                // RC33: debug override lets the user preview
+                                // arbitrary balances (e.g. four-digit) and
+                                // exercise the digiflip animation. null = real.
+                                balance = viewModel.debugCreditOverride ?: creditBalance,
+                                isAdmin = viewModel.isAdmin,
+                                onTapBalance = {
+                                    hapt.tap()
+                                    viewModel.logEvent(context, "Credit chip tapped", "balance=$creditBalance")
+                                    showPurchaseSheet = true
+                                },
+                                onTapUpgrade = {
+                                    hapt.tap()
+                                    viewModel.logEvent(context, "Upgrade button tapped")
+                                    showPurchaseSheet = true
+                                },
+                            )
+                        }
 
                         AccountAvatarMenu(
                             session = viewModel.authSession,

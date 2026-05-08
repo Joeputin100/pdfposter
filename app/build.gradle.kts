@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc55"  // RC55 (notification dismisses on cancel + image survives process death)
+        versionName = "1.0-rc56"  // RC56 (top-bar tightness + sign-in cancellation message)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

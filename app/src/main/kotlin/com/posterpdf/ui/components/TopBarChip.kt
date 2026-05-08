@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -142,8 +143,16 @@ fun AccountAvatarMenu(
 
     Box {
         Box(
+            // RC56: requiredSize(36.dp) so the avatar enforces its own
+            // square dimensions even when the parent Row is tight on width.
+            // .size() respects parent constraints — when the row's other
+            // children (wordmark + credit chip) have already consumed all
+            // available width, .size(36.dp) gets clamped to e.g. 12×36
+            // and the RoundedCornerShape(50) clip renders as an ellipse.
+            // requiredSize ignores parent maxWidth and forces an exact
+            // 36×36 measurement, so the circle stays a circle.
             modifier = Modifier
-                .size(36.dp)
+                .requiredSize(36.dp)
                 .clip(RoundedCornerShape(50))
                 .clickable { open = true }
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50)),
@@ -155,7 +164,7 @@ fun AccountAvatarMenu(
                     model = photo,
                     contentDescription = stringResource(R.string.account_label_top_cd),
                     modifier = Modifier
-                        .size(36.dp)
+                        .requiredSize(36.dp)
                         .clip(RoundedCornerShape(50)),
                 )
             } else {

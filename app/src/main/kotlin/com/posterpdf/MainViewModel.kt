@@ -1398,10 +1398,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val result = auth.handleGoogleSignInResult(data)
             if (result.isSuccess) {
+                // RC56: clear any prior errorMessage so a successful retry
+                // after a cancellation doesn't render two stacked messages
+                // ("Sign-in failed: 12501:" + "Signed in" — the cancel set
+                // errorMessage and the success only set successMessage,
+                // leaving both visible together).
+                errorMessage = null
                 successMessage = appContext.getString(R.string.vm_success_signed_in)
                 refreshHistory()
             } else {
-                errorMessage = appContext.getString(R.string.vm_error_signin_failed, result.exceptionOrNull()?.message ?: "")
+                // RC56: status code 12501 is SIGN_IN_CANCELLED — the user
+                // dismissed Google's account picker. That isn't a failure,
+                // so we silently ignore it instead of displaying a scary
+                // "Sign-in failed: 12501:" message that confuses the user
+                // when they sign in successfully on a follow-up tap.
+                val ex = result.exceptionOrNull()
+                val isCancellation = ex is com.google.android.gms.common.api.ApiException &&
+                    ex.statusCode == com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes.SIGN_IN_CANCELLED
+                if (!isCancellation) {
+                    errorMessage = appContext.getString(R.string.vm_error_signin_failed, ex?.message ?: "")
+                }
             }
         }
     }
