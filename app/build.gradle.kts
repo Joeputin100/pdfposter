@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc53"  // RC53 (BYO Choose-file wired + Advanced Styling consistency + Upscale-source button retarget)
+        versionName = "1.0-rc54"  // RC54 (notification dismisses on upscale cancel)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

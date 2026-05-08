@@ -382,6 +382,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // Job's finally block clears isFreeUpscaling; redundant set is safe.
         isFreeUpscaling = false
         pendingUpscaleModelLabel = null
+        // RC53: stop the foreground service explicitly so its notification
+        // disappears. Cancelling the coroutine alone leaves the service
+        // running until its observer eventually triggers stop, but the
+        // notification stays visible in the meantime — user-perceivable
+        // as a "stuck" tray entry.
+        com.posterpdf.ml.UpscaleForegroundService.stop(appContext)
     }
 
     /**
@@ -506,6 +512,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         aiUpscaleJob?.cancel()
         isAiUpscaling = false
         pendingUpscaleModelLabel = null
+        // RC53: stop the foreground service so the notification dismisses
+        // immediately (see cancelFreeUpscale comment).
+        com.posterpdf.ml.UpscaleForegroundService.stop(appContext)
     }
 
     /**
