@@ -253,8 +253,8 @@
     <string name="privacy_sec_google_body">Googleアカウントの氏名とメールアドレスです。サインイン中のユーザー表示、デバイス間の履歴同期、アカウント全体の削除依頼の処理に使用します。Googleパスワード・連絡先・カレンダー・Driveなど他のGoogleデータは収集しません。</string>
     <string name="privacy_sec_firestore_title">履歴メタデータ（Firestore）</string>
     <string name="privacy_sec_firestore_body">ポスター生成時に記録されるのは、ポスターの幅と高さ・用紙サイズ・向き・マージン・重なり・出力DPI・ページ数・作成タイムスタンプです。/users/{uid}/history にFirestoreへ保存されます。元画像のバイトデータやピクセルデータはFirestoreに保存しません。</string>
-    <string name="privacy_sec_storage_title">PDFデータ（Cloud Storage）— オプトイン</string>
-    <string name="privacy_sec_storage_body">クラウド保持（設定 → クラウドストレージ…）を選択した場合、生成されたPDFはCloud StorageのBucket（gs://(project)/user-pdfs/{uid}/）にアップロードされます。デフォルトの保持期間は30日で、有料プランでは延長できます。デフォルト設定はローカル保存のみで、オプトインしない限りデータは端末外に送信されません。</string>
+    <string name="privacy_sec_storage_title">PDF のクラウドコピー</string>
+    <string name="privacy_sec_storage_body">AI アップスケールを使用すると、アップスケールされた画像とそれから生成された PDF は当社のサーバー（Google Cloud Storage）に保存され、ご自身のアカウントにのみ紐付けられます。AI アップスケールなしで作成、オフラインで作成、またはサインアウト状態で作成されたポスターはデバイスにのみ残ります。デフォルトの保持期間は 30 日です。有料プランで延長できます。設定 → クラウドストレージで、クラウドコピーを完全に無効にできます。</string>
     <string name="privacy_sec_fal_title">AIアップスケール（FAL.ai）</string>
     <string name="privacy_sec_fal_body">AIアップスケール（Topaz、Recraft、AuraSR、ESRGAN、Magnific）を選択すると、元画像が処理のためFAL.aiに送信され、アップスケール結果が返されます。FAL.aiは入出力データをTOSに定められた期間（通常は数分〜数時間）保持します。FAL.aiのポリシーは直接ご確認ください：</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
@@ -713,8 +713,8 @@
     <string name="privacy_retention_body">設定 → クラウドストレージ&#8230; での選択により決まります。無料枠: 30日。有料枠: 90日、1年、または無期限。Firestoreの履歴メタデータも同じ保持期間に従います。ローカルファイルとローカル履歴は、アンインストールするか「既定値にリセット」をタップするまで端末に残ります。</string>
     <string name="privacy_retention_title">保持期間</string>
     <string name="privacy_screen_title">プライバシーポリシー</string>
-    <string name="privacy_storage_body">クラウド保持にオプトインした場合(設定 → クラウドストレージ&#8230;)、生成したPDFを Cloud Storage の gs://(project)/user-pdfs/{uid}/ にアップロードします。既定の保持期間は30日で、有料枠ではこれを延長します。設定の既定はローカルのみ &#8212; オプトインしない限り端末から何も送信されません。</string>
-    <string name="privacy_storage_title">PDFブロブ (Cloud Storage) &#8212; オプトイン</string>
+    <string name="privacy_storage_body">AI アップスケールを使用すると、アップスケールされた画像とそれから生成された PDF は当社のサーバー（Google Cloud Storage）に保存され、ご自身のアカウントにのみ紐付けられます。AI アップスケールなしで作成、オフラインで作成、またはサインアウト状態で作成されたポスターはデバイスにのみ残ります。デフォルトの保持期間は 30 日です。有料プランで延長できます。設定 → クラウドストレージで、クラウドコピーを完全に無効にできます。</string>
+    <string name="privacy_storage_title">PDF のクラウドコピー</string>
     <string name="privacy_third_party_body">Firebase Auth、Cloud Firestore、Cloud Storage(すべて Google Cloud)、AIアップスケール用の FAL.ai、クレジット購入用の Google Play Billing。アナリティクスや広告SDKは一切実行しません。お使いのスマホ上の他のアプリへのアクセスはありません。</string>
     <string name="privacy_third_party_title">第三者サービス</string>
     <string name="project_scope_inline">プロジェクト範囲: %1$d ページ (%2$d 行 x %3$d 列)</string>

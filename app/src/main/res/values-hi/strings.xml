@@ -253,8 +253,8 @@
     <string name="privacy_sec_google_body">आपका Google अकाउंट नाम और ईमेल पता। हम इनका उपयोग यह दिखाने के लिए करते हैं कि कौन साइन इन है, डिवाइसों में हिस्ट्री सिंक करने और अकाउंट-वाइड डिलीशन रिक्वेस्ट प्रोसेस करने के लिए। हम आपका Google पासवर्ड, संपर्क, कैलेंडर, Drive, या अन्य Google डेटा प्राप्त नहीं करते।</string>
     <string name="privacy_sec_firestore_title">हिस्ट्री मेटाडेटा (Firestore)</string>
     <string name="privacy_sec_firestore_body">पोस्टर बनाने पर हम रिकॉर्ड करते हैं: पोस्टर की चौड़ाई और ऊंचाई, पेपर साइज़, ओरिएंटेशन, मार्जिन, ओवरलैप, आउटपुट DPI, पेज काउंट, और एक टाइमस्टैंप। यह Firestore में /users/{uid}/history पर जाता है। हम सोर्स इमेज बाइट्स या कोई पिक्सल डेटा Firestore में स्टोर नहीं करते।</string>
-    <string name="privacy_sec_storage_title">PDF ब्लॉब्स (Cloud Storage) — ऑप्ट-इन</string>
-    <string name="privacy_sec_storage_body">अगर आप क्लाउड रिटेंशन (Settings → Cloud storage…) में ऑप्ट इन करते हैं, तो हम बनाए PDF को gs://(project)/user-pdfs/{uid}/ पर Cloud Storage में अपलोड करते हैं। डिफ़ॉल्ट रिटेंशन 30 दिन है; पेड टियर इसे बढ़ाते हैं। डिफ़ॉल्ट सेटिंग्स का विकल्प केवल-लोकल है — जब तक आप ऑप्ट इन न करें, कुछ भी डिवाइस नहीं छोड़ता।</string>
+    <string name="privacy_sec_storage_title">आपके PDF की क्लाउड कॉपी</string>
+    <string name="privacy_sec_storage_body">जब आप AI अपस्केल का उपयोग करते हैं, तो आपकी अपस्केल की गई इमेज और उससे बना PDF हमारे सर्वर (Google Cloud Storage) पर सेव होता है और सिर्फ आपके अकाउंट से जुड़ा रहता है। बिना अपस्केल, ऑफ़लाइन, या साइन आउट होकर बनाए गए पोस्टर सिर्फ आपके डिवाइस पर रहते हैं। डिफ़ॉल्ट रिटेंशन 30 दिन है; पेड टियर इसे बढ़ाते हैं। Settings → Cloud storage में क्लाउड कॉपी पूरी तरह बंद कर सकते हैं।</string>
     <string name="privacy_sec_fal_title">AI अपस्केल (FAL.ai)</string>
     <string name="privacy_sec_fal_body">जब आप AI अपस्केल विकल्प (Topaz, Recraft, AuraSR, ESRGAN, Magnific) टैप करते हैं, तो सोर्स इमेज प्रोसेसिंग के लिए FAL.ai को भेजी जाती है, और अपस्केल नतीजा वापस आता है। FAL.ai इनपुट और आउटपुट अपनी TOS में निर्धारित अवधि के लिए रखता है — आमतौर पर मिनटों से घंटों तक, लेकिन उनकी पॉलिसी सीधे पढ़ें:</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
@@ -712,8 +712,8 @@
     <string name="privacy_retention_body">आपकी सेटिंग्स → क्लाउड स्टोरेज&#8230; पसंद द्वारा निर्धारित। मुफ़्त स्तर: 30 दिन। सशुल्क स्तर: 90 दिन, 1 वर्ष, या अनिश्चितकालीन। Firestore में इतिहास मेटाडेटा भी उसी प्रतिधारण का पालन करता है। स्थानीय फ़ाइलें और स्थानीय इतिहास तब तक आपके डिवाइस पर रहते हैं जब तक आप अनइंस्टॉल नहीं करते या डिफ़ॉल्ट पर रीसेट नहीं करते।</string>
     <string name="privacy_retention_title">प्रतिधारण</string>
     <string name="privacy_screen_title">गोपनीयता नीति</string>
-    <string name="privacy_storage_body">यदि आप क्लाउड प्रतिधारण के लिए ऑप्ट इन करते हैं (सेटिंग्स → क्लाउड स्टोरेज&#8230;), हम बनाए गए PDF को gs://(project)/user-pdfs/{uid}/ पर Cloud Storage में अपलोड करते हैं। डिफ़ॉल्ट प्रतिधारण 30 दिन है; सशुल्क स्तर इसे बढ़ाते हैं। डिफ़ॉल्ट सेटिंग्स विकल्प केवल-स्थानीय है &#8212; जब तक आप ऑप्ट इन नहीं करते कुछ भी आपके डिवाइस से बाहर नहीं जाता।</string>
-    <string name="privacy_storage_title">PDF ब्लॉब्स (Cloud Storage) &#8212; ऑप्ट-इन</string>
+    <string name="privacy_storage_body">जब आप AI अपस्केल का उपयोग करते हैं, तो आपकी अपस्केल की गई इमेज और उससे बना PDF हमारे सर्वर (Google Cloud Storage) पर सेव होता है और सिर्फ आपके अकाउंट से जुड़ा रहता है। बिना अपस्केल, ऑफ़लाइन, या साइन आउट होकर बनाए गए पोस्टर सिर्फ आपके डिवाइस पर रहते हैं। डिफ़ॉल्ट रिटेंशन 30 दिन है; पेड टियर इसे बढ़ाते हैं। Settings → Cloud storage में क्लाउड कॉपी पूरी तरह बंद कर सकते हैं।</string>
+    <string name="privacy_storage_title">आपके PDF की क्लाउड कॉपी</string>
     <string name="privacy_third_party_body">Firebase Auth, Cloud Firestore, Cloud Storage (सभी Google Cloud); AI अपस्केल के लिए FAL.ai; क्रेडिट ख़रीद के लिए Google Play Billing। हम कोई एनालिटिक्स या विज्ञापन SDK नहीं चलाते। हमारे पास आपके फ़ोन पर अन्य ऐप्स तक कोई पहुँच नहीं है।</string>
     <string name="privacy_third_party_title">तृतीय-पक्ष सेवाएं</string>
     <string name="project_scope_inline">परियोजना का दायरा: %1$d पृष्ठ (%2$d पंक्तियाँ x %3$d कॉलम)</string>

@@ -102,12 +102,21 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
             )
 
             // Subject
+            // RC48: dim placeholder hint via onSurfaceVariant — the default
+            // hint color from M3 OutlinedTextField is too punchy and reads
+            // like real input rather than a hint.
+            val hintColor = MaterialTheme.colorScheme.onSurfaceVariant
             OutlinedTextField(
                 value = subject,
                 onValueChange = { subject = it.take(120) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.support_subject_label)) },
-                placeholder = { Text(stringResource(R.string.support_subject_placeholder)) },
+                placeholder = {
+                    Text(
+                        stringResource(R.string.support_subject_placeholder),
+                        color = hintColor,
+                    )
+                },
                 singleLine = true,
             )
 
@@ -121,7 +130,10 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().height(160.dp),
                 label = { Text(stringResource(R.string.support_description_label)) },
                 placeholder = {
-                    Text(stringResource(R.string.support_description_placeholder))
+                    Text(
+                        stringResource(R.string.support_description_placeholder),
+                        color = hintColor,
+                    )
                 },
             )
 

@@ -253,8 +253,8 @@
     <string name="privacy_sec_google_body">اسم حساب Google وعنوان بريدك الإلكتروني. نستخدمهما لعرض هويتك، ومزامنة سجلك عبر الأجهزة، ومعالجة طلبات حذف الحساب. لا نحصل على كلمة مرور Google أو جهات اتصالك أو تقويمك أو Drive أو أي بيانات Google أخرى.</string>
     <string name="privacy_sec_firestore_title">بيانات السجل (Firestore)</string>
     <string name="privacy_sec_firestore_body">عند إنشاء ملصق، نُسجِّل: عرض وارتفاع الملصق، وحجم الورق، والاتجاه، والهامش، والتداخل، ودقة الإخراج بـ DPI، وعدد الصفحات، وطابع زمني للإنشاء. يذهب هذا إلى Firestore في ‎/users/{uid}/history. لا نُخزِّن بايتات الصورة المصدر أو أي بيانات بكسل في Firestore.</string>
-    <string name="privacy_sec_storage_title">ملفات PDF (Cloud Storage) — اشتراك اختياري</string>
-    <string name="privacy_sec_storage_body">إذا اخترت الاحتفاظ السحابي (الإعدادات → التخزين السحابي…)، نرفع ملفات PDF إلى Cloud Storage في gs://(project)/user-pdfs/{uid}/. الاحتفاظ الافتراضي هو 30 يوماً؛ التيارات المدفوعة تمتد أكثر. الخيار الافتراضي هو التخزين المحلي فقط — لا شيء يغادر جهازك إلا إذا اخترت ذلك.</string>
+    <string name="privacy_sec_storage_title">نسخ سحابية لملفات PDF</string>
+    <string name="privacy_sec_storage_body">عند استخدام تحسين الصور بالذكاء الاصطناعي، يتم حفظ الصورة المُحسَّنة وملف PDF الناتج عنها على خوادمنا (Google Cloud Storage) وترتبط بحسابك فقط. الملصقات التي تم إنشاؤها دون تحسين أو دون اتصال أو وأنت غير مسجَّل الدخول، تبقى على جهازك فقط. مدة الاحتفاظ الافتراضية 30 يوماً؛ الخطط المدفوعة تمددها. يمكنك تعطيل النسخ السحابية بالكامل من الإعدادات ← التخزين السحابي.</string>
     <string name="privacy_sec_fal_title">تكبير الذكاء الاصطناعي (FAL.ai)</string>
     <string name="privacy_sec_fal_body">عند اختيار خيار تكبير بالذكاء الاصطناعي (Topaz أو Recraft أو AuraSR أو ESRGAN أو Magnific)، تُرسَل الصورة المصدر إلى FAL.ai للمعالجة ويُعاد الناتج المكبَّر. تحتفظ FAL.ai بالمدخلات والمخرجات للمدة المحددة في شروط خدمتها — عادةً دقائق إلى ساعات، لكن اقرأ سياستهم مباشرة:</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
@@ -712,8 +712,8 @@
     <string name="privacy_retention_body">يُحدَّد بخيارك في الإعدادات &#8594; التخزين السحابي&#8230;. الفئة المجانية: 30 يوماً. الفئات المدفوعة: 90 يوماً، أو سنة، أو غير محدود. بيانات السجل الوصفية في Firestore تتبع نفس مدة الاحتفاظ. الملفات المحلية والسجل المحلي تبقى على جهازك حتى تلغي التثبيت أو تضغط إعادة التعيين إلى الافتراضي.</string>
     <string name="privacy_retention_title">الاحتفاظ</string>
     <string name="privacy_screen_title">سياسة الخصوصية</string>
-    <string name="privacy_storage_body">إذا اخترت الاحتفاظ السحابي (الإعدادات &#8594; التخزين السحابي&#8230;)، نرفع ملفات PDF المُولَّدة إلى Cloud Storage على gs://(project)/user-pdfs/{uid}/. مدة الاحتفاظ الافتراضية 30 يوماً؛ والفئات المدفوعة تمدّدها. الخيار الافتراضي في الإعدادات هو محلي فقط &#8212; لا شيء يغادر جهازك ما لم توافق.</string>
-    <string name="privacy_storage_title">ملفات PDF (Cloud Storage) &#8212; اختياري</string>
+    <string name="privacy_storage_body">عند استخدام تحسين الصور بالذكاء الاصطناعي، يتم حفظ الصورة المُحسَّنة وملف PDF الناتج عنها على خوادمنا (Google Cloud Storage) وترتبط بحسابك فقط. الملصقات التي تم إنشاؤها دون تحسين أو دون اتصال أو وأنت غير مسجَّل الدخول، تبقى على جهازك فقط. مدة الاحتفاظ الافتراضية 30 يوماً؛ الخطط المدفوعة تمددها. يمكنك تعطيل النسخ السحابية بالكامل من الإعدادات ← التخزين السحابي.</string>
+    <string name="privacy_storage_title">نسخ سحابية لملفات PDF</string>
     <string name="privacy_third_party_body">Firebase Auth، وCloud Firestore، وCloud Storage (كلها Google Cloud)؛ وFAL.ai للترقية بالذكاء الاصطناعي؛ وGoogle Play Billing لشراء الأرصدة. لا نشغّل أي SDK تحليلات أو إعلانات. ولا نملك صلاحية الوصول إلى التطبيقات الأخرى على هاتفك.</string>
     <string name="privacy_third_party_title">خدمات أطراف ثالثة</string>
     <string name="project_scope_inline">نطاق المشروع: %1$d صفحات (%2$d صفوف x %3$d أعمدة)</string>

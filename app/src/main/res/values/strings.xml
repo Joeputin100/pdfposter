@@ -282,8 +282,8 @@
     <string name="privacy_sec_google_body">Your Google account name and email address. We use these to show you who\'s signed in, sync your history across devices, and process account-wide deletion requests. We do NOT receive your Google password, contacts, calendar, drive, or other Google data.</string>
     <string name="privacy_sec_firestore_title">History metadata (Firestore)</string>
     <string name="privacy_sec_firestore_body">When you generate a poster, we record: poster width and height, paper size, orientation, margin, overlap, output DPI, page count, and a creation timestamp. This goes to Firestore at /users/{uid}/history. We do NOT store the source image bytes or any pixel data in Firestore.</string>
-    <string name="privacy_sec_storage_title">PDF blobs (Cloud Storage) — opt-in</string>
-    <string name="privacy_sec_storage_body">If you opt into cloud retention (Settings → Cloud storage…), we upload generated PDFs to Cloud Storage at gs://(project)/user-pdfs/{uid}/. The default retention is 30 days; paid tiers extend that. The default Settings choice is local-only — nothing leaves your device unless you opt in.</string>
+    <string name="privacy_sec_storage_title">Cloud copies of your PDFs</string>
+    <string name="privacy_sec_storage_body">When you use AI upscale, your upscaled image and the PDF made from it are stored on our servers (Google Cloud Storage), scoped to your account. Posters made without AI upscale, made offline, or made while signed out stay only on your device. Default keep-time is 30 days; paid tiers extend that. Turn cloud copies off entirely under Settings → Cloud storage.</string>
     <string name="privacy_sec_fal_title">AI upscale (FAL.ai)</string>
     <string name="privacy_sec_fal_body">When you tap an AI upscale option (Topaz, Recraft, AuraSR, ESRGAN, Magnific), the source image is sent to FAL.ai for processing, and the upscaled result is returned. FAL.ai retains the input and output for the period set in their TOS — typically minutes to hours, but read their policy directly:</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
@@ -785,8 +785,8 @@
     <string name="privacy_google_body">Your Google account name and email address. We use these to show you who\'s signed in, sync your history across devices, and process account-wide deletion requests. We do NOT receive your Google password, contacts, calendar, drive, or other Google data.</string>
     <string name="privacy_firestore_title">History metadata (Firestore)</string>
     <string name="privacy_firestore_body">When you generate a poster, we record: poster width and height, paper size, orientation, margin, overlap, output DPI, page count, and a creation timestamp. This goes to Firestore at /users/{uid}/history. We do NOT store the source image bytes or any pixel data in Firestore.</string>
-    <string name="privacy_storage_title">PDF blobs (Cloud Storage) — opt-in</string>
-    <string name="privacy_storage_body">If you opt into cloud retention (Settings → Cloud storage…), we upload generated PDFs to Cloud Storage at gs://(project)/user-pdfs/{uid}/. The default retention is 30 days; paid tiers extend that. The default Settings choice is local-only — nothing leaves your device unless you opt in.</string>
+    <string name="privacy_storage_title">Cloud copies of your PDFs</string>
+    <string name="privacy_storage_body">When you use AI upscale, your upscaled image and the PDF made from it are stored on our servers (Google Cloud Storage), scoped to your account. Posters made without AI upscale, made offline, or made while signed out stay only on your device. Default keep-time is 30 days; paid tiers extend that. Turn cloud copies off entirely under Settings → Cloud storage.</string>
     <string name="privacy_fal_title">AI upscale (FAL.ai)</string>
     <string name="privacy_fal_body">When you tap an AI upscale option (Topaz, Recraft, AuraSR, ESRGAN, Magnific), the source image is sent to FAL.ai for processing, and the upscaled result is returned. FAL.ai retains the input and output for the period set in their TOS — typically minutes to hours, but read their policy directly:</string>
     <string name="privacy_retention_title">Retention</string>
