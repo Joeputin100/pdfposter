@@ -1600,15 +1600,23 @@ private fun DrawScope.drawPaneMarginGuide(
 ) {
     if (marginPx <= 0.5f) return
     if (alpha <= 0.001f) return
-    val borderColor = Color(0xFF0A3D62).copy(alpha = 0.45f * alpha.coerceIn(0f, 1f))
-    drawLine(borderColor, Offset(pageLeft + marginPx, pageTop + marginPx),
-        Offset(pageLeft + pageWidth - marginPx, pageTop + marginPx), 1.2f)
-    drawLine(borderColor, Offset(pageLeft + marginPx, pageTop + pageHeight - marginPx),
-        Offset(pageLeft + pageWidth - marginPx, pageTop + pageHeight - marginPx), 1.2f)
-    drawLine(borderColor, Offset(pageLeft + marginPx, pageTop + marginPx),
-        Offset(pageLeft + marginPx, pageTop + pageHeight - marginPx), 1.2f)
-    drawLine(borderColor, Offset(pageLeft + pageWidth - marginPx, pageTop + marginPx),
-        Offset(pageLeft + pageWidth - marginPx, pageTop + pageHeight - marginPx), 1.2f)
+    // RC50: alpha bumped 0.45 → 0.55 to match the legend swatch
+    // (LegendSwatch uses Color(0xFF0A3D62).copy(alpha = 0.55f)). Pre-RC50
+    // the rendered guide read noticeably lighter than its key, so users
+    // couldn't tell which color they were looking for in the preview.
+    // Also switched from 4 separate drawLine calls to a single stroked
+    // drawRect — drawLine antialiases each segment independently which
+    // produced visible corner discontinuities and inconsistent thickness
+    // across edges. A single Stroke maintains corner continuity.
+    // Stroke width 2.0px (was 1.2) for clearer visibility at typical
+    // preview zoom.
+    val borderColor = Color(0xFF0A3D62).copy(alpha = 0.55f * alpha.coerceIn(0f, 1f))
+    drawRect(
+        color = borderColor,
+        topLeft = Offset(pageLeft + marginPx, pageTop + marginPx),
+        size = Size(pageWidth - 2f * marginPx, pageHeight - 2f * marginPx),
+        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f),
+    )
 }
 
 /**
