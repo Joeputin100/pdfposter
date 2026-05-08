@@ -860,7 +860,7 @@
     <string name="support_diag_why">Why this helps: most bugs depend on a specific sequence of taps on a specific device. Without these clues we end up asking you a dozen follow-up questions. With them we can usually reproduce the issue on a matching test device the same day.</string>
     <string name="support_replies_to">Replies go to %1$s.</string>
     <string name="support_replies_signed_out">Sign in with Google to get a reply by email.</string>
-    <string name="support_thanks_toast">Thanks — feedback sent (%1$s)</string>
+    <string name="support_thanks_toast">Thanks! Your feedback has been received.</string>
     <string name="support_send_failed_toast">Couldn\'t send feedback: %1$s</string>
     <string name="support_unknown_error">unknown error</string>
 

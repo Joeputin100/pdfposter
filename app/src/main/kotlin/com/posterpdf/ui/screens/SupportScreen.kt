@@ -213,10 +213,14 @@ fun SupportScreen(viewModel: MainViewModel, onBack: () -> Unit) {
                             // also went silent (errorMessage surfaces in the
                             // main scaffold, not on the support screen).
                             result.fold(
-                                onSuccess = { id ->
+                                onSuccess = {
+                                    // RC48: dropped the (id.take(6)) suffix —
+                                    // a Firestore doc-ID prefix has no
+                                    // user-facing meaning and just made the
+                                    // toast look like a stray code leak.
                                     Toast.makeText(
                                         context,
-                                        context.getString(R.string.support_thanks_toast, id.take(6)),
+                                        context.getString(R.string.support_thanks_toast),
                                         Toast.LENGTH_LONG,
                                     ).show()
                                     onBack()

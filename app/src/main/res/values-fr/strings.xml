@@ -756,7 +756,7 @@
     <string name="support_replies_signed_out">Connectez-vous avec Google pour recevoir une réponse par e-mail.</string>
     <string name="support_replies_to">Les réponses sont envoyées à %1$s.</string>
     <string name="support_send_failed_toast">Impossible d\'envoyer le commentaire : %1$s</string>
-    <string name="support_thanks_toast">Merci &#8212; commentaire envoyé (%1$s)</string>
+    <string name="support_thanks_toast">Merci ! Votre retour a bien été reçu.</string>
     <string name="support_unknown_error">erreur inconnue</string>
     <string name="units_centimeters_label">Centimètres</string>
     <string name="units_inches_label">Pouces</string>

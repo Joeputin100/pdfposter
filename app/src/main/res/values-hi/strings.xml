@@ -755,7 +755,7 @@
     <string name="support_replies_signed_out">ईमेल द्वारा उत्तर पाने के लिए Google से साइन इन करें।</string>
     <string name="support_replies_to">उत्तर %1$s पर जाते हैं।</string>
     <string name="support_send_failed_toast">फ़ीडबैक नहीं भेज सके: %1$s</string>
-    <string name="support_thanks_toast">धन्यवाद &#8212; फ़ीडबैक भेजा गया (%1$s)</string>
+    <string name="support_thanks_toast">धन्यवाद! आपका फ़ीडबैक मिल गया है।</string>
     <string name="support_unknown_error">अज्ञात त्रुटि</string>
     <string name="units_centimeters_label">सेंटीमीटर</string>
     <string name="units_inches_label">इंच</string>
