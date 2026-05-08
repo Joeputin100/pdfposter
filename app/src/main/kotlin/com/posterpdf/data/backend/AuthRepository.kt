@@ -157,6 +157,14 @@ class AuthRepository private constructor(appContext: Context) {
             } else {
                 a.signInWithCredential(cred).await()
             }
+            // RC48: belt-and-suspenders push of the post-sign-in user through
+            // the StateFlow. The addAuthStateListener path in init() *should*
+            // have already emitted the new user, but tester reports a race
+            // where a fresh-account first-time sign-in succeeded server-side
+            // but the UI stayed on the anon state until the next app launch.
+            // Pushing explicitly here closes any timing hole between Firebase's
+            // internal state-change broadcast and our collector receiving it.
+            _session.value = a.currentUser.toSession()
             Result.success(Unit)
         } catch (t: Throwable) {
             Log.w(TAG, "google sign-in failed: ${t.message}")
