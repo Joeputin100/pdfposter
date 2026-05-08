@@ -419,3 +419,7 @@ export { dailySweep, deleteCloudCopy } from './storageBilling';
 // inventory. Adding both onCall exports here brings them online on the
 // next `gcloud builds submit --config=cloudbuild-backend.yaml .`.
 export { requestUpscale, getUpscaleStatus } from './upscale';
+
+// RC48: email the dev team via Resend on every Send Feedback ticket.
+// Triggers on Firestore /support/{ticketId} create.
+export { onSupportCreate } from './support-email';
