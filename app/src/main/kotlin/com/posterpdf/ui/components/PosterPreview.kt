@@ -226,7 +226,16 @@ fun PosterPreview(viewModel: MainViewModel) {
         // construction proceeds. Pre-RC52 the cycle started at 0 (grid
         // centered, printer off-screen above), so the user never saw the
         // printer or stack — the cycle felt like it began mid-action.
-        val printerVisibleOffset = boxSize.height * 0.30f
+        // RC59: dropped 0.30 → 0.18 to bring the printer closer to the top
+        // edge of the visible "table" during Printing. RC52 picked 0.30
+        // empirically to ensure the printer body + page stack both rendered
+        // in-frame on small phones, but on real devices that landed the
+        // printer mid-canvas with a lot of empty wood-grain above it. 0.18
+        // pulls the printer body up to ~top quintile of the viewport,
+        // leaving roughly 70% of viewport height below for the stack +
+        // (after the new Panning stack-translate-and-rotate) the rotated
+        // stack to occupy before Panning hands off to grid view.
+        val printerVisibleOffset = boxSize.height * 0.18f
         val animY = if (!cycleEnabled) 0f else when (phase) {
             AssemblyPhase.Printing -> printerVisibleOffset
             AssemblyPhase.Panning -> {
@@ -703,9 +712,19 @@ fun PosterPreview(viewModel: MainViewModel) {
                             val emergeT = (tInPhase / 1.8f).coerceIn(0f, 1f)
                             val jitterX = sin(tInPhase.toDouble() * Math.PI * 8.0)
                                 .toFloat() * 1.6f * (1f - emergeT)
-                            // RC23: landscape paper rotates 90° CCW during emerge.
+                            // RC23/RC59: landscape paper holds at -90° (portrait
+                            // orientation) throughout Printing — pages stack up
+                            // in the slot in their physical printer-feed
+                            // orientation, NOT pre-rotated. The "rotate the
+                            // whole stack" moment now happens in Panning (see
+                            // below) where every pane rotates together with no
+                            // stagger, so the user sees the printer print a
+                            // portrait stack and only THEN watches it rotate
+                            // 90° as a unit. Pre-RC59 each pane lerped from
+                            // -90° to 0° during its own emerge window, which
+                            // looked like "pages spinning out one by one".
                             if (isLandscapePaper) {
-                                paneRotationDeg = -90f * (1f - emergeT)
+                                paneRotationDeg = -90f
                             }
                             // RC21: invert the stack-offset direction so the
                             // most-recently-printed pane (paneIndex = N-1)
@@ -766,8 +785,27 @@ fun PosterPreview(viewModel: MainViewModel) {
                             // visually wrong per RC22 user testing.
                             val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
                                 paneIndex * 6f
+
+                            // RC59: split the 4.5s Panning budget into two
+                            // sub-stages for landscape posters:
+                            //   moveT (0..0.4):  whole stack translates DOWN
+                            //                    (out of the printer tray)
+                            //   rotT  (0.4..1):  whole stack rotates 90° CCW
+                            //                    (-90° → 0°)
+                            // No stagger across panes — the entire stack moves
+                            // and rotates together so the user sees a unified
+                            // "pick up the stack and turn it" gesture instead
+                            // of pages spinning individually. Portrait posters
+                            // skip this (they're already in final orientation).
+                            val moveT = (phaseT / 0.4f).coerceIn(0f, 1f)
+                            val rotT = ((phaseT - 0.4f) / 0.6f).coerceIn(0f, 1f)
+                            val moveDy = if (isLandscapePaper)
+                                printerBodyH * 0.40f * moveT else 0f
                             paneOffX = toPrinterDx
-                            paneOffY = emergedY
+                            paneOffY = emergedY + moveDy
+                            if (isLandscapePaper) {
+                                paneRotationDeg = -90f * (1f - rotT)
+                            }
                         }
 
                         AssemblyPhase.Arranging -> {

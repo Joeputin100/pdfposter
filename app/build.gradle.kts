@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc58"  // RC58 (margin guide outer-edges + skip Tightening/Taping for single-page)
+        versionName = "1.0-rc59"  // RC59 (landscape stack rotates as a group + printer closer to table top)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
