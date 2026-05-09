@@ -69,6 +69,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -518,9 +519,18 @@ fun LowDpiUpgradeModal(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
+                    // RC57: zIndex(1f) raises the grid above its sibling
+                    // HorizontalDividers in draw order. Selected cards
+                    // animate to scaleX/Y = 1.03 (UpscaleOptionCard, line
+                    // ~742) and grow ~2dp past their grid-cell bounds. Top-
+                    // row cards' overflow lands in the upper divider's
+                    // strip, and without zIndex the divider — a later
+                    // sibling in the parent Column — paints over those
+                    // pixels, visually clipping the card's top edge.
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(gridHeight),
+                        .height(gridHeight)
+                        .zIndex(1f),
                     userScrollEnabled = false,
                 ) {
                     items(visibleOptions) { modelOrNull ->

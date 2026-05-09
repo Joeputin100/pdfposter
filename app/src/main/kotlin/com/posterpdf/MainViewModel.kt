@@ -246,10 +246,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     "${src.width}x${src.height}, ${src.byteCount / 1024} KB",
                 )
 
+                // RC11: pre-compute total tiles so we can start the foreground
+                // service with the right notification denominator.
+                val totalTiles = (
+                    ((src.width + 49) / 50).coerceAtLeast(1) *
+                    ((src.height + 49) / 50).coerceAtLeast(1)
+                )
+
                 // RC11: check for resume state matching this URI; if present,
                 // pick up where the previous run left off.
-                val resumeSnapshot = withContext(Dispatchers.IO) {
+                // RC57: the URI now uses a timestamp-suffixed filename so a
+                // new import won't false-match here. We *also* validate the
+                // saved totalTiles against the freshly-decoded image as a
+                // defense-in-depth check — if a resume snapshot survives
+                // somehow with a tile count that doesn't match the current
+                // bitmap, we discard it instead of feeding impossible state
+                // to the upscaler (which crashed in RC55/RC56).
+                val rawSnapshot = withContext(Dispatchers.IO) {
                     com.posterpdf.ml.UpscaleStateStore.load(context, uri.toString())
+                }
+                val resumeSnapshot = rawSnapshot?.takeIf { it.totalTiles == totalTiles }
+                if (rawSnapshot != null && resumeSnapshot == null) {
+                    logEvent(
+                        context,
+                        "free_upscale: discarding stale resume state",
+                        "saved=${rawSnapshot.totalTiles} current=$totalTiles",
+                    )
+                    runCatching { com.posterpdf.ml.UpscaleStateStore.clear(context) }
                 }
                 val resumeBitmap = resumeSnapshot?.let {
                     withContext(Dispatchers.IO) {
@@ -265,12 +288,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
 
-                // RC11: pre-compute total tiles so we can start the foreground
-                // service with the right notification denominator.
-                val totalTiles = (
-                    ((src.width + 49) / 50).coerceAtLeast(1) *
-                    ((src.height + 49) / 50).coerceAtLeast(1)
-                )
                 com.posterpdf.ml.UpscaleForegroundService.start(context, totalTiles)
                 logEvent(context, "free_upscale: foreground service started", "totalTiles=$totalTiles")
 
@@ -942,22 +959,53 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // get from ActivityResultContracts.GetContent() is only readable
         // for the lifetime of the calling Activity — Android killing the
         // backgrounded process invalidates it, and the user's image was
-        // gone on relaunch. Copying once to filesDir/imported_image.bin
-        // means the URI is durable across kills.
+        // gone on relaunch. Copying once to filesDir means the URI is
+        // durable across kills.
+        //
+        // RC57: use a timestamp-suffixed filename instead of a fixed
+        // "imported_image.bin". Two reasons:
+        //   1. mutableStateOf<Uri> only triggers recomposition when the URI
+        //      *value* changes. With a fixed filename, picking a new image
+        //      overwrites the bytes but leaves the URI string identical, so
+        //      Compose treats it as a no-op and the viewport keeps showing
+        //      the old (cached) bitmap.
+        //   2. UpscaleStateStore keys resume snapshots by sourceUri.toString().
+        //      A stable URI means an in-progress upscale's resume state
+        //      (e.g. "tile 72 of 2508" from a 1080x5667 image) gets matched
+        //      against a freshly-imported image with only 140 tiles, leading
+        //      to impossible state and a crash mid-upscale (RC56 bug report,
+        //      pdfposter_debug.log 2026-05-09 12:24).
+        // Old imported files are deleted in the same pass so the filesDir
+        // doesn't accumulate stale copies.
         val resolvedUri: Uri = try {
             if (uri.scheme == "file") {
                 // Already a file URI (e.g. our own upscale output) — no copy.
                 uri
             } else {
-                val dest = java.io.File(context.filesDir, "imported_image.bin")
+                val filesDir = context.filesDir
+                val dest = java.io.File(filesDir, "imported_${System.currentTimeMillis()}.bin")
                 context.contentResolver.openInputStream(uri)?.use { input ->
                     dest.outputStream().use { output -> input.copyTo(output) }
                 }
+                // Best-effort cleanup of older imported_*.bin files (and the
+                // legacy "imported_image.bin" name from RC54) so we don't
+                // leak disk on every import. Skip the file we just wrote.
+                filesDir.listFiles { f ->
+                    f.isFile &&
+                        (f.name.startsWith("imported_") || f.name == "imported_image.bin") &&
+                        f.name != dest.name
+                }?.forEach { runCatching { it.delete() } }
                 Uri.fromFile(dest)
             }
         } catch (t: Throwable) {
             android.util.Log.w("MainViewModel", "image-copy failed: ${t.message}")
             uri  // Fall back to the original URI; will work for this session.
+        }
+        // RC57: any prior upscale resume state belongs to the previous
+        // image — wipe it so runFreeUpscale doesn't try to resume a
+        // 2508-tile job on top of a 140-tile image.
+        runCatching {
+            com.posterpdf.ml.UpscaleStateStore.clear(context)
         }
         selectedImageUri = resolvedUri
         // Persist URI string so a relaunch after process death can restore.
