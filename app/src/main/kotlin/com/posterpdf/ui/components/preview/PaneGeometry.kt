@@ -61,6 +61,29 @@ object PaneGeometry {
      */
     private const val MAX_PANE_AXIS = 16
 
+    /**
+     * RC58: lightweight rows/cols computation that doesn't need a Canvas size.
+     * Used at the composable level to detect single-page posters before the
+     * Canvas is laid out (so the assembly cycle can skip Tightening + Taping
+     * phases when there are no seams to close or tape). Returns [rows, cols]
+     * — same logic as [compute] but without pixel scaling.
+     */
+    fun computePaneCount(
+        posterW: Double, posterH: Double,
+        paperW: Double, paperH: Double,
+        margin: Double, overlap: Double,
+    ): Pair<Int, Int> {
+        val printableW = paperW - 2.0 * margin
+        val printableH = paperH - 2.0 * margin
+        val stepX = printableW - overlap
+        val stepY = printableH - overlap
+        val rawCols = if (posterW <= printableW || stepX <= 0) 1
+                      else ceil((posterW - printableW) / stepX).toInt() + 1
+        val rawRows = if (posterH <= printableH || stepY <= 0) 1
+                      else ceil((posterH - printableH) / stepY).toInt() + 1
+        return rawRows.coerceIn(1, MAX_PANE_AXIS) to rawCols.coerceIn(1, MAX_PANE_AXIS)
+    }
+
     fun compute(
         posterW: Double, posterH: Double,
         paperW: Double, paperH: Double,

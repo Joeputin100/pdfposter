@@ -127,17 +127,41 @@ fun PosterPreview(viewModel: MainViewModel) {
     // the static accurate Phase C output with a linear-gradient workbench fallback.
     val cycleEnabled = Build.VERSION.SDK_INT >= 33
     val cycleSeconds = remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(cycleEnabled) {
+
+    // RC58: detect single-page posters at the composable level so the cycle
+    // ticker can use the shorter [AssemblyPhase.cycleLength] (38s instead of
+    // 47s). On a single page there are no gaps to close and no seams to tape,
+    // so the Tightening + Taping phases are skipped entirely. Recomputed
+    // whenever the geometry inputs change.
+    val singlePane: Boolean = remember(
+        viewModel.posterWidth, viewModel.posterHeight,
+        viewModel.paperSize, viewModel.margin, viewModel.overlap,
+    ) {
+        val pw = viewModel.posterWidth.toDoubleOrNull() ?: 1.0
+        val ph = viewModel.posterHeight.toDoubleOrNull() ?: 1.0
+        val paperW = viewModel.currentPaperWidthInches()
+        val paperH = viewModel.currentPaperHeightInches()
+        val mm = viewModel.margin.toDoubleOrNull() ?: 0.0
+        val oo = viewModel.overlap.toDoubleOrNull() ?: 0.0
+        val (rr, cc) = com.posterpdf.ui.components.preview.PaneGeometry.computePaneCount(
+            posterW = pw, posterH = ph,
+            paperW = paperW, paperH = paperH,
+            margin = mm, overlap = oo,
+        )
+        rr == 1 && cc == 1
+    }
+
+    LaunchedEffect(cycleEnabled, singlePane) {
         if (!cycleEnabled) return@LaunchedEffect
         val start = System.currentTimeMillis()
         while (true) {
             val elapsed = (System.currentTimeMillis() - start) / 1000f
-            cycleSeconds.floatValue = elapsed % AssemblyPhase.CYCLE_SECONDS
+            cycleSeconds.floatValue = elapsed % AssemblyPhase.cycleLength(singlePane)
             delay(16)
         }
     }
-    val phase = AssemblyPhase.phaseAt(cycleSeconds.floatValue)
-    val phaseT = phase.localProgress(cycleSeconds.floatValue)
+    val phase = AssemblyPhase.phaseAt(cycleSeconds.floatValue, singlePane)
+    val phaseT = phase.localProgress(cycleSeconds.floatValue, singlePane)
 
     val hapt = Hapt(LocalHapticFeedback.current)
 
@@ -947,7 +971,11 @@ fun PosterPreview(viewModel: MainViewModel) {
                             overlapPx = overlapPx,
                             row = r, col = c, rows = rows, cols = cols,
                         )
-                        drawPaneMarginGuide(dx, dy, pageW, pageH, marginPx, alpha = marginAlpha)
+                        drawPaneMarginGuide(
+                            dx, dy, pageW, pageH, marginPx,
+                            alpha = marginAlpha,
+                            row = r, col = c, rows = rows, cols = cols,
+                        )
                         drawCutLineOrOutline(
                             viewModel,
                             pane.imageDstLeft, pane.imageDstTop,
@@ -1630,6 +1658,7 @@ private fun DrawScope.drawPaneMarginGuide(
     pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
     marginPx: Float,
     alpha: Float = 1f,
+    row: Int = 0, col: Int = 0, rows: Int = 1, cols: Int = 1,
 ) {
     if (marginPx <= 0.5f) return
     if (alpha <= 0.001f) return
@@ -1637,19 +1666,25 @@ private fun DrawScope.drawPaneMarginGuide(
     // (LegendSwatch uses Color(0xFF0A3D62).copy(alpha = 0.55f)). Pre-RC50
     // the rendered guide read noticeably lighter than its key, so users
     // couldn't tell which color they were looking for in the preview.
-    // Also switched from 4 separate drawLine calls to a single stroked
-    // drawRect — drawLine antialiases each segment independently which
-    // produced visible corner discontinuities and inconsistent thickness
-    // across edges. A single Stroke maintains corner continuity.
-    // Stroke width 2.0px (was 1.2) for clearer visibility at typical
-    // preview zoom.
+    //
+    // RC58: dropped from a single Stroke rect down to per-edge drawLine
+    // calls so we can omit edges that face the outside of the poster.
+    // Only edges that will be cut + taped (i.e., adjacent to a neighbor
+    // pane) get a guide line — outer edges of the poster have nothing to
+    // align to. Corner-continuity (the original RC50 motivation for
+    // Stroke) doesn't matter on these hand-picked edges because adjacent
+    // panes' shared seam means two abutting lines effectively form one
+    // continuous mark.
     val borderColor = Color(0xFF0A3D62).copy(alpha = 0.55f * alpha.coerceIn(0f, 1f))
-    drawRect(
-        color = borderColor,
-        topLeft = Offset(pageLeft + marginPx, pageTop + marginPx),
-        size = Size(pageWidth - 2f * marginPx, pageHeight - 2f * marginPx),
-        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f),
-    )
+    val sw = 2f
+    val l = pageLeft + marginPx
+    val t = pageTop + marginPx
+    val r = pageLeft + pageWidth - marginPx
+    val b = pageTop + pageHeight - marginPx
+    if (col > 0)         drawLine(borderColor, Offset(l, t), Offset(l, b), sw) // shared with left neighbor
+    if (col < cols - 1)  drawLine(borderColor, Offset(r, t), Offset(r, b), sw) // shared with right neighbor
+    if (row > 0)         drawLine(borderColor, Offset(l, t), Offset(r, t), sw) // shared with top neighbor
+    if (row < rows - 1)  drawLine(borderColor, Offset(l, b), Offset(r, b), sw) // shared with bottom neighbor
 }
 
 /**

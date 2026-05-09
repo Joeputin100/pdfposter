@@ -49,13 +49,20 @@ sealed class AssemblyPhase(val tStart: Float, val tEnd: Float) {
      * the tack-landing animation should finish in the first 4.5s (3× the
      * pre-RC7 1.5s budget) — clamped to 1.0 for the remaining 5s hold so
      * every derived animation naturally freezes on the final state.
+     *
+     * RC58: when the poster is a single page, [singlePane]=true and
+     * cycleSeconds runs over a 38-second cycle (Tightening + Taping skipped).
+     * Effective time remaps so input ≥ Tightening.tStart (27f) lands in the
+     * Pinning window directly. Without the remap, callers in single-pane
+     * mode would index into Pinning's tStart=36f using a smaller cycle
+     * value and read negative progress.
      */
-    fun localProgress(cycleSeconds: Float): Float {
+    fun localProgress(cycleSeconds: Float, singlePane: Boolean = false): Float {
+        val t = remapCycle(cycleSeconds, singlePane)
         if (this is Pinning) {
-            val t = cycleSeconds - tStart
-            return (t / 4.5f).coerceIn(0f, 1f)
+            return ((t - tStart) / 4.5f).coerceIn(0f, 1f)
         }
-        return ((cycleSeconds - tStart) / (tEnd - tStart)).coerceIn(0f, 1f)
+        return ((t - tStart) / (tEnd - tStart)).coerceIn(0f, 1f)
     }
 
     /**
@@ -76,15 +83,39 @@ sealed class AssemblyPhase(val tStart: Float, val tEnd: Float) {
     companion object {
         const val CYCLE_SECONDS = 47f
 
-        fun phaseAt(cycleSeconds: Float): AssemblyPhase = when {
-            cycleSeconds < Printing.tEnd   -> Printing
-            cycleSeconds < Panning.tEnd    -> Panning
-            cycleSeconds < Arranging.tEnd  -> Arranging
-            cycleSeconds < Cutting.tEnd    -> Cutting
-            cycleSeconds < Tightening.tEnd -> Tightening
-            cycleSeconds < Taping.tEnd     -> Taping
-            cycleSeconds < Pinning.tEnd    -> Pinning
-            else                           -> Reset
+        // RC58: when the entire poster fits on a single page (rows=cols=1),
+        // there are no gaps to close and no seams to tape. Tightening +
+        // Taping (27.0..36.0 = 9.0s) become pure no-op visuals that just
+        // freeze the cycle — so we elide them. The cycle ticker mods by
+        // [CYCLE_SECONDS_SINGLE_PANE] (38s = 47-9), and effective time
+        // values ≥ [SKIP_START] are remapped forward by [SKIP_DURATION]
+        // before phase lookup so 27..38 lands inside Pinning..Reset.
+        const val CYCLE_SECONDS_SINGLE_PANE = 38f
+        private const val SKIP_START = 27f       // == Tightening.tStart
+        private const val SKIP_DURATION = 9f     // == Tightening.+Taping. duration
+
+        /** Effective cycle length — shorter when there are no seams. */
+        fun cycleLength(singlePane: Boolean): Float =
+            if (singlePane) CYCLE_SECONDS_SINGLE_PANE else CYCLE_SECONDS
+
+        /** Internal: shift cycleSeconds past the skipped window when
+         *  [singlePane] is true. Used by [phaseAt] and [localProgress]. */
+        internal fun remapCycle(cycleSeconds: Float, singlePane: Boolean): Float =
+            if (singlePane && cycleSeconds >= SKIP_START) cycleSeconds + SKIP_DURATION
+            else cycleSeconds
+
+        fun phaseAt(cycleSeconds: Float, singlePane: Boolean = false): AssemblyPhase {
+            val t = remapCycle(cycleSeconds, singlePane)
+            return when {
+                t < Printing.tEnd   -> Printing
+                t < Panning.tEnd    -> Panning
+                t < Arranging.tEnd  -> Arranging
+                t < Cutting.tEnd    -> Cutting
+                t < Tightening.tEnd -> Tightening
+                t < Taping.tEnd     -> Taping
+                t < Pinning.tEnd    -> Pinning
+                else                -> Reset
+            }
         }
     }
 }

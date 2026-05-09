@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc57"  // RC57 (image swap on relaunch + free-upscale crash + model-card clip)
+        versionName = "1.0-rc58"  // RC58 (margin guide outer-edges + skip Tightening/Taping for single-page)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
