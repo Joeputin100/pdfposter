@@ -16,6 +16,12 @@ import { logger } from 'firebase-functions/v2';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import axios from 'axios';
+// RC60: Vertex AI Imagen 4 upscale (Pure-Google upscale path, parallel to FAL).
+import {
+  callVertexImagen,
+  VertexImagenError,
+  type FailureReason as VertexFailureReason,
+} from './vertex-imagen.js';
 
 const FAL_KEY = defineSecret('FAL_KEY');
 
@@ -24,7 +30,11 @@ const FAL_KEY = defineSecret('FAL_KEY');
 //
 // RC3+ collapsed topaz_4x/topaz_8x → topaz; backend now picks the smallest
 // scale factor that meets the target DPI (saves 5-10× cost on typical posters).
-type UpscaleModel = 'topaz' | 'recraft' | 'aurasr' | 'esrgan' | 'ccsr';
+type UpscaleModel = 'topaz' | 'recraft' | 'aurasr' | 'esrgan' | 'ccsr' | 'imagen';
+// RC60: subtype of UpscaleModel that excludes 'imagen' — used to type the
+// FAL-shaped MODELS map and FAL-specific helpers. Imagen routes via Vertex
+// AI through a separate code path and doesn't belong in MODELS.
+type FalModel = Exclude<UpscaleModel, 'imagen'>;
 
 interface RequestUpscaleInput {
   modelId: UpscaleModel;
@@ -67,7 +77,7 @@ interface ModelSpec {
 // pixels. AuraSR's JPEG default was producing visibly blurry/blocky output at
 // 200+ MP poster sizes; pinning to PNG eliminates that loss. Models that don't
 // expose the param (recraft, esrgan) silently ignore it on FAL's side.
-const MODELS: Record<UpscaleModel, ModelSpec> = {
+const MODELS: Record<FalModel, ModelSpec> = {
   topaz: {
     endpoint: 'fal-ai/topaz/upscale/image',
     supportedScales: [2, 4, 6, 8],
@@ -124,6 +134,36 @@ const MODELS: Record<UpscaleModel, ModelSpec> = {
   },
 };
 
+// RC60: Imagen 4 upscale doesn't fit the FAL-shaped ModelSpec (no endpoint
+// for FAL, no FAL body builder). Separate registry; requestUpscale routes
+// on modelId === 'imagen' below.
+//
+// Pricing: ~$0.03 per output image flat (Imagen 4 preview pricing not yet
+// published on Google's public pricing page as of 2026-05-25; this is an
+// internal estimate aligned with the user's stated $0.02-$0.03 sweet spot
+// from the brainstorming transcript). Per-CALL, not per-MP — Vertex bills
+// per request for upscale, unlike Topaz's per-MP model. Revise once Google
+// publishes preview pricing.
+const IMAGEN_COST_PER_CALL_USD = 0.03;
+
+const IMAGEN_SPEC = {
+  supportedScales: [2, 3, 4] as const,
+  // costFn signature matches FAL ModelSpec for symmetry through costFnFor().
+  costFn: (_outputMp: number) => IMAGEN_COST_PER_CALL_USD,
+};
+
+// Helpers so pickScale + computeCreditsForJob can be model-agnostic across
+// FAL-routed models (in MODELS map) and Imagen (in IMAGEN_SPEC).
+function supportedScalesFor(modelId: UpscaleModel): readonly number[] {
+  if (modelId === 'imagen') return IMAGEN_SPEC.supportedScales;
+  return MODELS[modelId as FalModel].supportedScales;
+}
+
+function costFnFor(modelId: UpscaleModel): (outputMp: number) => number {
+  if (modelId === 'imagen') return IMAGEN_SPEC.costFn;
+  return MODELS[modelId as FalModel].costFn;
+}
+
 /**
  * RC3+ / RC17 — pick smallest scale factor that produces enough pixels for
  * the target DPI on the user's poster size. Saves 5-10× FAL cost vs. always
@@ -146,7 +186,7 @@ function pickScale(
   minScale?: number,  // RC28: client-side override floor (Topaz "headroom" picker)
 ): number {
   const targetMp = (posterW * targetDpi) * (posterH * targetDpi) / 1_000_000;
-  const scales = MODELS[modelId].supportedScales;
+  const scales = supportedScalesFor(modelId);
   let picked = scales[scales.length - 1];  // fallback if no scale meets target
   for (const s of scales) {
     if (inputMp * s * s >= targetMp) { picked = s; break; }
@@ -172,9 +212,8 @@ function computeCreditsForJob(
   inputMp: number,
   scale: number,
 ): number {
-  const spec = MODELS[modelId];
   const outputMp = inputMp * scale * scale;
-  const cogs = spec.costFn(outputMp);
+  const cogs = costFnFor(modelId)(outputMp);
   return Math.ceil(cogs / CREDIT_COST_BUDGET_USD);
 }
 
@@ -195,10 +234,11 @@ function assertSignedIn(request: CallableRequest<unknown>): string {
 }
 
 function assertModel(m: unknown): UpscaleModel {
-  if (m === 'topaz' || m === 'recraft' || m === 'aurasr' || m === 'esrgan' || m === 'ccsr') return m;
+  if (m === 'topaz' || m === 'recraft' || m === 'aurasr' || m === 'esrgan'
+      || m === 'ccsr' || m === 'imagen') return m;
   throw new HttpsError(
     'invalid-argument',
-    'modelId must be one of: topaz, recraft, aurasr, esrgan, ccsr',
+    'modelId must be one of: topaz, recraft, aurasr, esrgan, ccsr, imagen',
   );
 }
 
@@ -226,6 +266,9 @@ function assertModel(m: unknown): UpscaleModel {
 //   guards here following the same shape.
 const CCSR_MAX_OUTPUT_MP = 8;
 const RECRAFT_MAX_INPUT_MP = 1.5;
+// RC60: Imagen 4 upscale preview is capped at 17 MP output by the API.
+// Reject larger jobs before debiting credits.
+const IMAGEN_MAX_OUTPUT_MP = 17;
 
 function assertModelCapacity(modelId: UpscaleModel, inputMp: number, outputMp: number): void {
   if (modelId === 'ccsr' && outputMp > CCSR_MAX_OUTPUT_MP) {
@@ -243,6 +286,14 @@ function assertModelCapacity(modelId: UpscaleModel, inputMp: number, outputMp: n
       `(roughly 1024×1024); your image is ${inputMp.toFixed(1)} MP. ` +
       `Pick a different model — Topaz, AuraSR, ESRGAN, and CCSR all ` +
       `accept larger inputs.`,
+    );
+  }
+  if (modelId === 'imagen' && outputMp > IMAGEN_MAX_OUTPUT_MP) {
+    throw new HttpsError(
+      'invalid-argument',
+      `Google Imagen can only handle outputs up to ${IMAGEN_MAX_OUTPUT_MP} MP; ` +
+      `this job would produce ${outputMp.toFixed(1)} MP. ` +
+      `Pick a smaller poster size, a smaller scale, or a different model.`,
     );
   }
 }
@@ -467,7 +518,7 @@ interface FalStatusResponse {
 // + body shape; see MODELS map above. Verified shapes against live API
 // 2026-05-03 in the disco_chicken bake.
 async function submitFalJob(
-  modelId: UpscaleModel,
+  modelId: FalModel,
   imageUrl: string,
   scale: number,
   apiKey: string,
@@ -649,9 +700,59 @@ export const requestUpscale = onCall(
     // 1. Debit credits + create tx atomically.
     const txId = await debitAndCreateTx(uid, modelId, inputUrl, inputMp, required, isAdmin);
 
-    // 2. Outside the transaction, kick off FAL.
+    // 2. Outside the transaction, kick off the upscaler. RC60: routes by
+    // modelId. Imagen goes through Vertex AI (synchronous POST, writes
+    // straight to our GCS bucket); FAL models continue through the
+    // existing submit→poll→fetch→download pipeline.
     try {
       const fetchableUrl = await resolveFetchableUrl(inputUrl);
+
+      // RC60: Imagen 4 path — synchronous Vertex call, output written
+      // straight to our GCS via parameters.storageUri. No polling, no
+      // re-download.
+      if (modelId === 'imagen') {
+        const outputGsUri =
+          `gs://posterpdf-upscale-output/${uid}/${txId}.png`;
+        const factorStr = `x${scale}` as 'x2' | 'x3' | 'x4';
+        let resultGsUri: string;
+        try {
+          resultGsUri = await callVertexImagen({
+            inputGsUri: fetchableUrl,
+            outputGsUri,
+            upscaleFactor: factorStr,
+          });
+        } catch (e) {
+          if (e instanceof VertexImagenError) {
+            // Persist the normalized failure_reason so the client can
+            // surface a localized message via vm_error_imagen_<reason>.
+            await getFirestore()
+              .collection('upscaleTransactions')
+              .doc(txId)
+              .set(
+                { failureReason: e.failureReason as VertexFailureReason },
+                { merge: true },
+              );
+            // Re-throw so the outer catch refunds the user and signals
+            // failure to the client. refundAndFail is idempotent.
+            throw new Error(`Imagen failed (${e.failureReason}): ${e.message}`);
+          }
+          throw e;
+        }
+        await getFirestore()
+          .collection('upscaleTransactions')
+          .doc(txId)
+          .set(
+            {
+              status: 'succeeded',
+              outputUrl: resultGsUri,
+              completedAt: FieldValue.serverTimestamp(),
+            },
+            { merge: true },
+          );
+        return { txId };
+      }
+
+      // FAL path (unchanged) — submit → poll → fetch → download.
       const submit = await submitFalJob(modelId, fetchableUrl, scale, FAL_KEY.value());
 
       // Some quick jobs return inline.
