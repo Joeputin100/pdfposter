@@ -51,31 +51,28 @@ EOF
 echo "Posting Release Notes update to project ${PROJECT}..."
 
 post release_notes \
-"What's new in v1.0-rc59" \
-"[b]A round-up of the bug-fix builds shipped over the last few days.[/b] If you've been on an earlier RC, the highlights below are the user-visible changes you'll see when you update.
+"What's new in v1.0-rc60 — Google Imagen joins the upscaler lineup" \
+"[b]The big news this build:[/b] Google Imagen 4 is now an upscale option in the model picker, sitting between AuraSR and CCSR in the lineup.
 
-[b]Top bar (RC55–RC56)[/b]
-• Profile photo no longer squishes to an ellipse on narrow portrait screens — wordmark made smaller, avatar locked to a true 36dp circle.
-• [i]Login / Sign Up[/i] button shows its full label again — the credit chip is now hidden when signed-out so the button has room.
-• Cancelling Google Sign-In is silent. No more [i]\"Sign-in failed: 12501:\"[/i] toast next to a [i]\"Signed in\"[/i] message after a successful retry.
+[b]Why Imagen?[/b]
+• [b]Pure-Google stack.[/b] Your image stays inside our Google Cloud project end-to-end — no third-party routing. Vertex AI on the same project our backend already runs on.
+• [b]Photo-faithful super-resolution.[/b] Same precise-no-hallucination behavior as CCSR. We invoke Imagen with empty prompt + no editing parameters so the model upscales rather than reimagines.
+• [b]2×, 3×, or 4× scale.[/b] DPI-aware picker selects the smallest scale that hits your target poster resolution, same logic as Topaz and CCSR.
+• [b]Predictable flat pricing.[/b] ~3 credits per call regardless of poster size. Lands in the same price bracket as AuraSR and CCSR for typical outputs; cheaper than Topaz across the board.
+• [b]Safety filters with refund protection.[/b] Google's enterprise safety classifier can occasionally false-positive on unusual poster graphics. When that happens you get a full credit refund automatically — your wallet is protected by Firestore-trigger refunds, same pattern as FAL failures.
 
-[b]Image picker + Free upscale (RC55, RC57)[/b]
-• Picking a new source image after a relaunch actually replaces the viewport — previously the URI looked identical to the OS so the preview kept the old bitmap.
-• Free upscale no longer crashes when run right after swapping the source image. Stale resume state from a prior upscale is now cleared on import, and the upscaler validates tile counts before resuming.
-• Source image survives process death. The OS killing the app in the background no longer drops the picture.
+[b]Limits to know about[/b]
+• 17 megapixel output cap (the API's ceiling). Larger jobs are rejected before credits are charged with a friendly hint.
+• Imagen 4 upscale is in preview status on Google's side; API behavior is stable as of ship but we've coded for graceful failure if Google evolves the schema.
 
-[b]Construction preview (RC58–RC59)[/b]
-• Margin guide lines only render on edges that face a neighboring page. Outer edges of the poster — where nothing gets taped — are clean.
-• Single-page posters skip the [i]closing the gaps[/i] and [i]taping seams[/i] phases. The cycle is 38 seconds instead of 47 with no visual stalls.
-• Landscape posters print as a portrait stack, the stack lifts out of the tray, and then the whole stack rotates 90° together. Pages no longer spin out one at a time.
-• Printer body sits closer to the top edge of the table during printing.
+Try it on the upscale picker on any low-DPI source image. The new card has 'Made by Google' baked into the marketing copy and ships translated in all 9 locales.
 
-[b]Model selection cards (RC57)[/b]
-• Top-row cards no longer clip behind the divider when tapped. The grid is on a higher z-index, so the selection scale-up renders on top.
+[b]Previous build highlights[/b] (RC55–RC59):
+• Top bar: PFP no longer squishes to ellipse in portrait, Login button stays on one line, Google Sign-In cancel no longer shows a fake error.
+• Image swap on relaunch actually replaces the viewport (RC57).
+• Construction preview: outer-edge margin guides removed, single-page posters skip Tightening/Taping, landscape stack rotates as a unit (RC58–RC59).
+• Model selection cards no longer clip behind the divider when tapped (RC57).
 
-[b]Other in-flight items (RC55)[/b]
-• Cancelling an upscale now correctly dismisses the notification.
-
-Thanks for the detailed bug reports — most of these started as a single screenshot or log line you sent in. Keep them coming."
+Thanks for the steady stream of bug reports — keep them coming."
 
 echo "Done."
