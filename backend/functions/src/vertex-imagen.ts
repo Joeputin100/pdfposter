@@ -25,7 +25,12 @@ export interface VertexImagenRequest {
     sampleCount: number;
     mode: 'upscale';
     storageUri: string;
-    outputOptions: { mimeType: string; compressionQuality: number };
+    // RC60: PNG output is lossless; Vertex rejects compressionQuality on
+    // PNG with HTTP 400 "PNG does not accept compressionQuality" (observed
+    // 2026-05-25 during the demo asset bake). compressionQuality is
+    // JPEG-only and was a leftover from the spec's initial request shape.
+    // We always output PNG so the field never appears in our requests.
+    outputOptions: { mimeType: string };
     upscaleConfig: { upscaleFactor: UpscaleFactor };
   };
 }
@@ -76,7 +81,6 @@ export function buildVertexImagenRequest(args: {
       storageUri: args.outputGsUri,
       outputOptions: {
         mimeType: 'image/png',
-        compressionQuality: 100,
       },
       upscaleConfig: {
         upscaleFactor: args.upscaleFactor,

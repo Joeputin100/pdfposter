@@ -35,7 +35,6 @@ test('buildVertexImagenRequest: precise upscale request shape', () => {
       storageUri: 'gs://posterpdf-output/abc-x4.png',
       outputOptions: {
         mimeType: 'image/png',
-        compressionQuality: 100,
       },
       upscaleConfig: {
         upscaleFactor: 'x4',
