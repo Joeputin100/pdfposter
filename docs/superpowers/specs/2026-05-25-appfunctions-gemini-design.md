@@ -67,35 +67,75 @@ Function definitions are written once in `PosterPdfAgentFunctions` (a service cl
 
 ### Function inventory
 
+The headline use case is **invocation from inside a Gemini app session** — e.g., a user generates an image with Gemini, then says "make this into a 24×36 poster." Gemini already has the image in its session context; we want PosterPDF to run that workflow with zero context switches if possible. Headless paid-tier upscale is allowed when the user has confirmed the cost in-Gemini before the function actually runs.
+
 | Function | KDoc summary (and shape) | Invocation mode |
 |---|---|---|
-| `generatePrintReadyPoster(sourceImageUri, targetWidthInches, targetHeightInches, paperSize?, upscaleModel?, headless=false)` | Composite headline: pick image, optional upscale, tile, generate PDF. | Deep-link UI by default. Headless allowed only when `headless=true AND upscaleModel ∈ {NONE, FREE_LOCAL}`. Paid models always deep-link to preserve credit-spending confirmation. |
-| `upscaleImage(sourceImageUri, model)` | Just the upscale step (free on-device ESRGAN or any cloud model). Returns content URI of the upscaled image. | Headless allowed for FREE_LOCAL only; cloud models deep-link. |
-| `generatePosterPdf(sourceImageUri, widthInches, heightInches, paperSize, marginsInches?, overlapInches?)` | Just the PDF-tiling step (no upscale). Returns content URI of the PDF. | Always headless — no credit spend, no destructive action. |
+| `quoteUpscaleCost(sourceImageUri, upscaleModel, targetWidthInches, targetHeightInches, paperSize?)` | Returns the credit cost + current balance + can-afford flag + plain-English explanation for the user. NON-MUTATING — safe to call before any confirmation. Used by Gemini to ask the user "this will cost X credits, you have Y, continue?" | Always headless. Read-only quote. |
+| `generatePrintReadyPoster(sourceImageUri, targetWidthInches, targetHeightInches, paperSize?, upscaleModel?, headless=false, confirmCreditCost=false)` | Composite headline: pick image, optional upscale, tile, generate PDF. | See "Headless + paid-tier confirmation" below. |
+| `upscaleImage(sourceImageUri, model, headless=false, confirmCreditCost=false)` | Just the upscale step. Returns content URI of the upscaled image. | Same confirmation pattern as `generatePrintReadyPoster` for paid models. |
+| `generatePosterPdf(sourceImageUri, widthInches, heightInches, paperSize, marginsInches?, overlapInches?)` | Just the PDF-tiling step (no upscale, no credit spend). Returns content URI of the PDF. | Always headless — no credit spend, no destructive action. |
 | `viewLastPoster()` | Opens the user's most recent generated PDF inside PosterPDF. | Deep-link only (it's a UI action). |
-| `redoPosterWithSettings(historyId, widthInches?, heightInches?, upscaleModel?)` | Re-generate a previous poster with new parameters. | Deep-link UI (the user reviews the new settings). |
+| `redoPosterWithSettings(historyId, widthInches?, heightInches?, upscaleModel?, headless=false, confirmCreditCost=false)` | Re-generate a previous poster with new parameters. | Same confirmation pattern as `generatePrintReadyPoster`. |
 | `sharePoster(historyId)` | Opens the system share sheet for a saved PDF. | Deep-link only. |
 
-### Invocation routing
+### Headless + paid-tier confirmation flow
 
-Each `@AppFunction` lives on a single service class. The body checks:
+Per design discussion: paid-tier upscale through headless mode IS allowed, but only after Gemini has surfaced the cost to the user and the user has explicitly confirmed. The confirmation is enforced by a `confirmCreditCost=true` parameter on the function call.
 
-1. **Headless eligibility:** if `headless=true` and the function is in the headless-allowed set AND model is free-tier → run inline, return result URI/string.
-2. **Deep-link path:** otherwise → construct an `Intent` with extras pre-filled (image URI, dimensions, etc.), launch `MainActivity` via `AppFunctionContext.applicationContext.startActivity(intent)`. Return an `AppFunctionResponse` that signals "user-confirmation-required" so Gemini's UI shows "Opening PosterPDF…" instead of waiting for a return value.
+**Expected Gemini conversation:**
 
-Headless guard:
+> User: "Hey Gemini, take this image and make me a 24×36 poster with Imagen upscaling."
+>
+> Gemini: *(calls `quoteUpscaleCost(...)`)* → "That'll use about 87 credits ($0.87). You have 200 credits. Want me to go ahead?"
+>
+> User: "Yes."
+>
+> Gemini: *(calls `generatePrintReadyPoster(..., headless=true, confirmCreditCost=true)`)* → "Done — your poster is ready. Want me to share it or open it in PosterPDF?"
+
+**Routing logic inside each paid-capable function:**
 
 ```kotlin
-private fun assertHeadlessAllowed(model: UpscaleModel, requested: Boolean) {
-    if (!requested) return  // deep-link path will be used
+private fun routeRequest(
+    model: UpscaleModel,
+    headless: Boolean,
+    confirmCreditCost: Boolean,
+    sourceImageUri: String,
+    /* … other args … */
+): AppFunctionResponse {
     val isFreeTier = model == UpscaleModel.NONE || model == UpscaleModel.FREE_LOCAL
-    if (!isFreeTier) {
-        throw AppFunctionExecutionException(
-            "Paid upscale models require in-app confirmation. Open PosterPDF to proceed."
-        )
+    return when {
+        !headless -> launchDeepLink(/* … */)
+        headless && (isFreeTier || confirmCreditCost) -> runInline(/* … */)
+        headless && !isFreeTier && !confirmCreditCost ->
+            throw AppFunctionExecutionException(
+                "Paid upscale models require explicit cost confirmation in headless " +
+                "mode. Call quoteUpscaleCost first, present the cost to the user, " +
+                "then re-invoke this function with confirmCreditCost=true."
+            )
+        else -> launchDeepLink(/* … */)
     }
 }
 ```
+
+KDoc on each paid-capable function explicitly tells Gemini: "If invoked headlessly with a paid `upscaleModel`, you MUST call `quoteUpscaleCost` first, surface the cost to the user, get explicit confirmation, then re-invoke with `confirmCreditCost=true`. Direct headless invocation of a paid model without confirmation will fail."
+
+This pattern keeps the user in the loop for credit-spending decisions (no surprise charges) while preserving the seamless in-Gemini-session flow.
+
+### Cross-app image URIs (Gemini session context)
+
+Image URIs handed to our AppFunctions may come from outside PosterPDF — Gemini's session storage, another app's content provider, a web-fetch result. The function bodies handle this by copying source bytes to our app-private storage on entry (mirrors the existing RC55 copy-on-import pattern in `MainViewModel.updateImage()`):
+
+1. Resolve the input `Uri` via `ContentResolver.openInputStream()`. The AppFunctions runtime grants read access via the system Gemini service's URI permission delegation.
+2. Copy bytes to `filesDir/imported_<epochMs>.bin` (matches RC57's unique-filename rule).
+3. Proceed with the local file URI.
+
+This means PosterPDF works seamlessly whether the source image lives in the user's gallery, a Google Photos cloud URI, Gemini's session storage, or a content provider from another app. No special-casing per provider.
+
+### Invocation routing summary
+
+- **Deep-link path** (default for paid models in non-headless mode): Intent with extras pre-filled, launch `MainActivity` via `AppFunctionContext.applicationContext.startActivity(intent)`. Returns an `AppFunctionResponse` signaling "user-confirmation-required" so Gemini shows "Opening PosterPDF…"
+- **Headless path** (free tier OR `confirmCreditCost=true`): Runs the existing ViewModel-side logic inline. Returns the result URI/string directly. Gemini surfaces it as a chat response.
 
 ### KDoc quality bar
 
@@ -310,6 +350,8 @@ B1 and B2 share the `PosterPdfAgentFunctions` service class; building B2 effecti
 3. **`@google/genai` SDK version + Vertex AI region availability for `gemini-3-5-flash`** — confirm `us-central1` supports the 3.5 Flash model; if not, switch backend region or fall back to `us-east5`.
 4. **Top-bar width budget after sparkle insertion** — empirically verify on a 360dp portrait device that sparkle + collapsed-chip + avatar all render without re-clipping. May need to adjust the chip's collapse threshold.
 5. **Rate-limit storage rule changes** — `users/{uid}/quota/{key}` collection needs Firestore rules update so users can read their own quota count (for showing the "X queries left today" hint).
+6. **Cross-app URI permission delegation by AppFunctions runtime** — verify how the system Gemini service grants read access to URIs from its session storage when it invokes our AppFunctions. Test path: trigger an AppFunction via system Gemini with a URI from another app's content provider, confirm our `ContentResolver.openInputStream()` succeeds without explicit `FLAG_GRANT_READ_URI_PERMISSION`. If grant is required, AppFunctions framework should handle it; if not, file a bug with the Android team.
+7. **`quoteUpscaleCost` cost-calculation parity with the modal** — the quote must exactly match what `creditsForOption()` + `pickScale()` produce inside `LowDpiUpgradeModal.kt`. Shared helper function (probably extracted to a common Kotlin module) avoids the two paths drifting apart.
 
 ## Out of scope
 
@@ -323,11 +365,12 @@ B1 and B2 share the `PosterPdfAgentFunctions` service class; building B2 effecti
 
 ## Implementation order summary
 
-1. `PosterPdfAgentFunctions` service class with pure Kotlin function bodies (foundational for both parts).
-2. `@AppFunction` wrappers + manifest + `shortcuts.xml` (Part 1).
-3. Build-time Gradle task to emit tool-definition JSON from KDoc (cross-cutting glue).
-4. `askGemini` Cloud Function with rate-limit + Vertex AI Gemini 3.5 Flash integration (Part 2 backend).
-5. Sparkle icon + modal sheet UI + voice input + suggestion chips (Part 2 frontend).
-6. Tool-call routing client-side (handle `toolCall` field in `askGemini` response).
-7. Unit + mock-integration tests at each layer.
-8. Manual end-to-end verification (in-app Q&A first; AppFunctions path verified after EAP clears).
+1. Extract `creditsForOption()` + `pickScale()` to a shared module so the in-modal flow and `quoteUpscaleCost` use the exact same math (parity gate before either consumer goes live).
+2. `PosterPdfAgentFunctions` service class with pure Kotlin function bodies, including `quoteUpscaleCost`, the deep-link/headless/confirmCreditCost routing logic, and the cross-app URI copy-on-entry. Foundational for both parts.
+3. `@AppFunction` wrappers + manifest + `shortcuts.xml` (Part 1). KDocs include explicit "call quoteUpscaleCost first" guidance for paid models.
+4. Build-time Gradle task to emit tool-definition JSON from KDoc (cross-cutting glue).
+5. `askGemini` Cloud Function with rate-limit + Vertex AI Gemini 3.5 Flash integration (Part 2 backend).
+6. Sparkle icon + modal sheet UI + voice input + suggestion chips (Part 2 frontend).
+7. Tool-call routing client-side (handle `toolCall` field in `askGemini` response).
+8. Unit + mock-integration tests at each layer, including the headless-paid-without-confirmation rejection path.
+9. Manual end-to-end verification: in-app Q&A first; system Gemini invocation post-EAP, including the cross-app-URI scenario (image from a Gemini app session).

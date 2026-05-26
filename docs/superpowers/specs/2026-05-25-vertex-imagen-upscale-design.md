@@ -15,8 +15,9 @@ This is a Pure-Google addition to the stack — relevant to Spec C's editorial p
 ## Non-goals
 
 - Replacing FAL-routed models (Topaz / Recraft / AuraSR / ESRGAN-cloud / CCSR all remain).
-- Switching Imagen to a stable model. We're shipping `imagen-4.0-upscale-preview` per the user's "latest version" intent; accepting the trade-off that the preview API surface may change before GA.
-- Automatic fallback to a stable Imagen variant on preview-API breakage. If Google changes the preview schema, we'll hotfix.
+- Switching Imagen to a "stable" model on the same vendor. **Imagen 3 has no public upscale capability** — Vertex's `imagegeneration@006` (Imagen 3 standard) and `@005` (Imagen 3 Fast) are generation-only. The `imagen-4.0-upscale-preview` model and the older `imagegeneration@002` (Imagen 1/2) are the only Imagen variants with a real upscale endpoint. The Python SDK confirms this: `upscale_image()` is hard-coded to `imagegeneration@002`. We're shipping the newer `imagen-4.0-upscale-preview` per the user's "latest version" intent.
+- Automatic fallback to `imagegeneration@002` on preview-API breakage. If Google changes the Imagen 4 preview schema we'll hotfix; we won't auto-route to the old model.
+- "Creative" upscale that re-imagines detail. We want **precise super-resolution only** — see "Precise vs creative upscale" below.
 
 ## Architecture
 
@@ -56,15 +57,26 @@ POST https://us-central1-aiplatform.googleapis.com/v1/projects/static-webbing-46
 
 **Auth:** OAuth2 bearer token from the Cloud Function's default service account. The Cloud Functions runtime already has Application Default Credentials available via `google-auth-library` (already in the backend's `node_modules` tree from Firebase Admin SDK). Token fetched per-request and not cached because the function instance lifecycle handles that for us.
 
-**Request body:**
+### Precise vs creative upscale
+
+We want **precise super-resolution** — preserve the user's original detail without hallucinating new content. This is the only behavior that makes sense for a poster-printing workflow: the printed output must match what the user expects from their source image.
+
+The Imagen 4 upscale API does NOT expose an explicit "precise" vs "creative" mode toggle (verified May 2026: only `upscaleConfig.upscaleFactor` is documented inside `upscaleConfig`). Precision is guaranteed by request shape:
+
+- **`prompt`** field is an EMPTY STRING `""`. The Python SDK's `upscale_image()` source code does exactly this (`instance = {"prompt": ""}` at `vertexai/vision_models/_vision_models.py:1338`). A non-empty prompt may cause the model to interpret the upscale as a guided regeneration; empty prompt gates the model into super-resolution behavior.
+- **No editing/guidance parameters** sent. The transcript that originally led us to this work cited `enhanceInputImage: true` as a Vertex parameter, but this is NOT in the current public Imagen 4 upscale API. We do not send it. If Google adds it to a future API revision and it's verifiably a no-hallucination toggle, we can opt in then.
+- **`mode: "upscale"`** in `parameters`. This is required by the API; it selects the upscale code path within the Imagen 4 preview model.
+
+**Request body (precise upscale):**
 
 ```json
 {
   "instances": [{
-    "prompt": "Upscale the image",
+    "prompt": "",
     "image": { "gcsUri": "gs://<bucket>/<input-path>" }
   }],
   "parameters": {
+    "sampleCount": 1,
     "mode": "upscale",
     "storageUri": "gs://<bucket>/<output-path>",
     "outputOptions": {
