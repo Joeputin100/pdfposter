@@ -24,7 +24,6 @@ export interface VertexImagenRequest {
   parameters: {
     sampleCount: number;
     mode: 'upscale';
-    storageUri: string;
     // RC60: PNG output is lossless; Vertex rejects compressionQuality on
     // PNG with HTTP 400 "PNG does not accept compressionQuality" (observed
     // 2026-05-25 during the demo asset bake). compressionQuality is
@@ -35,8 +34,16 @@ export interface VertexImagenRequest {
   };
 }
 
+// RC60: response shape from Vertex Imagen 4 upscale `:predict`.
+// Verified against the live API during the demo asset bake — without
+// `parameters.storageUri` set, the API returns inline `bytesBase64Encoded`.
+// We intentionally do NOT set `storageUri` in the request — handling the
+// output write ourselves lets us use the project's default Firebase Storage
+// bucket (matching FAL's `downloadAndStoreOutput` pattern in upscale.ts)
+// and return a v4 signed HTTPS URL the Android client can fetch via
+// `URL().openStream()` (which doesn't recognize `gs://`).
 export interface VertexImagenResponse {
-  predictions?: Array<{ mimeType?: string; storageUri?: string }>;
+  predictions?: Array<{ mimeType?: string; bytesBase64Encoded?: string }>;
 }
 
 export type FailureReason =
@@ -65,7 +72,6 @@ export class VertexImagenError extends Error {
  */
 export function buildVertexImagenRequest(args: {
   inputGsUri: string;
-  outputGsUri: string;
   upscaleFactor: UpscaleFactor;
 }): VertexImagenRequest {
   return {
@@ -78,7 +84,6 @@ export function buildVertexImagenRequest(args: {
     parameters: {
       sampleCount: 1,
       mode: 'upscale',
-      storageUri: args.outputGsUri,
       outputOptions: {
         mimeType: 'image/png',
       },
@@ -135,21 +140,28 @@ export function mapVertexErrorToFailureReason(
 }
 
 /**
- * Pull the output gs:// URI out of a successful Imagen response.
- * When we set parameters.storageUri, the API writes the result there and
- * returns a pointer; otherwise it returns base64 (we don't use that path).
+ * Pull the output PNG bytes out of a successful Imagen response.
+ *
+ * Without `parameters.storageUri` in the request, the API returns the
+ * upscaled image inline as base64-encoded bytes under
+ * `predictions[0].bytesBase64Encoded`. This matches the shape verified
+ * during the demo asset bake — see bake-imagen-demo.py line ~88.
+ *
+ * Caller is responsible for writing the bytes to storage (typically the
+ * default Firebase Storage bucket, then generating a v4 signed URL — same
+ * pattern as FAL's downloadAndStoreOutput in upscale.ts).
  */
-export function extractOutputUriFromVertexResponse(
+export function extractOutputBytesFromVertexResponse(
   response: VertexImagenResponse,
-): string {
+): Buffer {
   const first = response.predictions?.[0];
   if (!first) {
     throw new Error('Vertex Imagen returned no predictions');
   }
-  if (!first.storageUri) {
-    throw new Error('Vertex Imagen prediction missing storageUri');
+  if (!first.bytesBase64Encoded) {
+    throw new Error('Vertex Imagen prediction missing bytesBase64Encoded');
   }
-  return first.storageUri;
+  return Buffer.from(first.bytesBase64Encoded, 'base64');
 }
 
 /** Injectable dependencies for callVertexImagen() — overridable in tests. */
@@ -167,18 +179,22 @@ const ENDPOINT =
   '/publishers/google/models/imagen-4.0-upscale-preview:predict';
 
 /**
- * Synchronously call Vertex Imagen 4 upscale. Returns the gs:// URI of
- * the upscaled output. Throws VertexImagenError on any failure with the
- * normalized failure_reason attached.
+ * Synchronously call Vertex Imagen 4 upscale. Returns the upscaled PNG
+ * bytes inline (the API responds with bytesBase64Encoded when we don't
+ * ask it to write to GCS for us). Throws VertexImagenError on any
+ * failure with the normalized failure_reason attached.
+ *
+ * Caller is responsible for storing the bytes (typically in the default
+ * Firebase Storage bucket via getStorage().bucket().file(path).save(...))
+ * and generating a v4 signed HTTPS URL the Android client can fetch.
  */
 export async function callVertexImagen(
   args: {
     inputGsUri: string;
-    outputGsUri: string;
     upscaleFactor: UpscaleFactor;
   },
   deps: VertexImagenDeps = defaultDeps(),
-): Promise<string> {
+): Promise<Buffer> {
   assertScaleSupported(args.upscaleFactor);
   const requestBody = buildVertexImagenRequest(args);
   const token = await deps.getAccessToken();
@@ -198,7 +214,7 @@ export async function callVertexImagen(
       `Vertex Imagen call failed: HTTP ${status} reason=${reason}`,
     );
   }
-  return extractOutputUriFromVertexResponse(body as VertexImagenResponse);
+  return extractOutputBytesFromVertexResponse(body as VertexImagenResponse);
 }
 
 /** Default production deps — real OAuth2 + real fetch. */

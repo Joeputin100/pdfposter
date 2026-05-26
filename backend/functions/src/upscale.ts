@@ -701,30 +701,44 @@ export const requestUpscale = onCall(
     const txId = await debitAndCreateTx(uid, modelId, inputUrl, inputMp, required, isAdmin);
 
     // 2. Outside the transaction, kick off the upscaler. RC60: routes by
-    // modelId. Imagen goes through Vertex AI (synchronous POST, writes
-    // straight to our GCS bucket); FAL models continue through the
-    // existing submit→poll→fetch→download pipeline.
+    // modelId. Imagen goes through Vertex AI (synchronous POST, returns
+    // base64 bytes inline); FAL models continue through the existing
+    // submit→poll→fetch→download pipeline.
     try {
-      const fetchableUrl = await resolveFetchableUrl(inputUrl);
-
-      // RC60: Imagen 4 path — synchronous Vertex call, output written
-      // straight to our GCS via parameters.storageUri. No polling, no
-      // re-download.
+      // RC60: Imagen 4 path — synchronous Vertex call. The input URI MUST
+      // stay in gs:// form (Vertex's `gcsUri` field rejects HTTPS), so we
+      // skip resolveFetchableUrl for Imagen. The output comes back as
+      // base64-encoded bytes which we write to the default Firebase
+      // Storage bucket using the same shape as FAL's downloadAndStoreOutput
+      // (line ~627), then return a v4 signed HTTPS URL so the Android
+      // client's URL().openStream() can fetch it.
       if (modelId === 'imagen') {
-        const outputGsUri =
-          `gs://posterpdf-upscale-output/${uid}/${txId}.png`;
+        if (!inputUrl.startsWith('gs://')) {
+          throw new HttpsError(
+            'invalid-argument',
+            'Imagen requires a gs:// input URL; received non-gs:// scheme',
+          );
+        }
         const factorStr = `x${scale}` as 'x2' | 'x3' | 'x4';
-        let resultGsUri: string;
+        let pngBytes: Buffer;
         try {
-          resultGsUri = await callVertexImagen({
-            inputGsUri: fetchableUrl,
-            outputGsUri,
+          pngBytes = await callVertexImagen({
+            inputGsUri: inputUrl,
             upscaleFactor: factorStr,
           });
         } catch (e) {
           if (e instanceof VertexImagenError) {
             // Persist the normalized failure_reason so the client can
             // surface a localized message via vm_error_imagen_<reason>.
+            // RC60: log the raw HTTP status + reason for debuggability —
+            // closes Spec A Open Verification Item #3 (refining on first
+            // observed real-world block).
+            logger.warn('imagen call failed', {
+              uid, txId,
+              httpStatus: e.httpStatus,
+              failureReason: e.failureReason,
+              message: e.message,
+            });
             await getFirestore()
               .collection('upscaleTransactions')
               .doc(txId)
@@ -738,13 +752,29 @@ export const requestUpscale = onCall(
           }
           throw e;
         }
+        // Write the bytes into our default bucket + sign a v4 HTTPS URL.
+        // Same path layout as the FAL flow (downloadAndStoreOutput) so
+        // the existing storage-retention cleanup picks them up.
+        const bucket = getStorage().bucket();
+        const objectPath = `upscaled/${uid}/${txId}.png`;
+        const file = bucket.file(objectPath);
+        await file.save(pngBytes, {
+          contentType: 'image/png',
+          resumable: false,
+          metadata: { cacheControl: 'private, max-age=86400' },
+        });
+        const [signedUrl] = await file.getSignedUrl({
+          version: 'v4',
+          action: 'read',
+          expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+        });
         await getFirestore()
           .collection('upscaleTransactions')
           .doc(txId)
           .set(
             {
               status: 'succeeded',
-              outputUrl: resultGsUri,
+              outputUrl: signedUrl,
               completedAt: FieldValue.serverTimestamp(),
             },
             { merge: true },
@@ -753,6 +783,7 @@ export const requestUpscale = onCall(
       }
 
       // FAL path (unchanged) — submit → poll → fetch → download.
+      const fetchableUrl = await resolveFetchableUrl(inputUrl);
       const submit = await submitFalJob(modelId, fetchableUrl, scale, FAL_KEY.value());
 
       // Some quick jobs return inline.

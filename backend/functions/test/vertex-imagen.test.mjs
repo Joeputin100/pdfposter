@@ -12,14 +12,13 @@ import assert from 'node:assert/strict';
 import {
   buildVertexImagenRequest,
   mapVertexErrorToFailureReason,
-  extractOutputUriFromVertexResponse,
+  extractOutputBytesFromVertexResponse,
   assertScaleSupported,
 } from '../lib/vertex-imagen.js';
 
 test('buildVertexImagenRequest: precise upscale request shape', () => {
   const req = buildVertexImagenRequest({
     inputGsUri: 'gs://posterpdf-input/abc.png',
-    outputGsUri: 'gs://posterpdf-output/abc-x4.png',
     upscaleFactor: 'x4',
   });
   assert.deepEqual(req, {
@@ -32,7 +31,6 @@ test('buildVertexImagenRequest: precise upscale request shape', () => {
     parameters: {
       sampleCount: 1,
       mode: 'upscale',
-      storageUri: 'gs://posterpdf-output/abc-x4.png',
       outputOptions: {
         mimeType: 'image/png',
       },
@@ -43,15 +41,17 @@ test('buildVertexImagenRequest: precise upscale request shape', () => {
   });
 });
 
-test('buildVertexImagenRequest: no enhanceInputImage (precise upscale guarantee)', () => {
+test('buildVertexImagenRequest: no enhanceInputImage, no storageUri (precise upscale + base64 response)', () => {
   const req = buildVertexImagenRequest({
     inputGsUri: 'gs://x/y.png',
-    outputGsUri: 'gs://x/y-out.png',
     upscaleFactor: 'x2',
   });
   const paramsKeys = Object.keys(req.parameters);
   assert.ok(!paramsKeys.includes('enhanceInputImage'),
     'enhanceInputImage must NOT be sent — it would risk hallucinated detail');
+  assert.ok(!paramsKeys.includes('storageUri'),
+    'storageUri must NOT be sent — we want the base64 inline response so ' +
+    'we can write to our default Firebase bucket ourselves');
   assert.equal(req.instances[0].prompt, '',
     'prompt must be empty to gate Imagen into super-resolution mode');
 });
@@ -117,43 +117,45 @@ test('mapVertexErrorToFailureReason: uncategorized HTTP status → unknown', () 
   assert.equal(reason, 'unknown');
 });
 
-test('extractOutputUriFromVertexResponse: storageUri pointer', () => {
+test('extractOutputBytesFromVertexResponse: base64 → Buffer', () => {
+  // 'hello' base64 → "aGVsbG8="
   const response = {
     predictions: [
-      { mimeType: 'image/png', storageUri: 'gs://output/result.png' },
+      { mimeType: 'image/png', bytesBase64Encoded: 'aGVsbG8=' },
     ],
   };
-  assert.equal(extractOutputUriFromVertexResponse(response),
-    'gs://output/result.png');
+  const buf = extractOutputBytesFromVertexResponse(response);
+  assert.ok(Buffer.isBuffer(buf));
+  assert.equal(buf.toString('utf8'), 'hello');
 });
 
-test('extractOutputUriFromVertexResponse: missing predictions throws', () => {
-  assert.throws(() => extractOutputUriFromVertexResponse({ predictions: [] }),
+test('extractOutputBytesFromVertexResponse: missing predictions throws', () => {
+  assert.throws(() => extractOutputBytesFromVertexResponse({ predictions: [] }),
     /Vertex Imagen returned no predictions/);
 });
 
-test('extractOutputUriFromVertexResponse: missing storageUri throws', () => {
+test('extractOutputBytesFromVertexResponse: missing bytesBase64Encoded throws', () => {
   assert.throws(() =>
-    extractOutputUriFromVertexResponse({
+    extractOutputBytesFromVertexResponse({
       predictions: [{ mimeType: 'image/png' }],
     }),
-    /Vertex Imagen prediction missing storageUri/);
+    /Vertex Imagen prediction missing bytesBase64Encoded/);
 });
 
 // Integration tests with mocked HTTP client
 
 import { callVertexImagen, VertexImagenError } from '../lib/vertex-imagen.js';
 
-test('callVertexImagen: happy path returns storageUri', async () => {
+test('callVertexImagen: happy path returns Buffer of PNG bytes', async () => {
+  // 'PNGDATA' base64 → "UE5HREFUQQ=="
   const mockedPostBody = {
     predictions: [
-      { mimeType: 'image/png', storageUri: 'gs://posterpdf-output/result.png' },
+      { mimeType: 'image/png', bytesBase64Encoded: 'UE5HREFUQQ==' },
     ],
   };
   const out = await callVertexImagen(
     {
       inputGsUri: 'gs://posterpdf-input/source.png',
-      outputGsUri: 'gs://posterpdf-output/result.png',
       upscaleFactor: 'x4',
     },
     {
@@ -163,19 +165,23 @@ test('callVertexImagen: happy path returns storageUri', async () => {
         assert.equal(headers.Authorization, 'Bearer mock-token');
         // assert request body shape correct (precise upscale)
         assert.equal(body.instances[0].prompt, '');
+        assert.equal(body.instances[0].image.gcsUri, 'gs://posterpdf-input/source.png');
         assert.equal(body.parameters.mode, 'upscale');
         assert.equal(body.parameters.upscaleConfig.upscaleFactor, 'x4');
+        // storageUri must NOT be present — we want base64 inline.
+        assert.equal(body.parameters.storageUri, undefined);
         return { status: 200, body: mockedPostBody };
       },
     },
   );
-  assert.equal(out, 'gs://posterpdf-output/result.png');
+  assert.ok(Buffer.isBuffer(out));
+  assert.equal(out.toString('utf8'), 'PNGDATA');
 });
 
 test('callVertexImagen: 400 with safety-filter message throws VertexImagenError(content_filter)', async () => {
   await assert.rejects(
     () => callVertexImagen(
-      { inputGsUri: 'gs://x/in.png', outputGsUri: 'gs://x/out.png', upscaleFactor: 'x2' },
+      { inputGsUri: 'gs://x/in.png', upscaleFactor: 'x2' },
       {
         getAccessToken: async () => 'mock-token',
         postJson: async () => ({
@@ -197,7 +203,7 @@ test('callVertexImagen: 400 with safety-filter message throws VertexImagenError(
 test('callVertexImagen: 429 quota exceeded throws VertexImagenError(quota_exceeded)', async () => {
   await assert.rejects(
     () => callVertexImagen(
-      { inputGsUri: 'gs://x/in.png', outputGsUri: 'gs://x/out.png', upscaleFactor: 'x4' },
+      { inputGsUri: 'gs://x/in.png', upscaleFactor: 'x4' },
       {
         getAccessToken: async () => 'mock-token',
         postJson: async () => ({ status: 429,
