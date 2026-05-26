@@ -771,6 +771,8 @@
     <string name="upscale_option_free_cons">أبطأ على الهواتف الأقدم؛ بحد أقصى 4&#215;</string>
     <string name="upscale_option_free_pros">مجاني، دون اتصال، يعمل دون إنترنت</string>
     <string name="upscale_option_free_upscale">ترقية مجانية</string>
+    <string name="upscale_option_imagen_cons">حد أقصى للإخراج 17 ميغابكسل · تُطبَّق فلاتر أمان Google</string>
+    <string name="upscale_option_imagen_pros">حزمة Google خالصة &#8212; وفيّة للصور، من صنع Google</string>
     <string name="upscale_option_now_cons">تظهر بكسلة عند الطباعات الكبيرة</string>
     <string name="upscale_option_now_pixelated">الآن (مبكسلة)</string>
     <string name="upscale_option_now_pros">الأسرع، مجاني، يعمل على أي جهاز</string>
@@ -784,6 +786,8 @@
     <string name="vm_error_ai_failed_prefix">فشلت الترقية بالذكاء الاصطناعي: %1$s</string>
     <string name="vm_error_couldnt_open_image">تعذّر فتح الصورة المصدر</string>
     <string name="vm_error_decode_failed">اكتملت الترقية لكن تعذّر فك ترميز الصورة الناتجة</string>
+    <string name="vm_error_imagen_content_filter">تعذّر على فلاتر أمان Google Imagen معالجة هذه الصورة. لم تُخصم أرصدتك &#8212; جرّب أداة ترقية مختلفة.</string>
+    <string name="vm_error_imagen_too_large">يستطيع Google Imagen التعامل فقط مع مخرجات تصل إلى 17 ميغابكسل. جرّب حجم ملصق أصغر أو نموذجاً مختلفاً.</string>
     <string name="vm_error_sharpening_timed_out">انتهت مهلة التحديد بعد 15 دقيقة &#8212; جرّب حجم ملصق أصغر أو استخدم خيار ذكاء اصطناعي بدلاً من ذلك.</string>
     <string name="vm_error_upscale_failed_inline">فشلت الترقية: %1$s</string>
     <string name="vm_phase_done">تم</string>

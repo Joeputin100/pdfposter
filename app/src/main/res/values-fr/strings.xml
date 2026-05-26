@@ -772,6 +772,8 @@
     <string name="upscale_option_free_cons">Plus lent sur les anciens téléphones ; 4&#215; max</string>
     <string name="upscale_option_free_pros">Gratuit, hors ligne, fonctionne sans internet</string>
     <string name="upscale_option_free_upscale">Mise à l\'échelle gratuite</string>
+    <string name="upscale_option_imagen_cons">Plafond de sortie 17 MP · filtres de sécurité Google appliqués</string>
+    <string name="upscale_option_imagen_pros">Stack 100%% Google &#8212; fidèle aux photos, signé Google</string>
     <string name="upscale_option_now_cons">Pixelisation visible sur les grandes impressions</string>
     <string name="upscale_option_now_pixelated">Maintenant (pixelisé)</string>
     <string name="upscale_option_now_pros">Le plus rapide, gratuit, fonctionne sur n\'importe quel appareil</string>
@@ -783,6 +785,8 @@
     <string name="upscale_option_topaz_pros">Idéal pour le texte, le dessin au trait et la finition imprimerie</string>
     <string name="vm_error_ai_error_prefix">Erreur d\'agrandissement IA : %1$s</string>
     <string name="vm_error_ai_failed_prefix">Échec de l\'agrandissement IA : %1$s</string>
+    <string name="vm_error_imagen_content_filter">Les filtres de sécurité de Google Imagen n\'ont pas pu traiter cette image. Vos crédits n\'ont pas été débités &#8212; essayez un autre agrandisseur.</string>
+    <string name="vm_error_imagen_too_large">Google Imagen ne peut traiter que des sorties jusqu\'à 17 mégapixels. Essayez une taille d\'affiche plus petite ou un autre modèle.</string>
     <string name="vm_error_couldnt_open_image">Impossible d\'ouvrir l\'image source</string>
     <string name="vm_error_decode_failed">Agrandissement terminé mais l\'image résultante n\'a pas pu être décodée</string>
     <string name="vm_error_sharpening_timed_out">L\'amélioration a expiré après 15 minutes &#8212; essayez une taille d\'affiche plus petite ou utilisez plutôt une option IA.</string>

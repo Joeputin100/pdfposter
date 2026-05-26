@@ -771,6 +771,8 @@
     <string name="upscale_option_free_cons">पुराने फ़ोनों पर धीमा; अधिकतम 4×</string>
     <string name="upscale_option_free_pros">मुफ़्त, ऑफ़लाइन, बिना इंटरनेट के काम करता है</string>
     <string name="upscale_option_free_upscale">मुफ़्त अपस्केल</string>
+    <string name="upscale_option_imagen_cons">17 MP आउटपुट सीमा · Google सुरक्षा फ़िल्टर लागू</string>
+    <string name="upscale_option_imagen_pros">शुद्ध Google स्टैक — फ़ोटो-निष्ठावान, Google द्वारा निर्मित</string>
     <string name="upscale_option_now_cons">बड़े प्रिंट पर दृश्यमान पिक्सेलेशन</string>
     <string name="upscale_option_now_pixelated">अभी (पिक्सेलयुक्त)</string>
     <string name="upscale_option_now_pros">सबसे तेज़, मुफ़्त, किसी भी डिवाइस पर काम करता है</string>
@@ -784,6 +786,8 @@
     <string name="vm_error_ai_failed_prefix">AI अपस्केल विफल: %1$s</string>
     <string name="vm_error_couldnt_open_image">स्रोत छवि नहीं खोल सके</string>
     <string name="vm_error_decode_failed">अपस्केल पूरा हुआ लेकिन परिणाम छवि डिकोड नहीं की जा सकी</string>
+    <string name="vm_error_imagen_content_filter">Google Imagen के सुरक्षा फ़िल्टर इस छवि को प्रोसेस नहीं कर सके। आपके क्रेडिट नहीं काटे गए &#8212; कोई अन्य अपस्केलर आज़माएं।</string>
+    <string name="vm_error_imagen_too_large">Google Imagen केवल 17 मेगापिक्सेल तक के आउटपुट संभाल सकता है। छोटा पोस्टर साइज़ या कोई अन्य मॉडल आज़माएं।</string>
     <string name="vm_error_sharpening_timed_out">शार्पनिंग 15 मिनट बाद टाइम आउट हो गई &#8212; एक छोटा पोस्टर साइज़ आज़माएं या इसके बजाय AI विकल्प का उपयोग करें।</string>
     <string name="vm_error_upscale_failed_inline">अपस्केल विफल: %1$s</string>
     <string name="vm_phase_done">पूर्ण</string>
