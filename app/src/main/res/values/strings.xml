@@ -670,6 +670,9 @@
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_topaz_gigapixel">Topaz Gigapixel</string>
+    <!-- RC60: Google Imagen 4 upscale via Vertex AI. Brand name "Google
+         Imagen" stays in English across all locales. -->
+    <string name="upscale_option_imagen_name" translatable="false">Google Imagen</string>
 
     <!-- Upscale option pros/cons (extracted from data class init) -->
     <string name="upscale_option_now_pros">Fastest, free, works on any device</string>
@@ -686,6 +689,14 @@
     <string name="upscale_option_ccsr_cons">Slower than ESRGAN; less crisp on text than Topaz</string>
     <string name="upscale_option_topaz_pros">Best for text, line art &amp; print-shop polish</string>
     <string name="upscale_option_topaz_cons">30× the cost for ~10–20% sharper edges</string>
+    <!-- RC60: Google Imagen pros/cons. Material 3 body-small budget; ~80 chars each. -->
+    <string name="upscale_option_imagen_pros">Pure-Google stack — photo-faithful, made by Google</string>
+    <string name="upscale_option_imagen_cons">17 MP output cap · Google safety filters apply</string>
+
+    <!-- RC60: Imagen-specific error messages surfaced when the Vertex API
+         returns a failure_reason. Mirrors the vm_error_<reason> pattern. -->
+    <string name="vm_error_imagen_content_filter">Google Imagen\'s safety filters couldn\'t process this image. Your credits weren\'t charged — try a different upscaler.</string>
+    <string name="vm_error_imagen_too_large">Google Imagen can only handle outputs up to 17 megapixels. Try a smaller poster size or a different model.</string>
 
     <!-- LowDpiUpgradeModal extra cards / lever rows / footer -->
     <string name="lowdpi_header_svg_inline">Vector source — no upscale needed</string>

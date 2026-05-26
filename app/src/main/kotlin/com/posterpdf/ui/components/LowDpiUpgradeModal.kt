@@ -101,7 +101,7 @@ import kotlinx.coroutines.withContext
 
 private const val CREDIT_COST_BUDGET_USD = 0.00425
 
-enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR }
+enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR, IMAGEN }
 
 internal data class UpscaleOption(
     val model: UpscaleModel,
@@ -173,11 +173,30 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
         supportedScales = listOf(4),
         perOutputMp = 0.00125,
     ),
+    // RC60: Google Imagen 4 — Pure-Google mid-tier cloud upscale. Sits
+    // between AuraSR and CCSR in the grid order. Per-call flat pricing
+    // (~$0.03/call). Supports x2/x3/x4. Backend routes via Vertex AI
+    // (not FAL); UI shape is identical to the FAL-routed models. Output
+    // capped at 17 MP by the API — assertModelCapacity rejects larger
+    // jobs before debiting credits.
+    UpscaleOption(
+        model = UpscaleModel.IMAGEN,
+        displayNameRes = R.string.upscale_option_imagen_name,
+        prosRes = R.string.upscale_option_imagen_pros,
+        consRes = R.string.upscale_option_imagen_cons,
+        scale = 4,
+        supportedScales = listOf(2, 3, 4),
+        // Flat per-call cost — set perOutputMp=0 and use flatUsd so the
+        // card's credit-math doesn't multiply by output MP.
+        perOutputMp = 0.0,
+        flatUsd = 0.03,
+    ),
     // RC29: CCSR — second photo-faithful adjustable model. Sits between
     // ESRGAN (cheap, predictable) and Topaz (premium edges) on price, with
     // configurable scale (2/3/4×) so the user can dial detail vs. cost.
     // RC33: positioned before Topaz so the grid reads in ascending-price
     // order (NONE → FREE → RECRAFT → ESRGAN → AURASR → CCSR → TOPAZ).
+    // RC60: Imagen inserted between AuraSR and CCSR (see comment above).
     UpscaleOption(
         model = UpscaleModel.CCSR,
         displayNameRes = R.string.upscale_option_ccsr,
@@ -282,6 +301,9 @@ private val ALL_MODELS = setOf(
     // RC32: CCSR was added to ALL_OPTIONS in RC29 but the picker filters
     // through this set, so without this entry the card never rendered.
     UpscaleModel.CCSR,
+    // RC60: Google Imagen — same gotcha as CCSR; the card won't render
+    // unless its model is listed here.
+    UpscaleModel.IMAGEN,
 )
 
 private const val DEFAULT_BYTES_PER_SECOND = 500_000L
@@ -703,6 +725,9 @@ private fun iconForModel(model: UpscaleModel): Int = when (model) {
     // RC29.1: CCSR's official logo is the eastern bluebird from FAL's
     // model card (sourced from v3b.fal.media). 256×256 PNG.
     UpscaleModel.CCSR -> R.drawable.ic_model_ccsr
+    // RC60: Google Imagen — explicit fallback to the generic AI upscale
+    // demo icon for v1. Custom Google-branded icon is a Spec C polish item.
+    UpscaleModel.IMAGEN -> R.drawable.ai_upscale_demo
     else -> R.drawable.ai_upscale_demo
 }
 
