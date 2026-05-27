@@ -93,6 +93,10 @@ import com.posterpdf.ml.etaForLocal
 import com.posterpdf.ml.formatEta
 import com.posterpdf.ui.theme.BlueprintBlue700
 import com.posterpdf.ui.theme.TrimOrange500
+import com.posterpdf.upscale.CREDIT_COST_BUDGET_USD
+import com.posterpdf.upscale.cogsForOption
+import com.posterpdf.upscale.creditsForOption
+import com.posterpdf.upscale.pickScale
 import kotlin.math.ceil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -102,8 +106,6 @@ import kotlinx.coroutines.withContext
 // Per-model COGS lookup — mirrors backend/functions/src/upscale.ts MODELS map.
 // 1 credit = $0.00425 USD (cost-per-credit budget).
 // ─────────────────────────────────────────────────────────────────────────────
-
-private const val CREDIT_COST_BUDGET_USD = 0.00425
 
 // RC63: shared card height. UpscaleOptionCard reads this directly so every
 // card is exactly this tall (no wrap-content), and the LazyVerticalGrid's
@@ -254,41 +256,6 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
  *     was justified as "20% crop headroom," but real bleed/crop is <5% of
  *     dimensions; targeting `targetMp` exactly is the honest behavior.
  */
-private fun pickScale(
-    option: UpscaleOption,
-    inputMp: Double,
-    posterWInches: Double,
-    posterHInches: Double,
-    targetDpi: Int,
-): Int {
-    val targetMp = (posterWInches * targetDpi) * (posterHInches * targetDpi) / 1_000_000.0
-    for (s in option.supportedScales) {
-        if (inputMp * s * s >= targetMp) return s
-    }
-    return option.supportedScales.last()
-}
-
-private fun cogsForOption(
-    option: UpscaleOption,
-    inputMp: Double,
-    pickedScale: Int,
-): Double {
-    if (option.flatUsd > 0.0) return option.flatUsd
-    val outputMp = inputMp * pickedScale * pickedScale
-    return outputMp * option.perOutputMp
-}
-
-/** Free options return 0; paid options return ceil(cogs / budget), min 1. */
-private fun creditsForOption(
-    option: UpscaleOption,
-    inputMp: Double,
-    pickedScale: Int,
-): Int {
-    if (option.model == UpscaleModel.NONE || option.model == UpscaleModel.FREE_LOCAL) return 0
-    val cogs = cogsForOption(option, inputMp, pickedScale)
-    return ceil(cogs / CREDIT_COST_BUDGET_USD).toInt().coerceAtLeast(1)
-}
-
 private fun usdEquivalent(credits: Int, usdPerCredit: Double): String {
     if (usdPerCredit <= 0.0 || credits == 0) return "—"
     return "%.2f".format(credits * usdPerCredit)
