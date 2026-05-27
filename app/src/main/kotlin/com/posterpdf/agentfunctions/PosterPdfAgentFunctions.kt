@@ -26,7 +26,7 @@ import com.posterpdf.upscale.pickScale
  * for them (system Gemini post-EAP, or the in-app Q&A's "do it now"
  * follow-through).
  */
-class PosterPdfAgentFunctions(
+internal class PosterPdfAgentFunctions(
     private val appContext: Context,
     private val allOptions: List<UpscaleOption>,
 ) {

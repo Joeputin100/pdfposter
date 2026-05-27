@@ -35,11 +35,10 @@ class GeminiQaRepository {
         val text = data["text"] as? String ?: ""
         val toolCallRaw = data["toolCall"] as? Map<String, Any?>
         val toolCall = toolCallRaw?.let {
-            ToolCall(
-                name = it["name"] as? String ?: return@let null,
-                @Suppress("UNCHECKED_CAST")
-                args = (it["args"] as? Map<String, Any?>) ?: emptyMap(),
-            )
+            val name = it["name"] as? String ?: return@let null
+            @Suppress("UNCHECKED_CAST")
+            val args = (it["args"] as? Map<String, Any?>) ?: emptyMap()
+            ToolCall(name = name, args = args)
         }
         val remainingQueries = (data["remainingQueries"] as? Number)?.toInt() ?: 0
         Log.i(tag, "askGemini reply: ${text.length} chars, toolCall=${toolCall?.name}, remaining=$remainingQueries")
