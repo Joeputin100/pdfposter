@@ -102,6 +102,18 @@ import kotlinx.coroutines.withContext
 
 private const val CREDIT_COST_BUDGET_USD = 0.00425
 
+// RC63: shared card height. UpscaleOptionCard reads this directly so every
+// card is exactly this tall (no wrap-content), and the LazyVerticalGrid's
+// .height(gridHeight) calc multiplies this value by the row count. Was
+// inlined as `cardHeightDp = 340` at the grid call site in RC20–RC62;
+// promoted to a top-level const in RC63 so the Card composable can apply
+// the same value via Modifier.height(CARD_HEIGHT_DP.dp). Without this,
+// .fillMaxHeight() on the Card had nothing to fill (LazyVerticalGrid
+// cells don't bound maxHeight), so each card sized to its content and
+// the grid's fixed height left an empty trailing band (the user-reported
+// "still an inch gap" + inconsistent heights in RC61/RC62).
+private const val CARD_HEIGHT_DP = 340
+
 enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR, IMAGEN }
 
 internal data class UpscaleOption(
@@ -556,9 +568,11 @@ fun LowDpiUpgradeModal(
                 // each without ellipsis. User reported truncation on real devices
                 // even with English copy because the marketing-framework strings
                 // ("Use when … / Trade-off …") run long.
+                // RC63: cardHeightDp pulled to top-level CARD_HEIGHT_DP; spacing
+                // calc now matches the actual verticalArrangement (10dp, was 12dp
+                // — 6dp of accumulated drift over 3 inter-row gaps).
                 val rowCount = (visibleOptions.size + 1) / 2
-                val cardHeightDp = 340
-                val gridHeight = (rowCount * cardHeightDp + (rowCount - 1) * 12).dp
+                val gridHeight = (rowCount * CARD_HEIGHT_DP + (rowCount - 1) * 10).dp
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
@@ -819,15 +833,17 @@ private fun UpscaleOptionCard(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
-            // RC62: fillMaxHeight ensures every card matches its grid cell's
-            // height (cardHeightDp). Without this, cards with shorter
-            // pros/cons text rendered shorter than the cell, leaving the
-            // remaining cell height as visible empty space — accumulating
-            // visually as a ~80dp gap below the last row, just above
-            // BringYourOwn (user reported "about an inch of blank space"
-            // in RC61). With fillMaxHeight all cards report identical
-            // height, satisfying the "consistent height" request.
-            .fillMaxHeight()
+            // RC63: explicit fixed height. RC62's .fillMaxHeight() was a
+            // no-op because LazyVerticalGrid cells don't bound maxHeight
+            // — there was nothing for fillMaxHeight to fill, so cards
+            // sized to content and the user still saw inconsistent
+            // heights + the ~1-inch gap below the last row. Setting an
+            // explicit height(CARD_HEIGHT_DP.dp) forces every card to
+            // measure at the same height, matching the grid's
+            // gridHeight calc and eliminating the trailing gap. Shorter
+            // cards get internal bottom padding (anchored top via
+            // Arrangement.spacedBy on the inner Column).
+            .height(CARD_HEIGHT_DP.dp)
             .graphicsLayer { scaleX = scaleValue; scaleY = scaleValue }
             .shadow(
                 elevation = if (isSelected) 12.dp else 2.dp,

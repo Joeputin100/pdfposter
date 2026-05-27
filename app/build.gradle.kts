@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc62"  // RC62 (card fillMaxHeight + Imagen copy + A3 paper + PDF footer 1cm down)
+        versionName = "1.0-rc63"  // RC63 (real fix for card height — explicit Modifier.height vs no-op fillMaxHeight)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
