@@ -738,6 +738,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val backend = BackendClient.create(auth)
     private val supportRepo = com.posterpdf.data.backend.SupportRepository(auth)
     private val aiUpscaleRepo = com.posterpdf.data.backend.AiUpscaleRepository(auth)
+    private val geminiQaRepo by lazy { com.posterpdf.data.backend.GeminiQaRepository() }
+
+    // RC65: Gemini Q&A sheet state. Driven by askGemini() / resetGeminiQaState().
+    var geminiQaState: com.posterpdf.ui.components.GeminiQaState by mutableStateOf(
+        com.posterpdf.ui.components.GeminiQaState.Idle,
+    )
+        private set
 
     var authSession by mutableStateOf(AuthSession())
         private set
@@ -1475,6 +1482,53 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             auth.ensureSignedIn() // immediately go back to anonymous
             refreshHistory()
+        }
+    }
+
+    fun resetGeminiQaState() {
+        geminiQaState = com.posterpdf.ui.components.GeminiQaState.Idle
+    }
+
+    /**
+     * RC65: dispatch a user prompt to the askGemini Cloud Function. Captures
+     * current ViewModel state (image MP, target dimensions, paper size) as
+     * context so Gemini's reply is specific to THIS poster, not generic
+     * advice.
+     */
+    fun askGemini(prompt: String) {
+        geminiQaState = com.posterpdf.ui.components.GeminiQaState.Loading
+        viewModelScope.launch {
+            val settings = buildMap<String, Any?> {
+                sourcePixelDimensions?.let { (w, h) ->
+                    put("selectedImageMp", (w.toLong() * h.toLong()) / 1_000_000.0)
+                }
+                posterWidth.toDoubleOrNull()?.let { put("targetWidthInches", it) }
+                posterHeight.toDoubleOrNull()?.let { put("targetHeightInches", it) }
+                put("paperSize", paperSize)
+            }
+            val result = geminiQaRepo.askGemini(
+                prompt = prompt,
+                imageGsUri = null,  // Image not uploaded to GCS by default; text-only context.
+                currentSettings = settings,
+            )
+            geminiQaState = result.fold(
+                onSuccess = { resp ->
+                    com.posterpdf.ui.components.GeminiQaState.Reply(
+                        text = resp.text.ifBlank {
+                            appContext.getString(com.posterpdf.R.string.gemini_qa_action_taken)
+                        },
+                        remainingQueries = resp.remainingQueries,
+                    )
+                },
+                onFailure = { t ->
+                    com.posterpdf.ui.components.GeminiQaState.Error(
+                        appContext.getString(
+                            com.posterpdf.R.string.gemini_qa_error,
+                            t.message ?: "",
+                        ),
+                    )
+                },
+            )
         }
     }
 
