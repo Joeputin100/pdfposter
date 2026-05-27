@@ -93,8 +93,6 @@ import com.posterpdf.ml.etaForLocal
 import com.posterpdf.ml.formatEta
 import com.posterpdf.ui.theme.BlueprintBlue700
 import com.posterpdf.ui.theme.TrimOrange500
-import com.posterpdf.upscale.CREDIT_COST_BUDGET_USD
-import com.posterpdf.upscale.cogsForOption
 import com.posterpdf.upscale.creditsForOption
 import com.posterpdf.upscale.pickScale
 import kotlin.math.ceil
@@ -235,27 +233,11 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
     ),
 )
 
-/**
- * RC8 — DPI-aware scale picker, mirrors backend/functions/src/upscale.ts.
- * Pick the smallest supported scale that produces enough pixels to hit the
- * user's target DPI on the chosen poster size. Falls back to the largest
- * available scale if no scale meets the target. Pre-RC8 the client always
- * assumed 4× regardless of target DPI, so Topaz cost was displayed as $4.52
- * on an 8MP source × 16 scale-factor even when only 2× was needed to hit
- * 150 DPI.
- *
- * RC17 — two pricing-accuracy fixes:
- *  1. inputMp is now a Double (was Int with `coerceAtLeast(1)`). Sub-1 MP
- *     sources (e.g., 768×1024 = 0.79 MP) were rounding up to 1, which
- *     inflated the downstream outputMp from 12.58 → 16 MP and over-charged
- *     Topaz/AuraSR/ESRGAN by 25-67% on small sources.
- *  2. Dropped the 1.2× headroom on `required`. Topaz's
- *     `supportedScales = [2,4,6,8]` was forcing a jump from 4→6 whenever
- *     scale 4 met `targetMp` exactly but didn't clear `targetMp × 1.2` —
- *     billing the user for ~125% extra MP they never asked for. The 1.2×
- *     was justified as "20% crop headroom," but real bleed/crop is <5% of
- *     dimensions; targeting `targetMp` exactly is the honest behavior.
- */
+// RC65: the long KDoc that used to live here documented pickScale + the
+// RC8/RC17 pricing accuracy history. pickScale has moved to
+// com.posterpdf.upscale.PricingMath — git blame on PricingMath.kt's
+// pickScale recovers the rationale.
+
 private fun usdEquivalent(credits: Int, usdPerCredit: Double): String {
     if (usdPerCredit <= 0.0 || credits == 0) return "—"
     return "%.2f".format(credits * usdPerCredit)
