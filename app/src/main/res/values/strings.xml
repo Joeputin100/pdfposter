@@ -58,6 +58,8 @@
     <string name="gemini_qa_suggestion_model">Cheapest upscaler that hits 300 DPI?</string>
     <string name="gemini_qa_input_placeholder">Or type your question…</string>
     <string name="gemini_qa_send_cd">Send</string>
+    <string name="gemini_qa_voice_start_cd">Start voice input</string>
+    <string name="gemini_qa_voice_stop_cd">Stop voice input</string>
     <string name="gemini_qa_action_taken">Got it — running that now…</string>
     <string name="gemini_qa_error">Something went wrong: %1$s</string>
     <string name="drawer_cloud_storage">Cloud storage…</string>

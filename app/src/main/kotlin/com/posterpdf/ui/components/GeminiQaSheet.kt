@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -124,16 +126,35 @@ fun GeminiQaSheet(
 
             Spacer(Modifier.height(8.dp))
 
+            val voice = rememberVoiceInputController()
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                IconButton(
+                    onClick = {
+                        if (voice.isListening) voice.stop()
+                        else voice.start(onFinalTranscript = { onSendPrompt(it) })
+                    },
+                ) {
+                    Icon(
+                        if (voice.isListening) Icons.Filled.Stop else Icons.Filled.Mic,
+                        contentDescription = stringResource(
+                            if (voice.isListening) R.string.gemini_qa_voice_stop_cd
+                            else R.string.gemini_qa_voice_start_cd,
+                        ),
+                        tint = if (voice.isListening) MaterialTheme.colorScheme.error
+                               else MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Spacer(Modifier.width(8.dp))
                 OutlinedTextField(
-                    value = prompt,
+                    value = if (voice.isListening) voice.transcript else prompt,
                     onValueChange = { prompt = it },
                     modifier = Modifier.weight(1f),
                     placeholder = { Text(stringResource(R.string.gemini_qa_input_placeholder)) },
                     singleLine = true,
+                    enabled = !voice.isListening,
                 )
                 Spacer(Modifier.width(8.dp))
                 IconButton(
