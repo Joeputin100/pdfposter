@@ -848,4 +848,20 @@
     <string name="community_relative_hours_ago">%1$dघं पहले</string>
     <string name="community_relative_days_ago">%1$dदि पहले</string>
     <string name="community_post_by_author">%1$s द्वारा</string>
+
+    <!-- RC65: Gemini Q&amp;A -->
+    <string name="top_bar_gemini_cd">Gemini से पूछें</string>
+    <string name="gemini_qa_sheet_header">अपने पोस्टर के बारे में Gemini से पूछें</string>
+    <string name="gemini_qa_loading">सोच रहा है…</string>
+    <string name="gemini_qa_queries_left">आज %1$d फ्री क्वेरी बाकी</string>
+    <string name="gemini_qa_suggestions_header">यह पूछकर देखें…</string>
+    <string name="gemini_qa_suggestion_paper">मेरे पोस्टर के लिए कौन-सा पेपर साइज़?</string>
+    <string name="gemini_qa_suggestion_sharp">क्या मेरी इमेज पर्याप्त शार्प है?</string>
+    <string name="gemini_qa_suggestion_model">300 DPI के लिए सबसे सस्ता अपस्केलर?</string>
+    <string name="gemini_qa_input_placeholder">या अपना सवाल टाइप करें…</string>
+    <string name="gemini_qa_send_cd">भेजें</string>
+    <string name="gemini_qa_voice_start_cd">वॉइस इनपुट शुरू करें</string>
+    <string name="gemini_qa_voice_stop_cd">वॉइस इनपुट बंद करें</string>
+    <string name="gemini_qa_action_taken">समझ गया — अभी कर रहा हूँ…</string>
+    <string name="gemini_qa_error">कुछ गड़बड़ हो गई: %1$s</string>
 </resources>

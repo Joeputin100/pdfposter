@@ -846,4 +846,19 @@
     <string name="community_relative_hours_ago">%1$d 小时前</string>
     <string name="community_relative_days_ago">%1$d 天前</string>
     <string name="community_post_by_author">来自 %1$s</string>
+    <!-- RC65: Gemini Q&amp;A -->
+    <string name="top_bar_gemini_cd">向 Gemini 提问</string>
+    <string name="gemini_qa_sheet_header">向 Gemini 询问关于您海报的问题</string>
+    <string name="gemini_qa_loading">思考中…</string>
+    <string name="gemini_qa_queries_left">今天还剩 %1$d 次免费查询</string>
+    <string name="gemini_qa_suggestions_header">试试这样问…</string>
+    <string name="gemini_qa_suggestion_paper">我的海报适合什么纸张尺寸？</string>
+    <string name="gemini_qa_suggestion_sharp">我的图像够清晰吗？</string>
+    <string name="gemini_qa_suggestion_model">达到 300 DPI 最便宜的放大模型？</string>
+    <string name="gemini_qa_input_placeholder">或输入您的问题…</string>
+    <string name="gemini_qa_send_cd">发送</string>
+    <string name="gemini_qa_voice_start_cd">开始语音输入</string>
+    <string name="gemini_qa_voice_stop_cd">停止语音输入</string>
+    <string name="gemini_qa_action_taken">明白了 — 正在执行…</string>
+    <string name="gemini_qa_error">出错了：%1$s</string>
 </resources>

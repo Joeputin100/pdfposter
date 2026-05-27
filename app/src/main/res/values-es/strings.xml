@@ -849,4 +849,20 @@
     <string name="community_relative_hours_ago">hace %1$dh</string>
     <string name="community_relative_days_ago">hace %1$dd</string>
     <string name="community_post_by_author">por %1$s</string>
+
+    <!-- RC65: Gemini Q&amp;A -->
+    <string name="top_bar_gemini_cd">Preguntar a Gemini</string>
+    <string name="gemini_qa_sheet_header">Pregúntale a Gemini sobre tu póster</string>
+    <string name="gemini_qa_loading">Pensando…</string>
+    <string name="gemini_qa_queries_left">%1$d consultas gratis hoy</string>
+    <string name="gemini_qa_suggestions_header">Prueba a preguntar…</string>
+    <string name="gemini_qa_suggestion_paper">¿Qué tamaño de papel para mi póster?</string>
+    <string name="gemini_qa_suggestion_sharp">¿Mi imagen es lo bastante nítida?</string>
+    <string name="gemini_qa_suggestion_model">¿Escalador más barato que alcance 300 DPI?</string>
+    <string name="gemini_qa_input_placeholder">O escribe tu pregunta…</string>
+    <string name="gemini_qa_send_cd">Enviar</string>
+    <string name="gemini_qa_voice_start_cd">Iniciar entrada de voz</string>
+    <string name="gemini_qa_voice_stop_cd">Detener entrada de voz</string>
+    <string name="gemini_qa_action_taken">Entendido: ejecutándolo ahora…</string>
+    <string name="gemini_qa_error">Algo salió mal: %1$s</string>
 </resources>

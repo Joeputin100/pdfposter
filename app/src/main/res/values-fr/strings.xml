@@ -849,4 +849,19 @@
     <string name="community_relative_hours_ago">il y a %1$d h</string>
     <string name="community_relative_days_ago">il y a %1$d j</string>
     <string name="community_post_by_author">par %1$s</string>
+    <!-- RC65: Gemini Q&A -->
+    <string name="top_bar_gemini_cd">Demander à Gemini</string>
+    <string name="gemini_qa_sheet_header">Interroger Gemini sur votre affiche</string>
+    <string name="gemini_qa_loading">Réflexion en cours…</string>
+    <string name="gemini_qa_queries_left">%1$d requêtes gratuites restantes aujourd\'hui</string>
+    <string name="gemini_qa_suggestions_header">Essayez de demander…</string>
+    <string name="gemini_qa_suggestion_paper">Quel format de papier pour mon affiche ?</string>
+    <string name="gemini_qa_suggestion_sharp">Mon image est-elle assez nette ?</string>
+    <string name="gemini_qa_suggestion_model">Upscaler le moins cher à 300 DPI ?</string>
+    <string name="gemini_qa_input_placeholder">Ou tapez votre question…</string>
+    <string name="gemini_qa_send_cd">Envoyer</string>
+    <string name="gemini_qa_voice_start_cd">Démarrer la saisie vocale</string>
+    <string name="gemini_qa_voice_stop_cd">Arrêter la saisie vocale</string>
+    <string name="gemini_qa_action_taken">Compris — exécution en cours…</string>
+    <string name="gemini_qa_error">Une erreur s\'est produite : %1$s</string>
 </resources>

@@ -849,4 +849,19 @@
     <string name="community_relative_hours_ago">vor %1$d Std.</string>
     <string name="community_relative_days_ago">vor %1$d T.</string>
     <string name="community_post_by_author">von %1$s</string>
+    <!-- RC65: Gemini Q&amp;A -->
+    <string name="top_bar_gemini_cd">Gemini fragen</string>
+    <string name="gemini_qa_sheet_header">Gemini zu deinem Poster fragen</string>
+    <string name="gemini_qa_loading">Denke nach&#8230;</string>
+    <string name="gemini_qa_queries_left">Noch %1$d kostenlose Anfragen heute</string>
+    <string name="gemini_qa_suggestions_header">Versuch zu fragen&#8230;</string>
+    <string name="gemini_qa_suggestion_paper">Welches Papierformat für mein Poster?</string>
+    <string name="gemini_qa_suggestion_sharp">Ist mein Bild scharf genug?</string>
+    <string name="gemini_qa_suggestion_model">Günstigster Upscaler mit 300 DPI?</string>
+    <string name="gemini_qa_input_placeholder">Oder tippe deine Frage&#8230;</string>
+    <string name="gemini_qa_send_cd">Senden</string>
+    <string name="gemini_qa_voice_start_cd">Spracheingabe starten</string>
+    <string name="gemini_qa_voice_stop_cd">Spracheingabe stoppen</string>
+    <string name="gemini_qa_action_taken">Verstanden &#8212; wird ausgeführt&#8230;</string>
+    <string name="gemini_qa_error">Etwas ist schiefgelaufen: %1$s</string>
 </resources>

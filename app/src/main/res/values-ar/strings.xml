@@ -848,4 +848,19 @@
     <string name="community_relative_hours_ago">منذ %1$dس</string>
     <string name="community_relative_days_ago">منذ %1$dي</string>
     <string name="community_post_by_author">بواسطة %1$s</string>
+    <!-- RC65: Gemini Q&amp;A -->
+    <string name="top_bar_gemini_cd">اسأل Gemini</string>
+    <string name="gemini_qa_sheet_header">اسأل Gemini عن ملصقك</string>
+    <string name="gemini_qa_loading">جارٍ التفكير…</string>
+    <string name="gemini_qa_queries_left">تبقّى %1$d استفسار مجاني اليوم</string>
+    <string name="gemini_qa_suggestions_header">جرّب أن تسأل…</string>
+    <string name="gemini_qa_suggestion_paper">ما حجم الورق المناسب؟</string>
+    <string name="gemini_qa_suggestion_sharp">هل صورتي حادة بما يكفي؟</string>
+    <string name="gemini_qa_suggestion_model">أرخص مكبِّر يحقق 300 DPI؟</string>
+    <string name="gemini_qa_input_placeholder">أو اكتب سؤالك…</string>
+    <string name="gemini_qa_send_cd">إرسال</string>
+    <string name="gemini_qa_voice_start_cd">بدء الإدخال الصوتي</string>
+    <string name="gemini_qa_voice_stop_cd">إيقاف الإدخال الصوتي</string>
+    <string name="gemini_qa_action_taken">تمام — جارٍ التنفيذ الآن…</string>
+    <string name="gemini_qa_error">حدث خطأ ما: %1$s</string>
 </resources>

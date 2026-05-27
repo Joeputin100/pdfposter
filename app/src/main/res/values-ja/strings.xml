@@ -849,4 +849,19 @@
     <string name="community_relative_hours_ago">%1$d時間前</string>
     <string name="community_relative_days_ago">%1$d日前</string>
     <string name="community_post_by_author">投稿者: %1$s</string>
+    <!-- RC65: Gemini Q&amp;A -->
+    <string name="top_bar_gemini_cd">Geminiに質問</string>
+    <string name="gemini_qa_sheet_header">ポスターについてGeminiに質問</string>
+    <string name="gemini_qa_loading">考え中…</string>
+    <string name="gemini_qa_queries_left">本日の無料クエリ残り%1$d回</string>
+    <string name="gemini_qa_suggestions_header">こんな質問はいかが…</string>
+    <string name="gemini_qa_suggestion_paper">用紙サイズは何がおすすめ？</string>
+    <string name="gemini_qa_suggestion_sharp">画像は十分鮮明？</string>
+    <string name="gemini_qa_suggestion_model">300 DPIに届く最安アップスケーラーは？</string>
+    <string name="gemini_qa_input_placeholder">または質問を入力…</string>
+    <string name="gemini_qa_send_cd">送信</string>
+    <string name="gemini_qa_voice_start_cd">音声入力を開始</string>
+    <string name="gemini_qa_voice_stop_cd">音声入力を停止</string>
+    <string name="gemini_qa_action_taken">了解しました — 実行中です…</string>
+    <string name="gemini_qa_error">エラーが発生しました: %1$s</string>
 </resources>

@@ -847,4 +847,19 @@
     <string name="community_relative_hours_ago">%1$d ч назад</string>
     <string name="community_relative_days_ago">%1$d дн назад</string>
     <string name="community_post_by_author">от %1$s</string>
+    <!-- RC65: Gemini Q&amp;A -->
+    <string name="top_bar_gemini_cd">Спросить Gemini</string>
+    <string name="gemini_qa_sheet_header">Спросите Gemini о вашем постере</string>
+    <string name="gemini_qa_loading">Думаю…</string>
+    <string name="gemini_qa_queries_left">Осталось бесплатных запросов сегодня: %1$d</string>
+    <string name="gemini_qa_suggestions_header">Попробуйте спросить…</string>
+    <string name="gemini_qa_suggestion_paper">Какой размер бумаги для постера?</string>
+    <string name="gemini_qa_suggestion_sharp">Достаточно ли резкое изображение?</string>
+    <string name="gemini_qa_suggestion_model">Самый дешёвый апскейлер до 300 DPI?</string>
+    <string name="gemini_qa_input_placeholder">Или введите свой вопрос…</string>
+    <string name="gemini_qa_send_cd">Отправить</string>
+    <string name="gemini_qa_voice_start_cd">Начать голосовой ввод</string>
+    <string name="gemini_qa_voice_stop_cd">Остановить голосовой ввод</string>
+    <string name="gemini_qa_action_taken">Понял — выполняю…</string>
+    <string name="gemini_qa_error">Что-то пошло не так: %1$s</string>
 </resources>
