@@ -3,10 +3,12 @@ package com.posterpdf.ui.components
 import android.graphics.Bitmap
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,7 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -93,6 +95,7 @@ import com.posterpdf.ui.theme.BlueprintBlue700
 import com.posterpdf.ui.theme.TrimOrange500
 import kotlin.math.ceil
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -592,7 +595,7 @@ fun LowDpiUpgradeModal(
                         .zIndex(1f),
                     userScrollEnabled = false,
                 ) {
-                    items(visibleOptions) { modelEntry ->
+                    itemsIndexed(visibleOptions) { index, modelEntry ->
                         val option = ALL_OPTIONS.first { it.model == modelEntry }
                         // RC8: pick scale dynamically based on target DPI
                         // (mirrors backend pickScale). Fixes user-reported
@@ -632,6 +635,9 @@ fun LowDpiUpgradeModal(
                             onSignIn = onSignIn,
                             onBuyCredits = onBuyCredits,
                             onShowDetail = { detailModel = option.model },
+                            // RC64: stagger each card's bouncy entrance by index
+                            // (~50ms apart) so the grid cascades in on modal open.
+                            cardIndex = index,
                         )
                     }
                 }
@@ -800,6 +806,9 @@ private fun UpscaleOptionCard(
     // RC22-7: show the detailed model dialog. Triggered by the
     // lower-right Info icon button OR a double-tap anywhere on the card.
     onShowDetail: () -> Unit = {},
+    // RC64: position in the grid — drives the staggered entrance delay so
+    // cards cascade in on modal open instead of all popping at once.
+    cardIndex: Int = 0,
 ) {
     val isAi = credits > 0
     val isAiModel = option.model in setOf(
@@ -817,6 +826,30 @@ private fun UpscaleOptionCard(
     val scaleValue by animateFloatAsState(
         if (isSelected) 1.03f else 1f,
         label = "card_scale",
+    )
+
+    // RC64: MD3E-flavored bouncy entrance. Each card stages 50ms after the
+    // previous one so the grid cascades in on modal open. Spring with
+    // DampingRatioMediumBouncy overshoots ~12% before settling — feels
+    // expressive without being cartoonish. Effects (alpha) fade in on a
+    // shorter linear timeline; spatial (scale) bounces.
+    var hasEntered by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(cardIndex * 50L)
+        hasEntered = true
+    }
+    val entranceScale by animateFloatAsState(
+        targetValue = if (hasEntered) 1f else 0.6f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "card_entrance_scale",
+    )
+    val entranceAlpha by animateFloatAsState(
+        targetValue = if (hasEntered) 1f else 0f,
+        animationSpec = tween(durationMillis = 220),
+        label = "card_entrance_alpha",
     )
     // RC15: rewrote the card layering so glitter/pulse is actually visible.
     // RC14's setup was Card(containerColor=surfaceVariant) + .glintEffect
@@ -844,7 +877,17 @@ private fun UpscaleOptionCard(
             // cards get internal bottom padding (anchored top via
             // Arrangement.spacedBy on the inner Column).
             .height(CARD_HEIGHT_DP.dp)
-            .graphicsLayer { scaleX = scaleValue; scaleY = scaleValue }
+            // RC64: multiply selection-scale and entrance-scale, plus apply
+            // entrance alpha. Selection-scale (1.0↔1.03) is the existing
+            // "selected card glows + grows" effect; entrance-scale
+            // (0.6→bouncy→1.0) is the new staggered cascade-in. Both
+            // compose multiplicatively in graphicsLayer.
+            .graphicsLayer {
+                val s = scaleValue * entranceScale
+                scaleX = s
+                scaleY = s
+                alpha = entranceAlpha
+            }
             .shadow(
                 elevation = if (isSelected) 12.dp else 2.dp,
                 shape = RoundedCornerShape(20.dp),
