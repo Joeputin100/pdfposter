@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc66"  // RC66 (share-sheet + Open-with: ACTION_SEND/VIEW image/* → updateImage; splash skipped on share-launch)
+        versionName = "1.0-rc67"  // RC67 (sparkle moved left of credit chip; backend model corrected to gemini-2.5-flash)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

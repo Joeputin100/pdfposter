@@ -264,7 +264,7 @@ export const askGemini = onCall(
     const systemInstruction = buildSystemContext(data.currentSettings ?? {});
     const tools = buildToolDefinitions();
     const response = await geminiClient.generate({
-      model: 'gemini-3-5-flash',
+      model: 'gemini-2.5-flash',
       systemInstruction,
       tools,
       prompt,
@@ -290,9 +290,11 @@ import { GoogleGenAI } from '@google/genai';
  *  credentials (same path as RC60's vertex-imagen.ts —
  *  google-auth-library transitively, no API key, no secret).
  *
- *  Model is hard-coded to gemini-3-5-flash per the
- *  posterpdf-gemini-model-rule memory — 2.5 Flash was being deprecated
- *  in May 2026 and 3.5 is the canonical Flash variant. */
+ *  Model: gemini-2.5-flash. RC65 originally tried gemini-3-5-flash per
+ *  a stale memory rule, but probing the Vertex AI publishers/google
+ *  catalog in static-webbing-461904-c4/us-central1 showed only
+ *  gemini-2.5-flash returned 200 — 3.x is not yet GA. Revisit when
+ *  the next Flash version lands. */
 function buildProductionGeminiClient(): GeminiClient {
   const ai = new GoogleGenAI({
     vertexai: true,

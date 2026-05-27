@@ -1301,6 +1301,15 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                         // for the trailing "Login / Sign Up" button to
                         // render its full label without truncation in
                         // portrait orientation.
+                        // RC65/RC67: in-app Gemini Q&A entry — Google's
+                        // first-party sparkle pattern. Sits to the left
+                        // of the credit chip per RC66 device-test feedback.
+                        GeminiSparkleButton(onTap = {
+                            hapt.tap()
+                            viewModel.logEvent(context, "Gemini sparkle tapped")
+                            showGeminiSheet = true
+                        })
+
                         val signedInForChip = viewModel.authSession.signedIn &&
                             !viewModel.authSession.isAnonymous
                         if (signedInForChip) {
@@ -1322,16 +1331,6 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                 },
                             )
                         }
-
-                        // RC65: in-app Gemini Q&A entry — Google's first-party
-                        // sparkle pattern. Opens the modal Q&A sheet (Task 9
-                        // wires the sheet itself; this task only flips the
-                        // showGeminiSheet state on tap).
-                        GeminiSparkleButton(onTap = {
-                            hapt.tap()
-                            viewModel.logEvent(context, "Gemini sparkle tapped")
-                            showGeminiSheet = true
-                        })
 
                         AccountAvatarMenu(
                             session = viewModel.authSession,
