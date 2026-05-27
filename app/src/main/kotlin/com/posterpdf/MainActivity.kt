@@ -691,7 +691,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 stringResource(R.string.gemini_qa_suggestion_model),
             ),
             onSendPrompt = { prompt ->
-                viewModel.askGemini(prompt)
+                viewModel.askGemini(prompt, viewModel.debugCreditOverride ?: creditBalance)
             },
             onDismiss = {
                 showGeminiSheet = false

@@ -740,6 +740,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val aiUpscaleRepo = com.posterpdf.data.backend.AiUpscaleRepository(auth)
     private val geminiQaRepo by lazy { com.posterpdf.data.backend.GeminiQaRepository() }
 
+    // RC65: client-side tool-call router. When Gemini returns a toolCall
+    // (e.g. quoteUpscaleCost), we invoke the local agent-function so the
+    // numbers come from the same pricing module the modal uses, not from
+    // Gemini's prose.
+    private val agentFunctions by lazy {
+        com.posterpdf.agentfunctions.PosterPdfAgentFunctions(
+            appContext = appContext,
+            allOptions = com.posterpdf.ui.components.ALL_OPTIONS,
+        )
+    }
+
     // RC65: Gemini Q&A sheet state. Driven by askGemini() / resetGeminiQaState().
     var geminiQaState: com.posterpdf.ui.components.GeminiQaState by mutableStateOf(
         com.posterpdf.ui.components.GeminiQaState.Idle,
@@ -1495,7 +1506,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * context so Gemini's reply is specific to THIS poster, not generic
      * advice.
      */
-    fun askGemini(prompt: String) {
+    fun askGemini(prompt: String, currentCreditBalance: Int) {
         geminiQaState = com.posterpdf.ui.components.GeminiQaState.Loading
         viewModelScope.launch {
             val settings = buildMap<String, Any?> {
@@ -1513,10 +1524,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
             geminiQaState = result.fold(
                 onSuccess = { resp ->
-                    com.posterpdf.ui.components.GeminiQaState.Reply(
-                        text = resp.text.ifBlank {
+                    val toolCall = resp.toolCall
+                    val replyText = if (toolCall != null) {
+                        runCatching { routeToolCall(toolCall, currentCreditBalance) }
+                            .getOrElse { e ->
+                                "Tool call failed: ${e.message ?: "unknown error"}"
+                            }
+                    } else {
+                        resp.text.ifBlank {
                             appContext.getString(com.posterpdf.R.string.gemini_qa_action_taken)
-                        },
+                        }
+                    }
+                    com.posterpdf.ui.components.GeminiQaState.Reply(
+                        text = replyText,
                         remainingQueries = resp.remainingQueries,
                     )
                 },
@@ -1530,6 +1550,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 },
             )
         }
+    }
+
+    private fun routeToolCall(
+        toolCall: com.posterpdf.data.backend.ToolCall,
+        currentCreditBalance: Int,
+    ): String = when (toolCall.name) {
+        "quoteUpscaleCost" -> {
+            val args = toolCall.args
+            val modelStr = (args["upscaleModel"] as? String)?.lowercase()
+                ?: error("missing upscaleModel arg")
+            val model = com.posterpdf.ui.components.UpscaleModel.values()
+                .firstOrNull { it.name.equals(modelStr, ignoreCase = true) }
+                ?: error("unknown upscaleModel: $modelStr")
+            val widthIn = (args["targetWidthInches"] as? Number)?.toDouble()
+                ?: error("missing targetWidthInches")
+            val heightIn = (args["targetHeightInches"] as? Number)?.toDouble()
+                ?: error("missing targetHeightInches")
+            // Input MP from current source image; fall back to a 1MP estimate
+            // if no image is selected (Gemini may ask cost questions before
+            // image pick).
+            val dims = sourcePixelDimensions
+            val inputMp = if (dims != null) (dims.first * dims.second) / 1_000_000.0
+                          else 1.0
+            val quote = agentFunctions.quoteUpscaleCost(
+                upscaleModel = model,
+                targetWidthInches = widthIn,
+                targetHeightInches = heightIn,
+                inputMp = inputMp,
+                currentCreditBalance = currentCreditBalance,
+                targetDpi = 150,
+            )
+            quote.explanation
+        }
+        else -> "Unknown tool: ${toolCall.name}"
     }
 
     /**
