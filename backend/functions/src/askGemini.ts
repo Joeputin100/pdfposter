@@ -174,3 +174,107 @@ export async function applyRateLimit(
     return { allowed: true, remaining: DAILY_QUERY_LIMIT - nextCount };
   });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Callable wrapper
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { getFirestore } from 'firebase-admin/firestore';
+
+/** Injectable Gemini client. Real impl lands in Task 5; here we declare the
+ *  shape so the callable can be built + tested with a stub today. */
+export interface GeminiClient {
+  generate: (args: {
+    model: string;
+    systemInstruction: string;
+    tools: unknown[];
+    prompt: string;
+    imageGsUri: string | null;
+  }) => Promise<unknown>;
+}
+
+/** Stub Gemini client — returns a canned text response. Replaced in Task 5
+ *  by a real @google/genai client wired to Vertex AI. We default to the
+ *  stub so the callable compiles + deploys today without burning Gemini
+ *  tokens; production deploy in Task 5 calls setGeminiClient() before any
+ *  user request can land. */
+let geminiClient: GeminiClient = {
+  generate: async () => ({
+    candidates: [{
+      content: { parts: [{ text: 'Gemini integration not yet wired (Task 5 placeholder).' }] },
+    }],
+  }),
+};
+
+/** Module-init hook — Task 5 swaps the production @google/genai client in
+ *  here. Exported so future tests can inject a controlled fake. */
+export function setGeminiClient(client: GeminiClient): void {
+  geminiClient = client;
+}
+
+interface AskGeminiInput {
+  prompt: string;
+  imageGsUri?: string;
+  currentSettings?: {
+    selectedImageMp?: number;
+    targetWidthInches?: number;
+    targetHeightInches?: number;
+    paperSize?: string;
+    currentUpscaleModel?: string;
+  };
+}
+
+export const askGemini = onCall(
+  {
+    region: 'us-central1',
+    timeoutSeconds: 60,
+    memory: '512MiB',
+  },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError('unauthenticated', 'sign-in required');
+    }
+    const data = (request.data ?? {}) as Partial<AskGeminiInput>;
+    const prompt = data.prompt;
+    if (typeof prompt !== 'string' || prompt.trim().length === 0) {
+      throw new HttpsError('invalid-argument', 'prompt is required');
+    }
+    if (prompt.length > 2000) {
+      throw new HttpsError('invalid-argument', 'prompt must be ≤ 2000 characters');
+    }
+
+    // Rate limit: 10/day per user, transactional via Firestore.
+    const db = getFirestore();
+    const docRef = db.collection('users').doc(uid).collection('quota').doc('gemini_qa');
+    const rate = await applyRateLimit({
+      firestore: db as unknown as RateLimitDeps['firestore'],
+      docRef: docRef as unknown as RateLimitDeps['docRef'],
+      now: new Date(),
+    });
+    if (!rate.allowed) {
+      throw new HttpsError(
+        'resource-exhausted',
+        'Daily Gemini query limit reached. Come back tomorrow — Gemini is free here, but rationed.',
+      );
+    }
+
+    // Build context + dispatch to (stub or real) Gemini client.
+    const systemInstruction = buildSystemContext(data.currentSettings ?? {});
+    const tools = buildToolDefinitions();
+    const response = await geminiClient.generate({
+      model: 'gemini-3-5-flash',
+      systemInstruction,
+      tools,
+      prompt,
+      imageGsUri: data.imageGsUri ?? null,
+    });
+
+    return {
+      text: parseTextFromResponse(response),
+      toolCall: parseToolCallFromResponse(response),
+      remainingQueries: rate.remaining,
+    };
+  },
+);
