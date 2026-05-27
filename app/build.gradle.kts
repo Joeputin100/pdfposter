@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc60"  // RC60 — Google Imagen 4 upscale (Vertex AI, Pure-Google mid-tier)
+        versionName = "1.0-rc61"  // RC61 (dynamic price sort + BringYourOwn placement + PDF instructions overlap + Imagen comparison)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

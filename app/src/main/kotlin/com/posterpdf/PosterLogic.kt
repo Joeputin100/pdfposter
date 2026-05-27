@@ -536,7 +536,19 @@ class PosterLogic {
         val dw = (pw * scale).toFloat()
         val dh = (ph * scale).toFloat()
         val dx = if (isLandscapePage) (pgw * 0.50).toFloat() else 50f
-        val dy = if (isLandscapePage) ((pgh - dh) / 2.0).toFloat() else (pgh / 2.0 - dh / 2.0).toFloat()
+        // RC61: clamp dy from below so the grid bottom edge can't drop into
+        // the instructions-footer band (which starts at y≈132 — "How to
+        // assemble:" header at y=120, three step lines down to y=76, plus
+        // ~12pt cap height for the bold header text). Pre-RC61, landscape
+        // pages with diagAreaH near the cap (0.60 × 612 = 367) put dy at
+        // (612-367)/2 = 122 — i.e., BELOW the header, so the header drew
+        // on top of the grid. Portrait Letter pages never hit this case
+        // (dy ≥ 216) so the clamp is functionally landscape-only.
+        val footerTopY = 152f
+        val centeredDy =
+            if (isLandscapePage) ((pgh - dh) / 2.0).toFloat()
+            else (pgh / 2.0 - dh / 2.0).toFloat()
+        val dy = kotlin.math.max(footerTopY, centeredDy)
 
         // 1. Draw low-opacity background image
         cs.saveGraphicsState()

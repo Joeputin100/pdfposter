@@ -451,9 +451,31 @@ fun LowDpiUpgradeModal(
     // double-tap on the card body. Cleared by the dialog's onDismiss.
     var detailModel by remember { mutableStateOf<UpscaleModel?>(null) }
 
-    // All 6 model options always visible + BringYourOwn sentinel last.
-    val visibleOptions: List<UpscaleModel?> = remember {
-        ALL_OPTIONS.filter { it.model in ALL_MODELS }.map { it.model } + listOf<UpscaleModel?>(null)
+    // RC61: dynamic price sort. ALL_OPTIONS' static array order doesn't
+    // reflect actual cost for a given input image + target poster + DPI —
+    // e.g. Imagen at $0.03 flat is cheap on a 16 MP output but more
+    // expensive than per-MP CCSR on a 2 MP output, so the card ordering
+    // should re-rank per situation. Re-sort whenever the pricing inputs
+    // change. NONE and FREE_LOCAL anchor at the top (both cost 0); paid
+    // models sort by their computed credit cost using the SAME helpers
+    // the cards themselves call to render the price.
+    //
+    // RC61 (b): the BringYourOwn card no longer rides inside the grid as
+    // a null sentinel — that left a half-empty row when the model count
+    // is odd (the user reported a large empty space between the last
+    // model card and "Help me decide…"). It now renders as a full-width
+    // row BELOW the grid; see further down.
+    val visibleOptions: List<UpscaleModel> = remember(inputMp, posterWInches, posterHInches, targetDpi) {
+        val withCost = ALL_OPTIONS
+            .filter { it.model in ALL_MODELS }
+            .map { opt ->
+                val scale = pickScale(opt, inputMp, posterWInches, posterHInches, targetDpi)
+                val credits = creditsForOption(opt, inputMp, scale)
+                opt.model to credits
+            }
+        withCost
+            .sortedBy { (_, credits) -> credits }
+            .map { (model, _) -> model }
     }
 
     ModalBottomSheet(
@@ -555,53 +577,57 @@ fun LowDpiUpgradeModal(
                         .zIndex(1f),
                     userScrollEnabled = false,
                 ) {
-                    items(visibleOptions) { modelOrNull ->
-                        if (modelOrNull == null) {
-                            BringYourOwnCard(onPick = onShowBringYourOwnHelp)
-                        } else {
-                            val option = ALL_OPTIONS.first { it.model == modelOrNull }
-                            // RC8: pick scale dynamically based on target DPI
-                            // (mirrors backend pickScale). Fixes user-reported
-                            // "$4.52 Topaz cost on a poster that only needs 2×".
-                            val pickedScale = remember(option.model, inputMp, posterWInches, posterHInches, targetDpi) {
-                                pickScale(option, inputMp, posterWInches, posterHInches, targetDpi)
-                            }
-                            val credits = remember(option.model, inputMp, pickedScale) {
-                                creditsForOption(option, inputMp, pickedScale)
-                            }
-                            val usdStr = usdEquivalent(credits, usdPerCredit)
-                            val outputDpi = currentDpi * pickedScale
-                            val hasEnough = isAdmin || creditBalance >= credits
-
-                            UpscaleOptionCard(
-                                option = option,
-                                outputDpi = outputDpi,
-                                credits = credits,
-                                usdStr = usdStr,
-                                isAnonymous = isAnonymous,
-                                hasEnoughCredits = hasEnough,
-                                isSelected = selectedModel == option.model,
-                                freeCapability = if (option.model == UpscaleModel.FREE_LOCAL) freeCapability else null,
-                                freeEnabled = if (option.model == UpscaleModel.FREE_LOCAL) freeEnabled else true,
-                                localEtaText = if (option.model == UpscaleModel.FREE_LOCAL) localEtaText else null,
-                                pixelatedThumb = if (option.model == UpscaleModel.NONE) pixelatedThumb else null,
-                                // RC16: pass the source thumbnail to every
-                                // non-NONE card (Free + AI) so the new
-                                // instant-preview design works for all of
-                                // them. The "AI" cards overlay a brand
-                                // stripe inside the thumbnail box.
-                                onDeviceThumb = onDeviceThumb,
-                                usePulseEffect = usePulseEffect,
-                                onCardClick = { selectedModel = option.model },
-                                onFreeUpscale = onFreeUpscale,
-                                onAiUpscale = { onAiUpscale(option.model.name.lowercase(), null) },
-                                onSignIn = onSignIn,
-                                onBuyCredits = onBuyCredits,
-                                onShowDetail = { detailModel = option.model },
-                            )
+                    items(visibleOptions) { modelEntry ->
+                        val option = ALL_OPTIONS.first { it.model == modelEntry }
+                        // RC8: pick scale dynamically based on target DPI
+                        // (mirrors backend pickScale). Fixes user-reported
+                        // "$4.52 Topaz cost on a poster that only needs 2×".
+                        val pickedScale = remember(option.model, inputMp, posterWInches, posterHInches, targetDpi) {
+                            pickScale(option, inputMp, posterWInches, posterHInches, targetDpi)
                         }
+                        val credits = remember(option.model, inputMp, pickedScale) {
+                            creditsForOption(option, inputMp, pickedScale)
+                        }
+                        val usdStr = usdEquivalent(credits, usdPerCredit)
+                        val outputDpi = currentDpi * pickedScale
+                        val hasEnough = isAdmin || creditBalance >= credits
+
+                        UpscaleOptionCard(
+                            option = option,
+                            outputDpi = outputDpi,
+                            credits = credits,
+                            usdStr = usdStr,
+                            isAnonymous = isAnonymous,
+                            hasEnoughCredits = hasEnough,
+                            isSelected = selectedModel == option.model,
+                            freeCapability = if (option.model == UpscaleModel.FREE_LOCAL) freeCapability else null,
+                            freeEnabled = if (option.model == UpscaleModel.FREE_LOCAL) freeEnabled else true,
+                            localEtaText = if (option.model == UpscaleModel.FREE_LOCAL) localEtaText else null,
+                            pixelatedThumb = if (option.model == UpscaleModel.NONE) pixelatedThumb else null,
+                            // RC16: pass the source thumbnail to every
+                            // non-NONE card (Free + AI) so the new
+                            // instant-preview design works for all of
+                            // them. The "AI" cards overlay a brand
+                            // stripe inside the thumbnail box.
+                            onDeviceThumb = onDeviceThumb,
+                            usePulseEffect = usePulseEffect,
+                            onCardClick = { selectedModel = option.model },
+                            onFreeUpscale = onFreeUpscale,
+                            onAiUpscale = { onAiUpscale(option.model.name.lowercase(), null) },
+                            onSignIn = onSignIn,
+                            onBuyCredits = onBuyCredits,
+                            onShowDetail = { detailModel = option.model },
+                        )
                     }
                 }
+
+                // RC61: BringYourOwn pulled out of the grid so we don't
+                // leave a half-empty row when the model count is odd.
+                // Renders as a full-width card directly below the grid.
+                BringYourOwnCard(
+                    onPick = onShowBringYourOwnHelp,
+                    modifier = Modifier.fillMaxWidth(),
+                )
 
                 // RC3+: dropped expand/collapse — all cards visible above. Just
                 // the "Help me decide…" link remains, anchored right.
