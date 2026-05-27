@@ -74,6 +74,16 @@ service cloud.firestore {
         allow read: if isAuthed() && request.auth.uid == userId;
         allow write: if false;  // server-only
       }
+
+      // RC65: per-user Gemini Q&A rate limit. Backend writes
+      // (transactionally via applyRateLimit in askGemini.ts); the user
+      // can read their own count to display "X queries left today" in
+      // the Q&A sheet. No client writes — only the Cloud Function
+      // (running as the compute SA, which bypasses rules) updates it.
+      match /quota/{name} {
+        allow read: if isAuthed() && request.auth.uid == userId;
+        allow write: if false;
+      }
     }
 
     // Existing top-level collection used by /v1/credits/{stage,commit,refund}
