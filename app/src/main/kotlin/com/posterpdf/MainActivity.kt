@@ -58,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.posterpdf.ui.components.AccountAvatarMenu
 import com.posterpdf.ui.components.CreditBadge
 import com.posterpdf.ui.components.CreditChip
+import com.posterpdf.ui.components.GeminiSparkleButton
 import com.posterpdf.ui.components.GlassCard
 import com.posterpdf.ui.components.glassBackdrop
 import com.posterpdf.ui.components.glintEffect
@@ -379,6 +380,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     // balance (still 0 placeholder until G12 wires the live observer).
     var creditBalance by remember { mutableStateOf(0) }
     var showPurchaseSheet by remember { mutableStateOf(false) }
+    var showGeminiSheet by remember { mutableStateOf(false) }
 
     // Handle back button to close drawer
     BackHandler(enabled = drawerState.isOpen) {
@@ -1252,6 +1254,16 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                 },
                             )
                         }
+
+                        // RC65: in-app Gemini Q&A entry — Google's first-party
+                        // sparkle pattern. Opens the modal Q&A sheet (Task 9
+                        // wires the sheet itself; this task only flips the
+                        // showGeminiSheet state on tap).
+                        GeminiSparkleButton(onTap = {
+                            hapt.tap()
+                            viewModel.logEvent(context, "Gemini sparkle tapped")
+                            showGeminiSheet = true
+                        })
 
                         AccountAvatarMenu(
                             session = viewModel.authSession,

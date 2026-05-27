@@ -46,6 +46,8 @@
     <!-- RC48: top-bar wordmark + sign-in CTA -->
     <string name="top_bar_wordmark" translatable="false">PosterPDF</string>
     <string name="top_bar_login_signup" tools:maxLength="20">Login / Sign Up</string>
+    <!-- RC65: in-app Gemini Q&A sparkle button accessibility label. -->
+    <string name="top_bar_gemini_cd">Ask Gemini</string>
     <string name="drawer_cloud_storage">Cloud storage…</string>
     <!-- Language picker (RC5) -->
     <string name="drawer_language">Language</string>
