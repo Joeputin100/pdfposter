@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc65"  // RC65 (in-app Gemini Q&A — sparkle button, voice input, tool-call routing, 9-locale i18n)
+        versionName = "1.0-rc66"  // RC66 (share-sheet + Open-with: ACTION_SEND/VIEW image/* → updateImage; splash skipped on share-launch)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -32,10 +32,31 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:configChanges="uiMode|fontScale|locale|layoutDirection|orientation|screenSize|smallestScreenSize|screenLayout">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- RC66: Share-sheet target. Lets users share an image from
+                 Gemini, Photos, Chrome, etc. directly into PosterPDF. The
+                 incoming Uri is handed to viewModel.updateImage() which
+                 immediately copies bytes to app-private storage (so the
+                 temporary share-grant expiring is safe). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+            <!-- RC66: "Open with…" target. Same handler, different
+                 invocation point — file managers, Photos long-press, etc. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
 

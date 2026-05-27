@@ -1,6 +1,7 @@
 package com.posterpdf
 
 import androidx.activity.compose.BackHandler
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Build
@@ -10,6 +11,7 @@ import androidx.core.content.FileProvider
 import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.viewModels
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -89,6 +91,11 @@ class MainActivity : ComponentActivity() {
     private var jankStats: androidx.metrics.performance.JankStats? = null
     private var lastJankCustomKeyMs: Long = 0L
 
+    // RC66: class-level handle on the same Activity-scoped MainViewModel
+    // that MainScreen's viewModel() resolves to. Used by the share-target
+    // intent handler so we can call updateImage() from onCreate/onNewIntent.
+    private val viewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // RC8: install a global UncaughtExceptionHandler that writes the
         // stack trace to the debug log BEFORE the JVM dies. Crash diagnosis
@@ -120,6 +127,8 @@ class MainActivity : ComponentActivity() {
         // before super.onCreate.
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // RC66: handle a share/open-with that cold-launched the app.
+        handleIncomingShareIntent(intent)
         // RC11: request POST_NOTIFICATIONS on Android 13+ so the upscale
         // foreground service can surface its progress notification (and
         // future billing alerts can land too). Best-effort — if user
@@ -144,7 +153,9 @@ class MainActivity : ComponentActivity() {
                     com.posterpdf.ui.components.BackdropBlur(
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        var showSplash by remember { mutableStateOf(true) }
+                        // RC66: skip splash when share/Open-with launched the app — the user
+                        // came here intending to act on an image, splash is friction.
+                        var showSplash by remember { mutableStateOf(!isShareLaunch(intent)) }
                         if (showSplash) {
                             SplashScreen { showSplash = false }
                         } else {
@@ -180,6 +191,44 @@ class MainActivity : ComponentActivity() {
         jankStats?.isTrackingEnabled = false
         jankStats = null
         super.onDestroy()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // RC66: with launchMode=singleTask, a share while running routes
+        // here instead of onCreate. Update the Activity's stored intent
+        // (some Compose state observers read it) and forward to the
+        // shared handler.
+        setIntent(intent)
+        handleIncomingShareIntent(intent)
+    }
+
+    private fun isShareLaunch(intent: Intent?): Boolean {
+        if (intent == null) return false
+        val mime = intent.type ?: return false
+        if (!mime.startsWith("image/")) return false
+        return intent.action == Intent.ACTION_SEND || intent.action == Intent.ACTION_VIEW
+    }
+
+    private fun handleIncomingShareIntent(intent: Intent?) {
+        if (!isShareLaunch(intent)) return
+        val uri: Uri? = when (intent!!.action) {
+            Intent.ACTION_SEND -> {
+                if (android.os.Build.VERSION.SDK_INT >= 33) {
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
+                }
+            }
+            Intent.ACTION_VIEW -> intent.data
+            else -> null
+        }
+        if (uri != null) {
+            // RC66: existing entry point — copies bytes to app-private
+            // storage so we survive the share-grant expiring.
+            viewModel.updateImage(this, uri)
+        }
     }
 }
 
