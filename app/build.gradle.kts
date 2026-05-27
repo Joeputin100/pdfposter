@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc64"  // RC64 (MD3E bouncy staggered entrance on upscale-model cards)
+        versionName = "1.0-rc65"  // RC65 (in-app Gemini Q&A — sparkle button, voice input, tool-call routing, 9-locale i18n)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
