@@ -264,7 +264,7 @@ export const askGemini = onCall(
     const systemInstruction = buildSystemContext(data.currentSettings ?? {});
     const tools = buildToolDefinitions();
     const response = await geminiClient.generate({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.5-flash',
       systemInstruction,
       tools,
       prompt,
@@ -290,16 +290,17 @@ import { GoogleGenAI } from '@google/genai';
  *  credentials (same path as RC60's vertex-imagen.ts —
  *  google-auth-library transitively, no API key, no secret).
  *
- *  Model: gemini-2.5-flash. RC65 originally tried gemini-3-5-flash per
- *  a stale memory rule, but probing the Vertex AI publishers/google
- *  catalog in static-webbing-461904-c4/us-central1 showed only
- *  gemini-2.5-flash returned 200 — 3.x is not yet GA. Revisit when
- *  the next Flash version lands. */
+ *  Model: gemini-3.5-flash on the `global` endpoint. The 3.5 Flash
+ *  publisher model is only served from `publishers/google/models/
+ *  gemini-3.5-flash` at the GLOBAL location — us-central1 returns
+ *  404. RC65 originally shipped with `gemini-3-5-flash` (hyphen, not
+ *  dot) AND us-central1; both wrong. RC67 corrects to the dot form
+ *  + global. Probe before swapping when newer Flash versions land. */
 function buildProductionGeminiClient(): GeminiClient {
   const ai = new GoogleGenAI({
     vertexai: true,
     project: 'static-webbing-461904-c4',
-    location: 'us-central1',
+    location: 'global',
   });
   return {
     generate: async (args) => {
