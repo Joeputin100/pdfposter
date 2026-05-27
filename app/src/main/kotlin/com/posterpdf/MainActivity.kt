@@ -58,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.posterpdf.ui.components.AccountAvatarMenu
 import com.posterpdf.ui.components.CreditBadge
 import com.posterpdf.ui.components.CreditChip
+import com.posterpdf.ui.components.GeminiQaSheet
 import com.posterpdf.ui.components.GeminiSparkleButton
 import com.posterpdf.ui.components.GlassCard
 import com.posterpdf.ui.components.glassBackdrop
@@ -677,6 +678,24 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 TextButton(onClick = { viewModel.cancelAiUpscaleConfirm() }) {
                     Text(stringResource(R.string.common_cancel))
                 }
+            },
+        )
+    }
+
+    if (showGeminiSheet) {
+        GeminiQaSheet(
+            state = viewModel.geminiQaState,
+            suggestions = listOf(
+                stringResource(R.string.gemini_qa_suggestion_paper),
+                stringResource(R.string.gemini_qa_suggestion_sharp),
+                stringResource(R.string.gemini_qa_suggestion_model),
+            ),
+            onSendPrompt = { prompt ->
+                viewModel.askGemini(prompt)
+            },
+            onDismiss = {
+                showGeminiSheet = false
+                viewModel.resetGeminiQaState()
             },
         )
     }

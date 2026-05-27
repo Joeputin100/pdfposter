@@ -48,6 +48,16 @@
     <string name="top_bar_login_signup" tools:maxLength="20">Login / Sign Up</string>
     <!-- RC65: in-app Gemini Q&A sparkle button accessibility label. -->
     <string name="top_bar_gemini_cd">Ask Gemini</string>
+    <!-- RC65: Gemini Q&A sheet copy. -->
+    <string name="gemini_qa_sheet_header">Ask Gemini about your poster</string>
+    <string name="gemini_qa_loading">Thinking…</string>
+    <string name="gemini_qa_queries_left">%1$d free queries left today</string>
+    <string name="gemini_qa_suggestions_header">Try asking…</string>
+    <string name="gemini_qa_suggestion_paper">What paper size for my poster?</string>
+    <string name="gemini_qa_suggestion_sharp">Is my image sharp enough?</string>
+    <string name="gemini_qa_suggestion_model">Cheapest upscaler that hits 300 DPI?</string>
+    <string name="gemini_qa_input_placeholder">Or type your question…</string>
+    <string name="gemini_qa_send_cd">Send</string>
     <string name="drawer_cloud_storage">Cloud storage…</string>
     <!-- Language picker (RC5) -->
     <string name="drawer_language">Language</string>
