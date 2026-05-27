@@ -773,7 +773,7 @@
     <string name="upscale_option_free_pros">Gratuito, offline, funciona sem internet</string>
     <string name="upscale_option_free_upscale">Aprimoramento grátis</string>
     <string name="upscale_option_imagen_cons">Limite de 17 MP na saída · filtros de segurança do Google se aplicam</string>
-    <string name="upscale_option_imagen_pros">Pilha 100% Google &#8212; fiel à foto, feito pelo Google</string>
+    <string name="upscale_option_imagen_pros">Aumento de resolução fiel à foto &#8212; feito pelo Google</string>
     <string name="upscale_option_now_cons">Pixelação visível em impressões grandes</string>
     <string name="upscale_option_now_pixelated">Agora (pixelado)</string>
     <string name="upscale_option_now_pros">Mais rápido, gratuito, funciona em qualquer dispositivo</string>

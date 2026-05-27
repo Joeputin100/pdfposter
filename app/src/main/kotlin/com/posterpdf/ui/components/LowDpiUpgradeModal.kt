@@ -818,6 +818,15 @@ private fun UpscaleOptionCard(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
+            // RC62: fillMaxHeight ensures every card matches its grid cell's
+            // height (cardHeightDp). Without this, cards with shorter
+            // pros/cons text rendered shorter than the cell, leaving the
+            // remaining cell height as visible empty space — accumulating
+            // visually as a ~80dp gap below the last row, just above
+            // BringYourOwn (user reported "about an inch of blank space"
+            // in RC61). With fillMaxHeight all cards report identical
+            // height, satisfying the "consistent height" request.
+            .fillMaxHeight()
             .graphicsLayer { scaleX = scaleValue; scaleY = scaleValue }
             .shadow(
                 elevation = if (isSelected) 12.dp else 2.dp,
@@ -840,6 +849,7 @@ private fun UpscaleOptionCard(
     ) {
         Column(
             modifier = Modifier
+                .fillMaxHeight()
                 .background(paperFill)
                 .let {
                     // Glitter / pulse drawn between the paper fill (Box bg

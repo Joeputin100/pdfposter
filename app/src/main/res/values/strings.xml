@@ -689,8 +689,11 @@
     <string name="upscale_option_ccsr_cons">Slower than ESRGAN; less crisp on text than Topaz</string>
     <string name="upscale_option_topaz_pros">Best for text, line art &amp; print-shop polish</string>
     <string name="upscale_option_topaz_cons">30× the cost for ~10–20% sharper edges</string>
-    <!-- RC60: Google Imagen pros/cons. Material 3 body-small budget; ~80 chars each. -->
-    <string name="upscale_option_imagen_pros">Pure-Google stack — photo-faithful, made by Google</string>
+    <!-- RC60: Google Imagen pros/cons. Material 3 body-small budget; ~80 chars each.
+         RC62: dropped the "Pure-Google stack" framing — that copy was aimed at
+         Play Store editorial reviewers, not consumers. New phrasing matches the
+         pattern of the other model cards (descriptive benefit + provider). -->
+    <string name="upscale_option_imagen_pros">Photo-faithful upscale — made by Google</string>
     <string name="upscale_option_imagen_cons">17 MP output cap · Google safety filters apply</string>
 
     <!-- RC60: Imagen-specific error messages surfaced when the Vertex API

@@ -772,7 +772,7 @@
     <string name="upscale_option_free_pros">免费、离线，无需联网即可使用</string>
     <string name="upscale_option_free_upscale">免费提升</string>
     <string name="upscale_option_imagen_cons">输出上限 17 MP · 受 Google 安全过滤器限制</string>
-    <string name="upscale_option_imagen_pros">纯 Google 技术栈 — 照片还原度高，Google 出品</string>
+    <string name="upscale_option_imagen_pros">照片级还原放大 — Google 出品</string>
     <string name="upscale_option_now_cons">大尺寸打印时可见明显像素化</string>
     <string name="upscale_option_now_pixelated">当前（像素化）</string>
     <string name="upscale_option_now_pros">最快、免费，适用于任何设备</string>

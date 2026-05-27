@@ -773,7 +773,7 @@
     <string name="upscale_option_free_pros">Бесплатно, офлайн, без интернета</string>
     <string name="upscale_option_free_upscale">Бесплатное улучшение</string>
     <string name="upscale_option_imagen_cons">Предел 17 МП на выходе · действуют фильтры безопасности Google</string>
-    <string name="upscale_option_imagen_pros">Чистый стек Google — точная передача фото от Google</string>
+    <string name="upscale_option_imagen_pros">Точная передача фото — от Google</string>
     <string name="upscale_option_now_cons">Заметная пикселизация при крупной печати</string>
     <string name="upscale_option_now_pixelated">Сейчас (пикселизировано)</string>
     <string name="upscale_option_now_pros">Максимально быстро, бесплатно, работает на любом устройстве</string>

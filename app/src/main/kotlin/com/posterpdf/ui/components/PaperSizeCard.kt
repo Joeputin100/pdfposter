@@ -85,6 +85,15 @@ val BUILT_IN_PAPER_OPTIONS = listOf(
         dimensions = "11 × 17 in",
         drawableRes = R.drawable.paper_tabloid,
     ),
+    // RC62: A3 (297×420mm = 11.69×16.54in). Same aspect ratio as A4 (ISO 216
+    // 1:√2) so reusing the A4 vector drawable renders correctly proportioned;
+    // a dedicated paper_a3.xml with A3-scaled grid lines is a future polish item.
+    PaperOption(
+        label = "A3 (11.69x16.54)",
+        shortName = "A3",
+        dimensions = "297 × 420 mm",
+        drawableRes = R.drawable.paper_a4,
+    ),
 )
 
 /**

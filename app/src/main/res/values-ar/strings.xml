@@ -772,7 +772,7 @@
     <string name="upscale_option_free_pros">مجاني، دون اتصال، يعمل دون إنترنت</string>
     <string name="upscale_option_free_upscale">ترقية مجانية</string>
     <string name="upscale_option_imagen_cons">حد أقصى للإخراج 17 ميغابكسل · تُطبَّق فلاتر أمان Google</string>
-    <string name="upscale_option_imagen_pros">حزمة Google خالصة &#8212; وفيّة للصور، من صنع Google</string>
+    <string name="upscale_option_imagen_pros">ترقية وفيّة للصور &#8212; من صنع Google</string>
     <string name="upscale_option_now_cons">تظهر بكسلة عند الطباعات الكبيرة</string>
     <string name="upscale_option_now_pixelated">الآن (مبكسلة)</string>
     <string name="upscale_option_now_pros">الأسرع، مجاني، يعمل على أي جهاز</string>

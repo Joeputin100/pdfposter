@@ -751,10 +751,16 @@ class PosterLogic {
         cs.endText()
 
         // Instructions Footer
+        // RC62: moved footer text down by 28pt (≈ 1cm) per device-test
+        // feedback that the RC61 clamp (dy ≥ 152) still left the "How to
+        // assemble:" header bumping the grid's bottom edge. Header now
+        // sits at y=92 instead of y=120; steps below at y=74 instead of
+        // y=102. Buffer above the header top edge is now ~48pt instead
+        // of 20pt. "Made with" credit at y=18 still has room.
         cs.setNonStrokingColor(0.12f, 0.12f, 0.15f)
         cs.beginText()
         cs.setFont(PDType1Font.HELVETICA_BOLD, 12f)
-        cs.newLineAtOffset(if (isLandscapePage) 42f else 50f, 120f)
+        cs.newLineAtOffset(if (isLandscapePage) 42f else 50f, 92f)
         cs.showText(pdfCtx.getString(R.string.pdf_how_to_assemble_header))
         cs.endText()
         // RC42: word-wrap each assembly step. Footer text spans full page
@@ -770,7 +776,8 @@ class PosterLogic {
         ).map { pdfCtx.getString(it) }
         cs.beginText()
         cs.setFont(stepFont, stepFontSize)
-        cs.newLineAtOffset(if (isLandscapePage) 42f else 50f, 102f)
+        // RC62: steps text moved down by 28pt to match the header shift.
+        cs.newLineAtOffset(if (isLandscapePage) 42f else 50f, 74f)
         for ((i, raw) in steps.withIndex()) {
             if (i > 0) cs.newLineAtOffset(0f, stepLeading)
             val wrapped = wrapText(raw, stepFont, stepFontSize, stepWrapWidth)

@@ -773,7 +773,7 @@
     <string name="upscale_option_free_pros">Gratuit, hors ligne, fonctionne sans internet</string>
     <string name="upscale_option_free_upscale">Mise à l\'échelle gratuite</string>
     <string name="upscale_option_imagen_cons">Plafond de sortie 17 MP · filtres de sécurité Google appliqués</string>
-    <string name="upscale_option_imagen_pros">Stack 100%% Google &#8212; fidèle aux photos, signé Google</string>
+    <string name="upscale_option_imagen_pros">Agrandissement fidèle aux photos &#8212; signé Google</string>
     <string name="upscale_option_now_cons">Pixelisation visible sur les grandes impressions</string>
     <string name="upscale_option_now_pixelated">Maintenant (pixelisé)</string>
     <string name="upscale_option_now_pros">Le plus rapide, gratuit, fonctionne sur n\'importe quel appareil</string>

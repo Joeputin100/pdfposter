@@ -773,7 +773,7 @@
     <string name="upscale_option_free_pros">無料、オフライン、インターネット不要</string>
     <string name="upscale_option_free_upscale">無料アップスケール</string>
     <string name="upscale_option_imagen_cons">17 MPの出力上限・Googleの安全フィルター適用</string>
-    <string name="upscale_option_imagen_pros">純正Google製 &#8212; 写真忠実、Google開発</string>
+    <string name="upscale_option_imagen_pros">写真に忠実なアップスケール &#8212; Google製</string>
     <string name="upscale_option_now_cons">大きな印刷で目立つピクセル化</string>
     <string name="upscale_option_now_pixelated">現在 (ピクセル化)</string>
     <string name="upscale_option_now_pros">最速、無料、どの端末でも動作</string>

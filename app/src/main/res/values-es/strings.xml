@@ -770,7 +770,7 @@
     <string name="upscale_option_esrgan_cons">Modelo antiguo; puede suavizar en exceso los detalles finos</string>
     <string name="upscale_option_esrgan_pros">Limpieza económica — base predecible de código abierto</string>
     <string name="upscale_option_imagen_cons">Tope de salida de 17 MP &#183; se aplican los filtros de Google</string>
-    <string name="upscale_option_imagen_pros">Stack 100%% Google — fiel a la foto, hecho por Google</string>
+    <string name="upscale_option_imagen_pros">Escalado fiel a la foto — hecho por Google</string>
     <string name="upscale_option_free_cons">Más lento en teléfonos antiguos; máximo 4&#215;</string>
     <string name="upscale_option_free_pros">Gratis, sin conexión, funciona sin internet</string>
     <string name="upscale_option_free_upscale">Mejora gratuita</string>
