@@ -278,3 +278,51 @@ export const askGemini = onCall(
     };
   },
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Production GeminiClient — real Vertex AI integration
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { GoogleGenAI } from '@google/genai';
+
+/** Build the production GeminiClient backed by @google/genai + Vertex AI.
+ *  Authenticates via the Cloud Function's default service account
+ *  credentials (same path as RC60's vertex-imagen.ts —
+ *  google-auth-library transitively, no API key, no secret).
+ *
+ *  Model is hard-coded to gemini-3-5-flash per the
+ *  posterpdf-gemini-model-rule memory — 2.5 Flash was being deprecated
+ *  in May 2026 and 3.5 is the canonical Flash variant. */
+function buildProductionGeminiClient(): GeminiClient {
+  const ai = new GoogleGenAI({
+    vertexai: true,
+    project: 'static-webbing-461904-c4',
+    location: 'us-central1',
+  });
+  return {
+    generate: async (args) => {
+      // Build the multimodal contents array. Image (if any) goes first,
+      // text second — matches the SDK's documented multipart input shape.
+      const parts: Array<unknown> = [];
+      if (args.imageGsUri) {
+        parts.push({ fileData: { mimeType: 'image/png', fileUri: args.imageGsUri } });
+      }
+      parts.push({ text: args.prompt });
+
+      const response = await ai.models.generateContent({
+        model: args.model,
+        contents: [{ role: 'user', parts }] as never,
+        config: {
+          systemInstruction: args.systemInstruction,
+          tools: args.tools as never,
+        },
+      });
+      return response as unknown;
+    },
+  };
+}
+
+// Swap the Task 4 stub for the production client at module load. This runs
+// during Cloud Function cold-start, BEFORE any user request can land, so
+// there's no race window where the stub could answer a real call.
+setGeminiClient(buildProductionGeminiClient());
