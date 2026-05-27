@@ -828,27 +828,29 @@ private fun UpscaleOptionCard(
         label = "card_scale",
     )
 
-    // RC64: MD3E-flavored bouncy entrance. Each card stages 50ms after the
+    // RC64: MD3E-flavored bouncy entrance. Each card stages after the
     // previous one so the grid cascades in on modal open. Spring with
     // DampingRatioMediumBouncy overshoots ~12% before settling — feels
     // expressive without being cartoonish. Effects (alpha) fade in on a
     // shorter linear timeline; spatial (scale) bounces.
+    // RC65 (no-build tweak): timing slowed 20% — stagger 50→60ms, spring
+    // stiffness 400→280 (perceived ~20% longer bounce), alpha 220→264ms.
     var hasEntered by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        delay(cardIndex * 50L)
+        delay(cardIndex * 60L)
         hasEntered = true
     }
     val entranceScale by animateFloatAsState(
         targetValue = if (hasEntered) 1f else 0.6f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMediumLow,
+            stiffness = 280f,  // ~20% slower than Spring.StiffnessMediumLow (400f)
         ),
         label = "card_entrance_scale",
     )
     val entranceAlpha by animateFloatAsState(
         targetValue = if (hasEntered) 1f else 0f,
-        animationSpec = tween(durationMillis = 220),
+        animationSpec = tween(durationMillis = 264),
         label = "card_entrance_alpha",
     )
     // RC15: rewrote the card layering so glitter/pulse is actually visible.
