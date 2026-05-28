@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc73"  // RC73 (code-review fixes: meter Gemini continuation, queries-left wording, drawer drag polish)
+        versionName = "1.0-rc74"  // RC74 (Pixel 6 on-device upscale SIGSEGV fix: drop NnApiDelegate → XNNPACK CPU)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

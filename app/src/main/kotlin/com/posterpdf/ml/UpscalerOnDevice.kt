@@ -8,7 +8,6 @@ import android.graphics.Rect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.Interpreter
-import org.tensorflow.lite.nnapi.NnApiDelegate
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -37,7 +36,6 @@ object UpscalerOnDevice {
     private const val SCALE = 4
 
     @Volatile private var interpreter: Interpreter? = null
-    @Volatile private var nnApiDelegate: NnApiDelegate? = null
     @Volatile private var appContext: Context? = null
 
     /** Call once (e.g. from Application or first use site) to bind a Context. */
@@ -53,14 +51,17 @@ object UpscalerOnDevice {
                 ?: error("UpscalerOnDevice.init(context) must be called before upscale()")
             val model = loadModelFile(ctx)
             val opts = Interpreter.Options().apply {
-                // NNAPI on supported devices; falls back to CPU automatically if unavailable.
-                try {
-                    val delegate = NnApiDelegate()
-                    nnApiDelegate = delegate
-                    addDelegate(delegate)
-                } catch (_: Throwable) {
-                    // NNAPI unavailable; CPU path is fine.
-                }
+                // RC74: NNAPI is deliberately NOT used. On Google Tensor SoCs
+                // (Pixel 6 "oriole" confirmed 2026-05-28 via Firebase Test Lab)
+                // the vendor NNAPI driver (google-armnn) corrupts the native
+                // heap mid-inference and crashes the process with a SIGSEGV
+                // inside Interpreter.run() (free() in scudo). OEM NNAPI drivers
+                // are broadly unreliable for this model, so we run the
+                // well-tested XNNPACK CPU path, which TFLite enables by default
+                // for this FP32 model. Do NOT re-add an NnApiDelegate without a
+                // device-gate + FTL re-verification. setNumThreads gives
+                // XNNPACK multi-core parallelism to offset losing the
+                // accelerator; this runs on Dispatchers.Default so it won't ANR.
                 setNumThreads(4)
             }
             return Interpreter(model, opts).also { interpreter = it }
@@ -243,8 +244,6 @@ object UpscalerOnDevice {
         synchronized(this) {
             interpreter?.close()
             interpreter = null
-            nnApiDelegate?.close()
-            nnApiDelegate = null
         }
     }
 
@@ -264,7 +263,7 @@ object UpscalerOnDevice {
         init(ctx)
         val sample = Bitmap.createBitmap(BENCHMARK_TILE, BENCHMARK_TILE, Bitmap.Config.ARGB_8888)
         try {
-            // Warm-up — JIT, kernel cache, NNAPI provisioning. Discarded.
+            // Warm-up — JIT + XNNPACK kernel cache. Discarded.
             upscale(sample).recycle()
             val timings = LongArray(BENCHMARK_RUNS)
             for (i in 0 until BENCHMARK_RUNS) {
