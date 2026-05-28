@@ -133,7 +133,9 @@ class MainActivity : ComponentActivity() {
         // RC69: debug-only deep link for CI screenshot capture. BuildConfig.DEBUG
         // gates it so release builds ignore the extra entirely.
         if (com.posterpdf.BuildConfig.DEBUG) {
-            when (intent?.getStringExtra("screenshot")) {
+            val screenshotExtra = intent?.getStringExtra("screenshot")
+            android.util.Log.i("UPSCALE_TEST", "debug hook fired, screenshot extra=$screenshotExtra")
+            when (screenshotExtra) {
                 "compare" -> viewModel.showUpscaleComparison = true
                 "model_picker" -> {
                     // Seed a bundled test image so the picker has content, then open it.

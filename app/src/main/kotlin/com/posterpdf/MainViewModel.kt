@@ -459,6 +459,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * failed.
      */
     fun runUpscaleAndPdfDeviceTest(context: Context) {
+        // RC73: emit to REAL logcat (tag UPSCALE_TEST). logEvent writes only to
+        // the in-app debug-log file AND is gated by debugLoggingEnabled (off by
+        // default), so it never reaches FTL's logcat — Log.i is what makes the
+        // per-device timing + diagnosis visible in the captured logcat.
+        android.util.Log.i("UPSCALE_TEST", "driver start")
         val t0 = System.currentTimeMillis()
         // Seed the bundled dogcow preview + source dimensions, then materialize
         // a real file URI for it: both runFreeUpscale and generatePoster bail
@@ -478,12 +483,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 selectedImageUri = Uri.fromFile(seedFile)
                 sourcePixelDimensions = seedBmp.width to seedBmp.height
+                android.util.Log.i("UPSCALE_TEST", "seeded ${seedBmp.width}x${seedBmp.height} uri=$selectedImageUri posterWidth=$posterWidth")
                 logEvent(context, "upscale_test", "seeded ${seedBmp.width}x${seedBmp.height}, posterWidth=$posterWidth")
 
                 // Kick off the on-device free upscale and await completion via
                 // the isFreeUpscaling flag (true at start, false in finally).
                 wasUpscaled = false
                 errorMessage = null
+                android.util.Log.i("UPSCALE_TEST", "calling runFreeUpscale")
                 runFreeUpscale(context)
 
                 // Wait for it to START (guard ~5s) then to FINISH.
@@ -491,23 +498,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 while (!isFreeUpscaling && System.currentTimeMillis() < startGuard) {
                     kotlinx.coroutines.delay(100)
                 }
+                android.util.Log.i("UPSCALE_TEST", "upscale loop entered=${isFreeUpscaling}")
                 while (isFreeUpscaling) {
                     kotlinx.coroutines.delay(250)
                 }
                 val upscaleMs = System.currentTimeMillis() - t0
+                android.util.Log.i("UPSCALE_TEST", "upscale finished wasUpscaled=$wasUpscaled upscaleMs=$upscaleMs err=${errorMessage ?: "-"}")
                 if (!wasUpscaled) {
                     throw IllegalStateException("upscale did not succeed: ${errorMessage ?: "unknown"}")
                 }
                 logEvent(context, "upscale_test", "upscale complete upscaleMs=$upscaleMs")
 
+                android.util.Log.i("UPSCALE_TEST", "calling generatePoster")
                 generatePoster(context) {
                     deviceTestStatus = "UPSCALE_TEST_DONE upscaleMs=$upscaleMs " +
                         "totalMs=${System.currentTimeMillis() - t0} " +
                         "pdf=${lastGeneratedFile?.name ?: "?"}"
+                    android.util.Log.i("UPSCALE_TEST", deviceTestStatus)
                     logEvent(context, "upscale_test", deviceTestStatus)
                 }
             } catch (e: Throwable) {
                 deviceTestStatus = "UPSCALE_TEST_FAILED: ${e.message}"
+                android.util.Log.e("UPSCALE_TEST", "FAILED", e)
                 logEvent(context, "upscale_test", deviceTestStatus)
             }
         }
