@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc72"  // RC72 (fix: BringYourOwn help dialog auto-closed with the drawer)
+        versionName = "1.0-rc73"  // RC73 (code-review fixes: meter Gemini continuation, queries-left wording, drawer drag polish)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

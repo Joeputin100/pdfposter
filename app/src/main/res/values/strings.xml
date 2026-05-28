@@ -51,7 +51,7 @@
     <!-- RC65: Gemini Q&A sheet copy. -->
     <string name="gemini_qa_sheet_header">Ask Gemini about your poster</string>
     <string name="gemini_qa_loading">Thinking…</string>
-    <string name="gemini_qa_queries_left">%1$d free queries left today</string>
+    <string name="gemini_qa_queries_left">%1$d queries left today</string>
     <string name="gemini_qa_suggestions_header">Try asking…</string>
     <string name="gemini_qa_suggestion_paper">What paper size for my poster?</string>
     <string name="gemini_qa_suggestion_sharp">Is my image sharp enough?</string>

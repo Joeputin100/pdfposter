@@ -850,7 +850,7 @@
     <string name="top_bar_gemini_cd">向 Gemini 提问</string>
     <string name="gemini_qa_sheet_header">向 Gemini 询问关于您海报的问题</string>
     <string name="gemini_qa_loading">思考中…</string>
-    <string name="gemini_qa_queries_left">今天还剩 %1$d 次免费查询</string>
+    <string name="gemini_qa_queries_left">今天还剩 %1$d 次查询</string>
     <string name="gemini_qa_suggestions_header">试试这样问…</string>
     <string name="gemini_qa_suggestion_paper">我的海报适合什么纸张尺寸？</string>
     <string name="gemini_qa_suggestion_sharp">我的图像够清晰吗？</string>

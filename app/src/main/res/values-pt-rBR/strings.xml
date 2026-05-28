@@ -854,7 +854,7 @@
     <string name="top_bar_gemini_cd">Perguntar ao Gemini</string>
     <string name="gemini_qa_sheet_header">Pergunte ao Gemini sobre seu pôster</string>
     <string name="gemini_qa_loading">Pensando…</string>
-    <string name="gemini_qa_queries_left">%1$d consultas gratuitas restantes hoje</string>
+    <string name="gemini_qa_queries_left">%1$d consultas restantes hoje</string>
     <string name="gemini_qa_suggestions_header">Experimente perguntar…</string>
     <string name="gemini_qa_suggestion_paper">Qual tamanho de papel para meu pôster?</string>
     <string name="gemini_qa_suggestion_sharp">Minha imagem está nítida o bastante?</string>

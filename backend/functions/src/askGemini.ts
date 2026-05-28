@@ -338,11 +338,32 @@ export async function handleAskGemini(
   // ── Continuation turn (RC69): client already executed the tool locally
   // and passes the result back. Replay [user prompt → model functionCall →
   // functionResponse] so Gemini composes a natural reply with the real
-  // numbers. This is the SAME logical query as turn 1, so it must NOT
-  // consume another rate-limit slot / credit. remainingQueries=-1 is a
-  // sentinel meaning "unchanged — the client keeps its turn-1 count".
+  // numbers.
+  //
+  // RC72 (security review): this is a REAL Vertex AI generateContent call,
+  // so it must be metered. The continuation was previously unmetered
+  // (returned remainingQueries=-1, skipped rate-limit) on the theory that
+  // it's "the same logical query as turn 1" — but nothing ties turn 2 to a
+  // billed turn 1, so a client could forge a toolResult and loop this
+  // branch for unlimited unmetered generations. We now (a) reject tool
+  // names not in our declared set and (b) apply the same rate limit. A
+  // tool-using question therefore costs 2 query-units instead of 1, which
+  // is negligible (10 free/day + 1¢/10-pack) and closes the abuse vector.
   if (data.toolResult) {
     const tr = data.toolResult;
+    const validToolNames: string[] = (buildToolDefinitions() as Array<{
+      functionDeclarations?: Array<{ name: string }>;
+    }>).flatMap(t => (t.functionDeclarations ?? []).map(fd => fd.name));
+    if (!validToolNames.includes(tr.name)) {
+      throw new HttpsError('invalid-argument', `Unknown tool: ${tr.name}`);
+    }
+    const contRate = await rateLimit();
+    if (!contRate.allowed) {
+      throw new HttpsError(
+        'resource-exhausted',
+        'Insufficient credits to continue Gemini Q&A. Tap the credit chip to buy more.',
+      );
+    }
     const contents = [
       { role: 'user', parts: [{ text: tr.originalPrompt }] },
       { role: 'model', parts: [{ functionCall: { name: tr.name, args: tr.args } }] },
@@ -357,7 +378,7 @@ export async function handleAskGemini(
     return {
       text: parseTextFromResponse(response),
       toolCall: null,
-      remainingQueries: -1,
+      remainingQueries: contRate.remaining,
     };
   }
 

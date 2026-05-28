@@ -852,7 +852,7 @@
     <string name="top_bar_gemini_cd">اسأل Gemini</string>
     <string name="gemini_qa_sheet_header">اسأل Gemini عن ملصقك</string>
     <string name="gemini_qa_loading">جارٍ التفكير…</string>
-    <string name="gemini_qa_queries_left">تبقّى %1$d استفسار مجاني اليوم</string>
+    <string name="gemini_qa_queries_left">تبقّى %1$d استفسار اليوم</string>
     <string name="gemini_qa_suggestions_header">جرّب أن تسأل…</string>
     <string name="gemini_qa_suggestion_paper">ما حجم الورق المناسب؟</string>
     <string name="gemini_qa_suggestion_sharp">هل صورتي حادة بما يكفي؟</string>

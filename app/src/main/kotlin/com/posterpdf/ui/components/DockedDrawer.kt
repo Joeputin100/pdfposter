@@ -107,9 +107,14 @@ fun DockedDrawer(
                                     detectVerticalDragGestures(
                                         onDragEnd = {
                                             if (dragOffsetPx > dismissThresholdPx) {
+                                                // Dismiss: leave the offset where it is so the
+                                                // exit fade runs from the dragged position rather
+                                                // than snapping the panel back open. dragOffsetPx
+                                                // re-inits to 0 when the drawer is next composed.
                                                 onScrimTap()
+                                            } else {
+                                                dragOffsetPx = 0f  // not far enough — snap back
                                             }
-                                            dragOffsetPx = 0f
                                         },
                                         onVerticalDrag = { _, dy ->
                                             dragOffsetPx = (dragOffsetPx + dy).coerceAtLeast(0f)

@@ -853,7 +853,7 @@
     <string name="top_bar_gemini_cd">Demander à Gemini</string>
     <string name="gemini_qa_sheet_header">Interroger Gemini sur votre affiche</string>
     <string name="gemini_qa_loading">Réflexion en cours…</string>
-    <string name="gemini_qa_queries_left">%1$d requêtes gratuites restantes aujourd\'hui</string>
+    <string name="gemini_qa_queries_left">%1$d requêtes restantes aujourd\'hui</string>
     <string name="gemini_qa_suggestions_header">Essayez de demander…</string>
     <string name="gemini_qa_suggestion_paper">Quel format de papier pour mon affiche ?</string>
     <string name="gemini_qa_suggestion_sharp">Mon image est-elle assez nette ?</string>

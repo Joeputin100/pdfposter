@@ -383,12 +383,14 @@ function fakeGemini(response) {
   return calls;
 }
 
-test('RC69: continuation turn skips rate limit, returns text + remainingQueries=-1', async () => {
+test('RC72: continuation turn IS metered (rate-limited) + returns its remaining', async () => {
   const calls = fakeGemini({
     candidates: [{ content: { parts: [{ text: 'Upscaling to topaz costs 3 credits.' }] } }],
   });
-  // Rate-limit dep that THROWS if invoked — proves the continuation never calls it.
-  const rateLimit = async () => { throw new Error('applyRateLimit must NOT run on continuation'); };
+  // RC72 security fix: the continuation is a real Vertex call, so it must
+  // consume a rate-limit slot. Stub returns a remaining count we assert on.
+  let rlCalls = 0;
+  const rateLimit = async () => { rlCalls++; return { allowed: true, remaining: 7, packPurchased: false }; };
 
   const result = await handleAskGemini('u1', {
     prompt: 'ignored on continuation',
@@ -400,17 +402,61 @@ test('RC69: continuation turn skips rate limit, returns text + remainingQueries=
     },
   }, rateLimit);
 
+  assert.equal(rlCalls, 1);  // continuation now metered (was unmetered pre-RC72)
   assert.equal(result.text, 'Upscaling to topaz costs 3 credits.');
   assert.equal(result.toolCall, null);
-  assert.equal(result.remainingQueries, -1);
+  assert.equal(result.remainingQueries, 7);
   assert.equal(calls.length, 1);
+});
+
+test('RC72: continuation rejects an unknown tool name before any Gemini call', async () => {
+  const calls = fakeGemini({
+    candidates: [{ content: { parts: [{ text: 'should not be reached' }] } }],
+  });
+  const rateLimit = async () => { throw new Error('rate limit must not run for an invalid tool'); };
+
+  await assert.rejects(
+    handleAskGemini('u1', {
+      prompt: 'p',
+      toolResult: {
+        name: 'totallyMadeUpTool',
+        args: {},
+        response: {},
+        originalPrompt: 'forge attempt',
+      },
+    }, rateLimit),
+    /Unknown tool/,
+  );
+  assert.equal(calls.length, 0);  // rejected before invoking Vertex
+});
+
+test('RC72: continuation rejected when rate limit is exhausted', async () => {
+  const calls = fakeGemini({
+    candidates: [{ content: { parts: [{ text: 'should not be reached' }] } }],
+  });
+  const rateLimit = async () => ({ allowed: false, remaining: 0, packPurchased: false });
+
+  await assert.rejects(
+    handleAskGemini('u1', {
+      prompt: 'p',
+      toolResult: {
+        name: 'quoteUpscaleCost',
+        args: { upscaleModel: 'topaz', targetWidthInches: 24, targetHeightInches: 18 },
+        response: { creditCost: 3, currentBalance: 0 },
+        originalPrompt: 'How much does topaz cost?',
+      },
+    }, rateLimit),
+    /Insufficient credits/,
+  );
+  assert.equal(calls.length, 0);  // no Vertex call when out of quota
 });
 
 test('RC69: continuation builds 3-turn contents with functionResponse part', async () => {
   const calls = fakeGemini({
     candidates: [{ content: { parts: [{ text: 'ok' }] } }],
   });
-  const rateLimit = async () => { throw new Error('should not be called'); };
+  // RC72: continuation is metered now, so provide a passing rate-limit stub.
+  const rateLimit = async () => ({ allowed: true, remaining: 6, packPurchased: false });
 
   await handleAskGemini('u1', {
     prompt: 'p',

@@ -853,7 +853,7 @@
     <string name="top_bar_gemini_cd">Geminiに質問</string>
     <string name="gemini_qa_sheet_header">ポスターについてGeminiに質問</string>
     <string name="gemini_qa_loading">考え中…</string>
-    <string name="gemini_qa_queries_left">本日の無料クエリ残り%1$d回</string>
+    <string name="gemini_qa_queries_left">本日のクエリ残り%1$d回</string>
     <string name="gemini_qa_suggestions_header">こんな質問はいかが…</string>
     <string name="gemini_qa_suggestion_paper">用紙サイズは何がおすすめ？</string>
     <string name="gemini_qa_suggestion_sharp">画像は十分鮮明？</string>

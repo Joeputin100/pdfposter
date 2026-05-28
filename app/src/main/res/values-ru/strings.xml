@@ -851,7 +851,7 @@
     <string name="top_bar_gemini_cd">Спросить Gemini</string>
     <string name="gemini_qa_sheet_header">Спросите Gemini о вашем постере</string>
     <string name="gemini_qa_loading">Думаю…</string>
-    <string name="gemini_qa_queries_left">Осталось бесплатных запросов сегодня: %1$d</string>
+    <string name="gemini_qa_queries_left">Осталось запросов сегодня: %1$d</string>
     <string name="gemini_qa_suggestions_header">Попробуйте спросить…</string>
     <string name="gemini_qa_suggestion_paper">Какой размер бумаги для постера?</string>
     <string name="gemini_qa_suggestion_sharp">Достаточно ли резкое изображение?</string>

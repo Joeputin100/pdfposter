@@ -425,6 +425,6 @@ export { requestUpscale, getUpscaleStatus } from './upscale';
 export { onSupportCreate } from './support-email';
 
 // RC65: in-app Gemini Q&A. onCall callable invoked from the Android
-// sparkle button → Q&A sheet. Wraps Vertex AI gemini-3-5-flash with
+// sparkle button → Q&A sheet. Wraps Vertex AI gemini-3.5-flash with
 // vision + tool-calling, rate-limited to 10/day per user.
 export { askGemini } from './askGemini';

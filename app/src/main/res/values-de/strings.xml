@@ -853,7 +853,7 @@
     <string name="top_bar_gemini_cd">Gemini fragen</string>
     <string name="gemini_qa_sheet_header">Gemini zu deinem Poster fragen</string>
     <string name="gemini_qa_loading">Denke nach&#8230;</string>
-    <string name="gemini_qa_queries_left">Noch %1$d kostenlose Anfragen heute</string>
+    <string name="gemini_qa_queries_left">Noch %1$d Anfragen heute</string>
     <string name="gemini_qa_suggestions_header">Versuch zu fragen&#8230;</string>
     <string name="gemini_qa_suggestion_paper">Welches Papierformat für mein Poster?</string>
     <string name="gemini_qa_suggestion_sharp">Ist mein Bild scharf genug?</string>
