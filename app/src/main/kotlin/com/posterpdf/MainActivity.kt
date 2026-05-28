@@ -1418,7 +1418,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             // (fresh-install emulator is always first-run, which would hide
             // the UI we're capturing). DEBUG-gated; normal launches unaffected.
             val screenshotLaunch = com.posterpdf.BuildConfig.DEBUG &&
-                intent?.getStringExtra("screenshot") != null
+                (context as? android.app.Activity)?.intent?.getStringExtra("screenshot") != null
             if (viewModel.isFirstRun && !screenshotLaunch) {
                 FirstRunWizard(viewModel = viewModel, onDismiss = { viewModel.saveAllSettings() })
             }
