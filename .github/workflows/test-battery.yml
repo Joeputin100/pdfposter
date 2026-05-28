@@ -271,7 +271,7 @@ jobs:
   # regressions, not for absolute claims.
   # ───────────────────────────────────────────────────────────────────────
   macrobenchmark:
-    name: Macrobenchmark (API 35)
+    name: Macrobenchmark (API 36)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     # RC44: macrobench is advisory, not gating. Emulator-quality numbers
@@ -346,20 +346,20 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: AVD cache (API 35)
+      - name: AVD cache (API 36)
         uses: actions/cache@v4
         id: bench-avd-cache
         with:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: bench-avd-35-default-disk4g
+          key: bench-avd-36-default-disk4g
 
       - name: Create AVD + warm cache
         if: steps.bench-avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 36
           arch: x86_64
           target: default
           disk-size: 4096M
@@ -371,7 +371,7 @@ jobs:
       - name: Run macrobenchmark
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 36
           arch: x86_64
           target: default
           disk-size: 4096M
