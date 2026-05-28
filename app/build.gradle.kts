@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc74"  // RC74 (Pixel 6 on-device upscale SIGSEGV fix: drop NnApiDelegate → XNNPACK CPU)
+        versionName = "1.0-rc75"  // RC75 (on-device upscale: serialize TFLite Interpreter — fix concurrent-run() SIGSEGV; rc74 dropped NnApiDelegate)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
