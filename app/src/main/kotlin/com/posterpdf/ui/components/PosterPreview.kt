@@ -56,7 +56,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -362,6 +361,9 @@ fun PosterPreview(viewModel: MainViewModel) {
         // Phase H-P1.9: lift the source dims to the ViewModel so MainActivity
         // can gate View/Save/Share on currentDpi < 150 without re-decoding.
         bitmap?.let { viewModel.sourcePixelDimensions = it.width to it.height }
+        // RC69: publish the decoded bitmap so the low-DPI upgrade picker can
+        // render from the Scaffold body (DockedDrawer) instead of here.
+        viewModel.sourcePreviewBitmap = previewBitmap
     }
 
     // RC17: replaced procedural AGSL wood with a raster wood texture per
@@ -1460,7 +1462,6 @@ fun PosterPreview(viewModel: MainViewModel) {
             // RC4: showLowDpiModal lives on viewModel so the new MainActivity
             // "Sharpen for print" CTA can also drive the modal. We read/write
             // it directly here — no local alias.
-            var showBringYourOwnHelp by remember { mutableStateOf(false) }
             Spacer(Modifier.height(8.dp))
             // RC7: when an upscale model is queued, swap the warning Card
             // for an "Upscaling with X to Y DPI" Card on tertiaryContainer
@@ -1504,103 +1505,11 @@ fun PosterPreview(viewModel: MainViewModel) {
                     )
                 }
             }
-            if (viewModel.showLowDpiModal) {
-                val src = previewBitmap!!
-                // inputMp / inputBytes are derived from the preview bitmap that's
-                // already in memory. For the real pipeline this will come from
-                // the source URI before any downsampling, but the preview
-                // bitmap is a reasonable proxy for the modal's first paint.
-                //
-                // RC17: pass inputMp as a Double so the modal's pricing math
-                // sees the true source MP. Pre-RC17 we floored the int division
-                // and then coerced ≥1, so a 768×1024 source (0.79 MP) was sent
-                // as 1 MP — which inflated the per-MP COGS estimate by 27% on
-                // small phone shots.
-                val srcAndroid = src.asAndroidBitmap()
-                val inputMpD = (srcAndroid.width.toLong() * srcAndroid.height).toDouble() / 1_000_000.0
-                val inputBytesL = srcAndroid.byteCount.toLong()
-                LowDpiUpgradeModal(
-                    sourceBitmap = src,
-                    inputMp = inputMpD,
-                    inputBytes = inputBytesL,
-                    currentDpi = currentDpi,
-                    posterWInches = posterWInchesD,
-                    posterHInches = posterHInchesD,
-                    usePulseEffect = viewModel.usePulseEffect,
-                    // Phase H-P1.13: when the source is SVG, the modal swaps
-                    // the upscale grid for a vector-explainer banner and keeps
-                    // only the BringYourOwn card enabled.
-                    sourceIsSvg = viewModel.sourceIsSvg,
-                    creditBalance = viewModel.debugCreditOverride ?: viewModel.creditBalance,
-                    // RC35: 1¢ = 1 credit (Phase H final pricing). The old
-                    // 0.119 was a 50%-margin assumption from G12 that produced
-                    // misleading USD lines like "89 credits · ~$10.59" — at
-                    // 1¢/credit the USD half is just `credits / 100` and is
-                    // redundant alongside the credit count, so the call sites
-                    // that render `~$X` should treat == 0 as "hide USD".
-                    usdPerCredit = 0.01,
-                    // RC3 fix: derive from actual auth session, not placeholder
-                    isAnonymous = viewModel.authSession.isAnonymous || !viewModel.authSession.signedIn,
-                    isAdmin = viewModel.isAdmin,
-                    targetDpi = viewModel.targetDpi,
-                    onDismiss = { viewModel.showLowDpiModal = false },
-                    onFreeUpscale = {
-                        viewModel.showLowDpiModal = false
-                        viewModel.pendingUpscaleModelLabel = "Free upscale"
-                        viewModel.runFreeUpscale(context)
-                    },
-                    // RC19: wired end-to-end via AiUpscaleRepository.
-                    // RC27: route through requestAiUpscale so the
-                    // below-target-DPI confirm dialog can surface first.
-                    // RC28: minScale forwards the Topaz "Headroom" override.
-                    onAiUpscale = { modelId, minScale ->
-                        viewModel.showLowDpiModal = false
-                        viewModel.requestAiUpscale(context, modelId, minScale)
-                    },
-                    // TODO(G12): wire to viewModel.pickAlreadyUpscaledImage()
-                    onPickAlreadyUpscaled = { viewModel.showLowDpiModal = false },
-                    // H-P2.6: BringYourOwn card now opens the walkthrough dialog
-                    // first; the dialog's "Choose file" button calls
-                    // onPickAlreadyUpscaled itself.
-                    onShowBringYourOwnHelp = {
-                        viewModel.showLowDpiModal = false
-                        showBringYourOwnHelp = true
-                    },
-                    // TODO(G12): wire to viewModel.signInWithGoogle()
-                    onSignIn = { viewModel.showLowDpiModal = false },
-                    // TODO(G12): wire to viewModel.openPurchaseSheet()
-                    onBuyCredits = { viewModel.showLowDpiModal = false },
-                    onCompareModels = {
-                        viewModel.showLowDpiModal = false
-                        viewModel.showUpscaleComparison = true
-                    },
-                )
-            }
-            // RC53: actually wire the BringYourOwn "Choose file" button.
-            // Pre-RC53 the handler was a TODO that just dismissed the dialog
-            // (left over from the H-P2.6 staging). Now the launcher opens
-            // the system image picker, and the picked URI gets handed to
-            // viewModel.updateImage(...) — same flow as the main image
-            // picker, so the user's already-upscaled image becomes the
-            // new source.
-            val byoCtx = androidx.compose.ui.platform.LocalContext.current
-            val byoLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-                contract = androidx.activity.result.contract.ActivityResultContracts.GetContent(),
-            ) { uri ->
-                if (uri != null) {
-                    viewModel.updateImage(byoCtx, uri)
-                    viewModel.showLowDpiModal = false
-                }
-            }
-            if (showBringYourOwnHelp) {
-                com.posterpdf.ui.components.BringYourOwnHelpDialog(
-                    onDismiss = { showBringYourOwnHelp = false },
-                    onPickAlreadyUpscaled = {
-                        showBringYourOwnHelp = false
-                        byoLauncher.launch("image/*")
-                    },
-                )
-            }
+            // RC69: the LowDpiUpgradeModal (model picker) used to render here as
+            // a ModalBottomSheet. It now renders as a bottom-docked DockedDrawer
+            // in the Scaffold body (MainActivity.MainScreenContent), sourcing its
+            // bitmap from viewModel.sourcePreviewBitmap. The inline status Card
+            // above still sets viewModel.showLowDpiModal = true to open it.
         }
     }
 }

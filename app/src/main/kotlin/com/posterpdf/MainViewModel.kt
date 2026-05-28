@@ -15,6 +15,7 @@ import java.util.Locale
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.caverock.androidsvg.SVG
@@ -62,6 +63,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // after BitmapFactory.decodeStream succeeds. Used by MainActivity to gate
     // View/Save/Share at < 150 DPI.
     var sourcePixelDimensions by mutableStateOf<Pair<Int, Int>?>(null)
+
+    // RC69: PosterPreview publishes its decoded source bitmap here so the
+    // low-DPI upgrade drawer can render from the Scaffold body (it used to
+    // be a ModalBottomSheet inside PosterPreview).
+    var sourcePreviewBitmap: androidx.compose.ui.graphics.ImageBitmap? by mutableStateOf(null)
     /** RC16: true when the current source image is an upscale of the
      *  original (free or AI). Drives the "Upscaled X DPI ✓" label and
      *  suppresses the embedded low-DPI warning in the generated PDF. */
@@ -85,6 +91,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val rawWidth = posterWidth.toDoubleOrNull() ?: return 0f
         if (rawWidth <= 0.0) return 0f
         return (w.toDouble() / rawWidth).toFloat()
+    }
+
+    // RC69: debug-only helper for the CI screenshot pipeline. Seeds a small
+    // bundled bitmap and a deliberately LOW source resolution so the low-DPI
+    // upgrade picker is the relevant state when launched with
+    // `--es screenshot model_picker`.
+    fun seedScreenshotImage(context: android.content.Context) {
+        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.dogcow)
+        if (bmp != null) {
+            sourcePreviewBitmap = bmp.asImageBitmap()
+            sourcePixelDimensions = 400 to 300
+        }
     }
 
     /** "DPI" or "DPCM" depending on [units]. */

@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -66,6 +67,7 @@ import com.posterpdf.ui.components.glassBackdrop
 import com.posterpdf.ui.components.glintEffect
 import com.posterpdf.ui.components.pulseEffect
 import com.posterpdf.ui.components.ImagePickerHeader
+import com.posterpdf.ui.components.LowDpiUpgradeModal
 import com.posterpdf.ui.components.ManageAccountDialog
 import com.posterpdf.ui.components.PaperSizeCardRow
 import com.posterpdf.ui.components.PosterPreview
@@ -128,6 +130,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // RC66: handle a share/open-with that cold-launched the app.
         handleIncomingShareIntent(intent)
+        // RC69: debug-only deep link for CI screenshot capture. BuildConfig.DEBUG
+        // gates it so release builds ignore the extra entirely.
+        if (com.posterpdf.BuildConfig.DEBUG) {
+            when (intent?.getStringExtra("screenshot")) {
+                "compare" -> viewModel.showUpscaleComparison = true
+                "model_picker" -> {
+                    // Seed a bundled test image so the picker has content, then open it.
+                    viewModel.seedScreenshotImage(this)
+                    viewModel.showLowDpiModal = true
+                }
+                else -> { /* main: no-op */ }
+            }
+        }
         // RC11: request POST_NOTIFICATIONS on Android 13+ so the upscale
         // foreground service can surface its progress notification (and
         // future billing alerts can land too). Best-effort — if user
@@ -271,7 +286,8 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     // Encode three mutually-exclusive screen states as a single key for the
     // AnimatedContent so any transition crossfades cleanly.
     val screenKey = when {
-        viewModel.showUpscaleComparison -> "compare"
+        // RC69: Compare no longer drives a full-screen swap; it renders as a
+        // bottom-docked drawer inside the Scaffold body (see MainScreenContent).
         viewModel.showHistoryScreen -> "history"
         viewModel.showCreditsHistory -> "credits_history"
         viewModel.showGettingStarted -> "getting_started"
@@ -316,12 +332,9 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         label = "screen-swap",
     ) { key ->
         when (key) {
-            "compare" -> {
-                BackHandler { viewModel.showUpscaleComparison = false }
-                com.posterpdf.ui.screens.UpscaleComparisonScreen(
-                    onBack = { viewModel.showUpscaleComparison = false },
-                )
-            }
+            // RC69: "compare" branch removed — Compare renders as a docked drawer
+            // inside the Scaffold body (MainScreenContent) so the top bar stays
+            // visible and tappable.
             "history" -> {
                 BackHandler { viewModel.showHistoryScreen = false }
                 HistoryScreen(viewModel = viewModel, onBack = { viewModel.showHistoryScreen = false })
@@ -433,6 +446,13 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     // Handle back button to close drawer
     BackHandler(enabled = drawerState.isOpen) {
         scope.launch { drawerState.close() }
+    }
+    // RC69: dismiss the body-docked drawers on back.
+    BackHandler(enabled = viewModel.showUpscaleComparison) {
+        viewModel.showUpscaleComparison = false
+    }
+    BackHandler(enabled = viewModel.showLowDpiModal) {
+        viewModel.showLowDpiModal = false
     }
 
     val saveLauncher = rememberLauncherForActivityResult(
@@ -1395,9 +1415,12 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             // text/buttons don't sprawl edge-to-edge across a 10" screen.
             // Phase 2 (true 2-column list/detail) is a future RC; this is
             // the minimal-risk "looks acceptable on big screens" pass.
+            // RC69: padded body region. The scrolling content and the docked
+            // drawers are siblings here so a drawer's body-only scrim covers the
+            // scrolling content but NOT the two-row top bar above this padding.
+            Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             Box(
                 modifier = Modifier
-                    .padding(padding)
                     .fillMaxSize()
                     .verticalScroll(scrollState),
                 contentAlignment = Alignment.TopCenter,
@@ -1868,6 +1891,91 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 }
             }
             }  // RC30: Box wrapping the inner Column for adaptive max-width
+
+            // RC69: Compare drawer, docked below the top bar.
+            com.posterpdf.ui.components.DockedDrawer(
+                visible = viewModel.showUpscaleComparison,
+                onScrimTap = { viewModel.showUpscaleComparison = false },
+            ) {
+                com.posterpdf.ui.screens.UpscaleComparisonScreen(
+                    onBack = { viewModel.showUpscaleComparison = false },
+                )
+            }
+
+            // RC69: Model picker (low-DPI upgrade) drawer, relocated from
+            // PosterPreview's ModalBottomSheet so it docks below the top bar.
+            // Bitmap + derived params are sourced from the ViewModel.
+            com.posterpdf.ui.components.DockedDrawer(
+                visible = viewModel.showLowDpiModal && viewModel.sourcePreviewBitmap != null,
+                onScrimTap = { viewModel.showLowDpiModal = false },
+            ) {
+                val src = viewModel.sourcePreviewBitmap
+                if (src != null) {
+                    val srcAndroid = src.asAndroidBitmap()
+                    val inputMpD = (srcAndroid.width.toLong() * srcAndroid.height).toDouble() / 1_000_000.0
+                    val inputBytesL = srcAndroid.byteCount.toLong()
+                    val posterWInchesD = viewModel.posterWidth.toDoubleOrNull() ?: 0.0
+                    val posterHInchesD = viewModel.posterHeight.toDoubleOrNull() ?: 0.0
+                    val currentDpi = viewModel.computeCurrentDpi()
+                    // BringYourOwn walkthrough + system picker, mirrored from the
+                    // pre-RC69 PosterPreview implementation.
+                    var showBringYourOwnHelp by remember { mutableStateOf(false) }
+                    val byoLauncher = rememberLauncherForActivityResult(
+                        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent(),
+                    ) { uri ->
+                        if (uri != null) {
+                            viewModel.updateImage(context, uri)
+                            viewModel.showLowDpiModal = false
+                        }
+                    }
+                    LowDpiUpgradeModal(
+                        sourceBitmap = src,
+                        inputMp = inputMpD,
+                        inputBytes = inputBytesL,
+                        currentDpi = currentDpi,
+                        posterWInches = posterWInchesD,
+                        posterHInches = posterHInchesD,
+                        usePulseEffect = viewModel.usePulseEffect,
+                        sourceIsSvg = viewModel.sourceIsSvg,
+                        creditBalance = viewModel.debugCreditOverride ?: viewModel.creditBalance,
+                        usdPerCredit = 0.01,
+                        isAnonymous = viewModel.authSession.isAnonymous || !viewModel.authSession.signedIn,
+                        isAdmin = viewModel.isAdmin,
+                        targetDpi = viewModel.targetDpi,
+                        onDismiss = { viewModel.showLowDpiModal = false },
+                        onFreeUpscale = {
+                            viewModel.showLowDpiModal = false
+                            viewModel.pendingUpscaleModelLabel = "Free upscale"
+                            viewModel.runFreeUpscale(context)
+                        },
+                        onAiUpscale = { modelId, minScale ->
+                            viewModel.showLowDpiModal = false
+                            viewModel.requestAiUpscale(context, modelId, minScale)
+                        },
+                        onPickAlreadyUpscaled = { viewModel.showLowDpiModal = false },
+                        onShowBringYourOwnHelp = {
+                            viewModel.showLowDpiModal = false
+                            showBringYourOwnHelp = true
+                        },
+                        onSignIn = { viewModel.showLowDpiModal = false },
+                        onBuyCredits = { viewModel.showLowDpiModal = false },
+                        onCompareModels = {
+                            viewModel.showLowDpiModal = false
+                            viewModel.showUpscaleComparison = true
+                        },
+                    )
+                    if (showBringYourOwnHelp) {
+                        com.posterpdf.ui.components.BringYourOwnHelpDialog(
+                            onDismiss = { showBringYourOwnHelp = false },
+                            onPickAlreadyUpscaled = {
+                                showBringYourOwnHelp = false
+                                byoLauncher.launch("image/*")
+                            },
+                        )
+                    }
+                }
+            }
+            }  // RC69: padded body Box (top bar stays outside this padding)
         }
     }
 }

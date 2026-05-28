@@ -51,13 +51,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -326,7 +324,11 @@ fun LowDpiUpgradeModal(
     onBuyCredits: () -> Unit,
     onCompareModels: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    // RC69: this composable used to wrap its content in a ModalBottomSheet.
+    // It now renders as a plain content Column placed inside a DockedDrawer
+    // (MainActivity body), so the two-row top bar stays visible. onDismiss is
+    // still honored (the drawer scrim-tap and the in-content button both call
+    // it); the drawer supplies the slide/scrim chrome.
     // RC45: source can also be ABOVE the target DPI (e.g. high-res photo
     // on a small print). The modal still opens via the "Sharpen for print"
     // CTA, but the warning framing is wrong — the user should see that
@@ -443,17 +445,16 @@ fun LowDpiUpgradeModal(
             .map { (model, _) -> model }
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
+    // RC69: plain content Column (no ModalBottomSheet wrapper) — the
+    // DockedDrawer host supplies the panel chrome. Keeps verticalScroll so
+    // the picker scrolls inside the capped drawer height.
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -649,7 +650,6 @@ fun LowDpiUpgradeModal(
 
             Spacer(Modifier.height(8.dp))
         }
-    }
     // RC22-7: full-screen marketing detail dialog. Triggered by the lower-right
     // Info icon on each card, or a double-tap anywhere on the card. Surfaces
     // the long-form pitch (pickWhen / standsOut / worthThePrice) that doesn't
