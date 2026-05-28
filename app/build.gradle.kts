@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc70"  // RC70 (taller drawers + fixed drag handle + scrollable compare)
+        versionName = "1.0-rc71"  // RC71 (functional drag-to-dismiss handle + tightened compare drawer top)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

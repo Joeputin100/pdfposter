@@ -188,6 +188,10 @@ fun UpscaleComparisonScreen(onBack: () -> Unit) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.compare_back_cd))
                     }
                 },
+                // RC71: this app bar lives inside the docked drawer, not at
+                // the window top, so the default status-bar inset is pure
+                // wasted space below the drawer handle. Zero it out.
+                windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
             )
         },
     ) { padding ->
