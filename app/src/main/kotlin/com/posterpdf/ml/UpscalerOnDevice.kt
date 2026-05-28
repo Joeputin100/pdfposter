@@ -6,6 +6,8 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
@@ -37,6 +39,15 @@ object UpscalerOnDevice {
 
     @Volatile private var interpreter: Interpreter? = null
     @Volatile private var appContext: Context? = null
+
+    // RC74b: TFLite's Interpreter is NOT thread-safe — concurrent run() calls
+    // on the shared singleton corrupt native state and SIGSEGV in a TFLite
+    // worker thread (confirmed on Pixel 6 via FTL: the on-launch
+    // benchmarkAndCache coroutine raced a free upscale). This mutex serializes
+    // ALL inference so only one upscale runs at a time. Every inference path
+    // goes through upscale(), so guarding it here covers benchmark + free
+    // upscale + any future caller.
+    private val inferenceMutex = Mutex()
 
     /** Call once (e.g. from Application or first use site) to bind a Context. */
     fun init(context: Context) {
@@ -105,7 +116,7 @@ object UpscalerOnDevice {
          *  Caller is responsible for actually persisting the bitmap. */
         onPartialSave: ((lastCompletedTile: Int, output: Bitmap) -> Unit)? = null,
         partialSaveIntervalMs: Long = 60_000L,
-    ): Bitmap = withContext(Dispatchers.Default) {
+    ): Bitmap = inferenceMutex.withLock { withContext(Dispatchers.Default) {
         val interp = ensureInterpreter()
         val srcW = input.width
         val srcH = input.height
@@ -237,7 +248,7 @@ object UpscalerOnDevice {
         tileOut.recycle()
         if (src !== input) src.recycle()
         out
-    }
+    } }  // close withContext(Dispatchers.Default), then inferenceMutex.withLock
 
     /** Release native resources. Call from Application.onTerminate or test teardown. */
     fun close() {
