@@ -39,12 +39,30 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Build debug APK
-        run: gradle assembleDebug --stacktrace
+      - name: Install Gradle 8.11.1
+        run: |
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
+          sudo unzip -q /tmp/gradle.zip -d /opt
+          echo "/opt/gradle-8.11.1/bin" >> $GITHUB_PATH
+
+      - name: Decode keystore
         env:
-          KEYSTORE_PASSWORD: posterpdf
-          KEY_ALIAS: posterpdf
-          KEY_PASSWORD: posterpdf
+          KS_B64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: echo "$KS_B64" | base64 -d > release.keystore
+
+      - name: Decode google-services.json
+        env:
+          GS_B64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          echo "$GS_B64" | base64 -d > app/google-services.json
+          python3 -c 'import json; json.load(open("app/google-services.json"))' && echo "google-services.json: valid JSON"
+
+      - name: Build debug APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle assembleDebug --stacktrace
 
       - name: Enable KVM
         run: |
