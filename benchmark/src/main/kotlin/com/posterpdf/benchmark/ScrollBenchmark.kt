@@ -45,10 +45,18 @@ class ScrollBenchmark {
             setupBlock = {
                 pressHome()
                 startActivityAndWait()
-                // Wait for the top app bar to be onscreen — the halftone
-                // logo is a good landmark since it's always present once
-                // MainActivity finishes its first frame.
-                device.wait(Until.hasObject(By.descContains("Settings")), 5_000)
+                // RC73: a fresh install (every FTL device is fresh) lands on
+                // the first-run wizard, which has no scrollable builder
+                // column — so By.scrollable(true) was null, the scroll was a
+                // no-op, and FrameTimingMetric aborted with "0 found for
+                // frameDurationCpuMs". Dismiss the wizard first (tap its
+                // "Get Started" primary button) so the real main screen +
+                // its vertical-scroll Column is present. No-op if the wizard
+                // isn't showing (already past first run).
+                device.wait(Until.hasObject(By.text("Get Started")), 5_000)
+                device.findObject(By.text("Get Started"))?.click()
+                // Then wait for the scrollable builder column to exist.
+                device.wait(Until.hasObject(By.scrollable(true)), 5_000)
             },
         ) {
             // Find a scrollable container in the hierarchy and scroll it
