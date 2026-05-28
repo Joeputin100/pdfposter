@@ -1,0 +1,139 @@
+name: FTL Upscale→PDF device test (physical device)
+
+# Runs the on-device upscale → PDF functional/timing test (UpscalePdfDeviceTest)
+# on a REAL device via Firebase Test Lab. The DEBUG build carries an intent hook
+# (--es screenshot upscale_test) that seeds a small low-DPI poster, runs the
+# on-device ESRGAN free upscale, generates the PDF, and surfaces an
+# UPSCALE_TEST_DONE marker. The instrumentation test launches that flow and
+# waits for the marker; per-device timing (upscaleMs / totalMs) lands in the
+# device logcat via the app's `upscale_test` / `free_upscale` markers.
+#
+# This is a DEBUG build (not the profileable benchmark target) because the goal
+# is functional correctness + coarse cross-device timing, and the intent hook is
+# DEBUG-gated. The parent agent pulls the per-device logcat from the results
+# bucket to compare low-end vs high-end devices.
+#
+# Manual-dispatch only: physical-device minutes consume FTL quota/cost.
+#
+# Auth: WIF (no long-lived key). Uses the shared `github` pool's
+# github-provider and the gh-actions-ci SA, which has
+# roles/cloudtestservice.testAdmin + storage.objectAdmin on the FTL bucket.
+
+on:
+  workflow_dispatch:
+    inputs:
+      device:
+        description: 'FTL physical device model'
+        type: string
+        default: 'oriole'
+      version:
+        description: 'Android API level for the device'
+        type: string
+        default: '33'
+
+permissions:
+  contents: read
+  id-token: write   # required for WIF
+
+env:
+  GCP_PROJECT: static-webbing-461904-c4
+  FTL_BUCKET: ftl-results-static-webbing-461904-c4
+
+jobs:
+  ftl-upscale-test:
+    name: Upscale→PDF on FTL (${{ inputs.device }} API ${{ inputs.version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Gradle 8.11.1
+        run: |
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
+          sudo unzip -q /tmp/gradle.zip -d /opt
+          echo "/opt/gradle-8.11.1/bin" >> $GITHUB_PATH
+
+      - name: Decode keystore
+        env:
+          KS_B64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: echo "$KS_B64" | base64 -d > release.keystore
+
+      - name: Decode google-services.json
+        env:
+          GS_B64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          echo "$GS_B64" | base64 -d > app/google-services.json
+          python3 -c 'import json; json.load(open("app/google-services.json"))' && echo "google-services.json: valid JSON"
+
+      - name: Build debug APK + debug androidTest APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        # DEBUG build carries the BuildConfig.DEBUG-gated intent hook + device-
+        # test driver. Debug signs with the release config per app/build.gradle.kts.
+        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
+
+      - name: Locate APKs
+        id: apks
+        run: |
+          APP_APK=$(find app/build/outputs/apk/debug -name "*.apk" | head -1)
+          TEST_APK=$(find app/build/outputs/apk/androidTest/debug -name "*.apk" | head -1)
+          if [ -z "$APP_APK" ] || [ -z "$TEST_APK" ]; then
+            echo "Missing APK — app='$APP_APK' test='$TEST_APK'"; exit 1
+          fi
+          echo "app_apk=$APP_APK" >> "$GITHUB_OUTPUT"
+          echo "test_apk=$TEST_APK" >> "$GITHUB_OUTPUT"
+          echo "App: $APP_APK"; echo "Test: $TEST_APK"
+
+      - name: Authenticate to GCP (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Run Upscale→PDF device test on Firebase Test Lab
+        # SECURITY: device/version inputs are passed via env: and referenced as
+        # shell vars (${DEVICE} / ${VERSION}) — never interpolated directly into
+        # the run: script — per the safe GitHub Actions pattern.
+        env:
+          DEVICE: ${{ inputs.device }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -e
+          gcloud firebase test android run \
+            --type=instrumentation \
+            --app="${{ steps.apks.outputs.app_apk }}" \
+            --test="${{ steps.apks.outputs.test_apk }}" \
+            --device="model=${DEVICE},version=${VERSION},locale=en,orientation=portrait" \
+            --timeout=25m \
+            --results-bucket="${FTL_BUCKET}" \
+            --results-dir="upscale-test-${{ github.run_id }}" \
+            --project="${GCP_PROJECT}" 2>&1 | tee /tmp/ftl.txt
+
+      - name: Upload FTL results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftl-upscale-test-results
+          # Per-device upscale timing (upscaleMs / totalMs) lives in the device
+          # logcat under the FTL results dir; the parent agent pulls logcat from
+          # gs://${FTL_BUCKET}/upscale-test-${{ github.run_id }}/ for the
+          # low-end vs high-end comparison.
+          path: |
+            /tmp/ftl.txt
+          retention-days: 30
+          if-no-files-found: warn

@@ -225,4 +225,8 @@ dependencies {
     androidTestImplementation("androidx.test:core:1.5.0")
     androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation("androidx.test:rules:1.5.0")
+    // RC73: UiAutomator drives the FTL on-device upscale→PDF device test
+    // (UpscalePdfDeviceTest), which launches the debug intent hook and waits
+    // for the UPSCALE_TEST_DONE marker text.
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
 }

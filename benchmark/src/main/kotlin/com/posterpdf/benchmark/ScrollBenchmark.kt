@@ -6,7 +6,6 @@ import androidx.benchmark.macro.StartupMode
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.uiautomator.By
-import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.Until
 import org.junit.Rule
 import org.junit.Test
@@ -59,20 +58,21 @@ class ScrollBenchmark {
                 device.wait(Until.hasObject(By.scrollable(true)), 5_000)
             },
         ) {
-            // Find a scrollable container in the hierarchy and scroll it
-            // up + down 3 times. UiAutomator picks the first scrollable
-            // ancestor that contains content, which on this screen is the
-            // main vertical scroll Column.
-            val scrollable = device.findObject(
-                By.scrollable(true)
-            )
-            if (scrollable != null) {
-                repeat(3) {
-                    scrollable.fling(Direction.DOWN)
-                    device.waitForIdle()
-                    scrollable.fling(Direction.UP)
-                    device.waitForIdle()
-                }
+            // RC73: coordinate-based swipes instead of By.scrollable(true).fling().
+            // Compose's vertical-scroll column is unreliable to locate via the
+            // isScrollable AccessibilityNodeInfo flag headlessly — By.scrollable
+            // returned null, the scroll no-oped, and FrameTimingMetric crashed
+            // with "0 found for frameDurationCpuMs". Swiping the screen centre
+            // drives whatever is scrollable underneath and always produces scroll
+            // frames, so the metric gets real samples.
+            val cx = device.displayWidth / 2
+            val yTop = (device.displayHeight * 0.30).toInt()
+            val yBot = (device.displayHeight * 0.70).toInt()
+            repeat(3) {
+                device.swipe(cx, yBot, cx, yTop, 12)  // scroll down
+                device.waitForIdle()
+                device.swipe(cx, yTop, cx, yBot, 12)  // scroll up
+                device.waitForIdle()
             }
         }
     }

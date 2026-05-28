@@ -140,6 +140,14 @@ class MainActivity : ComponentActivity() {
                     viewModel.seedScreenshotImage(this)
                     viewModel.showLowDpiModal = true
                 }
+                "upscale_test" -> {
+                    // RC73: FTL on-device upscale→PDF timing test. Skip the
+                    // first-run wizard (belt-and-suspenders; the screenshot
+                    // launch already suppresses splash) and run the headless
+                    // pipeline driver.
+                    viewModel.isFirstRun = false
+                    viewModel.runUpscaleAndPdfDeviceTest(this)
+                }
                 else -> { /* main: no-op */ }
             }
         }
@@ -1433,6 +1441,14 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             // drawers are siblings here so a drawer's body-only scrim covers the
             // scrolling content but NOT the two-row top bar above this padding.
             Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            // RC73: DEBUG-only FTL device-test marker. Composed as the first
+            // child of the Scaffold body so it's reliably present (and on-screen
+            // at the top) whenever the upscale→PDF device test has reported a
+            // result. The FTL UiAutomator test finds it via By.textContains
+            // "UPSCALE_TEST_DONE". Never composed in release builds.
+            if (com.posterpdf.BuildConfig.DEBUG && viewModel.deviceTestStatus.isNotEmpty()) {
+                Text(text = viewModel.deviceTestStatus)
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
