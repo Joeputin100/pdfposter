@@ -169,7 +169,16 @@ class MainActivity : ComponentActivity() {
                     ) {
                         // RC66: skip splash when share/Open-with launched the app — the user
                         // came here intending to act on an image, splash is friction.
-                        var showSplash by remember { mutableStateOf(!isShareLaunch(intent)) }
+                        // RC69: skip splash for share launches AND for CI
+                        // screenshot launches (--es screenshot <state>) so the
+                        // captured frame shows real UI, not the splash video.
+                        var showSplash by remember {
+                            mutableStateOf(
+                                !isShareLaunch(intent) &&
+                                    !(com.posterpdf.BuildConfig.DEBUG &&
+                                        intent?.getStringExtra("screenshot") != null),
+                            )
+                        }
                         if (showSplash) {
                             SplashScreen { showSplash = false }
                         } else {

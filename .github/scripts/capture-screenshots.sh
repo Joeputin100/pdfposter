@@ -23,6 +23,11 @@ if [ -z "$APK" ]; then echo "No debug APK found"; exit 1; fi
 echo "Installing $APK"
 adb install -r "$APK"
 
+# Pre-grant POST_NOTIFICATIONS so the runtime permission dialog never
+# pops over the UI we're trying to screenshot. (-g grants all at install
+# on API 23+, but be explicit for the one that auto-prompts on launch.)
+adb shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
+
 capture() {
   local state="$1"
   echo "=== capturing: $state ==="
