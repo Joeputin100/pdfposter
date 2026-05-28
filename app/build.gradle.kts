@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc69"  // RC69 (Gemini natural replies + live credits + Compare/model-picker docked drawers + CI screenshots)
+        versionName = "1.0-rc70"  // RC70 (taller drawers + fixed drag handle + scrollable compare)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

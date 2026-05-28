@@ -9,9 +9,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -39,7 +42,7 @@ import androidx.compose.ui.unit.dp
 fun DockedDrawer(
     visible: Boolean,
     onScrimTap: () -> Unit,
-    heightFraction: Float = 0.92f,
+    heightFraction: Float = 0.97f,
     content: @Composable () -> Unit,
 ) {
     AnimatedVisibility(
@@ -75,7 +78,30 @@ fun DockedDrawer(
                     color = MaterialTheme.colorScheme.surface,
                     tonalElevation = 2.dp,
                 ) {
-                    content()
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // RC70: fixed drag-handle pill — stays put while the
+                        // content below scrolls.
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(width = 36.dp, height = 4.dp)
+                                    .clip(RoundedCornerShape(2.dp))
+                                    .background(
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                            .copy(alpha = 0.4f),
+                                    ),
+                            )
+                        }
+                        // Content scrolls within the remaining space.
+                        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                            content()
+                        }
+                    }
                 }
             }
         }
