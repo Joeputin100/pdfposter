@@ -132,46 +132,111 @@ export function parseTextFromResponse(response: unknown): string {
 }
 
 /** Injectable deps for [applyRateLimit] so it can be unit-tested with a
- *  fake Firestore. Production callers pass the real getFirestore() client. */
+ *  fake Firestore. Production callers pass the real getFirestore() client
+ *  plus FieldValue.increment / serverTimestamp sentinels. */
 export interface RateLimitDeps {
   firestore: {
     runTransaction: <T>(
       fn: (txn: {
         get: (ref: { path: string }) => Promise<{
           exists: boolean;
-          data: () => { count?: number; dayKey?: string } | undefined;
+          data: () => Record<string, unknown> | undefined;
         }>;
-        set: (
-          ref: { path: string },
-          val: { count: number; dayKey: string },
-        ) => void;
+        set: (ref: { path: string }, val: Record<string, unknown>) => void;
+        update: (ref: { path: string }, val: Record<string, unknown>) => void;
       }) => Promise<T>,
     ) => Promise<T>;
   };
-  docRef: { path: string };
+  quotaDocRef: { path: string };   // /users/{uid}/quota/askGemini
+  userDocRef: { path: string };    // /users/{uid}
+  creditLogColl: {                 // /users/{uid}/creditLog
+    doc: () => { path: string };
+  };
+  fieldIncrement: (n: number) => unknown;   // FieldValue.increment shim
+  serverTimestamp: () => unknown;            // FieldValue.serverTimestamp shim
   now: Date;
 }
 
-/** Increment the user's daily quota counter atomically. Returns whether
- *  the call is allowed AND how many queries remain after this one.
+/** RC68: Atomically apply the 3-tier rate-limit policy.
+ *
+ *  Tier 1 — free daily allowance (DAILY_QUERY_LIMIT/day, resets at UTC midnight).
+ *  Tier 2 — paid pack remainder (rolls over forever).
+ *  Tier 3 — auto-buy a fresh 10-pack for 1 credit if the user has credits.
+ *
+ *  Returns:
+ *    allowed        — whether this call may proceed.
+ *    remaining      — combined remaining quota AFTER this call.
+ *    packPurchased  — true iff this call triggered an auto-buy (for telemetry).
+ *
  *  Day key is the UTC ISO date (YYYY-MM-DD) — intentionally not timezone-
  *  aware (per-user TZ tracking would be real complexity for no real benefit
  *  on a "free queries/day" feature). */
 export async function applyRateLimit(
   deps: RateLimitDeps,
-): Promise<{ allowed: boolean; remaining: number }> {
+): Promise<{ allowed: boolean; remaining: number; packPurchased: boolean }> {
   const todayKey = deps.now.toISOString().slice(0, 10); // YYYY-MM-DD UTC
   return deps.firestore.runTransaction(async (txn) => {
-    const snap = await txn.get(deps.docRef);
-    const data = snap.exists ? (snap.data() ?? {}) : {};
-    const sameDay = data.dayKey === todayKey;
-    const currentCount = sameDay ? (data.count ?? 0) : 0;
-    if (currentCount >= DAILY_QUERY_LIMIT) {
-      return { allowed: false, remaining: 0 };
+    const quotaSnap = await txn.get(deps.quotaDocRef);
+    const userSnap = await txn.get(deps.userDocRef);
+    const quotaData = (quotaSnap.exists ? quotaSnap.data() : undefined) ?? {};
+    const userData = (userSnap.exists ? userSnap.data() : undefined) ?? {};
+
+    const sameDay = quotaData.dayKey === todayKey;
+    const freeUsedToday = sameDay ? Number(quotaData.freeUsedToday ?? 0) : 0;
+    const paidRemaining = Number(quotaData.paidRemaining ?? 0);
+    const credits = Number(userData.credits ?? 0);
+
+    // Tier 1: free daily allowance.
+    if (freeUsedToday < DAILY_QUERY_LIMIT) {
+      const nextFree = freeUsedToday + 1;
+      txn.set(deps.quotaDocRef, {
+        freeUsedToday: nextFree,
+        dayKey: todayKey,
+        paidRemaining,
+      });
+      return {
+        allowed: true,
+        remaining: (DAILY_QUERY_LIMIT - nextFree) + paidRemaining,
+        packPurchased: false,
+      };
     }
-    const nextCount = currentCount + 1;
-    txn.set(deps.docRef, { count: nextCount, dayKey: todayKey });
-    return { allowed: true, remaining: DAILY_QUERY_LIMIT - nextCount };
+
+    // Tier 2: paid pack remainder rolls over across days.
+    if (paidRemaining > 0) {
+      const nextPaid = paidRemaining - 1;
+      txn.set(deps.quotaDocRef, {
+        freeUsedToday,
+        dayKey: todayKey,
+        paidRemaining: nextPaid,
+      });
+      return { allowed: true, remaining: nextPaid, packPurchased: false };
+    }
+
+    // Tier 3: auto-buy a 10-pack for 1 credit.
+    if (credits < 1) {
+      return { allowed: false, remaining: 0, packPurchased: false };
+    }
+    // Mirror upscale.ts's debit pattern: FieldValue.increment(-1) on
+    // /users/{uid}.credits + a creditLog entry for the audit trail.
+    txn.update(deps.userDocRef, {
+      credits: deps.fieldIncrement(-1),
+      updatedAt: deps.serverTimestamp(),
+    });
+    const logRef = deps.creditLogColl.doc();
+    txn.set(logRef, {
+      kind: 'gemini_pack',
+      delta: -1,
+      balanceBefore: credits,
+      balanceAfter: credits - 1,
+      createdAt: deps.serverTimestamp(),
+    });
+    // This send consumes 1 of the 10-pack we just bought.
+    txn.set(deps.quotaDocRef, {
+      freeUsedToday,
+      dayKey: todayKey,
+      paidRemaining: 9,
+    });
+    return { allowed: true, remaining: 9, packPurchased: true };
   });
 }
 
@@ -180,7 +245,7 @@ export async function applyRateLimit(
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
 /** Injectable Gemini client. Real impl lands in Task 5; here we declare the
  *  shape so the callable can be built + tested with a stub today. */
@@ -245,18 +310,24 @@ export const askGemini = onCall(
       throw new HttpsError('invalid-argument', 'prompt must be ≤ 2000 characters');
     }
 
-    // Rate limit: 10/day per user, transactional via Firestore.
+    // Rate limit: free 10/day + auto-buy 10-pack for 1 credit, transactional.
     const db = getFirestore();
-    const docRef = db.collection('users').doc(uid).collection('quota').doc('gemini_qa');
+    const userDocRef = db.collection('users').doc(uid);
+    const quotaDocRef = userDocRef.collection('quota').doc('askGemini');
+    const creditLogColl = userDocRef.collection('creditLog');
     const rate = await applyRateLimit({
       firestore: db as unknown as RateLimitDeps['firestore'],
-      docRef: docRef as unknown as RateLimitDeps['docRef'],
+      quotaDocRef: quotaDocRef as unknown as RateLimitDeps['quotaDocRef'],
+      userDocRef: userDocRef as unknown as RateLimitDeps['userDocRef'],
+      creditLogColl: creditLogColl as unknown as RateLimitDeps['creditLogColl'],
+      fieldIncrement: (n: number) => FieldValue.increment(n),
+      serverTimestamp: () => FieldValue.serverTimestamp(),
       now: new Date(),
     });
     if (!rate.allowed) {
       throw new HttpsError(
         'resource-exhausted',
-        'Daily Gemini query limit reached. Come back tomorrow — Gemini is free here, but rationed.',
+        'Insufficient credits to continue Gemini Q&A. Tap the credit chip to buy more.',
       );
     }
 
@@ -275,6 +346,7 @@ export const askGemini = onCall(
       text: parseTextFromResponse(response),
       toolCall: parseToolCallFromResponse(response),
       remainingQueries: rate.remaining,
+      packPurchased: rate.packPurchased,
     };
   },
 );
