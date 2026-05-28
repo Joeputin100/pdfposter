@@ -5,17 +5,189 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    match /users/{userId} {
-      allow read, write: if isAuthed() && request.auth.uid == userId;
+    // RC44: registered = signed-in with a real provider (Google), not anonymous.
+    // sign_in_provider is "anonymous" for anon users and "google.com" for
+    // Google-linked accounts; checked at the database edge so a malicious
+    // client can't bypass it by lying about isAnonymous in the request body.
+    function isRegistered() {
+      return isAuthed()
+          && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
 
+    // RC44: admin registry. To grant admin to a uid, create a document at
+    // /admins/{uid} via the Firebase console (any content; existence is
+    // sufficient). The /admins collection itself is client-unreadable to
+    // prevent enumeration; admins manage it via console / Admin SDK.
+    function isAdmin() {
+      return isAuthed()
+          && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /admins/{uid} {
+      // A signed-in user may probe their OWN admin-status doc so the
+      // composer can show admin-only UI affordances (e.g. the
+      // Release-Notes topic option). Enumeration of /admins is forbidden;
+      // writes happen via the Firebase console / Admin SDK only.
+      allow read: if isAuthed() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Server-only fields on the user document. Cloud Functions use the
+    // Admin SDK and bypass these rules; clients are blocked from mutating
+    // these fields directly.
+    function userServerFieldsUntouched() {
+      return !(request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['credits',
+                         'lastPurchaseToken',
+                         'mergedFromAnonymousUid',
+                         'mergedToUid']));
+    }
+
+    function userCreateHasNoServerFields() {
+      return !(request.resource.data.keys()
+                .hasAny(['credits',
+                         'lastPurchaseToken',
+                         'mergedFromAnonymousUid',
+                         'mergedToUid']));
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthed() && request.auth.uid == userId;
+      // Client may create their own user doc but cannot seed server-only fields.
+      allow create: if isAuthed() && request.auth.uid == userId
+                    && userCreateHasNoServerFields();
+      // Client may update display preferences but NOT credit/purchase/merge fields.
+      allow update: if isAuthed() && request.auth.uid == userId
+                    && userServerFieldsUntouched();
+      allow delete: if false;
+
+      // Existing history collection — preserved as-is for production code at
+      // backend/functions/src/index.ts:282 (/v1/history/add) and :315 (/v1/history/list).
       match /history/{historyId} {
         allow read, write: if isAuthed() && request.auth.uid == userId;
       }
+
+      // New: append-only credit ledger written exclusively by server (Admin SDK).
+      // Named `creditLog` to disambiguate from the top-level `/upscaleTransactions`
+      // collection used by the staging/commit flow.
+      match /creditLog/{logId} {
+        allow read: if isAuthed() && request.auth.uid == userId;
+        allow write: if false;  // server-only
+      }
+
+      // RC65: per-user Gemini Q&A rate limit. Backend writes
+      // (transactionally via applyRateLimit in askGemini.ts); the user
+      // can read their own count to display "X queries left today" in
+      // the Q&A sheet. No client writes — only the Cloud Function
+      // (running as the compute SA, which bypasses rules) updates it.
+      match /quota/{name} {
+        allow read: if isAuthed() && request.auth.uid == userId;
+        allow write: if false;
+      }
     }
 
+    // Existing top-level collection used by /v1/credits/{stage,commit,refund}
+    // (backend/functions/src/index.ts:128, 200, 247). Server writes via Admin SDK;
+    // clients may read their own transactions for UI display.
     match /upscaleTransactions/{txId} {
-      allow read, write: if isAuthed() && resource.data.uid == request.auth.uid;
-      allow create: if isAuthed() && request.resource.data.uid == request.auth.uid;
+      allow read: if isAuthed() && resource.data.uid == request.auth.uid;
+      allow write: if false;  // server-only (Admin SDK bypasses)
+    }
+
+    // New: public pricing document, written by scheduled/cron Cloud Function.
+    match /pricing/current {
+      allow read: if true;
+      allow write: if false;  // server-only (cron)
+    }
+
+    // RC17: support / feedback tickets. One-way write — clients can
+    // CREATE their own ticket (uid pinned to auth.uid, no server-only
+    // status field), but never read, update, or delete. The backend
+    // reads via Admin SDK to triage. The shape is:
+    //   {uid, email?, displayName?, isAnonymous, subject, category,
+    //    description, diagnosticsIncluded, createdAt,
+    //    device?, debugLogTail?}
+    match /support/{ticketId} {
+      allow create: if isAuthed()
+                    && request.resource.data.uid == request.auth.uid
+                    && !('status' in request.resource.data.keys())
+                    && !('triagedAt' in request.resource.data.keys())
+                    && !('assignedTo' in request.resource.data.keys());
+      allow read, update, delete: if false;
+    }
+
+    // RC44: in-app community board.
+    //   /community/posts/{postId}                — top-level posts
+    //   /community/posts/{postId}/replies/{rId}  — flat 1-level replies
+    //
+    // Read: open to anyone (signed-in or not). The feed is public.
+    // Write: gated to registered (non-anonymous) users via isRegistered().
+    // Release-Notes topic is admin-gated via isAdmin() so only the dev
+    // team can post announcements; anyone can reply.
+    //
+    // Soft-delete: owner may set deletedAt + deletedBy; rules prevent
+    // editing the body (no edit-after-post in v1) and forbid hard delete
+    // so reply threads keep their shape ("[Post deleted]" placeholder).
+    //
+    // Body validation includes BBCode markup; we cap at 8000 chars to
+    // accommodate inline [img] URLs without enabling pathological pasting.
+    // RC47 path correction: CommunityRepository uses
+    //   db.collection("community").document("posts").collection("items")
+    // which writes to /community/posts/items/{postId}. The original RC44
+    // rules matched /community/posts/{postId} (a collection, not a sub-
+    // collection under the doc), so all reads silently returned permission
+    // denied — the client surfaced "Couldn't load posts" as a result.
+    // Aligning the rule path with where data actually lives.
+    match /community/posts/items/{postId} {
+      allow read: if true;
+
+      allow create: if isRegistered()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.topic in [
+                         'release_notes', 'feature_requests',
+                         'troubleshooting', 'discussion'
+                       ]
+                    && (request.resource.data.topic != 'release_notes' || isAdmin())
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() >= 1
+                    && request.resource.data.title.size() <= 120
+                    && request.resource.data.body is string
+                    && request.resource.data.body.size() >= 1
+                    && request.resource.data.body.size() <= 8000
+                    && request.resource.data.createdAt == request.time
+                    && !('deletedAt' in request.resource.data.keys());
+
+      // Owners can soft-delete (and admins can soft-delete anyone's
+      // post for moderation). The diff is locked to the deletion fields
+      // so nobody can sneak a body edit through the update path.
+      allow update: if isAuthed()
+                    && (resource.data.uid == request.auth.uid || isAdmin())
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys()
+                         .hasOnly(['deletedAt', 'deletedBy']);
+
+      // No client deletes — soft-delete only so reply threads keep
+      // their parent. v1 skips a denormalized replyCount; the post
+      // detail screen runs an aggregate count() against the /replies
+      // subcollection (one billable read per page, cheap).
+      allow delete: if false;
+
+      match /replies/{replyId} {
+        allow read: if true;
+        allow create: if isRegistered()
+                      && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.body is string
+                      && request.resource.data.body.size() >= 1
+                      && request.resource.data.body.size() <= 4000
+                      && request.resource.data.createdAt == request.time
+                      && !('deletedAt' in request.resource.data.keys());
+        allow update: if isAuthed()
+                      && (resource.data.uid == request.auth.uid || isAdmin())
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys()
+                           .hasOnly(['deletedAt', 'deletedBy']);
+        allow delete: if false;
+      }
     }
   }
 }

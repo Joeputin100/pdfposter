@@ -1,24 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pdfposter">
+    package="com.posterpdf">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <!-- Phase G3: Google Play Billing Library v7. Required for BillingClient + launchBillingFlow. -->
+    <uses-permission android:name="com.android.vending.BILLING" />
+    <!-- RC11: foreground service so the on-device upscaler can survive
+         backgrounding / Doze / Samsung's PPK without being killed mid-run.
+         FOREGROUND_SERVICE is auto-granted; the dataSync subtype reflects
+         the work being done (image processing + writing partial output
+         to cache between tiles). POST_NOTIFICATIONS gates the progress
+         notification on Android 13+ — runtime-prompted on first upscale. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- RC65: Gemini Q&A voice input via SpeechRecognizer. Runtime-prompted
+         the first time the user taps the mic button in the Q&A sheet. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="true"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PosterPDF">
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="uiMode|fontScale|locale|layoutDirection|orientation|screenSize|smallestScreenSize|screenLayout">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- RC66: Share-sheet target. Lets users share an image from
+                 Gemini, Photos, Chrome, etc. directly into PosterPDF. The
+                 incoming Uri is handed to viewModel.updateImage() which
+                 immediately copies bytes to app-private storage (so the
+                 temporary share-grant expiring is safe). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+            <!-- RC66: "Open with…" target. Same handler, different
+                 invocation point — file managers, Photos long-press, etc. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
 
@@ -31,6 +69,25 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- RC11: foreground service that hosts the on-device ESRGAN upscale
+             so PPK / Doze can\'t kill it. dataSync is the appropriate
+             foregroundServiceType for image processing + cache writes. -->
+        <service
+            android:name=".ml.UpscaleForegroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- RC12b: Firebase Cloud Messaging service — handles incoming push
+             for monthly storage charges + 24h-before-deletion warnings. -->
+        <service
+            android:name=".data.backend.PosterPdfMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

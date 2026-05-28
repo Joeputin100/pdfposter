@@ -14,3 +14,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "pdfposter"
 include(":app")
+// RC41: Macrobenchmark module — startup + scroll-jank metrics. Builds only
+// when explicitly requested (variant = "benchmark") so normal `gradle build`
+// flows ignore it.
+include(":benchmark")

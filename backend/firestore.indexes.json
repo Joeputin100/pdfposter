@@ -1,9 +1,10 @@
 {
   "indexes": [
     {
-      "collectionGroup": "history",
+      "collectionGroup": "items",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "topic", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     }

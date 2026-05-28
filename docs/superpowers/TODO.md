@@ -4,37 +4,35 @@ Items deferred from the MD3E redesign work. Each is its own future plan.
 
 ---
 
-## TODO 1 — Migrate Android build to GitHub Actions ✅ DONE 2026-05-02
+## TODO 1 — Migrate Android build to GitHub Actions ✅ DONE
 
-**Outcome:**
-Android build moved from Cloud Build to GitHub Actions in a single session. Backend deploys still go through `cloudbuild-backend.yaml` per the original CBA — backend SA already wired with Firebase Admin / Functions Developer / SA User roles.
+**Status:** Shipped 2026-05-02. Android builds run via `.github/workflows/build-android.yml`; A/B run on the same source produced byte-identical APKs at 7m59s vs Cloud Build's 28m29s. Cloud Build trigger for Android decommissioned. Backend stays on Cloud Build (intentional — `cloudbuild-backend.yaml` SA already has the Firebase/Functions IAM roles).
 
-**A/B comparison data (commit `dc3f7fb`, both pipelines on the same source):**
+---
 
-| | Cloud Build | GH Actions |
-|---|---|---|
-| Wall-clock | 28m 29s | **7m 59s** (3.6× faster) |
-| Debug APK SHA-256 | `614d22…dab15c` | `614d22…dab15c` (identical) |
-| Release AAB | 27,115,356 B | 27,115,426 B (+70 B metadata) |
-| Free-tier cost | ~28 min of 120/day | $0 (public repo) |
+### Original deferral (preserved for context)
+**Status:** Deferred until MD3E redesign lands.
 
-The 70-byte AAB diff is bundletool tooling timestamps — irrelevant to install behavior. APK byte-identical means functional equivalence.
+**Scope:** Move `cloudbuild.yaml` (Android APK + AAB build only) to `.github/workflows/build-android.yml`. **Keep `cloudbuild-backend.yaml` on Cloud Build** — already wired to a Cloud Build SA with `Firebase Admin`, `Cloud Functions Developer`, `Service Account User` roles; replicating that path under workload identity federation is fragility risk for negligible UX gain.
 
-**Departures from the original plan:**
-- **Skipped Workload Identity Federation.** Used base64-encoded GH secrets for the keystore + `google-services.json` instead. Simpler, fully working, no GCP-side IAM setup. WIF would be needed only if we ever want the GHA workflow to deploy to GCP (which it doesn't — backend stays on Cloud Build).
-- **Skipped the 1-2 week parallel-run period.** APK byte-identical on first comparison removed the need.
-- **Used Gradle 8.10.2 manually downloaded** instead of `gradle/actions/setup-gradle@v3` — project has no `gradlew` wrapper today. Adding the wrapper is a small follow-up that would unlock the action's caching path.
-- **Removed `tensorflow-lite-gpu`** dep along the way — R8 minify failed on a missing class; we weren't using GPU delegate anyway. (See commit `dc3f7fb`.)
+**Why GH Actions for Android:**
+- Free for both private and public repos at this volume (~360 build-min/mo, well under 2000-min private free tier).
+- Native `actions/cache@v4` gives Gradle/Kotlin/AGP caching → 12 min → 5–7 min builds once warm.
+- PR-native status checks + log access in the same UI as code review.
+- Marketplace actions for Play Store upload (`r0adkll/upload-google-play`) and release artifacts (`softprops/action-gh-release`).
 
-**What landed:**
-- `.github/workflows/build-android.yml` (on `master` and `feat/**`, with path filters to skip non-app changes)
-- `gh secret set RELEASE_KEYSTORE_BASE64` and `GOOGLE_SERVICES_JSON_BASE64`
-- `cloudbuild.yaml` deleted
+**Steps when ready:**
+1. Generate workload identity federation pool + provider in GCP console (one-time).
+2. Move keystore from `gs://static-webbing-461904-c4_artifacts/release.keystore` to a base64 GH secret (`KEYSTORE_BASE64`) plus passwords as separate secrets (`KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`). **Note:** the keystore is currently *also* committed to the repo — see TODO 4 for cleanup before this migration.
+3. Author `.github/workflows/build-android.yml`:
+   - `actions/setup-java@v4` (zulu, 21)
+   - `gradle/actions/setup-gradle@v3` (auto-cache)
+   - decode keystore + run `./gradlew assembleDebug bundleRelease`
+   - upload .aab + .apk as workflow artifacts
+4. Run both pipelines in parallel for 1–2 weeks; compare outputs byte-for-byte where possible.
+5. Decommission Cloud Build trigger for the Android job.
 
-**Follow-ups (low priority):**
-- Add `gradlew` wrapper → drop the manual gradle install step (saves ~30s/run + enables `setup-gradle` caching)
-- Move keystore passwords from `app/build.gradle.kts` hardcoded "posterpdf" to GH secrets (TODO 4 step 3)
-- Consider a `r0adkll/upload-google-play` step for automated Play Store internal-track uploads once Play Console is paid (TODO follow-on after Phase G ships)
+**Estimate:** 4 hours.
 
 ---
 
@@ -155,8 +153,13 @@ Baseline profiles encode "which classes/methods to AOT-compile at install time" 
 
 ---
 
-## TODO 6 — Localization to 5+ languages
+## TODO 6 — Localization to 5+ languages ✅ DONE
 
+**Status:** Shipped during the RC3+ work (commits `RC3+ Layer 2c — 9 locale translations`). Coverage: ar, de, es, fr, hi, ja, pt-rBR, ru, zh-rCN — 9 locales, all driven through `app/src/main/res/values-<locale>/strings.xml`. `LocaleManagerCompat.setApplicationLocales()` integrated; users can switch app language independent of OS language via the drawer's Language picker. Beats the 5-locale "minimum for featuring" bar.
+
+---
+
+### Original deferral (preserved for context)
 **Status:** Tier-3 Play-Store-featured-readiness item.
 
 **Why:** Localized apps reach more users, qualify for more regional featuring, and signal "global app" to the Play Store algorithm. Realistic minimum for featuring: 5 locales beyond English.
@@ -213,171 +216,6 @@ Baseline profiles encode "which classes/methods to AOT-compile at install time" 
 **Estimate:** 6–10 hours, distributed: A is 2h, B is 3h (most of it screenshots + GIF rendering), C is 2h, D is 1h post-GH-Actions-migration, E is 1h plus the wait time for `awesome-*` PRs to merge.
 
 **When to start:** A + B can start the day MD3E redesign lands on master. C piggybacks on each phase's PR. D is gated on TODO 1 (GH Actions). E is the very last step.
-
----
-
-## TODO 8 — Aggressive automated testing CI (Tiers 1–5b on every build)
-
-**Status:** Planned for after Phase F (security review) but before final Play Store submission. Bundle with TODO 1 (GH Actions migration).
-
-**Goal:** Run all of Tiers 1, 2, 3, 4, 5a, 5b on every push, with the user's Galaxy A26 (Android 16 / One UI 8) reserved as the tier-5c manual smoke-test device. Repo is public → unlimited GH Actions Linux minutes; FTL fits in free tier.
-
-**Two new workflow files:**
-
-### `.github/workflows/test.yml` — every push, ~10–15 min wall-clock
-
-Three jobs in parallel:
-1. **`jvm`** (Tiers 1–3): `./gradlew test verifyPaparazzi lint`. ~5 min cached.
-2. **`emulator`** (Tier 4): `reactivecircus/android-emulator-runner@v2` API 34, runs `./gradlew connectedDebugAndroidTest`. ~10 min with cached AVD snapshot.
-3. **`ftl-virtual`** (Tier 5a): `gcloud firebase test android run` against `Pixel2.arm/30`, `Pixel2.arm/33`, `MediumPhone.arm/34`. Free tier (~5 device-hours/day budget covers ~60 short runs).
-
-Gate `emulator` + `ftl-virtual` on `jvm` passing first (cheap fail-fast).
-
-### `.github/workflows/ftl-physical-weekly.yml` — Mondays + on `v*` / `md3e-*` tags
-
-Single job runs `gcloud firebase test android run` against real-device models from FTL's catalog. Free tier: 0.5 physical device-hours/day (~6 short runs); weekly cadence consumes ~2 hours/month, well within budget.
-
-### Setup prerequisites (one-time)
-- **Workload Identity Federation** for GH Actions → GCP auth. Configure pool + provider in GCP IAM (~30 min). Use OIDC tokens, not service-account JSON keys (long-lived keys are a rotation pain).
-- **Service account** `ftl-runner@static-webbing-461904-c4.iam.gserviceaccount.com` with `Firebase Test Lab Admin` + `Cloud Storage Object Admin` (for FTL result uploads).
-- **Add `org.junit.platform:junit-platform-launcher` + `com.google.testing.platform:core-proto:0.0.9-alpha02`** if FTL needs newer test-platform protos.
-
-### Code-side prerequisites
-- **Paparazzi**: add `app.cash.paparazzi:paparazzi-gradle-plugin:1.3.5` (or current) to project. Write 8–10 initial snapshots: `PosterPreview` × {1×1, 3×4, no-margin, large-overlap, dark-theme, custom-paper}; `MainScreen` × {empty-state, image-picked, advanced-options-expanded}.
-- **Instrumented tests**: `androidx.compose.ui:ui-test-junit4` already on classpath via BOM. Write Compose UI tests for paper-size selector, generate-button click flow, history navigation.
-- **Macrobenchmark** module: see TODO 3 — gated on tier-5c access (TODO 9). For v1.0 use the FTL-virtual-device profile.
-
-**Estimate:** 4 hours one-time setup + ~30 min per new test class.
-
-**Layered with the A26 manual ritual** — described in TODO 9 — this gives full coverage: Tiers 1–4 fast-fail-fast on every PR, FTL virtual matrix on every push to master, FTL physical matrix weekly + on tag, A26 manual smoke before tag.
-
----
-
-## TODO 9 — Solve tier-5c (real-device benchmarking on Galaxy A26)
-
-**Status:** Open question. Blocks optimal Baseline Profile generation but does not block v1.0 launch.
-
-**The constraint:** the user's only Android device is the Galaxy A26 (Android 16, One UI 8). They lack:
-- A computer (no traditional adb-over-USB)
-- A second device (no second-phone adb-pairing bootstrap)
-- A wifi network (no adb-over-wifi pairing)
-
-**Why this matters:** Macrobenchmark requires `adb shell` access. It installs/uninstalls the test app, clears package data between iterations, and reads perfetto traces — all `adb`-gated. Without adb the user cannot run `./gradlew :app:generateReleaseBaselineProfile` against their A26.
-
-**Manual smoke testing is unaffected.** Sideloading APKs via the Files app + Chrome download from a GCS signed URL works without adb. Only Macrobenchmark / Baseline Profile generation is blocked.
-
-### Path A — Ship v1.0 with FTL-virtual-generated Baseline Profile (recommended)
-- Run Macrobenchmark from the GH Actions FTL workflow against `Pixel2.arm` virtual device.
-- Pull the resulting `baseline-prof.txt` as a workflow artifact.
-- Commit it via a follow-up PR (or auto-commit via a scheduled workflow).
-- **Quality gap:** ~10–20% less optimal than a profile generated against the actual A26 hardware (Exynos 1380 has different cache hierarchy than virtual Pixel ARM).
-- **Setup time:** ~2 hours (Macrobenchmark module + FTL game-loop invocation).
-
-### Path B — Wait for adb access
-- One-time event: borrow a friend's laptop / library computer, do baseline profile generation, commit.
-- Or acquire a Raspberry Pi 5 (~$35 one-time) — runs adb on Linux, sits in a drawer, USB-C cable to A26, generate profile occasionally.
-- Or: occasional public-library access; a 30-minute session is enough for one Macrobenchmark run.
-- **Quality:** optimal profile (Exynos-tuned, One UI 8 quirks accounted for).
-- **Setup time:** variable depending on access.
-
-### Path C — Cloud device service
-- BrowserStack App Live ($39/mo) gives remote real-device access including Samsung Galaxy A series (occasionally exact A26).
-- Free tier: 30 min/mo limited.
-- Heavy for a one-time profile generation; lighter for occasional debug sessions if needed.
-- **Quality:** good if exact A26 model available; otherwise marginal improvement over FTL virtual.
-- **Setup time:** account creation + walkthrough, ~1 hour.
-
-### Path D — Skip Baseline Profile for v1.0
-- App will start ~20–30% slower than it could (still usable, just suboptimal).
-- Add Baseline Profile in v1.1 once tier-5c is solved.
-- **Quality:** no profile = baseline AOT.
-- **Setup time:** $0.
-
-### Recommendation
-
-**v1.0 → Path A** (FTL-virtual profile). Automated, free, ships with the redesign. Document the limitation in `app/src/main/baseline-prof.txt` header.
-
-**Post-v1.0 → Path B with Raspberry Pi 5** (or borrowed laptop). Regenerate the profile as a single dedicated PR titled "perf: regenerate baseline profile on real Galaxy A26 hardware". Compare cold-start times before/after on FTL physical Samsung models to verify the upgrade is real.
-
-**Path C** is the right answer if there's also a recurring need for remote A26 debugging sessions (e.g., occasional crash reproduction). Otherwise overpaying.
-
-**Estimate:**
-- Path A: 2 hours (one-time setup) + 0.5 device-hours/run on FTL.
-- Path B: 30 min one-time once adb is available.
-
----
-
-## TODO 10 — FinOps module (profitability, cash flow, cost-driver dashboard)
-
-**Status:** Future. Lands once Phase G has real revenue + cost data flowing.
-
-**Why this matters:**
-Phase G introduces a multi-input/multi-output economic loop — Play Store revenue minus Play's 15% fee minus FAL inference cost minus Cloud Functions / Storage / Firestore cost = gross margin per credit. Without dedicated reporting we'll be guessing whether the 50%-target margin formula in `pricing-policy.md` is actually holding, whether one SKU subsidises another, or whether a price change at FAL has silently inverted the curve. A FinOps module surfaces all of that in one place.
-
-**Data sources to unify:**
-- **Revenue:** Play Store reports (CSV export from Play Console; eventually the Play Developer Reporting API). Per-SKU, per-country, per-day. Net of Play's 15% fee, refunds, taxes withheld.
-- **FAL cost:** new `falModelCostUsd` history (currently `pricing/current` is a single-doc snapshot — append to a `pricing/history/{date}` ledger instead so trends are queryable). Plus actual usage = count of `upscaleTransactions{status='succeeded'}` per day × `creditsCost` × `falModelCostUsd`.
-- **Google Cloud cost:** Billing export to BigQuery dataset `cloud_billing_export` (one-time setup in Billing → Billing export). Filter to project `static-webbing-461904-c4`. Breaks down by service (Functions invocations, Firestore reads/writes, Cloud Storage egress, Cloud Logging ingestion, Firebase Auth SMS — once it's enabled).
-- **Refund / chargeback rate:** `creditLog{type='refund'}` counts vs. `creditLog{type='grant'}`. Negative-margin canary if refunds spike.
-- **Float / cash flow:** Play pays out monthly with a ~30-day delay; FAL bills monthly; Cloud bills monthly. Float = (revenue earned) - (revenue paid) + (cost incurred) - (cost paid). Need running ledger.
-
-**Module shape:**
-- `backend/functions/src/finops/` (new directory):
-  - `dailyRollup.ts` — scheduled cron at 02:00 UTC writing `/finops/daily/{YYYY-MM-DD}` with the day's revenue, FAL spend, GCP spend, credits sold, credits burned, refund count, computed gross margin.
-  - `bigqueryAdapter.ts` — pulls Cloud billing data from the BigQuery export. Requires `roles/bigquery.dataViewer` on the dataset.
-  - `playReportingAdapter.ts` — pulls Play revenue once Play Console is funded + Reporting API is enabled. Until then, manual CSV upload to a `/finops/manual-revenue/{month}` doc.
-  - `falCostAdapter.ts` — already half-built; reuse `pricing.ts`'s FAL pricing fetch, multiply by transaction counts.
-- `backend/functions/src/finops/dashboard.ts` — admin-gated callable returning a 90-day window of rolled-up metrics for the dashboard UI.
-- **Dashboard UI** — open question:
-  - **Option A:** in-app admin screen behind the same `admin: true` custom claim used by `getFalBalance`. Keeps everything in Compose. Reuses MD3E charting; the `androidx.graphics:graphics-shapes` lib already on classpath does sparklines well.
-  - **Option B:** standalone web dashboard (Next.js + Recharts) hosted on Firebase Hosting. Easier to extend with rich tables, exports, more sophisticated filtering. Costs nothing extra on Hosting's free tier.
-  - Recommend **B** once dashboard becomes worth more than 1 chart — admin web UX is much friendlier than admin mobile UX for a finance tool.
-
-**Reports the module should answer:**
-1. **Per-SKU profitability:** for each of `credits_small/medium/large/jumbo`, the rolling 30-day gross margin. Catches "the $1.99 SKU is now unprofitable because FAL raised the Topaz rate".
-2. **Cost-driver waterfall:** revenue → minus Play fee → minus FAL inference → minus GCP infra → gross margin. Updates daily.
-3. **Cash flow forecast:** projected balance 30 / 60 / 90 days out given current burn + expected Play payout date + scheduled FAL invoice. Catches "we'll go cash-negative in May before Play deposits in June".
-4. **Cohort behaviour:** % of users who buy a second pack within 30 days. Drives "is this a sustainable business or a one-time-purchase trap?"
-5. **Anomaly alerts:** wired into Cloud Monitoring — page if the day's gross margin drops below 30%, or refund rate exceeds 5%, or any single user burns >$X of FAL credits in <1 hr (fraud canary).
-
-**Bootstrapping order:**
-1. Set up BigQuery billing export now (one-time GCP console action, takes 5 min, no code) so historical data starts accumulating.
-2. Append-only `pricing/history` instead of single `pricing/current` doc — small change, lots of leverage.
-3. `dailyRollup.ts` cron with just FAL + GCP data (Play data lands later when funded).
-4. CSV-upload Play revenue stub for the launch month.
-5. Standalone web dashboard — full Phase H deliverable, post v1.0.
-
-**Estimate:**
-- Bootstrapping (steps 1–4): 6 hours.
-- Full web dashboard with anomaly alerting (step 5): 16–24 hours, mostly chart + filter UX.
-
----
-
-## TODO 11 — Server-side input-dimension verification (anti-abuse for variable credit cost)
-
-**Status:** Future. Captured during the Phase G economics revision (2026-05-02). Not blocking v1 launch since there's a single trusted user.
-
-**Why this matters:**
-Per `plans/2026-05-02-phase-g-economics-revision.md` (G-R9), credit cost now scales with `inputMp × scale²`. The client computes `inputMp` from the bitmap header before calling `requestUpscale` and the server trusts the value for the debit. A malicious client could under-report `inputMp` (e.g., claim 1 MP when actually sending 50 MP) to under-pay credits. With a single user this is paper; once the app has scale, it's a real loss vector.
-
-**The fix:**
-After FAL completes a job, the response includes the output image URL. Either:
-- HEAD the URL and parse `Content-Length` + image-format magic bytes to derive output dimensions, or
-- Range-request the first ~1 KB and parse JPEG/PNG/WEBP headers directly.
-
-Compute `actual_output_mp` from the header. Verify `actual_output_mp / scale² > claimed_input_mp × 1.05` is false (5% tolerance for compression rounding). On failure:
-1. Log a fraud event to Cloud Logging at `WARNING` (so Cloud Monitoring can alert)
-2. Compute `additional_credits_owed = ceil((actual_output_mp - claimed_output_mp) / 5)`
-3. Idempotently increment `users/{uid}.credits_owed` (a separate balance the user must clear before the next purchase)
-4. Mark `upscaleTransactions/{txId}.fraud_flag = true`
-
-**Where this lives:**
-`backend/functions/src/upscale.ts` — extend the success path between `extractOutputUrl()` and the final `set({status: 'succeeded'})`. Don't refund or undo; the user already got their upscale. Just charge the difference.
-
-**Tighter alternative (consider for v2):**
-Verify dimensions BEFORE submit by reading the input from Storage. Adds 1-2 seconds of latency but closes the abuse window completely. Requires `getStorage().bucket().file(...).download()` + metadata parse. Pre-debit verification means we never under-charge.
-
-**Estimate:** 2 hours.
 
 ---
 

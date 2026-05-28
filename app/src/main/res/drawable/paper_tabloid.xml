@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tabloid / Ledger (11 x 17 in) — the largest of the four paper drawables.
+  Same scale factor (21.18 units/inch). Renders at 232.9 x 360 units, centered.
+  Visibly larger than Letter / Legal / A4 — sells the to-scale comparison.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="400"
+    android:viewportHeight="400">
+
+    <!-- Page fill -->
+    <path
+        android:pathData="M83.55,20 L316.45,20 A6,6 0 0 1 322.45,26 L322.45,374 A6,6 0 0 1 316.45,380 L83.55,380 A6,6 0 0 1 77.55,374 L77.55,26 A6,6 0 0 1 83.55,20 Z"
+        android:fillColor="#FFFFFFFF" />
+
+    <!-- Vertical interior grid lines (1 inch = 21.18 units, 10 lines for 11 in wide) -->
+    <path android:pathData="M98.73,20 L98.73,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M119.91,20 L119.91,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M141.09,20 L141.09,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M162.27,20 L162.27,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M183.45,20 L183.45,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M204.63,20 L204.63,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M225.81,20 L225.81,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M246.99,20 L246.99,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M268.17,20 L268.17,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M289.35,20 L289.35,380" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+
+    <!-- Horizontal interior grid lines (16 lines for 17 in tall) -->
+    <path android:pathData="M77.55,41.18 L322.45,41.18" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,62.36 L322.45,62.36" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,83.54 L322.45,83.54" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,104.72 L322.45,104.72" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,125.90 L322.45,125.90" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,147.08 L322.45,147.08" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,168.26 L322.45,168.26" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,189.44 L322.45,189.44" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,210.62 L322.45,210.62" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,231.80 L322.45,231.80" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,252.98 L322.45,252.98" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,274.16 L322.45,274.16" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,295.34 L322.45,295.34" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,316.52 L322.45,316.52" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,337.70 L322.45,337.70" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+    <path android:pathData="M77.55,358.88 L322.45,358.88" android:strokeColor="#1A000000" android:strokeWidth="0.6" />
+
+    <!-- Page border -->
+    <path
+        android:pathData="M83.55,20 L316.45,20 A6,6 0 0 1 322.45,26 L322.45,374 A6,6 0 0 1 316.45,380 L83.55,380 A6,6 0 0 1 77.55,374 L77.55,26 A6,6 0 0 1 83.55,20 Z"
+        android:strokeColor="#FF424242"
+        android:strokeWidth="2.0"
+        android:fillColor="#00000000" />
+</vector>

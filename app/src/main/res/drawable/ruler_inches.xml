@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  12-inch ruler infographic. Used by UnitsToggleCard for the "Inches" choice.
+  Viewport 480 x 80. Margin 12 each side; 1 inch = 38 units. Major ticks every
+  inch (full height), half-inch (medium), quarter-inch (short).
+  Numerical labels are overlaid in Compose Text since vector drawables can't
+  render text glyphs natively.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="40dp"
+    android:viewportWidth="480"
+    android:viewportHeight="80">
+
+    <!-- Ruler body (cream/wood color) -->
+    <path
+        android:pathData="M4,12 L476,12 A4,4 0 0 1 480,16 L480,58 A4,4 0 0 1 476,62 L4,62 A4,4 0 0 1 0,58 L0,16 A4,4 0 0 1 4,12 Z"
+        android:fillColor="#FFFFF6E0" />
+
+    <!-- Top edge line where ticks descend from -->
+    <path android:pathData="M0,18 L480,18" android:strokeColor="#FF424242" android:strokeWidth="1.0" />
+
+    <!-- Quarter-inch ticks -->
+    <path android:pathData="M21.50,18 L21.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M40.50,18 L40.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M59.50,18 L59.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M78.50,18 L78.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M97.50,18 L97.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M116.50,18 L116.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M135.50,18 L135.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M154.50,18 L154.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M173.50,18 L173.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M192.50,18 L192.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M211.50,18 L211.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M230.50,18 L230.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M249.50,18 L249.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M268.50,18 L268.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M287.50,18 L287.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M306.50,18 L306.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M325.50,18 L325.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M344.50,18 L344.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M363.50,18 L363.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M382.50,18 L382.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M401.50,18 L401.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M420.50,18 L420.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M439.50,18 L439.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <path android:pathData="M458.50,18 L458.50,32" android:strokeColor="#FF8A8A8A" android:strokeWidth="0.9" />
+    <!-- Half-inch ticks -->
+    <path android:pathData="M31.00,18 L31.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M69.00,18 L69.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M107.00,18 L107.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M145.00,18 L145.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M183.00,18 L183.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M221.00,18 L221.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M259.00,18 L259.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M297.00,18 L297.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M335.00,18 L335.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M373.00,18 L373.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M411.00,18 L411.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <path android:pathData="M449.00,18 L449.00,40" android:strokeColor="#FF424242" android:strokeWidth="1.2" />
+    <!-- Major (inch) ticks -->
+    <path android:pathData="M12.00,18 L12.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M50.00,18 L50.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M88.00,18 L88.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M126.00,18 L126.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M164.00,18 L164.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M202.00,18 L202.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M240.00,18 L240.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M278.00,18 L278.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M316.00,18 L316.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M354.00,18 L354.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M392.00,18 L392.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M430.00,18 L430.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+    <path android:pathData="M468.00,18 L468.00,48" android:strokeColor="#FF1F1F1F" android:strokeWidth="1.8" />
+
+    <!-- Outer border -->
+    <path
+        android:pathData="M4,12 L476,12 A4,4 0 0 1 480,16 L480,58 A4,4 0 0 1 476,62 L4,62 A4,4 0 0 1 0,58 L0,16 A4,4 0 0 1 4,12 Z"
+        android:strokeColor="#FF8A6E2F"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000" />
+</vector>

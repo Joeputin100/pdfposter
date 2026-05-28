@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// RC20.2: explicit Storage rules. Previously the project had no
+// storage.rules file, so the Firebase default rules applied — those allow
+// any authenticated user to read/write anywhere in the bucket, which is
+// fine for sign-in-required flows but doesn't isolate users from each
+// other and gives anonymous (unauthenticated) requests a clean 403.
+//
+// Tighten to: each user can read/write only under their own /users/{uid}/
+// prefix. The AI upscale flow at app/src/main/kotlin/com/posterpdf/data/
+// backend/AiUpscaleRepository.kt uploads to
+//   users/{uid}/upscale-input/{hash}.png
+// which lives squarely under that prefix. The backend Cloud Functions
+// (Admin SDK) can read anywhere because they bypass these rules.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId;
+    }
+    // Default deny for anything outside users/{uid}/.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
