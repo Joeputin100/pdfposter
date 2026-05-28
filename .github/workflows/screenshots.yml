@@ -1,0 +1,96 @@
+name: Screenshots (Emulator capture)
+
+# RC69: deterministic UI screenshots captured on an emulator so the dev
+# (and the AI agent) can visually verify Compose UI changes WITHOUT
+# sideloading to a physical device. Mirrors the sister project
+# (Not_This_Again)'s emulator approach, but uses a debug-only intent
+# hook (MainActivity reads --es screenshot <state>) to deterministically
+# open a named screen, then `adb exec-out screencap` captures it.
+#
+# Trigger: manual (workflow_dispatch) + on push to the redesign branch so
+# every UI change auto-produces fresh screenshots as an artifact.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feat/md3e-redesign']
+    paths:
+      - 'app/src/main/**'
+      - '.github/workflows/screenshots.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    name: Capture UI screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build debug APK
+        run: gradle assembleDebug --stacktrace
+        env:
+          KEYSTORE_PASSWORD: posterpdf
+          KEY_ALIAS: posterpdf
+          KEY_PASSWORD: posterpdf
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-shots-api33-disk4g
+
+      - name: Create AVD + warm cache
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          target: default
+          disk-size: 4096M
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: echo "AVD warmed"
+
+      - name: Capture screenshots
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          target: default
+          disk-size: 4096M
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: bash .github/scripts/capture-screenshots.sh
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots
+          path: /tmp/shots/
+          retention-days: 14
+          if-no-files-found: warn
