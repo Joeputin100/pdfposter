@@ -2,14 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      Macrobenchmark module manifest — minimal. The benchmark module installs
-      a separate test APK that drives :app via UiAutomator, so it doesn't
-      declare an Application class or any activities of its own.
-    -->
+      Macrobenchmark module manifest — minimal. The benchmark installs a
+      separate test APK that drives :app via UiAutomator, so it declares no
+      Application class or activities of its own.
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29"
-        tools:ignore="ScopedStorage"
-        xmlns:tools="http://schemas.android.com/tools" />
+      RC73: WRITE_EXTERNAL_STORAGE intentionally NOT declared. Per Firebase
+      Test Lab + Macrobenchmark guidance, it must be omitted on API 29+ —
+      the library writes results via androidx.test.services TestStorage
+      (no permission needed). Declaring it caused GrantPermissionRule to
+      attempt `pm grant WRITE_EXTERNAL_STORAGE`, which fails on API 30+
+      ("Failed to grant permissions") and aborted every benchmark.
+    -->
 
 </manifest>

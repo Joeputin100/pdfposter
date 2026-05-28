@@ -107,10 +107,13 @@ jobs:
         env:
           DEVICE: ${{ inputs.device }}
           VERSION: ${{ inputs.version }}
-        # Macrobenchmark-on-FTL recipe: the library writes its JSON results to
-        # additionalTestOutputDir on the device; we pull /sdcard/Download and
-        # FTL also archives everything to the results bucket. no-isolated-storage
-        # lets the benchmark write outside scoped storage on these API levels.
+        # RC73: NO additionalTestOutputDir / no-isolated-storage. Those push
+        # Macrobenchmark toward legacy external storage, which forces a
+        # WRITE_EXTERNAL_STORAGE grant that API 30+ rejects ("Failed to grant
+        # permissions") and aborts every benchmark. Without them the library
+        # writes via androidx.test.services TestStorage (no permission), and
+        # FTL archives those outputs (benchmark JSON + perfetto traces) to the
+        # results bucket automatically.
         run: |
           set -e
           gcloud firebase test android run \
@@ -119,8 +122,6 @@ jobs:
             --test="${{ steps.apks.outputs.test_apk }}" \
             --device="model=${DEVICE},version=${VERSION},locale=en,orientation=portrait" \
             --timeout=20m \
-            --environment-variables="additionalTestOutputDir=/sdcard/Download,no-isolated-storage=true" \
-            --directories-to-pull=/sdcard/Download \
             --results-bucket="${FTL_BUCKET}" \
             --results-dir="macrobench-${{ github.run_id }}" \
             --project="${GCP_PROJECT}" 2>&1 | tee /tmp/ftl.txt
