@@ -18,12 +18,14 @@ class GeminiQaRepository {
         prompt: String,
         imageGsUri: String?,
         currentSettings: Map<String, Any?>,
+        toolResult: Map<String, Any?>? = null,
     ): Result<AskGeminiResponse> = try {
         val functions = FirebaseFunctions.getInstance("us-central1")
         val payload = buildMap<String, Any?> {
             put("prompt", prompt)
             if (imageGsUri != null) put("imageGsUri", imageGsUri)
             if (currentSettings.isNotEmpty()) put("currentSettings", currentSettings)
+            if (toolResult != null) put("toolResult", toolResult)
         }
         val callableResult = functions
             .getHttpsCallable("askGemini")

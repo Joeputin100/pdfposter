@@ -759,6 +759,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     var authSession by mutableStateOf(AuthSession())
         private set
+
+    /** RC69 (replaces the G12 placeholder): live credit balance, observed
+     *  from Firestore users/{uid}.credits via a snapshot listener. 0 while
+     *  signed-out / anonymous. */
+    var creditBalance: Int by mutableStateOf(0)
+        private set
+
+    private var creditListener: com.google.firebase.firestore.ListenerRegistration? = null
+
+    private fun observeCreditBalance(uid: String?, isAnonymous: Boolean) {
+        creditListener?.remove()
+        creditListener = null
+        if (uid == null || isAnonymous) { creditBalance = 0; return }
+        creditListener = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("users").document(uid)
+            .addSnapshotListener { snap, _ ->
+                creditBalance = (snap?.getLong("credits") ?: 0L).toInt()
+            }
+    }
     var historyItems by mutableStateOf<List<HistoryItem>>(emptyList())
         private set
     var isHistoryLoading by mutableStateOf(false)
@@ -802,6 +821,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             auth.session.collectLatest { s ->
                 authSession = s
+                observeCreditBalance(s.uid, s.isAnonymous)
                 // RC16: mirror the photoUrl into the debug log so the
                 // user's next saved log tells us whether the URL is
                 // actually null vs. set-but-failing-to-load.
@@ -832,6 +852,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 logEvent(appContext, "upscale_benchmark: failed", t.message)
             }
         }
+    }
+
+    override fun onCleared() {
+        creditListener?.remove()
+        super.onCleared()
     }
 
     private fun loadSettings() {
@@ -1522,40 +1547,81 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 imageGsUri = null,  // Image not uploaded to GCS by default; text-only context.
                 currentSettings = settings,
             )
-            geminiQaState = result.fold(
-                onSuccess = { resp ->
+            geminiQaState = when {
+                result.isFailure -> com.posterpdf.ui.components.GeminiQaState.Error(
+                    appContext.getString(
+                        com.posterpdf.R.string.gemini_qa_error,
+                        result.exceptionOrNull()?.message ?: "",
+                    ),
+                )
+                else -> {
+                    val resp = result.getOrThrow()
                     val toolCall = resp.toolCall
-                    val replyText = if (toolCall != null) {
-                        runCatching { routeToolCall(toolCall, currentCreditBalance) }
-                            .getOrElse { e ->
-                                "Tool call failed: ${e.message ?: "unknown error"}"
-                            }
+                    if (toolCall == null) {
+                        // No tool: show Gemini's reply (or the action-taken
+                        // string), with the turn-1 remaining count.
+                        com.posterpdf.ui.components.GeminiQaState.Reply(
+                            text = resp.text.ifBlank {
+                                appContext.getString(com.posterpdf.R.string.gemini_qa_action_taken)
+                            },
+                            remainingQueries = resp.remainingQueries,
+                        )
                     } else {
-                        resp.text.ifBlank {
-                            appContext.getString(com.posterpdf.R.string.gemini_qa_action_taken)
+                        // RC69: tool round-trip. Compute the tool result
+                        // locally, then call askGemini again so Gemini
+                        // composes a natural sentence. The continuation
+                        // returns remainingQueries = -1 (sentinel); we keep
+                        // the turn-1 count and never surface -1.
+                        val firstTurnRemaining = resp.remainingQueries
+                        val route = runCatching { routeToolCall(toolCall, currentCreditBalance) }
+                            .getOrNull()
+                        if (route == null) {
+                            com.posterpdf.ui.components.GeminiQaState.Error(
+                                appContext.getString(
+                                    com.posterpdf.R.string.gemini_qa_error,
+                                    "tool call failed",
+                                ),
+                            )
+                        } else {
+                            val cont = geminiQaRepo.askGemini(
+                                prompt = prompt,
+                                imageGsUri = null,
+                                currentSettings = settings,
+                                toolResult = mapOf(
+                                    "name" to toolCall.name,
+                                    "args" to toolCall.args,
+                                    "response" to route.responseForGemini,
+                                    "originalPrompt" to prompt,
+                                ),
+                            )
+                            val replyText = cont.fold(
+                                onSuccess = { c -> c.text.ifBlank { route.fallbackText } },
+                                onFailure = { route.fallbackText },
+                            )
+                            com.posterpdf.ui.components.GeminiQaState.Reply(
+                                text = replyText,
+                                remainingQueries = firstTurnRemaining,
+                            )
                         }
                     }
-                    com.posterpdf.ui.components.GeminiQaState.Reply(
-                        text = replyText,
-                        remainingQueries = resp.remainingQueries,
-                    )
-                },
-                onFailure = { t ->
-                    com.posterpdf.ui.components.GeminiQaState.Error(
-                        appContext.getString(
-                            com.posterpdf.R.string.gemini_qa_error,
-                            t.message ?: "",
-                        ),
-                    )
-                },
-            )
+                }
+            }
         }
     }
+
+    /** RC69: result of dispatching a Gemini tool call locally. [responseForGemini]
+     *  is the function-response payload sent back to Gemini for a natural-language
+     *  reply; [fallbackText] is the local explanation shown if the continuation
+     *  call fails. */
+    private data class ToolRouteResult(
+        val responseForGemini: Map<String, Any?>,
+        val fallbackText: String,
+    )
 
     private fun routeToolCall(
         toolCall: com.posterpdf.data.backend.ToolCall,
         currentCreditBalance: Int,
-    ): String = when (toolCall.name) {
+    ): ToolRouteResult = when (toolCall.name) {
         "quoteUpscaleCost" -> {
             val args = toolCall.args
             val modelStr = (args["upscaleModel"] as? String)?.lowercase()
@@ -1581,9 +1647,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 currentCreditBalance = currentCreditBalance,
                 targetDpi = 150,
             )
-            quote.explanation
+            ToolRouteResult(
+                responseForGemini = mapOf(
+                    "costCredits" to quote.estimatedCredits,
+                    "currentBalance" to currentCreditBalance,
+                    "balanceAfter" to (currentCreditBalance - quote.estimatedCredits),
+                    "balanceSufficient" to quote.canAfford,
+                    "model" to model.name,
+                ),
+                fallbackText = quote.explanation,
+            )
         }
-        else -> "Unknown tool: ${toolCall.name}"
+        else -> ToolRouteResult(emptyMap(), "Unknown tool: ${toolCall.name}")
     }
 
     /**

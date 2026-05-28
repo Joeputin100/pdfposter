@@ -1531,8 +1531,7 @@ fun PosterPreview(viewModel: MainViewModel) {
                     // the upscale grid for a vector-explainer banner and keeps
                     // only the BringYourOwn card enabled.
                     sourceIsSvg = viewModel.sourceIsSvg,
-                    // TODO(G12): replace placeholder 0 with viewModel.creditBalance.collectAsState().value
-                    creditBalance = 0,
+                    creditBalance = viewModel.debugCreditOverride ?: viewModel.creditBalance,
                     // RC35: 1¢ = 1 credit (Phase H final pricing). The old
                     // 0.119 was a 50%-margin assumption from G12 that produced
                     // misleading USD lines like "89 credits · ~$10.59" — at

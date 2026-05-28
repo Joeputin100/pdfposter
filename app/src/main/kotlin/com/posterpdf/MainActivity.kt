@@ -425,9 +425,8 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     // Info Dialog states
     var infoDialogContent by remember { mutableStateOf<Pair<String, String>?>(null) }
 
-    // RC3+: credit balance — admin shows ∞; non-admin shows the real Firestore
-    // balance (still 0 placeholder until G12 wires the live observer).
-    var creditBalance by remember { mutableStateOf(0) }
+    // RC69: live credit balance is observed in MainViewModel.creditBalance
+    // (Firestore snapshot listener); read it directly at each call site.
     var showPurchaseSheet by remember { mutableStateOf(false) }
     var showGeminiSheet by remember { mutableStateOf(false) }
 
@@ -739,7 +738,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 stringResource(R.string.gemini_qa_suggestion_model),
             ),
             onSendPrompt = { prompt ->
-                viewModel.askGemini(prompt, viewModel.debugCreditOverride ?: creditBalance)
+                viewModel.askGemini(prompt, viewModel.debugCreditOverride ?: viewModel.creditBalance)
             },
             onDismiss = {
                 showGeminiSheet = false
@@ -750,7 +749,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
 
     if (showPurchaseSheet) {
         PurchaseSheet(
-            balance = creditBalance,
+            balance = viewModel.creditBalance,
             isAnonymous = viewModel.authSession.isAnonymous || !viewModel.authSession.signedIn,
             onDismiss = { showPurchaseSheet = false },
             onBuy = { sku ->
@@ -773,7 +772,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     if (viewModel.showManageAccount) {
         ManageAccountDialog(
             viewModel = viewModel,
-            creditBalance = viewModel.debugCreditOverride ?: creditBalance,
+            creditBalance = viewModel.debugCreditOverride ?: viewModel.creditBalance,
             onDismiss = { viewModel.showManageAccount = false },
             onUpgrade = {
                 viewModel.showManageAccount = false
@@ -1315,11 +1314,11 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                 // RC33: debug override lets the user preview
                                 // arbitrary balances (e.g. four-digit) and
                                 // exercise the digiflip animation. null = real.
-                                balance = viewModel.debugCreditOverride ?: creditBalance,
+                                balance = viewModel.debugCreditOverride ?: viewModel.creditBalance,
                                 isAdmin = viewModel.isAdmin,
                                 onTapBalance = {
                                     hapt.tap()
-                                    viewModel.logEvent(context, "Credit chip tapped", "balance=$creditBalance")
+                                    viewModel.logEvent(context, "Credit chip tapped", "balance=${viewModel.creditBalance}")
                                     showPurchaseSheet = true
                                 },
                                 onTapUpgrade = {
