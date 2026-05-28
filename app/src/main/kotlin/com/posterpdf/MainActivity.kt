@@ -1916,6 +1916,23 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                 )
             }
 
+            // RC71: BringYourOwn help-dialog state hoisted OUT of the drawer
+            // content. It used to live inside the DockedDrawer lambda, but
+            // "Show me how" closes the picker (showLowDpiModal=false), which
+            // tears down the drawer's composition and destroyed the dialog's
+            // remember mid-exit-animation — the dialog flashed for ~1s then
+            // vanished. Hoisting it here (and rendering it as a sibling of the
+            // drawer) keeps it alive independent of the picker's visibility.
+            var showBringYourOwnHelp by remember { mutableStateOf(false) }
+            val byoLauncher = rememberLauncherForActivityResult(
+                contract = androidx.activity.result.contract.ActivityResultContracts.GetContent(),
+            ) { uri ->
+                if (uri != null) {
+                    viewModel.updateImage(context, uri)
+                    viewModel.showLowDpiModal = false
+                }
+            }
+
             // RC69: Model picker (low-DPI upgrade) drawer, relocated from
             // PosterPreview's ModalBottomSheet so it docks below the top bar.
             // Bitmap + derived params are sourced from the ViewModel.
@@ -1931,17 +1948,6 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     val posterWInchesD = viewModel.posterWidth.toDoubleOrNull() ?: 0.0
                     val posterHInchesD = viewModel.posterHeight.toDoubleOrNull() ?: 0.0
                     val currentDpi = viewModel.computeCurrentDpi()
-                    // BringYourOwn walkthrough + system picker, mirrored from the
-                    // pre-RC69 PosterPreview implementation.
-                    var showBringYourOwnHelp by remember { mutableStateOf(false) }
-                    val byoLauncher = rememberLauncherForActivityResult(
-                        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent(),
-                    ) { uri ->
-                        if (uri != null) {
-                            viewModel.updateImage(context, uri)
-                            viewModel.showLowDpiModal = false
-                        }
-                    }
                     LowDpiUpgradeModal(
                         sourceBitmap = src,
                         inputMp = inputMpD,
@@ -1978,16 +1984,19 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             viewModel.showUpscaleComparison = true
                         },
                     )
-                    if (showBringYourOwnHelp) {
-                        com.posterpdf.ui.components.BringYourOwnHelpDialog(
-                            onDismiss = { showBringYourOwnHelp = false },
-                            onPickAlreadyUpscaled = {
-                                showBringYourOwnHelp = false
-                                byoLauncher.launch("image/*")
-                            },
-                        )
-                    }
                 }
+            }
+
+            // RC71: rendered as a sibling of the drawer (not inside it) so it
+            // survives the picker closing when "Show me how" is tapped.
+            if (showBringYourOwnHelp) {
+                com.posterpdf.ui.components.BringYourOwnHelpDialog(
+                    onDismiss = { showBringYourOwnHelp = false },
+                    onPickAlreadyUpscaled = {
+                        showBringYourOwnHelp = false
+                        byoLauncher.launch("image/*")
+                    },
+                )
             }
             }  // RC69: padded body Box (top bar stays outside this padding)
         }

@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc71"  // RC71 (functional drag-to-dismiss handle + tightened compare drawer top)
+        versionName = "1.0-rc72"  // RC72 (fix: BringYourOwn help dialog auto-closed with the drawer)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
