@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc67"  // RC67 (sparkle moved left of credit chip; backend model corrected to gemini-2.5-flash)
+        versionName = "1.0-rc68"  // RC68 (two-row top bar + Gemini 10-pack auto-buy with rollover)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

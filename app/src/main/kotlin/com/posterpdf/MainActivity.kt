@@ -61,7 +61,6 @@ import com.posterpdf.ui.components.AccountAvatarMenu
 import com.posterpdf.ui.components.CreditBadge
 import com.posterpdf.ui.components.CreditChip
 import com.posterpdf.ui.components.GeminiQaSheet
-import com.posterpdf.ui.components.GeminiSparkleButton
 import com.posterpdf.ui.components.GlassCard
 import com.posterpdf.ui.components.glassBackdrop
 import com.posterpdf.ui.components.glintEffect
@@ -1224,6 +1223,14 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     color = MaterialTheme.colorScheme.surface,
                     tonalElevation = 0.dp,
                 ) {
+                    // RC68: split the top bar into two rows — row 1 keeps the
+                    // wordmark + credit chip + avatar, row 2 is a full-width
+                    // 'Ask Gemini' affordance with icon + label. RC66/67's
+                    // single-row layout was too crowded after the sparkle
+                    // button landed; moving it to its own row frees ~40dp of
+                    // horizontal space and turns the Gemini CTA into a true
+                    // first-class entry point.
+                    Column {
                     Row(
                         // RC36: statusBarsPadding pushes the top bar below
                         // the status bar / camera cutout. Without it the
@@ -1301,15 +1308,6 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                         // for the trailing "Login / Sign Up" button to
                         // render its full label without truncation in
                         // portrait orientation.
-                        // RC65/RC67: in-app Gemini Q&A entry — Google's
-                        // first-party sparkle pattern. Sits to the left
-                        // of the credit chip per RC66 device-test feedback.
-                        GeminiSparkleButton(onTap = {
-                            hapt.tap()
-                            viewModel.logEvent(context, "Gemini sparkle tapped")
-                            showGeminiSheet = true
-                        })
-
                         val signedInForChip = viewModel.authSession.signedIn &&
                             !viewModel.authSession.isAnonymous
                         if (signedInForChip) {
@@ -1345,6 +1343,45 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                 activity?.let { signInLauncher.launch(viewModel.googleSignInIntent(it)) }
                             },
                         )
+                    }
+
+                    // RC68: row 2 — full-width 'Ask Gemini about your poster'
+                    // affordance. Reuses gemini_qa_sheet_header so no new
+                    // i18n strings are needed (already in all 9 locales).
+                    // surfaceContainer tints just enough to visually separate
+                    // from row 1 + the editor content below.
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                hapt.tap()
+                                viewModel.logEvent(context, "Gemini sparkle tapped")
+                                showGeminiSheet = true
+                            },
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        tonalElevation = 0.dp,
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                text = stringResource(R.string.gemini_qa_sheet_header),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
                     }
                 }
             }
