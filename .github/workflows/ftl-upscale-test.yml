@@ -80,17 +80,27 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        # RC73: BENCHMARK build (non-debuggable, release-like) — carries the
-        # test hook via BuildConfig.ENABLE_TEST_HOOKS. Running on this variant
-        # disambiguates whether the XNNPACK upscale failure seen on the debug
-        # build is a debug artifact or a real release-path device bug.
-        run: gradle :app:assembleBenchmark :app:assembleBenchmarkAndroidTest --stacktrace
+        # RC73: app-under-test is the BENCHMARK build (non-debuggable,
+        # release-like) — it carries the test hook via
+        # BuildConfig.ENABLE_TEST_HOOKS, so running on it disambiguates whether
+        # the XNNPACK upscale failure seen on the debug build is a debug
+        # artifact or a real release-path device bug.
+        #
+        # AGP only generates an androidTest variant for `testBuildType`
+        # (defaults to debug), so `assembleBenchmarkAndroidTest` does not exist.
+        # FTL only requires the app + test APKs to share a signing cert and
+        # applicationId — both debug and benchmark sign with the release
+        # keystore and use applicationId com.posterpdf (no suffix) — so we pair
+        # the benchmark APP APK with the debug androidTest APK. The installed
+        # app is still the benchmark (non-debuggable) build; the test APK only
+        # fires the launch intent.
+        run: gradle :app:assembleBenchmark :app:assembleDebugAndroidTest --stacktrace
 
       - name: Locate APKs
         id: apks
         run: |
           APP_APK=$(find app/build/outputs/apk/benchmark -name "*.apk" | head -1)
-          TEST_APK=$(find app/build/outputs/apk/androidTest/benchmark -name "*.apk" | head -1)
+          TEST_APK=$(find app/build/outputs/apk/androidTest/debug -name "*.apk" | head -1)
           if [ -z "$APP_APK" ] || [ -z "$TEST_APK" ]; then
             echo "Missing APK — app='$APP_APK' test='$TEST_APK'"; exit 1
           fi
