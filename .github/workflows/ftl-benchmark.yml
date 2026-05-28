@@ -76,14 +76,17 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         # :app:assembleBenchmark = non-debuggable, profileable target app.
-        # :benchmark:assembleBenchmarkAndroidTest = the Macrobenchmark tests.
-        run: gradle :app:assembleBenchmark :benchmark:assembleBenchmarkAndroidTest --stacktrace
+        # :benchmark is a com.android.test module — the module IS the test
+        # APK, so :benchmark:assembleBenchmark produces it (there is no
+        # separate androidTest task).
+        run: gradle :app:assembleBenchmark :benchmark:assembleBenchmark --stacktrace
 
       - name: Locate APKs
         id: apks
         run: |
           APP_APK=$(find app/build/outputs/apk/benchmark -name "*.apk" | head -1)
-          TEST_APK=$(find benchmark/build/outputs/apk -name "*androidTest*.apk" | head -1)
+          # com.android.test module output — the benchmark-variant APK is the test APK.
+          TEST_APK=$(find benchmark/build/outputs/apk -name "*.apk" | head -1)
           if [ -z "$APP_APK" ] || [ -z "$TEST_APK" ]; then
             echo "Missing APK — app='$APP_APK' test='$TEST_APK'"; exit 1
           fi
