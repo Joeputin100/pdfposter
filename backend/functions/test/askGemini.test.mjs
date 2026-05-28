@@ -14,6 +14,8 @@ import {
   parseToolCallFromResponse,
   parseTextFromResponse,
   applyRateLimit,
+  handleAskGemini,
+  setGeminiClient,
   DAILY_QUERY_LIMIT,
 } from '../lib/askGemini.js';
 
@@ -54,6 +56,16 @@ test('buildSystemContext includes current app state', () => {
 test('buildSystemContext handles missing image gracefully', () => {
   const ctx = buildSystemContext({});
   assert.match(ctx, /no image|not yet selected/i);
+});
+
+// RC69: pin the cost-quote gating wording so a future edit can't silently
+// regress it back to "ALWAYS call quoteUpscaleCost".
+test('buildSystemContext gates quoteUpscaleCost on explicit price intent', () => {
+  const ctx = buildSystemContext({});
+  assert.ok(
+    ctx.includes('ONLY call the quoteUpscaleCost tool when the user explicitly asks'),
+    'system prompt must gate the cost tool on explicit price intent',
+  );
 });
 
 test('parseToolCallFromResponse returns null when no function call', () => {
@@ -354,4 +366,104 @@ test('RC68: auto-buy creditLog payload includes kind, delta, balances, createdAt
   assert.equal(entry.balanceBefore, 4);
   assert.equal(entry.balanceAfter, 3);
   assert.ok(entry.createdAt, 'createdAt must be present');
+});
+
+// ─── RC69 handler: tool round-trip + continuation rate-limit skip ──────────────
+
+/** Build a fake GeminiClient that records the generate() args and returns a
+ *  caller-supplied canned response. */
+function fakeGemini(response) {
+  const calls = [];
+  setGeminiClient({
+    generate: async (args) => {
+      calls.push(args);
+      return response;
+    },
+  });
+  return calls;
+}
+
+test('RC69: continuation turn skips rate limit, returns text + remainingQueries=-1', async () => {
+  const calls = fakeGemini({
+    candidates: [{ content: { parts: [{ text: 'Upscaling to topaz costs 3 credits.' }] } }],
+  });
+  // Rate-limit dep that THROWS if invoked — proves the continuation never calls it.
+  const rateLimit = async () => { throw new Error('applyRateLimit must NOT run on continuation'); };
+
+  const result = await handleAskGemini('u1', {
+    prompt: 'ignored on continuation',
+    toolResult: {
+      name: 'quoteUpscaleCost',
+      args: { upscaleModel: 'topaz', targetWidthInches: 24, targetHeightInches: 18 },
+      response: { creditCost: 3, currentBalance: 5 },
+      originalPrompt: 'How much does topaz cost?',
+    },
+  }, rateLimit);
+
+  assert.equal(result.text, 'Upscaling to topaz costs 3 credits.');
+  assert.equal(result.toolCall, null);
+  assert.equal(result.remainingQueries, -1);
+  assert.equal(calls.length, 1);
+});
+
+test('RC69: continuation builds 3-turn contents with functionResponse part', async () => {
+  const calls = fakeGemini({
+    candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+  });
+  const rateLimit = async () => { throw new Error('should not be called'); };
+
+  await handleAskGemini('u1', {
+    prompt: 'p',
+    toolResult: {
+      name: 'quoteUpscaleCost',
+      args: { upscaleModel: 'recraft', targetWidthInches: 36, targetHeightInches: 24 },
+      response: { creditCost: 7, currentBalance: 12 },
+      originalPrompt: 'What does recraft cost?',
+    },
+  }, rateLimit);
+
+  const contents = calls[0].contents;
+  assert.ok(Array.isArray(contents));
+  assert.equal(contents.length, 3);
+  assert.equal(contents[0].role, 'user');
+  assert.equal(contents[0].parts[0].text, 'What does recraft cost?');
+  assert.equal(contents[1].role, 'model');
+  assert.equal(contents[1].parts[0].functionCall.name, 'quoteUpscaleCost');
+  assert.equal(contents[2].role, 'user');
+  const fnResp = contents[2].parts[0].functionResponse;
+  assert.equal(fnResp.name, 'quoteUpscaleCost');
+  assert.deepEqual(fnResp.response, { creditCost: 7, currentBalance: 12 });
+  // No single-turn prompt passed on the continuation path.
+  assert.equal(calls[0].prompt, undefined);
+});
+
+test('RC69: normal first turn applies rate limit + single-turn, returns toolCall', async () => {
+  const calls = fakeGemini({
+    candidates: [{
+      content: {
+        parts: [{
+          functionCall: {
+            name: 'quoteUpscaleCost',
+            args: { upscaleModel: 'topaz', targetWidthInches: 24, targetHeightInches: 18 },
+          },
+        }],
+      },
+    }],
+  });
+  let rateLimitCalls = 0;
+  const rateLimit = async () => {
+    rateLimitCalls++;
+    return { allowed: true, remaining: 8, packPurchased: false };
+  };
+
+  const result = await handleAskGemini('u1', {
+    prompt: 'How much does topaz cost?',
+  }, rateLimit);
+
+  assert.equal(rateLimitCalls, 1, 'rate limit must be applied on first turn');
+  assert.equal(result.toolCall?.name, 'quoteUpscaleCost');
+  assert.equal(result.remainingQueries, 8);
+  // Single-turn path: prompt passed, no pre-built contents.
+  assert.equal(calls[0].prompt, 'How much does topaz cost?');
+  assert.equal(calls[0].contents, undefined);
 });

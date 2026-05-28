@@ -85,11 +85,14 @@ export function buildSystemContext(state: {
     sizeLine,
     paperLine,
     modelLine,
-    'When the user asks about credit cost for an AI upscale, ALWAYS call the ' +
-    'quoteUpscaleCost tool first and use the returned numbers in your reply ' +
-    '(not your own estimate). Be concise; one or two sentences per reply unless ' +
-    'the user asks for more detail. If the user asks something unrelated to ' +
-    'PosterPDF, politely redirect.',
+    'You help with paper sizes, image sharpness/DPI, upscaler choices, and ' +
+    'general how-to questions about making posters. Answer most questions ' +
+    'directly in one or two concise sentences. ONLY call the quoteUpscaleCost ' +
+    'tool when the user explicitly asks about the price, cost, or credit count ' +
+    'of a paid upscale — never for general questions. After a tool result is ' +
+    'provided, weave the real numbers into a natural sentence; do not dump the ' +
+    'raw figures. If the user asks something unrelated to PosterPDF, politely ' +
+    'redirect.',
   ].filter(s => s.length > 0).join('\n\n');
 }
 
@@ -254,8 +257,9 @@ export interface GeminiClient {
     model: string;
     systemInstruction: string;
     tools: unknown[];
-    prompt: string;
-    imageGsUri: string | null;
+    prompt?: string;            // single-turn convenience
+    imageGsUri?: string | null;
+    contents?: unknown[];       // multi-turn: when provided, use verbatim
   }) => Promise<unknown>;
 }
 
@@ -288,6 +292,99 @@ interface AskGeminiInput {
     paperSize?: string;
     currentUpscaleModel?: string;
   };
+  /** Continuation payload (RC69): when present, this call is the second
+   *  turn of a tool round-trip. The client executed the tool locally and
+   *  passes the result back so Gemini composes a natural-language reply.
+   *  This path skips applyRateLimit (no double-charge). */
+  toolResult?: {
+    name: string;                      // tool that was called
+    args: Record<string, unknown>;     // the args Gemini sent
+    response: Record<string, unknown>; // what the client computed
+    originalPrompt: string;            // the user's original question
+  };
+}
+
+/** Result shape returned to the client. */
+export interface AskGeminiResult {
+  text: string;
+  toolCall: { name: string; args: Record<string, unknown> } | null;
+  remainingQueries: number;
+  packPurchased?: boolean;
+}
+
+/** Core handler, factored out of the onCall wrapper so it can be unit-tested
+ *  with a fake GeminiClient + a fake rate-limit function. The production
+ *  callable passes the real applyRateLimit (wired to Firestore); tests inject
+ *  a fake that records / throws as needed. */
+export async function handleAskGemini(
+  uid: string | undefined,
+  data: Partial<AskGeminiInput>,
+  rateLimit: () => Promise<{ allowed: boolean; remaining: number; packPurchased: boolean }>,
+): Promise<AskGeminiResult> {
+  if (!uid) {
+    throw new HttpsError('unauthenticated', 'sign-in required');
+  }
+  const prompt = data.prompt;
+  if (typeof prompt !== 'string' || prompt.trim().length === 0) {
+    throw new HttpsError('invalid-argument', 'prompt is required');
+  }
+  if (prompt.length > 2000) {
+    throw new HttpsError('invalid-argument', 'prompt must be ≤ 2000 characters');
+  }
+
+  const systemInstruction = buildSystemContext(data.currentSettings ?? {});
+  const tools = buildToolDefinitions();
+
+  // ── Continuation turn (RC69): client already executed the tool locally
+  // and passes the result back. Replay [user prompt → model functionCall →
+  // functionResponse] so Gemini composes a natural reply with the real
+  // numbers. This is the SAME logical query as turn 1, so it must NOT
+  // consume another rate-limit slot / credit. remainingQueries=-1 is a
+  // sentinel meaning "unchanged — the client keeps its turn-1 count".
+  if (data.toolResult) {
+    const tr = data.toolResult;
+    const contents = [
+      { role: 'user', parts: [{ text: tr.originalPrompt }] },
+      { role: 'model', parts: [{ functionCall: { name: tr.name, args: tr.args } }] },
+      { role: 'user', parts: [{ functionResponse: { name: tr.name, response: tr.response } }] },
+    ];
+    const response = await geminiClient.generate({
+      model: 'gemini-3.5-flash',
+      systemInstruction,
+      tools,
+      contents,
+    });
+    return {
+      text: parseTextFromResponse(response),
+      toolCall: null,
+      remainingQueries: -1,
+    };
+  }
+
+  // ── First turn: rate limit + single-turn generate.
+  const rate = await rateLimit();
+  if (!rate.allowed) {
+    throw new HttpsError(
+      'resource-exhausted',
+      'Insufficient credits to continue Gemini Q&A. Tap the credit chip to buy more.',
+    );
+  }
+
+  // Build context + dispatch to (stub or real) Gemini client.
+  const response = await geminiClient.generate({
+    model: 'gemini-3.5-flash',
+    systemInstruction,
+    tools,
+    prompt,
+    imageGsUri: data.imageGsUri ?? null,
+  });
+
+  return {
+    text: parseTextFromResponse(response),
+    toolCall: parseToolCallFromResponse(response),
+    remainingQueries: rate.remaining,
+    packPurchased: rate.packPurchased,
+  };
 }
 
 export const askGemini = onCall(
@@ -298,56 +395,28 @@ export const askGemini = onCall(
   },
   async (request) => {
     const uid = request.auth?.uid;
-    if (!uid) {
-      throw new HttpsError('unauthenticated', 'sign-in required');
-    }
     const data = (request.data ?? {}) as Partial<AskGeminiInput>;
-    const prompt = data.prompt;
-    if (typeof prompt !== 'string' || prompt.trim().length === 0) {
-      throw new HttpsError('invalid-argument', 'prompt is required');
-    }
-    if (prompt.length > 2000) {
-      throw new HttpsError('invalid-argument', 'prompt must be ≤ 2000 characters');
-    }
 
     // Rate limit: free 10/day + auto-buy 10-pack for 1 credit, transactional.
-    const db = getFirestore();
-    const userDocRef = db.collection('users').doc(uid);
-    const quotaDocRef = userDocRef.collection('quota').doc('askGemini');
-    const creditLogColl = userDocRef.collection('creditLog');
-    const rate = await applyRateLimit({
-      firestore: db as unknown as RateLimitDeps['firestore'],
-      quotaDocRef: quotaDocRef as unknown as RateLimitDeps['quotaDocRef'],
-      userDocRef: userDocRef as unknown as RateLimitDeps['userDocRef'],
-      creditLogColl: creditLogColl as unknown as RateLimitDeps['creditLogColl'],
-      fieldIncrement: (n: number) => FieldValue.increment(n),
-      serverTimestamp: () => FieldValue.serverTimestamp(),
-      now: new Date(),
-    });
-    if (!rate.allowed) {
-      throw new HttpsError(
-        'resource-exhausted',
-        'Insufficient credits to continue Gemini Q&A. Tap the credit chip to buy more.',
-      );
-    }
-
-    // Build context + dispatch to (stub or real) Gemini client.
-    const systemInstruction = buildSystemContext(data.currentSettings ?? {});
-    const tools = buildToolDefinitions();
-    const response = await geminiClient.generate({
-      model: 'gemini-3.5-flash',
-      systemInstruction,
-      tools,
-      prompt,
-      imageGsUri: data.imageGsUri ?? null,
-    });
-
-    return {
-      text: parseTextFromResponse(response),
-      toolCall: parseToolCallFromResponse(response),
-      remainingQueries: rate.remaining,
-      packPurchased: rate.packPurchased,
+    // Bound here (not inside handleAskGemini) so the continuation path can
+    // simply never call it.
+    const rateLimit = () => {
+      const db = getFirestore();
+      const userDocRef = db.collection('users').doc(uid!);
+      const quotaDocRef = userDocRef.collection('quota').doc('askGemini');
+      const creditLogColl = userDocRef.collection('creditLog');
+      return applyRateLimit({
+        firestore: db as unknown as RateLimitDeps['firestore'],
+        quotaDocRef: quotaDocRef as unknown as RateLimitDeps['quotaDocRef'],
+        userDocRef: userDocRef as unknown as RateLimitDeps['userDocRef'],
+        creditLogColl: creditLogColl as unknown as RateLimitDeps['creditLogColl'],
+        fieldIncrement: (n: number) => FieldValue.increment(n),
+        serverTimestamp: () => FieldValue.serverTimestamp(),
+        now: new Date(),
+      });
     };
+
+    return handleAskGemini(uid, data, rateLimit);
   },
 );
 
@@ -376,17 +445,27 @@ function buildProductionGeminiClient(): GeminiClient {
   });
   return {
     generate: async (args) => {
-      // Build the multimodal contents array. Image (if any) goes first,
-      // text second — matches the SDK's documented multipart input shape.
-      const parts: Array<unknown> = [];
-      if (args.imageGsUri) {
-        parts.push({ fileData: { mimeType: 'image/png', fileUri: args.imageGsUri } });
+      // Multi-turn continuation (RC69): when the caller supplies a pre-built
+      // contents array, pass it through verbatim (it already encodes the
+      // [user → model functionCall → functionResponse] round-trip).
+      // Otherwise build the single-turn contents from prompt + optional image:
+      // image (if any) goes first, text second — matches the SDK's documented
+      // multipart input shape.
+      let contents: unknown;
+      if (args.contents) {
+        contents = args.contents;
+      } else {
+        const parts: Array<unknown> = [];
+        if (args.imageGsUri) {
+          parts.push({ fileData: { mimeType: 'image/png', fileUri: args.imageGsUri } });
+        }
+        parts.push({ text: args.prompt });
+        contents = [{ role: 'user', parts }];
       }
-      parts.push({ text: args.prompt });
 
       const response = await ai.models.generateContent({
         model: args.model,
-        contents: [{ role: 'user', parts }] as never,
+        contents: contents as never,
         config: {
           systemInstruction: args.systemInstruction,
           tools: args.tools as never,
