@@ -140,8 +140,12 @@ class PaneGeometryTest {
         // sourceFracWidth = printableW/posterW = 7.5/6 = 1.25 → clamped to 1.0 (full source)
         assertEquals(1f, pane.sourceFracWidth, 0.001f)
         assertEquals(1f, pane.sourceFracHeight, 0.001f)
-        // Image content is shorter than the printable area (poster is 6" wide on 7.5" printable → 80% width)
+        // RC48: a single-page poster fills the full printable rect (no
+        // shrink-to-poster with blank margins — that was a user-reported bug
+        // for 1-page output). The 6×8 poster and 7.5×10 printable share the
+        // same 0.75 aspect ratio, so it scales to fill without distortion;
+        // imageContentWidth therefore equals imageDstWidth (ratio 1.0).
         val widthRatio = pane.imageContentWidth / pane.imageDstWidth
-        assertEquals(6f / 7.5f, widthRatio, 0.01f)
+        assertEquals(1f, widthRatio, 0.01f)
     }
 }
