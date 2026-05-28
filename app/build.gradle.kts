@@ -26,6 +26,12 @@ android {
         versionName = "1.0-rc73"  // RC73 (code-review fixes: meter Gemini continuation, queries-left wording, drawer drag polish)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // RC73: gates the CI test-only intent hooks (screenshot capture +
+        // upscale device-test). True for debug + benchmark variants; the
+        // release buildType overrides it to false so shipping builds can't
+        // be driven via `am start --es screenshot …`.
+        buildConfigField("boolean", "ENABLE_TEST_HOOKS", "true")
     }
 
     signingConfigs {
@@ -59,6 +65,8 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
+            // Shipping builds must NOT expose the test intent hooks.
+            buildConfigField("boolean", "ENABLE_TEST_HOOKS", "false")
         }
         // RC41: Macrobench needs a NON-debuggable variant of the target app
         // (debuggable APKs skew startup numbers because of dex-debug paths).
@@ -71,6 +79,10 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
             isDebuggable = false
+            // initWith copied release's "false"; re-enable for the benchmark
+            // variant so the upscale device-test hook fires on this
+            // non-debuggable, release-like build (RC73 XNNPACK disambiguation).
+            buildConfigField("boolean", "ENABLE_TEST_HOOKS", "true")
             // Required so :benchmark can reference us under matchingFallbacks.
             matchingFallbacks += listOf("release")
             // Macrobench reads StartupTimingMetric from system traces, which
