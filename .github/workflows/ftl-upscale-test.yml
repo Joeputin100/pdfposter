@@ -125,7 +125,12 @@ jobs:
           DEVICE: ${{ inputs.device }}
           VERSION: ${{ inputs.version }}
         run: |
-          set -e
+          # pipefail is REQUIRED: gcloud exits nonzero when the FTL matrix
+          # fails (e.g. "Application crashed"), but `… | tee` would otherwise
+          # mask it behind tee's exit 0 — turning a device-side crash into a
+          # green step. With pipefail the pipeline returns gcloud's status, so
+          # a crashed/failed device test correctly fails this job.
+          set -eo pipefail
           gcloud firebase test android run \
             --type=instrumentation \
             --app="${{ steps.apks.outputs.app_apk }}" \
