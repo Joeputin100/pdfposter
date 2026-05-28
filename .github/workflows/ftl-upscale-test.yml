@@ -75,20 +75,22 @@ jobs:
           echo "$GS_B64" | base64 -d > app/google-services.json
           python3 -c 'import json; json.load(open("app/google-services.json"))' && echo "google-services.json: valid JSON"
 
-      - name: Build debug APK + debug androidTest APK
+      - name: Build benchmark APK + benchmark androidTest APK
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        # DEBUG build carries the BuildConfig.DEBUG-gated intent hook + device-
-        # test driver. Debug signs with the release config per app/build.gradle.kts.
-        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
+        # RC73: BENCHMARK build (non-debuggable, release-like) — carries the
+        # test hook via BuildConfig.ENABLE_TEST_HOOKS. Running on this variant
+        # disambiguates whether the XNNPACK upscale failure seen on the debug
+        # build is a debug artifact or a real release-path device bug.
+        run: gradle :app:assembleBenchmark :app:assembleBenchmarkAndroidTest --stacktrace
 
       - name: Locate APKs
         id: apks
         run: |
-          APP_APK=$(find app/build/outputs/apk/debug -name "*.apk" | head -1)
-          TEST_APK=$(find app/build/outputs/apk/androidTest/debug -name "*.apk" | head -1)
+          APP_APK=$(find app/build/outputs/apk/benchmark -name "*.apk" | head -1)
+          TEST_APK=$(find app/build/outputs/apk/androidTest/benchmark -name "*.apk" | head -1)
           if [ -z "$APP_APK" ] || [ -z "$TEST_APK" ]; then
             echo "Missing APK — app='$APP_APK' test='$TEST_APK'"; exit 1
           fi

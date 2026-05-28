@@ -130,9 +130,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // RC66: handle a share/open-with that cold-launched the app.
         handleIncomingShareIntent(intent)
-        // RC69: debug-only deep link for CI screenshot capture. BuildConfig.DEBUG
-        // gates it so release builds ignore the extra entirely.
-        if (com.posterpdf.BuildConfig.DEBUG) {
+        // RC69/73: CI test-only deep link (screenshot capture + upscale
+        // device-test). Gated by BuildConfig.ENABLE_TEST_HOOKS — true for the
+        // debug + benchmark variants, false for shipping release builds.
+        if (com.posterpdf.BuildConfig.ENABLE_TEST_HOOKS) {
             val screenshotExtra = intent?.getStringExtra("screenshot")
             android.util.Log.i("UPSCALE_TEST", "debug hook fired, screenshot extra=$screenshotExtra")
             when (screenshotExtra) {
@@ -185,7 +186,7 @@ class MainActivity : ComponentActivity() {
                         var showSplash by remember {
                             mutableStateOf(
                                 !isShareLaunch(intent) &&
-                                    !(com.posterpdf.BuildConfig.DEBUG &&
+                                    !(com.posterpdf.BuildConfig.ENABLE_TEST_HOOKS &&
                                         intent?.getStringExtra("screenshot") != null),
                             )
                         }
@@ -1427,7 +1428,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             // RC69: suppress the first-run wizard for CI screenshot launches
             // (fresh-install emulator is always first-run, which would hide
             // the UI we're capturing). DEBUG-gated; normal launches unaffected.
-            val screenshotLaunch = com.posterpdf.BuildConfig.DEBUG &&
+            val screenshotLaunch = com.posterpdf.BuildConfig.ENABLE_TEST_HOOKS &&
                 (context as? android.app.Activity)?.intent?.getStringExtra("screenshot") != null
             if (viewModel.isFirstRun && !screenshotLaunch) {
                 FirstRunWizard(viewModel = viewModel, onDismiss = { viewModel.saveAllSettings() })
@@ -1448,7 +1449,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             // at the top) whenever the upscale→PDF device test has reported a
             // result. The FTL UiAutomator test finds it via By.textContains
             // "UPSCALE_TEST_DONE". Never composed in release builds.
-            if (com.posterpdf.BuildConfig.DEBUG && viewModel.deviceTestStatus.isNotEmpty()) {
+            if (com.posterpdf.BuildConfig.ENABLE_TEST_HOOKS && viewModel.deviceTestStatus.isNotEmpty()) {
                 Text(text = viewModel.deviceTestStatus)
             }
             Box(
