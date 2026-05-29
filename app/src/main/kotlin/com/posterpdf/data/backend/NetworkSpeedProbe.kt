@@ -6,6 +6,7 @@ import android.net.NetworkCapabilities
 import android.util.Log
 import com.google.firebase.storage.FirebaseStorage
 import com.posterpdf.ml.shouldWarnSlowUpload
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
@@ -132,8 +133,13 @@ class FirebaseUploadSpeedProbe(
                 }
             }
         } catch (t: TimeoutCancellationException) {
+            // The probe's OWN timeout — expected, fail-safe to "warn".
             Log.w(TAG, "upload probe timed out after ${PROBE_TIMEOUT_MS}ms")
             ConnectionStatus.ProbeFailed
+        } catch (c: CancellationException) {
+            // The CALLER's coroutine was cancelled (e.g. ViewModel cleared).
+            // Must propagate to honor structured concurrency — do NOT swallow.
+            throw c
         } catch (t: Throwable) {
             Log.w(TAG, "upload probe failed: ${t.message}", t)
             ConnectionStatus.ProbeFailed
@@ -148,6 +154,8 @@ class FirebaseUploadSpeedProbe(
             val caps = cm.getNetworkCapabilities(network) ?: return@withContext false
             caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                 caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        } catch (c: CancellationException) {
+            throw c
         } catch (t: Throwable) {
             // A SecurityException (missing ACCESS_NETWORK_STATE) or any other
             // surprise must not crash the flow; treat as "can't tell" → not
