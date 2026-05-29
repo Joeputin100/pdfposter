@@ -1030,6 +1030,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var showHistoryScreen by mutableStateOf(false)
     var showUpscaleComparison by mutableStateOf(false)
 
+    // RC77: UX screenshot harness — open the Settings drawer on launch so the
+    // capture matrix can review it at 360dp width + 200% font. Set only under
+    // ENABLE_TEST_HOOKS (MainActivity --es screenshot settings); false in prod.
+    var openSettingsForScreenshot by mutableStateOf(false)
+
     // H-P2: content screens reachable from the hamburger drawer.
     var showGettingStarted by mutableStateOf(false)
     var showHelp by mutableStateOf(false)

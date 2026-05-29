@@ -155,6 +155,12 @@ class MainActivity : ComponentActivity() {
                     val upscaleMode = intent?.getStringExtra("upscale_mode") ?: "small"
                     viewModel.runUpscaleAndPdfDeviceTest(this, upscaleMode)
                 }
+                // RC77: open dense screens for the UX edge-case screenshot
+                // matrix (font360 / cutout / flip). getting_started is a plain
+                // flag; settings opens the nav drawer via its initialValue
+                // (read below, before setContent paints — see drawerState).
+                "getting_started" -> viewModel.showGettingStarted = true
+                "settings" -> viewModel.openSettingsForScreenshot = true
                 else -> { /* main: no-op */ }
             }
         }
@@ -424,7 +430,12 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
 private fun MainScreenContent(viewModel: MainViewModel) {
     val context = LocalContext.current
     val activity = context as? android.app.Activity
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    // RC77: the UX screenshot harness opens Settings by seeding the drawer's
+    // initial value (the hook sets this flag in onCreate, before setContent),
+    // so the drawer is already open on first paint — no LaunchedEffect race.
+    val drawerState = rememberDrawerState(
+        initialValue = if (viewModel.openSettingsForScreenshot) DrawerValue.Open else DrawerValue.Closed,
+    )
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val hapt = Hapt(LocalHapticFeedback.current)

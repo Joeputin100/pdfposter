@@ -35,8 +35,11 @@ adb install -r "$APK"
 adb shell pm grant "$PKG" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
 
 # Curated dense screen set — the screens most likely to break at 360dp width
-# or 200% font (button-heavy top bar, drawers, modals, settings, Gemini sheet).
-STATES=(main compare model_picker settings low_dpi_modal gemini getting_started)
+# or 200% font: button-heavy top bar (main), Compare drawer, model-picker
+# modal, the Settings nav-drawer, and the text-dense Getting Started page.
+# (low_dpi_modal == model_picker's modal, so it's dropped as a duplicate; the
+# Gemini Q&A sheet is a tracked follow-up — no simple launch flag yet.)
+STATES=(main compare model_picker settings getting_started)
 
 capture() {  # $1=config $2=state
   local cfg="$1" state="$2"
