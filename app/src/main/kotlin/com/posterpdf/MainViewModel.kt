@@ -258,6 +258,91 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pendingUpscaleStart = null
     }
 
+    // --- Cloud connection & upload-speed gate (2026-05-29) ------------------
+    // Pre-flight gate for CLOUD upscales (FAL / Imagen — the paths that upload
+    // the source image to Firebase Storage). Mirrors the on-device gateLongJob
+    // pattern above: probe first, then either block (offline), warn (slow /
+    // probe-failed) by stashing the pending launch, or proceed silently.
+
+    /** When true, MainActivity shows the offline block dialog (no cloud upload
+     *  possible — steer to on-device). */
+    var showOfflineBlock by mutableStateOf(false)
+        private set
+    /** When true, MainActivity shows the polite "this may take a while" warning
+     *  before a slow cloud upload. */
+    var showCloudSpeedWarn by mutableStateOf(false)
+        private set
+    /** Measured upload ETA in seconds for the slow-upload warning body, as a
+     *  range so [com.posterpdf.ml.formatEta] renders it the same way the
+     *  on-device ETA does. Null while no warning is pending. */
+    var pendingCloudUploadEta by mutableStateOf<IntRange?>(null)
+        private set
+    /** The cloud-upscale launch to fire if the user taps Continue. */
+    private var pendingCloudUpscale: (() -> Unit)? = null
+    /** Most recent measured upload throughput (bytes/sec), kept so the ETA
+     *  display can use a real number instead of the static guess. Null until
+     *  the first successful probe. */
+    var lastMeasuredBytesPerSecond by mutableStateOf<Long?>(null)
+        private set
+
+    /**
+     * Cloud-gate entry point. Probes connectivity + real upload speed, then:
+     *  - Offline     → pop the offline block dialog (does NOT run [onProceed]).
+     *  - ProbeFailed → pop the slow warning (fail-safe; never blocks).
+     *  - Measured    → store the throughput for ETA display; warn if the source
+     *                  upload would exceed the slow threshold, else run now.
+     * [inputBytes] is the size of the image that will be uploaded.
+     */
+    fun gateCloudUpload(context: Context, inputBytes: Long, onProceed: () -> Unit) {
+        viewModelScope.launch {
+            val status = uploadSpeedProbe.probe(context)
+            // Bonus: feed a fresh measured throughput into the displayed ETA.
+            if (status is com.posterpdf.data.backend.ConnectionStatus.Measured) {
+                lastMeasuredBytesPerSecond = status.bytesPerSecondUp
+            }
+            when (com.posterpdf.data.backend.decideCloudGate(status, inputBytes)) {
+                com.posterpdf.data.backend.CloudGateDecision.Block -> {
+                    pendingCloudUpscale = null
+                    pendingCloudUploadEta = null
+                    showOfflineBlock = true
+                }
+                com.posterpdf.data.backend.CloudGateDecision.Warn -> {
+                    val bps = (status as? com.posterpdf.data.backend.ConnectionStatus.Measured)
+                        ?.bytesPerSecondUp ?: 0L
+                    // Range in seconds for formatEta; null ETA (unknown speed /
+                    // probe failure) leaves the body's %1$s blank-ish but still
+                    // shows the warning — better than silently grinding.
+                    pendingCloudUploadEta = com.posterpdf.ml.uploadEtaSeconds(inputBytes, bps)
+                        ?.let { sec -> sec.toInt().coerceAtLeast(1).let { it..it } }
+                    pendingCloudUpscale = onProceed
+                    showCloudSpeedWarn = true
+                }
+                com.posterpdf.data.backend.CloudGateDecision.Proceed -> onProceed()
+            }
+        }
+    }
+
+    /** User tapped Continue on the slow-upload warning — dismiss + launch. */
+    fun confirmCloudUpload() {
+        showCloudSpeedWarn = false
+        pendingCloudUploadEta = null
+        val start = pendingCloudUpscale
+        pendingCloudUpscale = null
+        start?.invoke()
+    }
+
+    /** User tapped Cancel on the slow-upload warning — drop the pending launch. */
+    fun dismissCloudUpload() {
+        showCloudSpeedWarn = false
+        pendingCloudUploadEta = null
+        pendingCloudUpscale = null
+    }
+
+    /** User tapped "Got it" on the offline block — just dismiss it. */
+    fun dismissOfflineBlock() {
+        showOfflineBlock = false
+    }
+
     /** RC4: app-level toggle for the low-DPI upscale modal. PosterPreview
      *  (the under-preview tappable card) and MainActivity (the new
      *  Sharpen-for-print CTA between Poster Size and Paper & Layout) both
@@ -691,6 +776,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             "ccsr" -> context.getString(R.string.upscale_option_ccsr)
             else -> modelId
         }
+        // Cloud-gate (2026-05-29): this is the CLOUD path (it uploads the
+        // source to Firebase Storage via AiUpscaleRepository). Probe the
+        // connection + real upload speed first; gateCloudUpload either blocks
+        // (offline), warns (slow / probe-failed), or runs onProceed silently.
+        // The on-device free path keeps its own gateLongJob untouched.
+        val inputBytes = estimateUploadBytes(context, uri, srcW, srcH)
+        gateCloudUpload(context, inputBytes) {
+            launchAiUpscaleNow(context, uri, modelId, displayName, srcW, srcH, minScale)
+        }
+    }
+
+    /**
+     * The actual cloud-upscale coroutine, extracted so [gateCloudUpload] can
+     * gate it. Captures everything [runAiUpscale] resolved up front so the
+     * gate's `onProceed` callback can fire it after the user confirms.
+     */
+    private fun launchAiUpscaleNow(
+        context: Context,
+        uri: Uri,
+        modelId: String,
+        displayName: String,
+        srcW: Int,
+        srcH: Int,
+        minScale: Int?,
+    ) {
         aiUpscaleJob?.cancel()
         aiUpscaleJob = viewModelScope.launch {
             isAiUpscaling = true
@@ -794,6 +904,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // RC53: stop the foreground service so the notification dismisses
         // immediately (see cancelFreeUpscale comment).
         com.posterpdf.ml.UpscaleForegroundService.stop(appContext)
+    }
+
+    /**
+     * Cloud-gate (2026-05-29): best-effort size of the bytes that will be
+     * uploaded for a cloud upscale, used by [gateCloudUpload] to estimate the
+     * upload ETA. Prefers the source file's encoded length (what actually goes
+     * over the wire); falls back to a pixel-count proxy. Over-estimating only
+     * makes the gate warn slightly sooner, which is the safe direction.
+     */
+    private fun estimateUploadBytes(context: Context, uri: Uri, srcW: Int, srcH: Int): Long {
+        val fromUri = runCatching {
+            context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
+                afd.length.takeIf { it > 0L && it != android.content.res.AssetFileDescriptor.UNKNOWN_LENGTH }
+            }
+        }.getOrNull()
+        if (fromUri != null) return fromUri
+        // Fallback: ~3 bytes/px is a generous proxy for a re-encoded PNG of a
+        // photo; clamp to at least 1 so the ETA math stays well-defined.
+        return (srcW.toLong() * srcH.toLong() * 3L).coerceAtLeast(1L)
     }
 
     /**
@@ -984,6 +1113,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val supportRepo = com.posterpdf.data.backend.SupportRepository(auth)
     private val aiUpscaleRepo = com.posterpdf.data.backend.AiUpscaleRepository(auth)
     private val geminiQaRepo by lazy { com.posterpdf.data.backend.GeminiQaRepository() }
+
+    /** Cloud-gate (2026-05-29): probes connectivity + real upload speed before
+     *  a cloud upscale. Behind the [UploadSpeedProbe] interface so it can be
+     *  swapped for a fake in tests. */
+    private val uploadSpeedProbe: com.posterpdf.data.backend.UploadSpeedProbe =
+        com.posterpdf.data.backend.FirebaseUploadSpeedProbe()
 
     // RC65: client-side tool-call router. When Gemini returns a toolCall
     // (e.g. quoteUpscaleCost), we invoke the local agent-function so the

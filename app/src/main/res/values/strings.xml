@@ -27,6 +27,8 @@
     <string name="common_back" tools:maxLength="10">Back</string>
     <string name="common_refresh" tools:maxLength="12">Refresh</string>
     <string name="common_got_it" tools:maxLength="12">Got it</string>
+    <!-- TODO: 9-locale fan-out -->
+    <string name="common_continue" tools:maxLength="12">Continue</string>
 
     <!-- Top bar -->
     <string name="topbar_settings_menu">Settings</string>
@@ -927,6 +929,17 @@
     <string name="upscale_long_job_msg">Upscaling this image on your device may take about %1$d minutes. It runs in the background and you can keep using the app. Continue?</string>
     <string name="upscale_long_job_proceed">Continue on device</string>
     <string name="upscale_too_large_use_cloud">This image is too large to upscale on this device. Try the cloud upscale instead.</string>
+
+    <!-- Cloud connection & upload-speed gate (2026-05-29). Microcopy LOCKED
+         with the user. English only for now.
+         TODO: 9-locale fan-out (de, es, fr, hi, it, ja, ko, pt, zh). -->
+    <string name="cloud_speed_warn_title">This may take a while</string>
+    <string name="cloud_speed_warn_body">This upload may take %1$s on your current connection. If Wi-Fi or a stronger signal is handy, it could go faster — but it\'s fine to continue as is.</string>
+    <!-- Substituted for %1$s when the probe couldn\'t measure a speed, so the
+         body still reads naturally instead of showing a bogus number. -->
+    <string name="cloud_speed_warn_eta_unknown">a while</string>
+    <string name="cloud_offline_title">No connection</string>
+    <string name="cloud_offline_body">You\'re not connected to the internet right now. Cloud upscaling needs a connection — once you\'re back online you can try again. In the meantime, on-device upscaling works offline.</string>
 
     <!-- prettyDuration outputs (used by free-upscale dialog) -->
     <string name="duration_one_second">1 second</string>

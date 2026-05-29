@@ -60,6 +60,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.posterpdf.ui.components.AccountAvatarMenu
+import com.posterpdf.ui.components.CloudSpeedWarningModal
+import com.posterpdf.ui.components.OfflineBlockDialog
 import com.posterpdf.ui.components.CreditBadge
 import com.posterpdf.ui.components.CreditChip
 import com.posterpdf.ui.components.GeminiQaSheet
@@ -641,6 +643,25 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     Text(stringResource(R.string.common_cancel))
                 }
             },
+        )
+    }
+
+    // Cloud-gate (2026-05-29) — pre-flight connection & upload-speed gate for
+    // CLOUD upscales (FAL / Imagen). gateCloudUpload in MainViewModel probes
+    // first, then flips one of these two flags. Mirrors the showLongJobConfirm
+    // pattern above (the on-device equivalent). The slow warning is dismissible
+    // (Continue / Cancel); offline is a hard block (Got it) that steers to the
+    // free on-device upscale.
+    if (viewModel.showCloudSpeedWarn) {
+        CloudSpeedWarningModal(
+            etaRange = viewModel.pendingCloudUploadEta,
+            onContinue = { viewModel.confirmCloudUpload() },
+            onCancel = { viewModel.dismissCloudUpload() },
+        )
+    }
+    if (viewModel.showOfflineBlock) {
+        OfflineBlockDialog(
+            onDismiss = { viewModel.dismissOfflineBlock() },
         )
     }
 
