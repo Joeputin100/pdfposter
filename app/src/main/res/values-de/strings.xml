@@ -15,6 +15,7 @@
     <string name="common_back">Zurück</string>
     <string name="common_refresh">Neu laden</string>
     <string name="common_got_it">Verstanden</string>
+    <string name="common_continue" tools:maxLength="12">Weiter</string>
 
     <!-- Obere Leiste -->
     <string name="topbar_settings_menu">Einstellungen</string>
@@ -578,6 +579,19 @@
     <string name="free_upscale_preparing">Kacheln werden vorbereitet&#8230;</string>
     <string name="free_upscale_progress_inline">%1$d%% (%2$d von %3$d Kacheln)</string>
     <string name="free_upscale_saving">Speichern&#8230;</string>
+
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer. -->
+    <string name="upscale_long_job_title">Das dauert eine Weile</string>
+    <string name="upscale_long_job_msg">Das Hochskalieren dieses Bildes auf deinem Gerät kann etwa %1$d Minuten dauern. Es läuft im Hintergrund, und du kannst die App weiter nutzen. Fortfahren?</string>
+    <string name="upscale_long_job_proceed">Auf Gerät fortfahren</string>
+    <string name="upscale_too_large_use_cloud">Dieses Bild ist zu groß, um es auf diesem Gerät hochzuskalieren. Versuche es stattdessen mit dem Cloud-Upscale.</string>
+
+    <!-- Cloud connection & upload-speed gate. -->
+    <string name="cloud_speed_warn_title">Das dauert eventuell etwas</string>
+    <string name="cloud_speed_warn_body">Dieser Upload kann über deine aktuelle Verbindung etwa %1$s dauern. Falls WLAN oder ein stärkeres Signal in der Nähe ist, geht es vielleicht schneller — du kannst aber auch problemlos so fortfahren.</string>
+    <string name="cloud_speed_warn_eta_unknown">eine Weile</string>
+    <string name="cloud_offline_title">Keine Verbindung</string>
+    <string name="cloud_offline_body">Du bist gerade nicht mit dem Internet verbunden. Für das Cloud-Hochskalieren ist eine Verbindung nötig — sobald du wieder online bist, kannst du es erneut versuchen. In der Zwischenzeit funktioniert das Hochskalieren auf dem Gerät auch offline.</string>
     <string name="gs_back_cd">Zurück</string>
     <string name="gs_feat_history_body">Jedes erstellte Poster bleibt im lokalen Verlauf auf diesem Telefon.</string>
     <string name="gs_feat_history_title">Verlauf für immer</string>

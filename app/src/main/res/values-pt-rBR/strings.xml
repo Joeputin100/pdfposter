@@ -15,6 +15,7 @@
     <string name="common_back">Voltar</string>
     <string name="common_refresh">Atualizar</string>
     <string name="common_got_it">Entendi</string>
+    <string name="common_continue" tools:maxLength="12">Continuar</string>
 
     <!-- Barra superior -->
     <string name="topbar_settings_menu">Configurações</string>
@@ -578,6 +579,19 @@
     <string name="free_upscale_preparing">Preparando blocos&#8230;</string>
     <string name="free_upscale_progress_inline">%1$d%% (%2$d de %3$d blocos)</string>
     <string name="free_upscale_saving">Salvando&#8230;</string>
+
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer. -->
+    <string name="upscale_long_job_title">Isso vai demorar um pouco</string>
+    <string name="upscale_long_job_msg">Ampliar esta imagem no seu dispositivo pode levar cerca de %1$d minutos. O processo roda em segundo plano e você pode continuar usando o app. Continuar?</string>
+    <string name="upscale_long_job_proceed">Continuar no dispositivo</string>
+    <string name="upscale_too_large_use_cloud">Esta imagem é grande demais para ampliar neste dispositivo. Tente a ampliação na nuvem.</string>
+
+    <!-- Cloud connection & upload-speed gate. -->
+    <string name="cloud_speed_warn_title">Isso pode demorar um pouco</string>
+    <string name="cloud_speed_warn_body">Este envio pode levar %1$s na sua conexão atual. Se houver Wi-Fi ou um sinal mais forte por perto, talvez fique mais rápido — mas você também pode continuar assim mesmo, sem problema.</string>
+    <string name="cloud_speed_warn_eta_unknown">um tempo</string>
+    <string name="cloud_offline_title">Sem conexão</string>
+    <string name="cloud_offline_body">Você não está conectado à internet no momento. A ampliação na nuvem precisa de conexão — assim que você voltar a ficar on-line, pode tentar de novo. Enquanto isso, a ampliação no dispositivo funciona off-line.</string>
     <string name="gs_back_cd">Voltar</string>
     <string name="gs_feat_history_body">Cada pôster que você criar permanece no histórico local deste celular.</string>
     <string name="gs_feat_history_title">Histórico para sempre</string>

@@ -15,6 +15,7 @@
     <string name="common_back">वापस</string>
     <string name="common_refresh">रीफ्रेश करें</string>
     <string name="common_got_it">समझ गया</string>
+    <string name="common_continue" tools:maxLength="12">जारी रखें</string>
 
     <!-- टॉप बार -->
     <string name="topbar_settings_menu">सेटिंग्स</string>
@@ -577,6 +578,19 @@
     <string name="free_upscale_preparing">टाइलें तैयार हो रही हैं&#8230;</string>
     <string name="free_upscale_progress_inline">%1$d%% (%3$d में से %2$d टाइलें)</string>
     <string name="free_upscale_saving">सहेजा जा रहा है&#8230;</string>
+
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer. -->
+    <string name="upscale_long_job_title">इसमें कुछ समय लगेगा</string>
+    <string name="upscale_long_job_msg">इस इमेज को आपके डिवाइस पर अपस्केल करने में लगभग %1$d मिनट लग सकते हैं। यह बैकग्राउंड में चलता है और आप ऐप का इस्तेमाल जारी रख सकते हैं। जारी रखें?</string>
+    <string name="upscale_long_job_proceed">डिवाइस पर जारी रखें</string>
+    <string name="upscale_too_large_use_cloud">यह इमेज इस डिवाइस पर अपस्केल करने के लिए बहुत बड़ी है। इसके बजाय क्लाउड अपस्केल आज़माएं।</string>
+
+    <!-- Cloud connection & upload-speed gate. -->
+    <string name="cloud_speed_warn_title">इसमें कुछ समय लग सकता है</string>
+    <string name="cloud_speed_warn_body">आपके मौजूदा कनेक्शन पर इस अपलोड में लगभग %1$s लग सकते हैं। अगर पास में Wi-Fi या बेहतर सिग्नल हो, तो यह तेज़ हो सकता है — लेकिन इसी तरह आगे बढ़ना भी बिल्कुल ठीक है।</string>
+    <string name="cloud_speed_warn_eta_unknown">कुछ समय</string>
+    <string name="cloud_offline_title">कोई कनेक्शन नहीं</string>
+    <string name="cloud_offline_body">अभी आप इंटरनेट से कनेक्ट नहीं हैं। क्लाउड अपस्केलिंग के लिए कनेक्शन ज़रूरी है — दोबारा ऑनलाइन होने पर आप फिर से कोशिश कर सकते हैं। तब तक, डिवाइस पर अपस्केलिंग ऑफ़लाइन भी काम करती है।</string>
     <string name="gs_back_cd">वापस</string>
     <string name="gs_feat_history_body">आपके द्वारा बनाया गया हर पोस्टर इस फ़ोन पर आपके स्थानीय इतिहास में रहता है।</string>
     <string name="gs_feat_history_title">हमेशा के लिए इतिहास</string>

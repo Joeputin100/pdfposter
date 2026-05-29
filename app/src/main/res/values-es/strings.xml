@@ -15,6 +15,7 @@
     <string name="common_back">Atrás</string>
     <string name="common_refresh">Actualizar</string>
     <string name="common_got_it">Entendido</string>
+    <string name="common_continue" tools:maxLength="12">Continuar</string>
 
     <!-- Barra superior -->
     <string name="topbar_settings_menu">Ajustes</string>
@@ -578,6 +579,19 @@
     <string name="free_upscale_preparing">Preparando mosaicos&#8230;</string>
     <string name="free_upscale_progress_inline">%1$d%% (%2$d de %3$d mosaicos)</string>
     <string name="free_upscale_saving">Guardando&#8230;</string>
+
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer. -->
+    <string name="upscale_long_job_title">Esto tardará un poco</string>
+    <string name="upscale_long_job_msg">Ampliar esta imagen en tu dispositivo puede tardar unos %1$d minutos. Se ejecuta en segundo plano y puedes seguir usando la app. ¿Continuar?</string>
+    <string name="upscale_long_job_proceed">Continuar en el dispositivo</string>
+    <string name="upscale_too_large_use_cloud">Esta imagen es demasiado grande para ampliarla en este dispositivo. Prueba mejor con la ampliación en la nube.</string>
+
+    <!-- Cloud connection & upload-speed gate. -->
+    <string name="cloud_speed_warn_title">Esto puede tardar un poco</string>
+    <string name="cloud_speed_warn_body">Esta subida puede tardar %1$s con tu conexión actual. Si tienes Wi-Fi o mejor señal a mano, podría ir más rápido, pero también puedes continuar tal cual sin problema.</string>
+    <string name="cloud_speed_warn_eta_unknown">un rato</string>
+    <string name="cloud_offline_title">Sin conexión</string>
+    <string name="cloud_offline_body">Ahora mismo no tienes conexión a internet. La ampliación en la nube necesita conexión; cuando vuelvas a estar en línea podrás intentarlo de nuevo. Mientras tanto, la ampliación en el dispositivo funciona sin conexión.</string>
     <string name="gs_back_cd">Atrás</string>
     <string name="gs_feat_history_body">Cada póster que creas permanece en tu historial local en este teléfono.</string>
     <string name="gs_feat_history_title">Historial permanente</string>
