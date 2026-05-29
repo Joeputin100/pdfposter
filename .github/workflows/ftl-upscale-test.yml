@@ -30,6 +30,10 @@ on:
         description: 'Android API level for the device'
         type: string
         default: '33'
+      test_target:
+        description: 'androidTest method to run in a fresh process (e.g. upscaleTo18inThenGeneratePdf | largeImage_streams_without_oom | forcedCpu_fallback_works). Empty = all methods in one process (NOT recommended — the singleton interpreter makes the first-run delegate stick).'
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -124,6 +128,7 @@ jobs:
         env:
           DEVICE: ${{ inputs.device }}
           VERSION: ${{ inputs.version }}
+          TEST_TARGET: ${{ inputs.test_target }}
         run: |
           # pipefail is REQUIRED: gcloud exits nonzero when the FTL matrix
           # fails (e.g. "Application crashed"), but `… | tee` would otherwise
@@ -131,11 +136,21 @@ jobs:
           # green step. With pipefail the pipeline returns gcloud's status, so
           # a crashed/failed device test correctly fails this job.
           set -eo pipefail
+          # Run a SINGLE androidTest method in a fresh process when test_target
+          # is set. Required because the LiteRT Interpreter is a process
+          # singleton — running all methods together lets the first one's
+          # GPU/CPU choice stick for the rest. Array keeps the space in the
+          # "class …#method" value as one argument.
+          EXTRA=()
+          if [ -n "${TEST_TARGET}" ]; then
+            EXTRA+=(--test-targets="class com.posterpdf.UpscalePdfDeviceTest#${TEST_TARGET}")
+          fi
           gcloud firebase test android run \
             --type=instrumentation \
             --app="${{ steps.apks.outputs.app_apk }}" \
             --test="${{ steps.apks.outputs.test_apk }}" \
             --device="model=${DEVICE},version=${VERSION},locale=en,orientation=portrait" \
+            "${EXTRA[@]}" \
             --timeout=25m \
             --results-bucket="${FTL_BUCKET}" \
             --results-dir="upscale-test-${{ github.run_id }}" \

@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.net.Uri
+import android.os.Debug
 import android.os.Environment
 import java.io.File
 import java.io.FileOutputStream
@@ -512,31 +513,53 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * RC73: DEBUG-only Firebase Test Lab driver. Seeds the bundled dogcow test
-     * image at a low-DPI 18" poster (400px / 18in ≈ 22 DPI → triggers a small,
-     * fast 4× free upscale → ~1600px ≈ 89 DPI), runs the on-device ESRGAN
-     * upscale to completion, generates the PDF, and writes an
-     * `UPSCALE_TEST_DONE` marker into [deviceTestStatus] (read by the FTL
-     * UiAutomator test) plus a logcat line carrying the per-device upscale +
-     * total durations. On any failure it sets `UPSCALE_TEST_FAILED` so the test
-     * fails loudly instead of hanging.
+     * RC73/RC76: DEBUG-only Firebase Test Lab driver for the on-device upscale →
+     * PDF pipeline. Seeds a source image, runs the on-device ESRGAN free upscale
+     * to completion, generates the PDF, and writes an `UPSCALE_TEST_DONE` marker
+     * into [deviceTestStatus] (read by the FTL UiAutomator test) plus logcat
+     * lines (`Log.i("UPSCALE_TEST", …)`) carrying the per-device upscale + total
+     * durations and the peak memory observed. On any failure it sets
+     * `UPSCALE_TEST_FAILED` so the test fails loudly instead of hanging.
+     *
+     * RC76 — [mode] (from the `--es upscale_mode …` launch extra) selects one of
+     * three on-device scenarios so a single FTL fan-out exercises all three:
+     *  - `small` (default): the bundled dogcow at 18" → a small, fast 4× upscale.
+     *  - `large`: a 1200×900 source (4×→4800×3600 ≈ 17 MP). The output spans ≥2
+     *    streaming bands, proving bounded memory without risking FTL's ~25-min
+     *    timeout on faster devices.
+     *  - `cpu`: forces the CPU path via [com.posterpdf.ml.TileEngine.forceCpuForTest]
+     *    so the validated CPU fallback is exercised even on GPU-capable hardware.
+     *
+     * RC76 — the upscale is launched with `bypassGate = true` so the Phase-3
+     * >10-min "are you sure?" confirm modal never blocks the automated run.
      *
      * Completion of [runFreeUpscale] is awaited via its `isFreeUpscaling` flag:
-     * that function sets `isFreeUpscaling = true` at coroutine start (line ~248)
-     * and clears it in its `finally` block (`isFreeUpscaling = false`, line
-     * ~421). It exposes no dedicated success flag, so we (1) wait for the flag
-     * to flip true (start), then (2) wait for it to flip false (finish). Success
-     * is then inferred from `wasUpscaled` being set true on the success path
-     * (line ~392); a non-null `errorMessage` after the flag clears means it
+     * that function sets `isFreeUpscaling = true` at coroutine start and clears it
+     * in its `finally` block. It exposes no dedicated success flag, so we (1) wait
+     * for the flag to flip true (start), then (2) wait for it to flip false
+     * (finish). Success is then inferred from `wasUpscaled` being set true on the
+     * success path; a non-null `errorMessage` after the flag clears means it
      * failed.
+     *
+     * RC76 — peak memory: while waiting we poll a "peak working set" estimate =
+     * native heap ([android.os.Debug.getNativeHeapAllocatedSize], where Android
+     * O+ Bitmaps live — the region-decode + per-tile bitmaps) PLUS the JVM used
+     * heap (`Runtime.totalMemory() - freeMemory()`, where the band ByteArray
+     * buffer lives), summed so neither side is missed. The MAX observed is logged
+     * as `peak_heap_mb=<int>` at DONE — bounded memory is the headline claim.
      */
-    fun runUpscaleAndPdfDeviceTest(context: Context) {
+    fun runUpscaleAndPdfDeviceTest(context: Context, mode: String = "small") {
         // RC73: emit to REAL logcat (tag UPSCALE_TEST). logEvent writes only to
         // the in-app debug-log file AND is gated by debugLoggingEnabled (off by
         // default), so it never reaches FTL's logcat — Log.i is what makes the
         // per-device timing + diagnosis visible in the captured logcat.
-        android.util.Log.i("UPSCALE_TEST", "driver start")
+        android.util.Log.i("UPSCALE_TEST", "driver start mode=$mode")
         val t0 = System.currentTimeMillis()
+        // RC76: forced-CPU hook. Set BEFORE the engine is first built, and always
+        // reset for the non-cpu modes so a reused FTL device image (the singleton
+        // TileEngine + its companion flag persist for the process) can't leak a
+        // prior `cpu` run's forcing into a later `small`/`large` run.
+        com.posterpdf.ml.TileEngine.forceCpuForTest = (mode == "cpu")
         // Seed the bundled dogcow preview + source dimensions, then materialize
         // a real file URI for it: both runFreeUpscale and generatePoster bail
         // early on a null selectedImageUri, and seedScreenshotImage only sets
@@ -544,42 +567,76 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         seedScreenshotImage(context)
         posterWidth = "18"
         viewModelScope.launch {
+            // RC76: peak "working set" tracker — see KDoc. Sampled in the wait
+            // loops below; the max is logged at DONE.
+            var peakBytes = 0L
+            fun sampleMemory() {
+                val rt = Runtime.getRuntime()
+                val used = Debug.getNativeHeapAllocatedSize() + (rt.totalMemory() - rt.freeMemory())
+                if (used > peakBytes) peakBytes = used
+            }
             try {
                 val seedBmp = BitmapFactory.decodeResource(context.resources, R.drawable.dogcow)
                     ?: throw IllegalStateException("dogcow test image missing")
+                // RC76: `large` seeds a 1200×900 source (4×→4800×3600 ≈ 17 MP,
+                // spanning ≥2 streaming bands) by scaling the tiny dogcow up; the
+                // other modes use the dogcow at its native size.
+                val sourceBmp = if (mode == "large") {
+                    Bitmap.createBitmap(1200, 900, Bitmap.Config.ARGB_8888).also { big ->
+                        val canvas = Canvas(big)
+                        canvas.drawBitmap(
+                            seedBmp,
+                            null,
+                            android.graphics.Rect(0, 0, big.width, big.height),
+                            android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG),
+                        )
+                    }
+                } else {
+                    seedBmp
+                }
                 val seedFile = File(context.cacheDir, "device_test_seed_${System.currentTimeMillis()}.png")
                 withContext(Dispatchers.IO) {
                     FileOutputStream(seedFile).use { fos ->
-                        seedBmp.compress(Bitmap.CompressFormat.PNG, 100, fos)
+                        sourceBmp.compress(Bitmap.CompressFormat.PNG, 100, fos)
                     }
                 }
                 selectedImageUri = Uri.fromFile(seedFile)
-                sourcePixelDimensions = seedBmp.width to seedBmp.height
-                android.util.Log.i("UPSCALE_TEST", "seeded ${seedBmp.width}x${seedBmp.height} uri=$selectedImageUri posterWidth=$posterWidth")
-                logEvent(context, "upscale_test", "seeded ${seedBmp.width}x${seedBmp.height}, posterWidth=$posterWidth")
+                sourcePixelDimensions = sourceBmp.width to sourceBmp.height
+                android.util.Log.i("UPSCALE_TEST", "seeded ${sourceBmp.width}x${sourceBmp.height} mode=$mode uri=$selectedImageUri posterWidth=$posterWidth")
+                logEvent(context, "upscale_test", "seeded ${sourceBmp.width}x${sourceBmp.height} mode=$mode, posterWidth=$posterWidth")
 
                 // Kick off the on-device free upscale and await completion via
                 // the isFreeUpscaling flag (true at start, false in finally).
+                // RC76: bypassGate=true so the >10-min confirm modal never blocks
+                // the headless automated run.
                 wasUpscaled = false
                 errorMessage = null
-                android.util.Log.i("UPSCALE_TEST", "calling runFreeUpscale")
-                runFreeUpscale(context)
+                android.util.Log.i("UPSCALE_TEST", "calling runFreeUpscale (bypassGate)")
+                runFreeUpscale(context, bypassGate = true)
 
-                // Wait for it to START (guard ~5s) then to FINISH.
+                // Wait for it to START (guard ~5s) then to FINISH, sampling memory.
                 val startGuard = System.currentTimeMillis() + 5_000L
                 while (!isFreeUpscaling && System.currentTimeMillis() < startGuard) {
+                    sampleMemory()
                     kotlinx.coroutines.delay(100)
                 }
                 android.util.Log.i("UPSCALE_TEST", "upscale loop entered=${isFreeUpscaling}")
                 while (isFreeUpscaling) {
+                    sampleMemory()
                     kotlinx.coroutines.delay(250)
                 }
+                sampleMemory()
                 val upscaleMs = System.currentTimeMillis() - t0
                 android.util.Log.i("UPSCALE_TEST", "upscale finished wasUpscaled=$wasUpscaled upscaleMs=$upscaleMs err=${errorMessage ?: "-"}")
                 if (!wasUpscaled) {
                     throw IllegalStateException("upscale did not succeed: ${errorMessage ?: "unknown"}")
                 }
                 logEvent(context, "upscale_test", "upscale complete upscaleMs=$upscaleMs")
+
+                // RC76: emit the peak-memory marker (MAX observed working set).
+                val peakHeapMb = (peakBytes / 1048576L).toInt()
+                android.util.Log.i("UPSCALE_TEST", "peak_heap_mb=$peakHeapMb")
+                logEvent(context, "upscale_test", "peak_heap_mb=$peakHeapMb")
 
                 android.util.Log.i("UPSCALE_TEST", "calling generatePoster")
                 generatePoster(context) {
@@ -590,9 +647,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     logEvent(context, "upscale_test", deviceTestStatus)
                 }
             } catch (e: Throwable) {
+                // RC76: surface whatever peak we saw before failing, for triage
+                // (on a true OOM the process dies first and nothing is emitted).
+                android.util.Log.i("UPSCALE_TEST", "peak_heap_mb=${(peakBytes / 1048576L).toInt()}")
                 deviceTestStatus = "UPSCALE_TEST_FAILED: ${e.message}"
                 android.util.Log.e("UPSCALE_TEST", "FAILED", e)
                 logEvent(context, "upscale_test", deviceTestStatus)
+            } finally {
+                // RC76: never leave the forced-CPU flag set for a reused process.
+                com.posterpdf.ml.TileEngine.forceCpuForTest = false
             }
         }
     }
