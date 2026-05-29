@@ -953,7 +953,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // tier phone, results cached for 30 days.
         viewModelScope.launch(Dispatchers.Default) {
             try {
-                if (com.posterpdf.ml.benchmarkNeedsRefresh(appContext)) {
+                // RC75c: skip the launch-time ETA benchmark in test-hook builds
+                // (debug + benchmark variant). It shares the singleton TFLite
+                // Interpreter with the FTL upscale device test; the RC75 mutex
+                // makes that safe, but the benchmark's inference still contends
+                // for the (now-serialized) interpreter and inflates the device
+                // test's measured upscaleMs. Release builds (ENABLE_TEST_HOOKS
+                // = false) still warm the ETA cache normally.
+                if (!com.posterpdf.BuildConfig.ENABLE_TEST_HOOKS &&
+                    com.posterpdf.ml.benchmarkNeedsRefresh(appContext)) {
                     com.posterpdf.ml.UpscalerOnDevice.init(appContext)
                     com.posterpdf.ml.UpscalerOnDevice.benchmarkAndCache(appContext)
                     logEvent(appContext, "upscale_benchmark: completed")
