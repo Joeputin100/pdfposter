@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc76"  // RC76 (on-device upscale → LiteRT + GPU delegate w/ validated CPU fallback + full band-streaming; verified GPU on Adreno+Mali, clean CPU fallback, no OOM, no crash across FTL matrix)
+        versionName = "1.0-rc77"  // RC77 (UX edge-case capture harness: --es screenshot settings/getting_started wired; emulator font360+cutout matrix + real-flip FTL UxScreenshotTest on arcfox; predictive-back audit = SAFE. Capture-only — layout fixes follow from what the artifacts reveal)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
