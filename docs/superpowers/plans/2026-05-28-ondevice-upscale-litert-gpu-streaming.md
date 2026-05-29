@@ -838,10 +838,21 @@ git commit -m "test(rc76): FTL large-image + forced-CPU upscale cases"
 
 ## Task 11: Verify on the device matrix
 
-- [ ] **Step 1: Push to master and run the FTL fan-out across the GPU-family matrix**
+- [ ] **Step 1: Push to master and run the FTL fan-out across the risk-axis matrix**
 
-For each device, dispatch `ftl-upscale-test.yml` (default mode runs all three cases):
-`oriole`/33 (Tensor/Mali), `redfin`/30 (Adreno 620), `CPH2449`/34 (OnePlus 11, Adreno 740), `SC-53C`/36 (Galaxy A53, Exynos/Mali), `shiba`/34 (Pixel 8 Tensor).
+The matrix is chosen to span the axes that actually break (GPU vendor, RAM tier, API floor, OEM driver quality) — not brand count. FTL has no TCL/Blu/Tecno, but their *risk profile* (MediaTek/Unisoc + PowerVR/low-Mali + 2–4GB + old Android) is covered by the Redmi 6A / vivo Y55s / budget-Moto proxies. For each device dispatch `ftl-upscale-test.yml` (default mode runs all three cases; confirm `supportedVersionIds` at dispatch):
+
+| Device | model/API | Why (risk axis) |
+|---|---|---|
+| Pixel 6 | `oriole`/33 | Tensor/Mali — NNAPI-crash canary |
+| Pixel 5 | `redfin`/30 | Adreno 620 — low-mid Qualcomm |
+| OnePlus 11 | `CPH2449`/34 | Adreno 740 — flagship Qualcomm |
+| Galaxy A53 | `SC-53C`/34 | Exynos/Mali-G68 — Samsung driver |
+| **Redmi 6A** | `cactus`/27 | **MediaTek Helio A22 + PowerVR GE8320, 2GB, old — TCL/Blu proxy** |
+| **vivo Y55s** | `1610`/23 | **API 23 minSdk floor — never-updated budget proxy** |
+| budget Motorola | e.g. `fogorow` moto g24 | MediaTek + low-Mali + ~4GB — budget-Moto profile |
+
+On the lowest-end devices (Redmi 6A / Y55s) the expected and acceptable outcome is `tile engine path=CPU` (validation fails or GPU unsupported) with the large case still streaming within budget — that proves the fallback is the safety net the long tail relies on.
 
 - [ ] **Step 2: For each run, confirm via logcat:** `UPSCALE_TEST_DONE` present, `tile engine path=GPU` on capable devices (CPU on others — both acceptable), `peak_heap_mb` stays within budget on the large case, no `Fatal signal 11`/`scudo`. Record GPU-vs-CPU `upscaleMs` per device.
 
@@ -850,6 +861,13 @@ For each device, dispatch `ftl-upscale-test.yml` (default mode runs all three ca
 - [ ] **Step 4: Bump versionName to `1.0-rc76` + release note; commit.**
 
 ---
+
+## Device-coverage strategy (the long tail)
+
+Exhaustive device testing is impossible; resilience lives in the architecture, and the matrix only proves it holds:
+- **Buggy/never-updated OEM devices (TCL, Blu, Tecno — not on any farm):** the GPU **validation inference + CPU fallback** (T2–T3) degrades a misbehaving driver to the universal CPU path; **band-streaming** (T5–T7) bounds memory on low-RAM. The Redmi 6A / vivo Y55s proxies (T11) exercise this profile.
+- **Real long-tail hardware before full launch:** staged **Play Store testing tracks** (closed → open beta) put the app on actual TCL/Blu/Tecno devices in users' hands; **Crashlytics** (already wired, RC21-6) + **Android vitals** per-device crash rates surface device-specific failures. Graceful degradation means an unforeseen device shows up as "slower," not a crash.
+- **Launchers + weird screen dimensions:** orthogonal to this headless upscale (no UI during compute). They belong to the UI/editorial-review track — see memory `project_play_store_editorial_prep` (360p, predictive back, foldables/tablets). FTL foldables/tablets/razr cover weird screens there.
 
 ## Self-Review (completed by plan author)
 
