@@ -102,6 +102,34 @@ fun etaForFal(
     return rangeAround(total)
 }
 
+// --- Cloud upload speed gate (2026-05-29) -----------------------------------
+
+/**
+ * Above this many seconds of *source-image upload* time, the cloud-upscale
+ * pre-flight gate pops the polite "this may take a while" warning. The user's
+ * spec scopes the gate to upload time only (download is out of scope).
+ */
+const val SLOW_UPLOAD_THRESHOLD_SEC = 60
+
+/**
+ * How long the source image alone would take to upload at [bytesPerSecond].
+ * Returns null when either input is non-positive (treated by callers as
+ * "unknown throughput"), so it never divides by zero.
+ */
+fun uploadEtaSeconds(inputBytes: Long, bytesPerSecond: Long): Double? {
+    if (bytesPerSecond <= 0L || inputBytes <= 0L) return null
+    return inputBytes.toDouble() / bytesPerSecond
+}
+
+/**
+ * Whether the cloud-upscale gate should warn that the upload may be slow.
+ * Conservative: an unknown ETA (null — e.g. a measured throughput of 0) is
+ * treated as "longer than the threshold" so we warn rather than silently
+ * grind.
+ */
+fun shouldWarnSlowUpload(inputBytes: Long, bytesPerSecond: Long): Boolean =
+    (uploadEtaSeconds(inputBytes, bytesPerSecond) ?: Double.MAX_VALUE) > SLOW_UPLOAD_THRESHOLD_SEC
+
 /**
  * Render a seconds [range] as a human-friendly string. RC18 — collapsed
  * the low–high range to a single rounded-up midpoint per user request:
