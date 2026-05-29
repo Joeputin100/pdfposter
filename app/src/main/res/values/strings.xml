@@ -921,6 +921,13 @@
     <string name="free_upscale_almost_done">Almost done…</string>
     <string name="free_upscale_progress_inline">%1$d%% (%2$d of %3$d tiles)</string>
 
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer.
+         English only; the 9-locale translation is a tracked follow-up. -->
+    <string name="upscale_long_job_title">This will take a while</string>
+    <string name="upscale_long_job_msg">Upscaling this image on your device may take about %1$d minutes. It runs in the background and you can keep using the app. Continue?</string>
+    <string name="upscale_long_job_proceed">Continue on device</string>
+    <string name="upscale_too_large_use_cloud">This image is too large to upscale on this device. Try the cloud upscale instead.</string>
+
     <!-- prettyDuration outputs (used by free-upscale dialog) -->
     <string name="duration_one_second">1 second</string>
     <string name="duration_n_seconds">%1$d seconds</string>

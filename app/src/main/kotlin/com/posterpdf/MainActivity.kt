@@ -601,6 +601,35 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         )
     }
 
+    // RC76 — ">10 minutes, are you sure?" confirmation, shown before a long
+    // on-device upscale actually starts (gateLongJob in MainViewModel). The
+    // memory net (oneBandFits) is a separate, silent steer-to-cloud that sets
+    // errorMessage instead of popping a dialog.
+    if (viewModel.showLongJobConfirm) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissLongJob() },
+            title = { Text(stringResource(R.string.upscale_long_job_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.upscale_long_job_msg,
+                        viewModel.pendingUpscaleEtaMin,
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmLongJob() }) {
+                    Text(stringResource(R.string.upscale_long_job_proceed))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissLongJob() }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+        )
+    }
+
     // RC19 — AI upscale progress dialog. Mirrors the free-upscale dialog
     // pattern but reads aiUpscalePhase / aiUpscaleProgress directly from
     // the ViewModel (the repository does its own phase + fraction tracking).
