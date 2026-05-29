@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc75"  // RC75 (on-device upscale: serialize TFLite Interpreter — fix concurrent-run() SIGSEGV; rc74 dropped NnApiDelegate)
+        versionName = "1.0-rc76"  // RC76 (on-device upscale → LiteRT + GPU delegate w/ validated CPU fallback + full band-streaming; verified GPU on Adreno+Mali, clean CPU fallback, no OOM, no crash across FTL matrix)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
