@@ -3,9 +3,10 @@ name: FTL UX screenshots (odd form factor)
 # RC77: capture per-screen UI screenshots on a REAL device via Firebase Test
 # Lab — primarily a flip foldable (arcfox / moto razr+) for odd-AR review.
 # UxScreenshotTest drives the debug-only `--es screenshot <state>` hook and
-# UiDevice.takeScreenshot()s each dense screen into /sdcard/ux-shots/, which
-# FTL uploads to the results bucket via --directories-to-pull. The parent
-# agent fetches gs://${FTL_BUCKET}/ux-shots-<run_id>/.../ux-shots/*.png.
+# UiDevice.takeScreenshot()s each dense screen into the app's external files
+# dir (/sdcard/Android/data/com.posterpdf/files/ux-shots — the /sdcard root is
+# unwritable under scoped storage on API 30+), which FTL uploads to the results
+# bucket via --directories-to-pull. Parent fetches gs://${FTL_BUCKET}/ux-shots-<run_id>/.../ux-shots/*.png.
 #
 # Manual-dispatch only: physical-device minutes consume FTL quota/cost.
 # Auth: WIF (gh-actions-ci SA, testAdmin + storage.objectAdmin).
@@ -114,7 +115,7 @@ jobs:
             --test="${{ steps.apks.outputs.test_apk }}" \
             --device="model=${DEVICE},version=${VERSION},locale=en,orientation=portrait" \
             --test-targets="class com.posterpdf.UxScreenshotTest" \
-            --directories-to-pull=/sdcard/ux-shots \
+            --directories-to-pull=/sdcard/Android/data/com.posterpdf/files/ux-shots \
             --timeout=20m \
             --results-bucket="${FTL_BUCKET}" \
             --results-dir="ux-shots-${{ github.run_id }}" \
