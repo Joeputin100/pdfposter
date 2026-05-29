@@ -220,14 +220,19 @@ dependencies {
     // TFLite distribution of Real-ESRGAN exists publicly without a custom
     // PyTorch->TFLite conversion. ESRGAN-TF2 is FP32, ~5MB, x4 upscaler.
     //
-    // NOTE: tensorflow-lite-gpu is intentionally NOT included. UpscalerOnDevice
-    // uses NnApiDelegate, not GPU. Including the gpu artifact pulled in classes
-    // (GpuDelegateFactory$Options$GpuBackend) that R8 couldn't resolve in the
-    // release minify step — see GH Actions run 25263859798 (2026-05-02). To
-    // re-add later: also add `-dontwarn org.tensorflow.lite.gpu.**` to
-    // proguard-rules.pro and switch UpscalerOnDevice to GpuDelegate.
-    implementation("org.tensorflow:tensorflow-lite:2.16.1")
-    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+    // RC76: migrated off org.tensorflow:tensorflow-lite to LiteRT (the rebranded
+    // runtime; NNAPI is deprecated in Android 15). The 1.4.x line preserves the
+    // org.tensorflow.lite.* API classes, so existing imports keep compiling.
+    // All three pinned to the SAME 1.4.2 — the core `litert` artifact's newer
+    // 2.x line is a different (CompiledModel) API and mixing tracks pulls
+    // conflicting litert-api versions (cf. LiteRT issue #1599). The GPU artifact
+    // is now INCLUDED (proguard keeps added in proguard-rules.pro); the prior
+    // R8-unresolved-class failure (run 25263859798) is handled by those keeps.
+    // Do NOT also depend on org.tensorflow:tensorflow-lite* — mixing old + new
+    // artifacts causes a runtime "Didn't find class org.tensorflow.lite.Delegate".
+    implementation("com.google.ai.edge.litert:litert:1.4.2")
+    implementation("com.google.ai.edge.litert:litert-gpu:1.4.2")
+    implementation("com.google.ai.edge.litert:litert-support:1.4.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
