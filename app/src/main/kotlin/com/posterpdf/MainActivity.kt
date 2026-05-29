@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.PathEffect
@@ -1450,7 +1451,20 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             // result. The FTL UiAutomator test finds it via By.textContains
             // "UPSCALE_TEST_DONE". Never composed in release builds.
             if (com.posterpdf.BuildConfig.ENABLE_TEST_HOOKS && viewModel.deviceTestStatus.isNotEmpty()) {
-                Text(text = viewModel.deviceTestStatus)
+                // RC75b: the sibling scroll Box below is fillMaxSize and, as a
+                // later Box child, draws ON TOP — which occluded this marker so
+                // the FTL UiAutomator By.textContains could never see it. Force
+                // it above with zIndex + an opaque background so it's reliably
+                // visibleToUser. (The test's primary signal is now the logcat
+                // marker; this keeps the on-screen path working as a fallback
+                // and makes device-test screenshots legible.)
+                Text(
+                    text = viewModel.deviceTestStatus,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .zIndex(1f)
+                        .background(Color.White),
+                )
             }
             Box(
                 modifier = Modifier
