@@ -6,10 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -37,45 +34,27 @@ object UpscalerOnDevice {
     private const val TILE_OUT = 200 // 4 * TILE_IN
     private const val SCALE = 4
 
-    @Volatile private var interpreter: Interpreter? = null
     @Volatile private var appContext: Context? = null
 
-    // RC74b: TFLite's Interpreter is NOT thread-safe — concurrent run() calls
-    // on the shared singleton corrupt native state and SIGSEGV in a TFLite
-    // worker thread (confirmed on Pixel 6 via FTL: the on-launch
-    // benchmarkAndCache coroutine raced a free upscale). This mutex serializes
-    // ALL inference so only one upscale runs at a time. Every inference path
-    // goes through upscale(), so guarding it here covers benchmark + free
-    // upscale + any future caller.
-    private val inferenceMutex = Mutex()
+    // RC76: the LiteRT Interpreter + delegate selection + the rc75 inference
+    // mutex (TFLite's Interpreter is NOT thread-safe) now live in TileEngine.
+    // Every inference path goes through upscale() → engine().run(), and
+    // TileEngine serializes all run() calls, so benchmark + free upscale + any
+    // future caller still never execute a concurrent native inference.
+    @Volatile private var engine: TileEngine? = null
 
     /** Call once (e.g. from Application or first use site) to bind a Context. */
     fun init(context: Context) {
         appContext = context.applicationContext
     }
 
-    private fun ensureInterpreter(): Interpreter {
-        interpreter?.let { return it }
+    private fun engine(): TileEngine {
+        engine?.let { return it }
         synchronized(this) {
-            interpreter?.let { return it }
+            engine?.let { return it }
             val ctx = appContext
                 ?: error("UpscalerOnDevice.init(context) must be called before upscale()")
-            val model = loadModelFile(ctx)
-            val opts = Interpreter.Options().apply {
-                // RC74: NNAPI is deliberately NOT used. On Google Tensor SoCs
-                // (Pixel 6 "oriole" confirmed 2026-05-28 via Firebase Test Lab)
-                // the vendor NNAPI driver (google-armnn) corrupts the native
-                // heap mid-inference and crashes the process with a SIGSEGV
-                // inside Interpreter.run() (free() in scudo). OEM NNAPI drivers
-                // are broadly unreliable for this model, so we run the
-                // well-tested XNNPACK CPU path, which TFLite enables by default
-                // for this FP32 model. Do NOT re-add an NnApiDelegate without a
-                // device-gate + FTL re-verification. setNumThreads gives
-                // XNNPACK multi-core parallelism to offset losing the
-                // accelerator; this runs on Dispatchers.Default so it won't ANR.
-                setNumThreads(4)
-            }
-            return Interpreter(model, opts).also { interpreter = it }
+            return TileEngine(loadModelFile(ctx)).also { engine = it }
         }
     }
 
@@ -116,8 +95,7 @@ object UpscalerOnDevice {
          *  Caller is responsible for actually persisting the bitmap. */
         onPartialSave: ((lastCompletedTile: Int, output: Bitmap) -> Unit)? = null,
         partialSaveIntervalMs: Long = 60_000L,
-    ): Bitmap = inferenceMutex.withLock { withContext(Dispatchers.Default) {
-        val interp = ensureInterpreter()
+    ): Bitmap = withContext(Dispatchers.Default) {
         val srcW = input.width
         val srcH = input.height
         require(srcW > 0 && srcH > 0) { "Input bitmap is empty" }
@@ -193,7 +171,7 @@ object UpscalerOnDevice {
                 }
                 inBuf.rewind()
                 outBuf.rewind()
-                interp.run(inBuf, outBuf)
+                engine().run(inBuf, outBuf)
 
                 // Unpack model output to ARGB ints, clamping to [0, 255].
                 outBuf.rewind()
@@ -248,13 +226,13 @@ object UpscalerOnDevice {
         tileOut.recycle()
         if (src !== input) src.recycle()
         out
-    } }  // close withContext(Dispatchers.Default), then inferenceMutex.withLock
+    }  // close withContext(Dispatchers.Default); TileEngine serializes inference internally
 
     /** Release native resources. Call from Application.onTerminate or test teardown. */
     fun close() {
         synchronized(this) {
-            interpreter?.close()
-            interpreter = null
+            engine?.close()
+            engine = null
         }
     }
 
