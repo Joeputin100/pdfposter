@@ -15,6 +15,7 @@
     <string name="common_back">Назад</string>
     <string name="common_refresh">Обновить</string>
     <string name="common_got_it">Понятно</string>
+    <string name="common_continue" tools:maxLength="12">Продолжить</string>
 
     <!-- Верхняя панель -->
     <string name="topbar_settings_menu">Настройки</string>
@@ -578,6 +579,19 @@
     <string name="free_upscale_preparing">Подготовка фрагментов&#8230;</string>
     <string name="free_upscale_progress_inline">%1$d%% (%2$d из %3$d фрагментов)</string>
     <string name="free_upscale_saving">Сохранение&#8230;</string>
+
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer. -->
+    <string name="upscale_long_job_title">Это займёт некоторое время</string>
+    <string name="upscale_long_job_msg">Масштабирование этого изображения на вашем устройстве может занять около %1$d минут. Оно выполняется в фоне, и вы можете продолжать пользоваться приложением. Продолжить?</string>
+    <string name="upscale_long_job_proceed">Продолжить на устройстве</string>
+    <string name="upscale_too_large_use_cloud">Это изображение слишком большое для масштабирования на этом устройстве. Попробуйте облачное масштабирование.</string>
+
+    <!-- Cloud connection & upload-speed gate. -->
+    <string name="cloud_speed_warn_title">Это может занять время</string>
+    <string name="cloud_speed_warn_body">При текущем соединении загрузка может занять около %1$s. Если рядом есть Wi-Fi или сигнал получше, всё пройдёт быстрее — но можно спокойно продолжить и так.</string>
+    <string name="cloud_speed_warn_eta_unknown">некоторое время</string>
+    <string name="cloud_offline_title">Нет соединения</string>
+    <string name="cloud_offline_body">Сейчас нет подключения к интернету. Для облачного масштабирования нужно соединение — как только вы снова будете онлайн, можно повторить попытку. А пока масштабирование на устройстве работает и без интернета.</string>
     <string name="gs_back_cd">Назад</string>
     <string name="gs_feat_history_body">Каждый созданный постер остаётся в локальной истории на этом телефоне.</string>
     <string name="gs_feat_history_title">История навсегда</string>

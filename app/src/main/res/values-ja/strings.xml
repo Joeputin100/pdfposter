@@ -15,6 +15,7 @@
     <string name="common_back">戻る</string>
     <string name="common_refresh">更新</string>
     <string name="common_got_it">了解</string>
+    <string name="common_continue" tools:maxLength="12">続ける</string>
 
     <!-- トップバー -->
     <string name="topbar_settings_menu">設定</string>
@@ -578,6 +579,19 @@
     <string name="free_upscale_preparing">タイルを準備中&#8230;</string>
     <string name="free_upscale_progress_inline">%1$d%% (%3$d 中 %2$d タイル)</string>
     <string name="free_upscale_saving">保存中&#8230;</string>
+
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer. -->
+    <string name="upscale_long_job_title">少し時間がかかります</string>
+    <string name="upscale_long_job_msg">この画像を端末でアップスケールするには約%1$d分かかることがあります。処理はバックグラウンドで実行され、アプリはそのまま使えます。続けますか？</string>
+    <string name="upscale_long_job_proceed">端末で続ける</string>
+    <string name="upscale_too_large_use_cloud">この画像はこの端末でアップスケールするには大きすぎます。代わりにクラウドアップスケールをお試しください。</string>
+
+    <!-- Cloud connection & upload-speed gate. -->
+    <string name="cloud_speed_warn_title">少し時間がかかる場合があります</string>
+    <string name="cloud_speed_warn_body">現在の接続では、このアップロードに約%1$sかかることがあります。Wi-Fiや電波の強い場所があればもっと速くなるかもしれませんが、このまま続けても問題ありません。</string>
+    <string name="cloud_speed_warn_eta_unknown">しばらく</string>
+    <string name="cloud_offline_title">接続がありません</string>
+    <string name="cloud_offline_body">現在インターネットに接続されていません。クラウドアップスケールには接続が必要です。オンラインに戻ったら、もう一度お試しください。その間も、端末でのアップスケールはオフラインで利用できます。</string>
     <string name="gs_back_cd">戻る</string>
     <string name="gs_feat_history_body">作成したポスターはすべてこの端末のローカル履歴に残ります。</string>
     <string name="gs_feat_history_title">履歴は永続</string>

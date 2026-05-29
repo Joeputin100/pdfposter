@@ -15,6 +15,7 @@
     <string name="common_back">返回</string>
     <string name="common_refresh">刷新</string>
     <string name="common_got_it">知道了</string>
+    <string name="common_continue" tools:maxLength="12">继续</string>
 
     <!-- 顶部栏 -->
     <string name="topbar_settings_menu">设置</string>
@@ -577,6 +578,19 @@
     <string name="free_upscale_preparing">正在准备分块&#8230;</string>
     <string name="free_upscale_progress_inline">%1$d%% (%2$d / %3$d 分块)</string>
     <string name="free_upscale_saving">正在保存&#8230;</string>
+
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer. -->
+    <string name="upscale_long_job_title">这会花一些时间</string>
+    <string name="upscale_long_job_msg">在您的设备上放大这张图片大约需要 %1$d 分钟。处理会在后台进行，您可以继续使用应用。要继续吗？</string>
+    <string name="upscale_long_job_proceed">在设备上继续</string>
+    <string name="upscale_too_large_use_cloud">这张图片太大，无法在本设备上放大。不妨改用云端放大。</string>
+
+    <!-- Cloud connection & upload-speed gate. -->
+    <string name="cloud_speed_warn_title">这可能需要一些时间</string>
+    <string name="cloud_speed_warn_body">在您当前的网络下，这次上传大约需要 %1$s。如果附近有 Wi-Fi 或更强的信号，速度可能会更快——不过就这样继续也完全没问题。</string>
+    <string name="cloud_speed_warn_eta_unknown">一会儿</string>
+    <string name="cloud_offline_title">无网络连接</string>
+    <string name="cloud_offline_body">您当前未连接到互联网。云端放大需要网络连接——等您重新联网后即可再试一次。在此期间，设备上的放大功能可离线使用。</string>
     <string name="gs_back_cd">返回</string>
     <string name="gs_feat_history_body">您制作的每张海报都会保存在本机的历史记录中。</string>
     <string name="gs_feat_history_title">永久历史</string>

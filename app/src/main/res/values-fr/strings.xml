@@ -15,6 +15,7 @@
     <string name="common_back">Retour</string>
     <string name="common_refresh">Actualiser</string>
     <string name="common_got_it">Compris</string>
+    <string name="common_continue" tools:maxLength="12">Continuer</string>
 
     <!-- Barre supérieure -->
     <string name="topbar_settings_menu">Paramètres</string>
@@ -578,6 +579,19 @@
     <string name="free_upscale_preparing">Préparation des tuiles&#8230;</string>
     <string name="free_upscale_progress_inline">%1$d%% (%2$d sur %3$d tuiles)</string>
     <string name="free_upscale_saving">Enregistrement&#8230;</string>
+
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer. -->
+    <string name="upscale_long_job_title">Cela va prendre un moment</string>
+    <string name="upscale_long_job_msg">L\'agrandissement de cette image sur votre appareil peut prendre environ %1$d minutes. Il s\'exécute en arrière-plan et vous pouvez continuer à utiliser l\'application. Continuer ?</string>
+    <string name="upscale_long_job_proceed">Continuer sur l\'appareil</string>
+    <string name="upscale_too_large_use_cloud">Cette image est trop grande pour être agrandie sur cet appareil. Essayez plutôt l\'agrandissement dans le cloud.</string>
+
+    <!-- Cloud connection & upload-speed gate. -->
+    <string name="cloud_speed_warn_title">Cela peut prendre un moment</string>
+    <string name="cloud_speed_warn_body">Cet envoi peut prendre %1$s avec votre connexion actuelle. Si vous avez le Wi-Fi ou un meilleur signal à portée, ce serait peut-être plus rapide — mais vous pouvez tout à fait continuer ainsi.</string>
+    <string name="cloud_speed_warn_eta_unknown">un moment</string>
+    <string name="cloud_offline_title">Pas de connexion</string>
+    <string name="cloud_offline_body">Vous n\'êtes pas connecté à Internet pour le moment. L\'agrandissement dans le cloud nécessite une connexion — dès que vous serez de nouveau en ligne, vous pourrez réessayer. En attendant, l\'agrandissement sur l\'appareil fonctionne hors ligne.</string>
     <string name="gs_back_cd">Retour</string>
     <string name="gs_feat_history_body">Chaque affiche que vous créez reste dans votre historique local sur ce téléphone.</string>
     <string name="gs_feat_history_title">Historique permanent</string>

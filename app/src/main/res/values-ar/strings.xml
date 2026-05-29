@@ -15,6 +15,7 @@
     <string name="common_back">رجوع</string>
     <string name="common_refresh">تحديث</string>
     <string name="common_got_it">فهمت</string>
+    <string name="common_continue" tools:maxLength="12">متابعة</string>
 
     <!-- شريط العنوان -->
     <string name="topbar_settings_menu">الإعدادات</string>
@@ -577,6 +578,19 @@
     <string name="free_upscale_preparing">جارٍ تحضير البلاطات&#8230;</string>
     <string name="free_upscale_progress_inline">%1$d%% (%2$d من %3$d بلاطة)</string>
     <string name="free_upscale_saving">جارٍ الحفظ&#8230;</string>
+
+    <!-- RC76: >10-min on-device upscale confirmation + too-big-for-device steer. -->
+    <string name="upscale_long_job_title">سيستغرق هذا بعض الوقت</string>
+    <string name="upscale_long_job_msg">قد يستغرق تكبير هذه الصورة على جهازك حوالي %1$d دقيقة. تتم العملية في الخلفية ويمكنك متابعة استخدام التطبيق. هل تريد المتابعة؟</string>
+    <string name="upscale_long_job_proceed">المتابعة على الجهاز</string>
+    <string name="upscale_too_large_use_cloud">هذه الصورة أكبر من أن تُكبَّر على هذا الجهاز. جرِّب التكبير عبر السحابة بدلاً من ذلك.</string>
+
+    <!-- Cloud connection & upload-speed gate. -->
+    <string name="cloud_speed_warn_title">قد يستغرق هذا بعض الوقت</string>
+    <string name="cloud_speed_warn_body">قد يستغرق هذا الرفع حوالي %1$s على اتصالك الحالي. إذا توفّر Wi-Fi أو إشارة أقوى في الجوار، فقد يصبح أسرع — لكن لا بأس بالمتابعة كما هي.</string>
+    <string name="cloud_speed_warn_eta_unknown">بعض الوقت</string>
+    <string name="cloud_offline_title">لا يوجد اتصال</string>
+    <string name="cloud_offline_body">أنت غير متصل بالإنترنت حالياً. يتطلب التكبير عبر السحابة وجود اتصال — وبمجرد عودتك للاتصال يمكنك المحاولة مرة أخرى. وفي هذه الأثناء، يعمل التكبير على الجهاز دون اتصال.</string>
     <string name="gs_back_cd">رجوع</string>
     <string name="gs_feat_history_body">كل ملصق تصنعه يبقى في سجلك المحلي على هذا الهاتف.</string>
     <string name="gs_feat_history_title">سجل دائم</string>
