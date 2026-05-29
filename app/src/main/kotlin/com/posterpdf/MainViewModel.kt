@@ -208,6 +208,55 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var freeUpscaleStartMs by mutableStateOf(0L)
         private set
 
+    /** RC76: when true, MainActivity shows the ">10 min, are you sure?"
+     *  confirmation before a long on-device upscale starts. The actual start
+     *  is stashed in [pendingUpscaleStart] and fired by [confirmLongJob]. */
+    var showLongJobConfirm by mutableStateOf(false)
+        private set
+    /** RC76: predicted on-device ETA in whole minutes, shown in the modal. */
+    var pendingUpscaleEtaMin by mutableStateOf(0)
+        private set
+    private var pendingUpscaleStart: (() -> Unit)? = null
+
+    /** RC76: gate run before a free upscale starts. Returns true to proceed
+     *  now; false if it either (a) set [errorMessage] steering a too-big job
+     *  to cloud, or (b) stashed [start] and popped the long-job confirm modal
+     *  (proceed then happens via [confirmLongJob]). [etaMs] is the predicted
+     *  on-device run time; pass 0 when unknown (no cached benchmark) so the
+     *  time check is skipped — the memory net still applies. */
+    private fun gateLongJob(
+        context: Context,
+        outWidthPx: Int,
+        etaMs: Long,
+        start: () -> Unit,
+    ): Boolean {
+        if (!com.posterpdf.ml.oneBandFits(context, outWidthPx)) {
+            errorMessage = context.getString(R.string.upscale_too_large_use_cloud)
+            return false
+        }
+        if (etaMs > 10 * 60 * 1000L) {
+            pendingUpscaleEtaMin = (etaMs / 60000L).toInt()
+            pendingUpscaleStart = start
+            showLongJobConfirm = true
+            return false
+        }
+        return true
+    }
+
+    /** RC76: user tapped "Continue on device" — dismiss the modal and start. */
+    fun confirmLongJob() {
+        showLongJobConfirm = false
+        val start = pendingUpscaleStart
+        pendingUpscaleStart = null
+        start?.invoke()
+    }
+
+    /** RC76: user dismissed the long-job modal — drop the pending start. */
+    fun dismissLongJob() {
+        showLongJobConfirm = false
+        pendingUpscaleStart = null
+    }
+
     /** RC4: app-level toggle for the low-DPI upscale modal. PosterPreview
      *  (the under-preview tappable card) and MainActivity (the new
      *  Sharpen-for-print CTA between Poster Size and Paper & Layout) both
@@ -242,10 +291,56 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * calc see the 4× larger image. RC4: now exposes an isFreeUpscaling flag
      * + a cancellable Job so MainActivity can render a progress dialog.
      */
-    fun runFreeUpscale(context: Context) {
+    fun runFreeUpscale(context: Context, bypassGate: Boolean = false) {
         val uri = selectedImageUri ?: return
         freeUpscaleJob?.cancel()
         freeUpscaleJob = viewModelScope.launch {
+            // RC76: gate BEFORE any progress UI shows. Decode bounds (cheap,
+            // bounds-only), predict the on-device ETA from the cached benchmark,
+            // then either steer a genuinely-too-big job to cloud, pop the
+            // >10-min "are you sure?" modal, or fall through and run. The
+            // bypassGate=true path is what confirmLongJob() re-enters after the
+            // user taps "Continue on device", so the gate never loops. Running
+            // the gate before isFreeUpscaling=true avoids flashing the progress
+            // dialog while we steer/confirm.
+            if (!bypassGate) {
+                val gateBounds = withContext(Dispatchers.IO) {
+                    val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    runCatching {
+                        context.contentResolver.openInputStream(uri)?.use {
+                            BitmapFactory.decodeStream(it, null, o)
+                        }
+                    }
+                    o
+                }
+                val gw = gateBounds.outWidth
+                val gh = gateBounds.outHeight
+                // Only gate when we could read the bounds; a failed/0x0 decode
+                // falls through so the main flow surfaces the proper error.
+                if (gw > 0 && gh > 0) {
+                    val outWidthPx = gw * 4
+                    // ETA from the same cached-benchmark mechanism the low-DPI
+                    // modal uses (UpscaleEta.etaForLocal — a range in seconds).
+                    // Output MP = output pixels / 1e6, matching
+                    // UpscalerOnDevice.benchmarkAndCache's ms-per-MP definition.
+                    // Collapse the range to its midpoint (as formatEta does) and
+                    // convert s→ms. Unknown (no cached benchmark) ⇒ etaMs=0 ⇒ the
+                    // time check is skipped; the memory net still runs.
+                    val outputMp = (outWidthPx.toLong() * (gh * 4) / 1_000_000L).coerceAtLeast(1L)
+                    val msPerMp = withContext(Dispatchers.IO) {
+                        com.posterpdf.ml.cachedMsPerMegapixel(context)
+                    }
+                    val etaRange = com.posterpdf.ml.etaForLocal(outputMp, msPerMp)
+                    val etaMs = etaRange?.let { ((it.first + it.last) / 2).toLong() * 1000L } ?: 0L
+                    val proceed = gateLongJob(context, outWidthPx, etaMs) {
+                        runFreeUpscale(context, bypassGate = true)
+                    }
+                    if (!proceed) {
+                        logEvent(context, "free_upscale: gated", "outW=$outWidthPx etaMs=$etaMs (steered/confirm)")
+                        return@launch
+                    }
+                }
+            }
             isFreeUpscaling = true
             freeUpscaleStartMs = System.currentTimeMillis()
             freeUpscaleTilesDone = 0
