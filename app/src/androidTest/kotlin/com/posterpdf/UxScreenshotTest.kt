@@ -1,7 +1,6 @@
 package com.posterpdf
 
 import android.content.Intent
-import android.os.Environment
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -32,8 +31,13 @@ class UxScreenshotTest {
     fun captureDenseScreens() {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val ctx = ApplicationProvider.getApplicationContext<android.content.Context>()
-        @Suppress("DEPRECATION")
-        val outDir = File(Environment.getExternalStorageDirectory(), "ux-shots").apply { mkdirs() }
+        // RC77.1: write to the app-specific external files dir. The /sdcard
+        // root is NOT writable under scoped storage on API 30+ — on arcfox
+        // (API 34) that produced 0-byte screenshots ("empty screenshot for
+        // state=main"). This dir needs no permission and is pulled by FTL via
+        // --directories-to-pull=/sdcard/Android/data/com.posterpdf/files/ux-shots.
+        val outDir = File(ctx.getExternalFilesDir(null), "ux-shots").apply { mkdirs() }
+        android.util.Log.i("UX_SHOTS", "writing screenshots to ${outDir.absolutePath}")
         for (state in states) {
             ctx.startActivity(
                 ctx.packageManager.getLaunchIntentForPackage("com.posterpdf")!!
