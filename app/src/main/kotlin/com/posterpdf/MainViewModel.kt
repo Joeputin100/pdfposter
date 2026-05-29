@@ -254,73 +254,60 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 logEvent(context, "free_upscale: init UpscalerOnDevice")
                 com.posterpdf.ml.UpscalerOnDevice.init(context)
-                logEvent(context, "free_upscale: decode source bitmap")
-                val src = withContext(Dispatchers.IO) {
+                logEvent(context, "free_upscale: decode source bounds")
+                // RC76: band-streaming upscale — we no longer decode the whole
+                // source bitmap (or hold the whole 4x output) in RAM. Decode
+                // BOUNDS only to size the progress denominator; the upscaler
+                // region-reads the source and streams the output to a PNG.
+                val srcBounds = withContext(Dispatchers.IO) {
+                    val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                     context.contentResolver.openInputStream(uri)?.use {
-                        BitmapFactory.decodeStream(it)
+                        BitmapFactory.decodeStream(it, null, o)
                     }
-                } ?: run {
+                    o
+                }
+                val srcW = srcBounds.outWidth
+                val srcH = srcBounds.outHeight
+                if (srcW <= 0 || srcH <= 0) {
                     errorMessage = context.getString(R.string.vm_error_couldnt_open_image)
-                    logEvent(context, "free_upscale: ABORT — source decode returned null")
+                    logEvent(context, "free_upscale: ABORT — source bounds decode returned ${srcW}x$srcH")
                     return@launch
                 }
-                logEvent(
-                    context,
-                    "free_upscale: source decoded",
-                    "${src.width}x${src.height}, ${src.byteCount / 1024} KB",
-                )
+                logEvent(context, "free_upscale: source bounds", "${srcW}x$srcH")
 
                 // RC11: pre-compute total tiles so we can start the foreground
                 // service with the right notification denominator.
                 val totalTiles = (
-                    ((src.width + 49) / 50).coerceAtLeast(1) *
-                    ((src.height + 49) / 50).coerceAtLeast(1)
+                    ((srcW + 49) / 50).coerceAtLeast(1) *
+                    ((srcH + 49) / 50).coerceAtLeast(1)
                 )
 
-                // RC11: check for resume state matching this URI; if present,
-                // pick up where the previous run left off.
-                // RC57: the URI now uses a timestamp-suffixed filename so a
-                // new import won't false-match here. We *also* validate the
-                // saved totalTiles against the freshly-decoded image as a
-                // defense-in-depth check — if a resume snapshot survives
-                // somehow with a tile count that doesn't match the current
-                // bitmap, we discard it instead of feeding impossible state
-                // to the upscaler (which crashed in RC55/RC56).
-                val rawSnapshot = withContext(Dispatchers.IO) {
-                    com.posterpdf.ml.UpscaleStateStore.load(context, uri.toString())
+                // RC76: band-keyed resume. The old per-tile partial-bitmap
+                // snapshot is replaced by a band index (see UpscaleStateStore /
+                // UpscalerOnDevice.upscaleToFile). A streamed PNG can't be
+                // appended mid-stream, so resume re-encodes from band 0; the
+                // saved band is read for diagnostics + forward-compat.
+                val resumeFromBand = withContext(Dispatchers.IO) {
+                    com.posterpdf.ml.UpscaleStateStore.lastBand(context, uri.toString())
                 }
-                val resumeSnapshot = rawSnapshot?.takeIf { it.totalTiles == totalTiles }
-                if (rawSnapshot != null && resumeSnapshot == null) {
-                    logEvent(
-                        context,
-                        "free_upscale: discarding stale resume state",
-                        "saved=${rawSnapshot.totalTiles} current=$totalTiles",
-                    )
-                    runCatching { com.posterpdf.ml.UpscaleStateStore.clear(context) }
-                }
-                val resumeBitmap = resumeSnapshot?.let {
-                    withContext(Dispatchers.IO) {
-                        BitmapFactory.decodeFile(it.partialBitmapPath)
-                    }
-                }
-                val resumeFrom = resumeSnapshot?.lastCompletedTile ?: 0
-                if (resumeFrom > 0 && resumeBitmap != null) {
-                    logEvent(
-                        context,
-                        "free_upscale: resuming from tile $resumeFrom",
-                        "of ${resumeSnapshot.totalTiles}",
-                    )
+                if (resumeFromBand > 0) {
+                    logEvent(context, "free_upscale: prior run reached band $resumeFromBand (re-encoding from start)")
                 }
 
                 com.posterpdf.ml.UpscaleForegroundService.start(context, totalTiles)
                 logEvent(context, "free_upscale: foreground service started", "totalTiles=$totalTiles")
 
-                logEvent(context, "free_upscale: invoking ESRGAN upscale (4x)")
-                val upscaled = kotlinx.coroutines.withTimeout(15 * 60 * 1000L) {
-                    com.posterpdf.ml.UpscalerOnDevice.upscale(
-                        input = src,
-                        resumeFromTile = resumeFrom,
-                        partialOutput = resumeBitmap,
+                logEvent(context, "free_upscale: invoking ESRGAN upscale (4x, streaming)")
+                val outFile = File(
+                    context.cacheDir,
+                    "upscaled_${System.currentTimeMillis()}.png",
+                )
+                kotlinx.coroutines.withTimeout(15 * 60 * 1000L) {
+                    com.posterpdf.ml.UpscalerOnDevice.upscaleToFile(
+                        context = context,
+                        sourceUri = uri,
+                        dest = outFile,
+                        resumeFromBand = resumeFromBand,
                         onProgress = { done, total ->
                             // RC13: surface ground-truth tile progress to the
                             // ViewModel so the in-app modal reads from the
@@ -335,33 +322,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 logEvent(context, "free_upscale: tile $done/$total")
                             }
                         },
-                        onPartialSave = { lastDone, out ->
-                            com.posterpdf.ml.UpscaleStateStore.save(
-                                context,
-                                sourceUri = uri.toString(),
-                                totalTiles = totalTiles,
-                                lastCompletedTile = lastDone,
-                                partial = out,
-                            )
-                            logEvent(context, "free_upscale: partial saved", "tile=$lastDone")
-                        },
                     )
                 }
-                resumeBitmap?.recycle()
-                logEvent(
-                    context,
-                    "free_upscale: upscale returned",
-                    "${upscaled.width}x${upscaled.height}",
-                )
-                val outFile = File(
-                    context.cacheDir,
-                    "upscaled_${System.currentTimeMillis()}.png",
-                )
-                withContext(Dispatchers.IO) {
-                    FileOutputStream(outFile).use { fos ->
-                        upscaled.compress(Bitmap.CompressFormat.PNG, 95, fos)
+
+                // RC76: read the final dimensions from the streamed PNG's bounds
+                // (we no longer hold the upscaled bitmap in memory).
+                val outBounds = withContext(Dispatchers.IO) {
+                    val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    context.contentResolver.openInputStream(Uri.fromFile(outFile))?.use {
+                        BitmapFactory.decodeStream(it, null, o)
                     }
+                    o
                 }
+                // Fall back to the known 4x dimensions if the bounds re-decode
+                // hiccups (the PNG was just written, so this is belt-and-braces
+                // against a 0x0 → NaN aspect ratio).
+                val outW = outBounds.outWidth.takeIf { it > 0 } ?: (srcW * 4)
+                val outH = outBounds.outHeight.takeIf { it > 0 } ?: (srcH * 4)
+                logEvent(context, "free_upscale: upscale returned", "${outW}x$outH")
+
                 selectedImageUri = Uri.fromFile(outFile)
                 // RC54: persist the upscale output URI so the user keeps
                 // their upscaled image after process death.
@@ -371,7 +350,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         selectedImageUri.toString(),
                     )
                 }
-                sourcePixelDimensions = upscaled.width to upscaled.height
+                sourcePixelDimensions = outW to outH
                 // RC16: also refresh imageMetadata so the PDF generator's
                 // sourcePixelW/H reflect the upscaled dimensions instead of
                 // the stale original. Without this, the PDF embeds the
@@ -382,23 +361,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 // change format from "0.6:1.0" to a raw pixel ratio "768:1376"
                 // after upscale. Underlying aspectRatio Double is identical
                 // because ESRGAN-TF2's 4× upscale preserves dimensions linearly.
-                val arUp = upscaled.width.toDouble() / upscaled.height.toDouble()
+                val arUp = outW.toDouble() / outH.toDouble()
                 imageMetadata = ImageMetadata(
-                    width = upscaled.width,
-                    height = upscaled.height,
+                    width = outW,
+                    height = outH,
                     aspectRatioString = String.format(Locale.US, "%.1f:1.0", arUp),
                     aspectRatio = arUp,
-                    resolution = "${upscaled.width}×${upscaled.height}",
+                    resolution = "${outW}×$outH",
                 )
                 wasUpscaled = true
-                successMessage = context.getString(R.string.vm_success_upscaled_inline, upscaled.width, upscaled.height)
+                successMessage = context.getString(R.string.vm_success_upscaled_inline, outW, outH)
                 pendingUpscaleModelLabel = null
                 logEvent(context, "free_upscale: SUCCESS", "wrote ${outFile.name}")
                 // RC11: success — clear the resume state so the next run
                 // starts fresh, and stop the foreground service.
                 com.posterpdf.ml.UpscaleStateStore.clear(context)
-                if (src !== upscaled) src.recycle()
-                upscaled.recycle()
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                 errorMessage = context.getString(R.string.vm_error_sharpening_timed_out)
                 logEvent(context, "free_upscale: TIMEOUT — exceeded 15 min budget")

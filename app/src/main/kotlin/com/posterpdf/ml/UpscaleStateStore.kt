@@ -29,6 +29,43 @@ object UpscaleStateStore {
     private const val STATE_FILE = "upscale_state.txt"
     private const val PARTIAL_FILE = "upscale_partial.png"
 
+    // RC76: band-streaming resume state. The streamed-PNG pipeline writes the
+    // output one horizontal band at a time; we persist the last fully-emitted
+    // band index (keyed by source URI) so a process kill can be picked up at
+    // band granularity instead of the old per-tile partial-bitmap snapshot.
+    // Two lines: source URI, last completed band index.
+    private const val BAND_FILE = "upscale_band.txt"
+
+    /** Persist the last fully-written band for [sourceUri]. Cheap (a 2-line
+     *  text write); call once per band from the streaming loop. */
+    fun saveBand(ctx: Context, sourceUri: String, lastBand: Int) {
+        try {
+            File(ctx.cacheDir, BAND_FILE).writeText(
+                buildString {
+                    appendLine(sourceUri)
+                    appendLine(lastBand.toString())
+                },
+            )
+        } catch (e: Throwable) {
+            Log.w(TAG, "saveBand failed: ${e.message}")
+        }
+    }
+
+    /** Last completed band for [sourceUri], or 0 if none / URI mismatch /
+     *  corrupt. */
+    fun lastBand(ctx: Context, sourceUri: String): Int {
+        return try {
+            val f = File(ctx.cacheDir, BAND_FILE)
+            if (!f.exists()) return 0
+            val lines = f.readLines()
+            if (lines.size < 2) return 0
+            if (lines[0] != sourceUri) return 0
+            lines[1].toIntOrNull() ?: 0
+        } catch (_: Throwable) {
+            0
+        }
+    }
+
     data class Snapshot(
         val sourceUri: String,
         val totalTiles: Int,
@@ -128,6 +165,7 @@ object UpscaleStateStore {
         try {
             File(ctx.cacheDir, STATE_FILE).delete()
             File(ctx.cacheDir, PARTIAL_FILE).delete()
+            File(ctx.cacheDir, BAND_FILE).delete() // RC76: band-resume state
         } catch (_: Throwable) {
             // best-effort
         }
