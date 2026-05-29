@@ -80,3 +80,14 @@
 # not at runtime, but R8 sometimes warns. Safe to drop.
 # ────────────────────────────────────────────────────────────────────────
 -dontwarn androidx.compose.ui.tooling.preview.**
+
+# ────────────────────────────────────────────────────────────────────────
+# RC76: LiteRT GPU delegate. The GPU classes are bound to native code via
+# reflection/JNI; keep them so R8 doesn't strip/rename them, and silence the
+# optional-dependency warnings that previously broke the release minify step
+# (GH Actions run 25263859798). Covers both the org.tensorflow.lite.gpu.*
+# compat API surface and the com.google.ai.edge.litert.* artifacts.
+# ────────────────────────────────────────────────────────────────────────
+-keep class org.tensorflow.lite.gpu.** { *; }
+-keep class com.google.ai.edge.litert.** { *; }
+-dontwarn org.tensorflow.lite.gpu.**
