@@ -75,6 +75,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -114,6 +115,22 @@ import kotlinx.coroutines.withContext
 // the grid's fixed height left an empty trailing band (the user-reported
 // "still an inch gap" + inconsistent heights in RC61/RC62).
 private const val CARD_HEIGHT_DP = 340
+
+// RC79: at large accessibility font the fixed 340dp cards were too short, so
+// the pros/cons marketing copy clipped at the card bottom (rc77 edge audit,
+// finding #2). Scale the shared card height by the font scale so the cards
+// grow enough to fit the (also-larger) text. At fontScale 1.0 this returns
+// exactly CARD_HEIGHT_DP, so RC63's uniform, no-gap look is preserved byte-
+// for-byte at normal font — the ONLY behavior change is at large font.
+//
+// Returned as a rounded Int dp value (not a Float) so BOTH call sites agree:
+// the per-card Modifier.height() and the grid's row-count multiply use the
+// same integer height, so rowCount * height stays exact and no trailing gap
+// can creep back in (the RC63 regression we must not reintroduce). Floored at
+// CARD_HEIGHT_DP so a sub-1.0 fontScale (rare, but possible) can't shrink the
+// cards below the RC63 baseline.
+private fun scaledCardHeightDp(fontScale: Float): Int =
+    (CARD_HEIGHT_DP * fontScale).toInt().coerceAtLeast(CARD_HEIGHT_DP)
 
 enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR, IMAGEN }
 
@@ -525,7 +542,14 @@ fun LowDpiUpgradeModal(
                 // calc now matches the actual verticalArrangement (10dp, was 12dp
                 // — 6dp of accumulated drift over 3 inter-row gaps).
                 val rowCount = (visibleOptions.size + 1) / 2
-                val gridHeight = (rowCount * CARD_HEIGHT_DP + (rowCount - 1) * 10).dp
+                // RC79: scale the per-card height by font scale, then build
+                // the grid height from the SAME scaled value so the grid's
+                // total exactly matches rowCount cards + inter-row spacing.
+                // At fontScale 1.0 cardHeightDp == CARD_HEIGHT_DP, so this is
+                // identical to the RC63 calc (no-gap look preserved).
+                val gridFontScale = LocalConfiguration.current.fontScale
+                val cardHeightDp = scaledCardHeightDp(gridFontScale)
+                val gridHeight = (rowCount * cardHeightDp + (rowCount - 1) * 10).dp
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
@@ -813,6 +837,12 @@ private fun UpscaleOptionCard(
     // top of that paint, and the Column's children draw on top of both.
     val outlineColor = MaterialTheme.colorScheme.outline
     val paperFill = MaterialTheme.colorScheme.surfaceVariant
+    // RC79: same scaled height the grid uses (scaledCardHeightDp) so the
+    // per-card height and the grid's gridHeight calc stay in lockstep at
+    // every font scale. At fontScale 1.0 this is exactly CARD_HEIGHT_DP, so
+    // the RC63 fixed-height / no-gap behavior is unchanged at normal font.
+    val cardFontScale = LocalConfiguration.current.fontScale
+    val cardHeightDp = scaledCardHeightDp(cardFontScale)
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -822,12 +852,13 @@ private fun UpscaleOptionCard(
             // — there was nothing for fillMaxHeight to fill, so cards
             // sized to content and the user still saw inconsistent
             // heights + the ~1-inch gap below the last row. Setting an
-            // explicit height(CARD_HEIGHT_DP.dp) forces every card to
-            // measure at the same height, matching the grid's
-            // gridHeight calc and eliminating the trailing gap. Shorter
-            // cards get internal bottom padding (anchored top via
-            // Arrangement.spacedBy on the inner Column).
-            .height(CARD_HEIGHT_DP.dp)
+            // explicit height forces every card to measure at the same
+            // height, matching the grid's gridHeight calc and eliminating
+            // the trailing gap. Shorter cards get internal bottom padding
+            // (anchored top via Arrangement.spacedBy on the inner Column).
+            // RC79: height now scales with font (scaledCardHeightDp) so
+            // text fits at large font; == CARD_HEIGHT_DP at fontScale 1.0.
+            .height(cardHeightDp.dp)
             // RC64: multiply selection-scale and entrance-scale, plus apply
             // entrance alpha. Selection-scale (1.0↔1.03) is the existing
             // "selected card glows + grows" effect; entrance-scale

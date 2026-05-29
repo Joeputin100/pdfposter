@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -903,8 +904,24 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
+            // RC79: gate the frosted-glass effect on accessibility font scale.
+            // At normal font the transparent container + glassBackdrop tint
+            // (the INTENTIONAL frosted look) reads fine. At 200% font on a
+            // 360dp screen the text gets so dense that the see-through panel
+            // becomes unreadable (rc77 edge audit, finding #1). So at large
+            // font (>=1.3x) we swap to an opaque surface container and bump
+            // the glass tint to full opacity — keeping the same shape/tint
+            // hue, just solid. Normal-font experience is unchanged.
+            val drawerFontScale = LocalConfiguration.current.fontScale
+            val drawerLargeFont = drawerFontScale >= 1.3f
+            val drawerGlassTint = MaterialTheme.colorScheme.surfaceContainerLow
+                .copy(alpha = if (drawerLargeFont) 1f else 0.82f)
             ModalDrawerSheet(
-                drawerContainerColor = Color.Transparent,
+                drawerContainerColor = if (drawerLargeFont) {
+                    MaterialTheme.colorScheme.surface
+                } else {
+                    Color.Transparent
+                },
                 drawerTonalElevation = 0.dp,
                 // RC32: full-screen-width drawer per user request — overrides
                 // M3's default ~360dp pinning. fillMaxWidth() makes the sheet
@@ -917,12 +934,19 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     .fillMaxWidth()
                     .glassBackdrop(
                         shape = DrawerDefaults.shape,
-                        tint = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.82f),
+                        tint = drawerGlassTint,
                     )
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        // RC79: status-bar inset so the first drawer item
+                        // ("Default Paper Size" header / app name) isn't
+                        // clipped under the status bar at large font / on
+                        // small screens (rc77 edge audit, finding #1). The
+                        // inset sits on the scroll container so it stays
+                        // pinned while the content scrolls beneath the bar.
+                        .windowInsetsPadding(WindowInsets.statusBars)
                         .verticalScroll(rememberScrollState()),
                     contentAlignment = Alignment.TopStart,
                 ) {
