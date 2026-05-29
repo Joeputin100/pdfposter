@@ -5,9 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.BufferedOutputStream
+import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
@@ -33,6 +37,11 @@ object UpscalerOnDevice {
     private const val TILE_IN = 50
     private const val TILE_OUT = 200 // 4 * TILE_IN
     private const val SCALE = 4
+
+    // RC76: target peak working set for one streamed band (band RGB rows). The
+    // fixed tile in/out buffers (~0.7 MB) + Deflater window are negligible on
+    // top. A band is sized to a whole number of 200px tile-rows under this.
+    private const val BAND_BUDGET_BYTES = 32L * 1024 * 1024
 
     @Volatile private var appContext: Context? = null
 
@@ -70,32 +79,257 @@ object UpscalerOnDevice {
     }
 
     /**
-     * Upscale [input] by 4x. Any input size is accepted; the bitmap is tiled
-     * into 50x50 chunks fed to the model, and the 200x200 outputs are
-     * composited into the result bitmap.
+     * RC76 — band-streaming 4x upscale with BOUNDED memory. The old path
+     * composited the whole (4x) output into one in-RAM Bitmap and PNG-encoded
+     * it whole: a 12 MP source → ~192 MP → ~768 MB → guaranteed OOM. This
+     * version walks the OUTPUT in full-width horizontal bands (each band a
+     * whole number of 200px tile-rows), region-reads only the source a band
+     * needs ([RegionSource]), upscales tile-by-tile on the [TileEngine], and
+     * streams each band straight to [dest] as an incremental PNG
+     * ([StreamingPngSink]). Peak heap ≈ one band + fixed tile buffers,
+     * independent of image size.
      *
-     * RC10: rebuilt to drop the per-tile bitmap allocations that were causing
-     * a user-reported 70+ min hang on a 1 MP source. For 1 MP input → 432
-     * tiles, the prior code allocated 432 × (50×50 + 200×200) ARGB_8888
-     * bitmaps = ~73 MB of churn, which thrashes the GC and serializes
-     * inference behind it. Now both buffers are allocated ONCE and reused.
+     * Seam-safety: bands are tile-row-aligned so no 200px output tile straddles
+     * a band boundary. Edge tiles (when src isn't a multiple of 50) reuse the
+     * proven anchoring (clamp srcX/srcY so the model always gets a full 50x50),
+     * and each tile writes ONLY the output region it is responsible for
+     * ([destColStart, destColEnd) x [destRowStart, destRowEnd)), clipped to the
+     * output bounds — replicating the old Canvas src/dst-rect overlap handling
+     * so the overlapping (re-sampled) columns/rows are never double-composited.
      *
-     * RC11: resume support. If [resumeFromTile] > 0 and [partialOutput] is
-     * non-null, the loop skips tiles 0..resumeFromTile-1 and the output
-     * starts pre-seeded with [partialOutput]'s pixels (drawn via Canvas at
-     * 0,0). Combined with periodic [onPartialSave] callbacks the caller can
-     * persist mid-run state and recover from a process kill.
+     * Progress is reported per tile (UI continuity, RC10/RC11). On each
+     * completed band we persist [UpscaleStateStore.saveBand] for resume.
+     *
+     * Resume note: a streamed PNG is a SINGLE continuous zlib stream split
+     * across IDAT chunks, so a partially-written file cannot be safely
+     * continued by appending a second Deflater's output (and its IHDR is
+     * already written). [resumeFromBand] is therefore best-effort: this impl
+     * re-encodes from band 0 (a process kill re-runs the upscale to completion
+     * rather than corrupting the file). The band-keyed state is kept so a
+     * future raw-scratch prefix can restore the skip-completed-bands
+     * optimization without changing callers. Returns [dest].
+     *
+     * @param sourceUri the source image to upscale (read by region).
+     * @param dest the destination PNG file (overwritten).
      */
-    suspend fun upscale(
-        input: Bitmap,
-        resumeFromTile: Int = 0,
-        partialOutput: Bitmap? = null,
+    suspend fun upscaleToFile(
+        context: Context,
+        sourceUri: Uri,
+        dest: File,
         onProgress: ((completedTiles: Int, totalTiles: Int) -> Unit)? = null,
-        /** Called every ~60 s with (lastCompletedTile, currentOutputBitmap).
-         *  Caller is responsible for actually persisting the bitmap. */
-        onPartialSave: ((lastCompletedTile: Int, output: Bitmap) -> Unit)? = null,
-        partialSaveIntervalMs: Long = 60_000L,
-    ): Bitmap = withContext(Dispatchers.Default) {
+        resumeFromBand: Int = 0,
+    ): File = withContext(Dispatchers.Default) {
+        val eng = engine()
+        val src = RegionSource.open(context, sourceUri)
+        try {
+            val srcW = src.width
+            val srcH = src.height
+            require(srcW > 0 && srcH > 0) { "Source has no pixels ($srcW x $srcH)" }
+            val outW = srcW * SCALE
+            val outH = srcH * SCALE
+            val bytesPerOutRow = outW * 3
+
+            val tileCols = (srcW + TILE_IN - 1) / TILE_IN
+            val tileRows = (srcH + TILE_IN - 1) / TILE_IN
+            val totalTiles = tileCols * tileRows
+
+            // Tiny source (< one 50px tile in some dimension): can't region-read
+            // a full 50x50, so handle it with a single whole-decode stretch →
+            // upscale → downscale, streamed row-by-row. Rare; bounded (tiny).
+            if (srcW < TILE_IN || srcH < TILE_IN) {
+                streamTinySource(src, dest, outW, outH, onProgress)
+                return@withContext dest
+            }
+
+            // Band height (in OUTPUT px) = bandTilesY tile-rows, chosen so one
+            // band's RGB working set stays under ~32 MB. Long math avoids
+            // overflow for very wide outputs.
+            val bandTilesY = maxOf(
+                1,
+                (BAND_BUDGET_BYTES / (bytesPerOutRow.toLong() * TILE_OUT)).toInt(),
+            )
+            if (resumeFromBand > 0) {
+                android.util.Log.i(
+                    "UPSCALE_TEST",
+                    "upscaleToFile: resumeFromBand=$resumeFromBand requested; " +
+                        "re-encoding from band 0 (streamed PNG can't be appended)",
+                )
+            }
+
+            // Reusable buffers — allocated ONCE for the whole upscale.
+            val inBuf = ByteBuffer.allocateDirect(TILE_IN * TILE_IN * 3 * 4)
+                .order(ByteOrder.nativeOrder())
+            val outBuf = ByteBuffer.allocateDirect(TILE_OUT * TILE_OUT * 3 * 4)
+                .order(ByteOrder.nativeOrder())
+            val tilePixels = IntArray(TILE_IN * TILE_IN)
+            val outPixels = IntArray(TILE_OUT * TILE_OUT)
+            // One band buffer reused across ALL bands (this is the whole point of
+            // streaming — bounded peak heap). Sized for a full band; the short
+            // last band uses only its first rows. Every emitted cell is fully
+            // overwritten each band (tiles cover all cols of all emitted rows),
+            // so reuse never leaks stale pixels.
+            val band = Array(bandTilesY * TILE_OUT) { ByteArray(bytesPerOutRow) }
+
+            var done = 0
+            var bandIndex = 0
+            FileOutputStream(dest).use { fos ->
+                val sink = StreamingPngSink(BufferedOutputStream(fos), outW, outH)
+                var bandTileTop = 0
+                while (bandTileTop < tileRows) {
+                    val bandTileBot = minOf(bandTileTop + bandTilesY, tileRows)
+                    for (ty in bandTileTop until bandTileBot) {
+                        val idealY = ty * TILE_IN
+                        // Anchor the bottom edge tile-row back so the model
+                        // still gets a full 50px-tall region.
+                        val srcY = if (idealY + TILE_IN <= srcH) idealY
+                                   else (srcH - TILE_IN).coerceAtLeast(0)
+                        // Output rows this tile-row owns (its non-overlapping,
+                        // in-bounds slice), absolute in the output image.
+                        val destRowStart = idealY * SCALE
+                        val destRowEnd = minOf((idealY + TILE_IN) * SCALE, outH)
+                        for (tx in 0 until tileCols) {
+                            val idealX = tx * TILE_IN
+                            val srcX = if (idealX + TILE_IN <= srcW) idealX
+                                       else (srcW - TILE_IN).coerceAtLeast(0)
+                            val destColStart = idealX * SCALE
+                            val destColEnd = minOf((idealX + TILE_IN) * SCALE, outW)
+
+                            val tile = src.region(
+                                Rect(srcX, srcY, srcX + TILE_IN, srcY + TILE_IN),
+                            )
+                            tile.getPixels(tilePixels, 0, TILE_IN, 0, 0, TILE_IN, TILE_IN)
+                            tile.recycle()
+
+                            inBuf.rewind()
+                            for (px in tilePixels) {
+                                inBuf.putFloat(((px ushr 16) and 0xFF).toFloat())
+                                inBuf.putFloat(((px ushr 8) and 0xFF).toFloat())
+                                inBuf.putFloat((px and 0xFF).toFloat())
+                            }
+                            inBuf.rewind(); outBuf.rewind()
+                            eng.run(inBuf, outBuf)
+
+                            // Unpack the 200x200 tile output once, clamped.
+                            outBuf.rewind()
+                            for (i in 0 until TILE_OUT * TILE_OUT) {
+                                val r = outBuf.float.toInt().coerceIn(0, 255)
+                                val g = outBuf.float.toInt().coerceIn(0, 255)
+                                val b = outBuf.float.toInt().coerceIn(0, 255)
+                                outPixels[i] = (r shl 16) or (g shl 8) or b
+                            }
+
+                            // Composite only this tile's owned output region,
+                            // sampling the tile by its anchored local offset.
+                            for (oy in destRowStart until destRowEnd) {
+                                val localRow = oy - srcY * SCALE      // in [0,200)
+                                val rowArr = band[oy - bandTileTop * TILE_OUT]
+                                val tileRowBase = localRow * TILE_OUT
+                                var bi = destColStart * 3
+                                for (ox in destColStart until destColEnd) {
+                                    val rgb = outPixels[tileRowBase + (ox - srcX * SCALE)]
+                                    rowArr[bi] = ((rgb ushr 16) and 0xFF).toByte()
+                                    rowArr[bi + 1] = ((rgb ushr 8) and 0xFF).toByte()
+                                    rowArr[bi + 2] = (rgb and 0xFF).toByte()
+                                    bi += 3
+                                }
+                            }
+
+                            done++
+                            onProgress?.invoke(done.coerceAtMost(totalTiles), totalTiles)
+                        }
+                    }
+                    // Emit only the output rows that exist (last band is short).
+                    val emitRows = minOf(
+                        (bandTileBot - bandTileTop) * TILE_OUT,
+                        outH - bandTileTop * TILE_OUT,
+                    )
+                    for (r in 0 until emitRows) sink.writeRow(band[r])
+                    // Persist the count of fully-completed bands (monotonic), so
+                    // a future skip-resume can restart at lastBand*bandTilesY
+                    // tile-rows. (This impl re-encodes from 0 — see KDoc.)
+                    bandIndex++
+                    UpscaleStateStore.saveBand(context, sourceUri.toString(), bandIndex)
+                    bandTileTop = bandTileBot
+                }
+                sink.close()
+            }
+            dest
+        } finally {
+            src.close()
+        }
+    }
+
+    /**
+     * Fallback for sources smaller than one 50px tile: decode the whole (tiny)
+     * source, stretch to 50x50, upscale to 200x200, then downscale (nearest-
+     * neighbour) to the true outW x outH and stream the rows. Mirrors the old
+     * in-RAM path's tiny-source branch; bounded because the source is tiny.
+     */
+    private suspend fun streamTinySource(
+        src: RegionSource,
+        dest: File,
+        outW: Int,
+        outH: Int,
+        onProgress: ((completedTiles: Int, totalTiles: Int) -> Unit)?,
+    ) {
+        val eng = engine()
+        // One whole-source region read (rect == full bounds), then stretch.
+        val whole = src.region(Rect(0, 0, src.width, src.height))
+        val padded = Bitmap.createScaledBitmap(whole, TILE_IN, TILE_IN, true)
+        if (padded !== whole) whole.recycle()
+        val tilePixels = IntArray(TILE_IN * TILE_IN)
+        padded.getPixels(tilePixels, 0, TILE_IN, 0, 0, TILE_IN, TILE_IN)
+        if (padded !== whole) padded.recycle()
+
+        val inBuf = ByteBuffer.allocateDirect(TILE_IN * TILE_IN * 3 * 4)
+            .order(ByteOrder.nativeOrder())
+        for (px in tilePixels) {
+            inBuf.putFloat(((px ushr 16) and 0xFF).toFloat())
+            inBuf.putFloat(((px ushr 8) and 0xFF).toFloat())
+            inBuf.putFloat((px and 0xFF).toFloat())
+        }
+        inBuf.rewind()
+        val outBuf = ByteBuffer.allocateDirect(TILE_OUT * TILE_OUT * 3 * 4)
+            .order(ByteOrder.nativeOrder())
+        eng.run(inBuf, outBuf)
+        outBuf.rewind()
+        val outPixels = IntArray(TILE_OUT * TILE_OUT)
+        for (i in 0 until TILE_OUT * TILE_OUT) {
+            val r = outBuf.float.toInt().coerceIn(0, 255)
+            val g = outBuf.float.toInt().coerceIn(0, 255)
+            val b = outBuf.float.toInt().coerceIn(0, 255)
+            outPixels[i] = (r shl 16) or (g shl 8) or b
+        }
+        FileOutputStream(dest).use { fos ->
+            val sink = StreamingPngSink(BufferedOutputStream(fos), outW, outH)
+            val row = ByteArray(outW * 3)
+            for (oy in 0 until outH) {
+                val sy = (oy.toLong() * TILE_OUT / outH).toInt().coerceIn(0, TILE_OUT - 1)
+                val base = sy * TILE_OUT
+                var bi = 0
+                for (ox in 0 until outW) {
+                    val sx = (ox.toLong() * TILE_OUT / outW).toInt().coerceIn(0, TILE_OUT - 1)
+                    val rgb = outPixels[base + sx]
+                    row[bi] = ((rgb ushr 16) and 0xFF).toByte()
+                    row[bi + 1] = ((rgb ushr 8) and 0xFF).toByte()
+                    row[bi + 2] = (rgb and 0xFF).toByte()
+                    bi += 3
+                }
+                sink.writeRow(row)
+            }
+            sink.close()
+        }
+        onProgress?.invoke(1, 1)
+    }
+
+    /**
+     * Benchmark-only in-RAM 4x upscale (whole-output Bitmap). Used solely by
+     * [benchmarkAndCache] on a small synthetic 256x256 sample, so the
+     * whole-output bitmap is bounded (~4 MB) and OOM-safe. Real upscales go
+     * through the band-streaming [upscaleToFile]. Kept private so no caller
+     * can accidentally route a large image through the unbounded path.
+     */
+    private suspend fun upscale(input: Bitmap): Bitmap = withContext(Dispatchers.Default) {
         val srcW = input.width
         val srcH = input.height
         require(srcW > 0 && srcH > 0) { "Input bitmap is empty" }
@@ -109,11 +343,6 @@ object UpscalerOnDevice {
         val out = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
         val outCanvas = Canvas(out)
         val paint = Paint(Paint.FILTER_BITMAP_FLAG)
-        // RC11: resume — seed the output bitmap with the previously saved
-        // partial. New tiles draw on top of the resumed pixels via Canvas.
-        if (partialOutput != null && resumeFromTile > 0) {
-            outCanvas.drawBitmap(partialOutput, 0f, 0f, paint)
-        }
 
         // Reusable buffers — allocated ONCE for the whole upscale.
         val inBuf = ByteBuffer.allocateDirect(1 * TILE_IN * TILE_IN * 3 * 4)
@@ -122,47 +351,25 @@ object UpscalerOnDevice {
             .order(ByteOrder.nativeOrder())
         val tilePixels = IntArray(TILE_IN * TILE_IN)
         val outPixels = IntArray(TILE_OUT * TILE_OUT)
-        // Reused output tile bitmap (RC10 fix: was being allocated PER TILE).
         val tileOut = Bitmap.createBitmap(TILE_OUT, TILE_OUT, Bitmap.Config.ARGB_8888)
-
-        // Pre-compute total tile count for progress reporting.
-        val tileCols = (srcW + TILE_IN - 1) / TILE_IN
-        val tileRows = (srcH + TILE_IN - 1) / TILE_IN
-        val totalTiles = tileCols * tileRows
-        var completed = 0
-        var tileIndex = 0
-        var lastSaveMs = System.currentTimeMillis()
 
         var y = 0
         while (y < srcH) {
             var x = 0
-            // Anchor edge tiles so we always hand the model a full 50x50 region.
             val tileSrcY = if (y + TILE_IN <= srcH) y else (srcH - TILE_IN).coerceAtLeast(0)
             val tileH = minOf(TILE_IN, srcH - tileSrcY)
             while (x < srcW) {
                 val tileSrcX = if (x + TILE_IN <= srcW) x else (srcW - TILE_IN).coerceAtLeast(0)
                 val tileW = minOf(TILE_IN, srcW - tileSrcX)
 
-                // RC11: skip tiles already done from a previous (resumed) run.
-                if (tileIndex < resumeFromTile) {
-                    tileIndex++
-                    completed++
-                    x += TILE_IN
-                    continue
-                }
-                // RC10: read source pixels DIRECTLY into the reused IntArray —
-                // no per-tile bitmap allocation. For sources smaller than
-                // 50x50, fall back to the legacy stretched-tile path.
                 if (srcW >= TILE_IN && srcH >= TILE_IN) {
                     src.getPixels(tilePixels, 0, TILE_IN, tileSrcX, tileSrcY, TILE_IN, TILE_IN)
                 } else {
-                    // Tiny source — stretch into a temp 50x50 once. Rare.
                     val padded = Bitmap.createScaledBitmap(src, TILE_IN, TILE_IN, true)
                     padded.getPixels(tilePixels, 0, TILE_IN, 0, 0, TILE_IN, TILE_IN)
                     if (padded !== src) padded.recycle()
                 }
 
-                // Pack RGB float32 [0..255] into the model input buffer.
                 inBuf.rewind()
                 for (px in tilePixels) {
                     inBuf.putFloat(((px ushr 16) and 0xFF).toFloat())
@@ -173,7 +380,6 @@ object UpscalerOnDevice {
                 outBuf.rewind()
                 engine().run(inBuf, outBuf)
 
-                // Unpack model output to ARGB ints, clamping to [0, 255].
                 outBuf.rewind()
                 for (i in 0 until TILE_OUT * TILE_OUT) {
                     val r = outBuf.float.toInt().coerceIn(0, 255)
@@ -182,7 +388,6 @@ object UpscalerOnDevice {
                     outPixels[i] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
                 }
 
-                // RC10: write into the REUSED tileOut bitmap (no allocation).
                 tileOut.setPixels(outPixels, 0, TILE_OUT, 0, 0, TILE_OUT, TILE_OUT)
 
                 if (srcW >= TILE_IN && srcH >= TILE_IN) {
@@ -203,19 +408,6 @@ object UpscalerOnDevice {
                         Rect(0, 0, outW, outH),
                         paint
                     )
-                }
-
-                completed++
-                tileIndex++
-                onProgress?.invoke(completed, totalTiles)
-
-                // RC11: periodic save of partial output for resume on kill.
-                if (onPartialSave != null) {
-                    val now = System.currentTimeMillis()
-                    if (now - lastSaveMs >= partialSaveIntervalMs) {
-                        onPartialSave(completed, out)
-                        lastSaveMs = now
-                    }
                 }
 
                 x += TILE_IN
