@@ -20,6 +20,45 @@ data class DeviceCapability(
 
 enum class CapabilityTier { GREEN, YELLOW, RED }
 
+// --- RC76: band-memory guard ------------------------------------------------
+// The streaming upscaler (UpscalerOnDevice.upscaleToFile) walks the output in
+// horizontal bands; peak memory ≈ one band's RGB buffer, independent of image
+// size. These pure helpers size that band and answer the one pathological
+// question the ViewModel needs — "can even a single tile-row's band fit?" — so
+// a genuinely-too-big job is steered to cloud instead of OOMing. Kept free of
+// Android types (no Context) so CapabilityGuardTest runs on the JVM.
+
+/** Output tile height in px (one ESRGAN tile is 50px in → 200px out). */
+const val TILE_OUT_PX = 200
+
+/**
+ * Tile-rows per band so one band's RGB buffer stays under [budgetBytes].
+ * Mirrors the band sizing inside [UpscalerOnDevice.upscaleToFile] (which uses
+ * a fixed 32 MB budget). Always ≥ 1 so the loop makes progress even when a
+ * single tile-row already exceeds the budget — that's the [oneBandFits] case.
+ */
+fun bandTilesForBudget(outWidthPx: Int, budgetBytes: Long): Int {
+    val bytesPerBandTileRow = outWidthPx.toLong() * 3 * TILE_OUT_PX
+    return maxOf(1, (budgetBytes / bytesPerBandTileRow).toInt())
+}
+
+/** Peak band working set in bytes (band RGB only; tile buffers are fixed + small). */
+fun bandWorkingSetBytes(outWidthPx: Int, bandTilesY: Int): Long =
+    outWidthPx.toLong() * 3 * TILE_OUT_PX * bandTilesY
+
+/**
+ * Device-facing safety net used by the ViewModel: true unless one band can't
+ * fit even at a single tile-row (the pathological too-big-for-this-device
+ * case). Budgets a quarter of the per-app heap — [ActivityManager.memoryClass]
+ * is the heap the app gets without `android:largeHeap`, the conservative floor.
+ * Not unit-tested (reads ActivityManager); covered by the FTL device test.
+ */
+fun oneBandFits(ctx: Context, outWidthPx: Int): Boolean {
+    val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    val budget = am.memoryClass.toLong() * 1024 * 1024 / 4 // quarter of per-app heap
+    return bandWorkingSetBytes(outWidthPx, bandTilesForBudget(outWidthPx, budget)) <= budget
+}
+
 object Capability {
 
     // TFLite already operates tile-by-tile (50×50 → 200×200), so the working
