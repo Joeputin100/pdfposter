@@ -149,8 +149,11 @@ class MainActivity : ComponentActivity() {
                     // first-run wizard (belt-and-suspenders; the screenshot
                     // launch already suppresses splash) and run the headless
                     // pipeline driver.
+                    // RC76: `--es upscale_mode small|large|cpu` (default small)
+                    // selects the scenario — see runUpscaleAndPdfDeviceTest.
                     viewModel.isFirstRun = false
-                    viewModel.runUpscaleAndPdfDeviceTest(this)
+                    val upscaleMode = intent?.getStringExtra("upscale_mode") ?: "small"
+                    viewModel.runUpscaleAndPdfDeviceTest(this, upscaleMode)
                 }
                 else -> { /* main: no-op */ }
             }

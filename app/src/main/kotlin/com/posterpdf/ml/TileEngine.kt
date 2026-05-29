@@ -36,6 +36,16 @@ internal class TileEngine(private val model: ByteBuffer) {
     @Volatile private var gpuDelegate: GpuDelegate? = null
     @Volatile var path: DelegatePath = DelegatePath.CPU; private set
 
+    companion object {
+        /** RC76 test-only: when set, [ensure] reports the device as
+         *  GPU-unsupported so [selectDelegatePath] resolves to [DelegatePath.CPU],
+         *  exercising the CPU fallback on devices that would otherwise pick GPU.
+         *  Set by the FTL device-test driver for `--es upscale_mode cpu`. ONLY
+         *  honored when [com.posterpdf.BuildConfig.ENABLE_TEST_HOOKS] is true, so
+         *  it can never force CPU in a shipping release build. */
+        @Volatile var forceCpuForTest = false
+    }
+
     private fun ensure(): Interpreter {
         interpreter?.let { return it }
         val compat = CompatibilityList()
@@ -48,7 +58,13 @@ internal class TileEngine(private val model: ByteBuffer) {
         var gpu: GpuDelegate? = null
         var gpuInterp: Interpreter? = null
         path = selectDelegatePath(
-            gpuSupportedOnDevice = { compat.isDelegateSupportedOnThisDevice },
+            // RC76: the forced-CPU test hook makes "GPU supported" report false so
+            // the whole decision collapses to CPU (no GpuDelegate is even built).
+            // Gated by ENABLE_TEST_HOOKS so release builds ignore the flag.
+            gpuSupportedOnDevice = {
+                if (com.posterpdf.BuildConfig.ENABLE_TEST_HOOKS && forceCpuForTest) false
+                else compat.isDelegateSupportedOnThisDevice
+            },
             tryCreateGpu = {
                 val g = GpuDelegate(compat.bestOptionsForThisDevice)
                 gpu = g

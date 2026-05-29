@@ -13,15 +13,15 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * RC73 — Firebase Test Lab functional/timing test for the on-device
+ * RC73/RC76 — Firebase Test Lab functional/timing test for the on-device
  * upscale → PDF pipeline.
  *
  * Rather than fragile multi-step UiAutomator tapping, this launches the
  * test-only intent hook (`--es screenshot upscale_test`). MainActivity hands
- * that off to [MainViewModel.runUpscaleAndPdfDeviceTest], which seeds a small
- * low-DPI poster, runs the on-device ESRGAN free upscale, generates the PDF,
- * and emits an `UPSCALE_TEST_DONE upscaleMs=… totalMs=… pdf=…` marker BOTH as
- * a logcat line (`Log.i("UPSCALE_TEST", …)`) and as an on-screen Text.
+ * that off to [MainViewModel.runUpscaleAndPdfDeviceTest], which seeds a source
+ * image, runs the on-device ESRGAN free upscale, generates the PDF, and emits
+ * an `UPSCALE_TEST_DONE upscaleMs=… totalMs=… pdf=…` marker BOTH as a logcat
+ * line (`Log.i("UPSCALE_TEST", …)`) and as an on-screen Text.
  *
  * RC75b: we poll LOGCAT for the marker as the primary, occlusion-proof signal
  * (the on-screen Text lived behind a fillMaxSize scroll container, so
@@ -29,12 +29,39 @@ import org.junit.runner.RunWith
  * and also check the on-screen marker each iteration as a fallback. Whichever
  * surfaces first wins. The per-device upscale + total durations are read off
  * the marker text, giving a low-end vs high-end comparison across FTL models.
+ *
+ * RC76 — a single FTL fan-out now exercises three on-device scenarios via the
+ * `--es upscale_mode …` extra, each a separate @Test sharing the [runMarker]
+ * harness:
+ *  - [upscaleTo18inThenGeneratePdf] (`small`) — the original tiny dogcow job.
+ *  - [largeImage_streams_without_oom] (`large`) — a 1200×900 source (≈17 MP
+ *    output spanning ≥2 streaming bands) that proves bounded memory; the
+ *    controller also greps `peak_heap_mb=…` from logcat.
+ *  - [forcedCpu_fallback_works] (`cpu`) — forces the validated CPU fallback so
+ *    `tile engine path=CPU` is exercised even on GPU-capable hardware.
  */
 @RunWith(AndroidJUnit4::class)
 class UpscalePdfDeviceTest {
 
     @Test
-    fun upscaleTo18inThenGeneratePdf() {
+    fun upscaleTo18inThenGeneratePdf() = runMarker("small")
+
+    @Test
+    fun largeImage_streams_without_oom() = runMarker("large")
+
+    @Test
+    fun forcedCpu_fallback_works() = runMarker("cpu")
+
+    /**
+     * Launches the device-test driver in [mode] (`small` | `large` | `cpu`) via
+     * `--es screenshot upscale_test --es upscale_mode <mode>` and polls logcat
+     * for the `UPSCALE_TEST_DONE` / `UPSCALE_TEST_FAILED` marker exactly as the
+     * original single test did. The larger jobs (`large`/`cpu`) get a longer
+     * poll deadline that stays safely under FTL's ~25-min infra timeout while
+     * leaving room for the upscaler's own 15-min internal budget to either
+     * finish or surface its `UPSCALE_TEST_FAILED`.
+     */
+    private fun runMarker(mode: String) {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
 
         // Start from a clean logcat so we never match a stale marker from a
@@ -45,11 +72,21 @@ class UpscalePdfDeviceTest {
         val intent = ctx.packageManager.getLaunchIntentForPackage("com.posterpdf")!!
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             .putExtra("screenshot", "upscale_test")
+            .putExtra("upscale_mode", mode)
         ctx.startActivity(intent)
 
-        // The on-device upscale (small tile job at ~18" / low DPI) + PDF emit
-        // should finish well under 8 minutes even on a low-end device.
-        val deadlineMs = System.currentTimeMillis() + 480_000L
+        // The small tile job at ~18" / low DPI + PDF emit finishes well under
+        // 8 minutes even on a low-end device. The large/forced-CPU jobs (≈17 MP
+        // output) can take longer on slow hardware, so allow ~16 min: the
+        // upscaler's own 15-min internal withTimeout self-aborts a too-slow run
+        // and the driver then emits UPSCALE_TEST_FAILED, so polling much past 15
+        // min buys nothing. NOTE for the controller: all three @Test methods run
+        // in ONE FTL invocation under a single --timeout (25m in
+        // ftl-upscale-test.yml). 8 + 16 + 16 min of poll budget exceeds that, so
+        // on slow devices the later modes may be cut off — raise --timeout or
+        // split modes into separate --test-targets invocations when fanning out.
+        val timeoutMs = if (mode == "small") 480_000L else 960_000L
+        val deadlineMs = System.currentTimeMillis() + timeoutMs
         var marker: String? = null
         while (System.currentTimeMillis() < deadlineMs) {
             // Primary: scan logcat for the completion/failure marker. -d dumps
@@ -75,11 +112,11 @@ class UpscalePdfDeviceTest {
         }
 
         assertNotNull(
-            "Neither UPSCALE_TEST_DONE nor UPSCALE_TEST_FAILED appeared within 8 min — " +
+            "Neither UPSCALE_TEST_DONE nor UPSCALE_TEST_FAILED appeared in time (mode=$mode) — " +
                 "pipeline hung or crashed (a native crash kills the app before either marker)",
             marker,
         )
-        assertFalse("Device test reported a failure: $marker", marker!!.contains("UPSCALE_TEST_FAILED"))
-        assertTrue("Marker missing UPSCALE_TEST_DONE: $marker", marker.contains("UPSCALE_TEST_DONE"))
+        assertFalse("Device test reported a failure (mode=$mode): $marker", marker!!.contains("UPSCALE_TEST_FAILED"))
+        assertTrue("Marker missing UPSCALE_TEST_DONE (mode=$mode): $marker", marker.contains("UPSCALE_TEST_DONE"))
     }
 }
