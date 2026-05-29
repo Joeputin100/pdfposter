@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc77"  // RC77 (UX edge-case capture harness: --es screenshot settings/getting_started wired; emulator font360+cutout matrix + real-flip FTL UxScreenshotTest on arcfox; predictive-back audit = SAFE. Capture-only — layout fixes follow from what the artifacts reveal)
+        versionName = "1.0-rc78"  // RC78 (cloud connection & upload-speed gate: active 512KB probe → block-if-offline / gentle warn if source upload >60s / proceed silently; FirebaseUploadSpeedProbe + decideCloudGate; English strings, 9-locale fan-out pending)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
