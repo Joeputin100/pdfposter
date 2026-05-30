@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -119,6 +120,14 @@ fun AccountAvatarMenu(
         // instead of the generic-anonymous-pfp icon. The icon was
         // ambiguous (read as "current account" rather than "tap to sign
         // in"); the button copy makes the CTA unmistakable.
+        // RC79: at large accessibility font (>=1.3x) the single-line label
+        // truncated to "Login / Sig" on a 360dp top bar (rc77 edge audit,
+        // finding #3). Gate the single-line clamp on font scale: normal font
+        // keeps the RC49 single-line look untouched; large font lets the
+        // label wrap to 2 lines (option A) so the full "Login / Sign Up"
+        // stays readable. The top bar may grow a little taller at max font,
+        // which is acceptable.
+        val largeFont = LocalConfiguration.current.fontScale >= 1.3f
         androidx.compose.material3.OutlinedButton(
             onClick = onSignIn,
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
@@ -130,12 +139,14 @@ fun AccountAvatarMenu(
             // Without these, the Text composable defaults to wrapping at any
             // soft break (the / counts), producing a 2-line button that
             // throws off the top bar's vertical alignment.
+            // RC79: only clamp at normal font; allow a 2-line wrap at large
+            // font so the label isn't cut mid-word.
             Text(
                 stringResource(R.string.top_bar_login_signup),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                softWrap = false,
+                maxLines = if (largeFont) 2 else 1,
+                softWrap = largeFont,
             )
         }
         return

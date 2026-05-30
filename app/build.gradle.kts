@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc78"  // RC78 (cloud connection & upload-speed gate: active 512KB probe → block-if-offline / gentle warn if source upload >60s / proceed silently; FirebaseUploadSpeedProbe + decideCloudGate; English strings, 9-locale fan-out pending)
+        versionName = "1.0-rc79"  // RC79 (large-font/edge-case UX fixes, all adaptive at fontScale>=1.3: Login button wrap, opaque Settings drawer, model-card grow, View/Save/Share grow, Margin/Overlap stack, construction-preview printer framed at start; + the with_image capture harness)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

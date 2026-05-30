@@ -74,6 +74,25 @@ capture_scrolled() {  # $1=config
   ls -l "$OUT/$cfg-with_image-"*.png
 }
 
+# RC79: the assembly preview animates a ~38s cycle that LOOPS, so a single
+# screencap rarely lands on the Printing phase (printer framed at the start —
+# the #3 fix). Scroll to the preview, then burst-capture across more than a full
+# cycle so at least one frame catches the printer at a cycle start.
+capture_preview_burst() {  # $1=config
+  local cfg="$1"
+  echo "=== $cfg / preview printer burst ==="
+  adb shell am force-stop "$PKG" || true
+  adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
+  sleep 9
+  for i in $(seq 1 8); do adb shell input swipe 180 640 180 160 350; done  # scroll down to the preview
+  sleep 2
+  for n in $(seq -w 1 14); do                 # 14 × ~4s ≈ 56s > one 38s cycle
+    adb exec-out screencap -p > "$OUT/$cfg-preview-burst-$n.png"
+    sleep 3
+  done
+  ls -l "$OUT/$cfg-preview-burst-"*.png
+}
+
 # --- baseline ---
 run_config baseline
 
@@ -84,21 +103,14 @@ adb shell settings put system font_scale 2.0
 echo "effective font_scale: $(adb shell settings get system font_scale)"
 run_config font360
 capture_scrolled font360
+capture_preview_burst font360
 adb shell settings put system font_scale 1.0
 adb shell wm size reset
 adb shell wm density reset
 
-# --- cutout: enable a built-in display-cutout emulation overlay ---
-CUTOUT=$(adb shell cmd overlay list 2>/dev/null | grep -oE 'com.android.internal.display.cutout.emulation.[a-z]+' | head -1)
-if [ -n "$CUTOUT" ]; then
-  echo "Enabling cutout overlay: $CUTOUT"
-  adb shell cmd overlay enable "$CUTOUT" || true
-  sleep 2
-  run_config cutout
-  adb shell cmd overlay disable "$CUTOUT" || true
-else
-  echo "WARN: no cutout emulation overlay available on this image; skipping cutout config"
-fi
+# --- cutout config relocated below (now dead-last + guarded). `cmd overlay
+# enable` has repeatedly crashed the emulator (device goes offline), which used
+# to abort the whole job AFTER the important captures were already done. ---
 
 # --- predictive-back in-app video (RC77) ---
 echo "=== recording in-app predictive-back video ==="
@@ -112,6 +124,24 @@ adb shell input keyevent KEYCODE_BACK; sleep 2          # screen-swap back
 wait $REC || true
 adb pull /sdcard/back.mp4 "$OUT/back.mp4" || true
 ls -l "$OUT/back.mp4" || true
+
+# --- cutout (LAST + guarded): display-cutout emulation is flaky — `cmd overlay
+# enable` has crashed the emulator repeatedly. Run it dead-last so the important
+# captures above are already done + uploaded, and wrap the whole block in a
+# subshell + `|| echo` so a crash can't fail the job. The only step after this
+# is the local `ls`, which doesn't need the emulator. ---
+(
+  CUTOUT=$(adb shell cmd overlay list 2>/dev/null | grep -oE 'com.android.internal.display.cutout.emulation.[a-z]+' | head -1)
+  if [ -n "$CUTOUT" ]; then
+    echo "Enabling cutout overlay: $CUTOUT"
+    adb shell cmd overlay enable "$CUTOUT" || true
+    sleep 2
+    run_config cutout
+    adb shell cmd overlay disable "$CUTOUT" || true
+  else
+    echo "WARN: no cutout emulation overlay available; skipping cutout config"
+  fi
+) || echo "WARN: cutout config failed (flaky emulator) — continuing; earlier captures already uploaded"
 
 echo "All screenshots captured:"
 ls -l "$OUT"

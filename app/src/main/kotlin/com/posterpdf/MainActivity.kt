@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -912,8 +913,24 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
+            // RC79: gate the frosted-glass effect on accessibility font scale.
+            // At normal font the transparent container + glassBackdrop tint
+            // (the INTENTIONAL frosted look) reads fine. At 200% font on a
+            // 360dp screen the text gets so dense that the see-through panel
+            // becomes unreadable (rc77 edge audit, finding #1). So at large
+            // font (>=1.3x) we swap to an opaque surface container and bump
+            // the glass tint to full opacity — keeping the same shape/tint
+            // hue, just solid. Normal-font experience is unchanged.
+            val drawerFontScale = LocalConfiguration.current.fontScale
+            val drawerLargeFont = drawerFontScale >= 1.3f
+            val drawerGlassTint = MaterialTheme.colorScheme.surfaceContainerLow
+                .copy(alpha = if (drawerLargeFont) 1f else 0.82f)
             ModalDrawerSheet(
-                drawerContainerColor = Color.Transparent,
+                drawerContainerColor = if (drawerLargeFont) {
+                    MaterialTheme.colorScheme.surface
+                } else {
+                    Color.Transparent
+                },
                 drawerTonalElevation = 0.dp,
                 // RC32: full-screen-width drawer per user request — overrides
                 // M3's default ~360dp pinning. fillMaxWidth() makes the sheet
@@ -926,12 +943,19 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                     .fillMaxWidth()
                     .glassBackdrop(
                         shape = DrawerDefaults.shape,
-                        tint = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.82f),
+                        tint = drawerGlassTint,
                     )
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        // RC79: status-bar inset so the first drawer item
+                        // ("Default Paper Size" header / app name) isn't
+                        // clipped under the status bar at large font / on
+                        // small screens (rc77 edge audit, finding #1). The
+                        // inset sits on the scroll container so it stays
+                        // pinned while the content scrolls beneath the bar.
+                        .windowInsetsPadding(WindowInsets.statusBars)
                         .verticalScroll(rememberScrollState()),
                     contentAlignment = Alignment.TopStart,
                 ) {
@@ -1769,12 +1793,23 @@ private fun MainScreenContent(viewModel: MainViewModel) {
 
                                     OrientationSelector(viewModel)
 
-                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                        val marginTitle = stringResource(R.string.info_margin_title)
-                                        val marginBody = stringResource(R.string.info_margin_body)
-                                        val overlapTitle = stringResource(R.string.info_overlap_title)
-                                        val overlapBody = stringResource(R.string.info_overlap_body)
-                                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                    // RC79: at large font (>=200% / fontScale>=1.3) the
+                                    // half-width (weight 1f) Margin / Overlap fields are
+                                    // too narrow for their floating labels, which then
+                                    // overflow UPWARD into the Orientation cards. Lay the
+                                    // two fields out vertically (full width each) at large
+                                    // font; keep the side-by-side Row below 1.3 so the
+                                    // normal-font layout is unchanged. The two field-rows
+                                    // are extracted into composable lambdas so both layout
+                                    // branches share identical onValueChange / logEvent /
+                                    // saveAllSettings + info-dialog behavior.
+                                    val largeFont = LocalConfiguration.current.fontScale >= 1.3f
+                                    val marginTitle = stringResource(R.string.info_margin_title)
+                                    val marginBody = stringResource(R.string.info_margin_body)
+                                    val overlapTitle = stringResource(R.string.info_overlap_title)
+                                    val overlapBody = stringResource(R.string.info_overlap_body)
+                                    val marginField: @Composable (Modifier) -> Unit = { rowModifier ->
+                                        Row(rowModifier, verticalAlignment = Alignment.CenterVertically) {
                                              ConfigInput(
                                                  label = stringResource(R.string.margin_with_unit, unitLabel),
                                                  value = viewModel.margin,
@@ -1789,7 +1824,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 infoDialogContent = marginTitle to marginBody
                                             }) { Icon(Icons.Default.Info, null, Modifier.size(18.dp)) }
                                         }
-                                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                    }
+                                    val overlapField: @Composable (Modifier) -> Unit = { rowModifier ->
+                                        Row(rowModifier, verticalAlignment = Alignment.CenterVertically) {
                                              ConfigInput(
                                                  label = stringResource(R.string.overlap_with_unit, unitLabel),
                                                  value = viewModel.overlap,
@@ -1803,6 +1840,17 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                             IconButton(onClick = {
                                                 infoDialogContent = overlapTitle to overlapBody
                                             }) { Icon(Icons.Default.Info, null, Modifier.size(18.dp)) }
+                                        }
+                                    }
+                                    if (largeFont) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                            marginField(Modifier.fillMaxWidth())
+                                            overlapField(Modifier.fillMaxWidth())
+                                        }
+                                    } else {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                            marginField(Modifier.weight(1f))
+                                            overlapField(Modifier.weight(1f))
                                         }
                                     }
                                     
@@ -1881,7 +1929,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).height(80.dp),
+                                        modifier = Modifier.weight(1f).height(if (LocalConfiguration.current.fontScale >= 1.3f) (80f * LocalConfiguration.current.fontScale).dp else 80.dp),
                                         shape = RoundedCornerShape(20.dp),
                                         contentPadding = PaddingValues(8.dp),
                                     ) {
@@ -1909,7 +1957,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).height(80.dp),
+                                        modifier = Modifier.weight(1f).height(if (LocalConfiguration.current.fontScale >= 1.3f) (80f * LocalConfiguration.current.fontScale).dp else 80.dp),
                                         shape = RoundedCornerShape(20.dp),
                                         contentPadding = PaddingValues(8.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
@@ -1945,7 +1993,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).height(80.dp),
+                                        modifier = Modifier.weight(1f).height(if (LocalConfiguration.current.fontScale >= 1.3f) (80f * LocalConfiguration.current.fontScale).dp else 80.dp),
                                         shape = RoundedCornerShape(20.dp),
                                         contentPadding = PaddingValues(8.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
