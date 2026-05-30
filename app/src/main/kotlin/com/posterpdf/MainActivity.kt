@@ -164,6 +164,15 @@ class MainActivity : ComponentActivity() {
                 // (read below, before setContent paints — see drawerState).
                 "getting_started" -> viewModel.showGettingStarted = true
                 "settings" -> viewModel.openSettingsForScreenshot = true
+                // RC79 UX-capture: seed a real image URI so the FULL main flow
+                // renders (image info → poster size → Advanced Styling →
+                // construction preview) — all gated on a non-null
+                // selectedImageUri + below the fold. capture-screenshots.sh
+                // scroll-captures this state to reach the lower sections.
+                "with_image" -> {
+                    viewModel.isFirstRun = false
+                    viewModel.seedFullImageForScreenshot(this)
+                }
                 else -> { /* main: no-op */ }
             }
         }
@@ -2391,7 +2400,9 @@ private fun OrientationCard(
 @Composable
 fun AdvancedOptionsSection(viewModel: MainViewModel) {
     val context = LocalContext.current
-    var expanded by remember { mutableStateOf(false) }
+    // RC79 UX-capture: seed the initial expanded state from the debug flag so
+    // `--es screenshot with_image` renders this section open (default false in prod).
+    var expanded by remember { mutableStateOf(viewModel.expandAdvancedForScreenshot) }
     
     GlassCard {
         Column {
