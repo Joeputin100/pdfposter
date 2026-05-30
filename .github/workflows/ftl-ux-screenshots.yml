@@ -15,7 +15,11 @@ on:
   workflow_dispatch:
     inputs:
       device:
-        description: 'FTL physical device model (arcfox = moto razr+ flip)'
+        # arcfox = moto razr+ flip (odd AR). For RELIABLE display-cutout / notch
+        # coverage, dispatch with a punch-hole/notch model (e.g. a Pixel) — a real
+        # device exposes a real DisplayCutout, far more reliable than the emulator
+        # `cmd overlay enable …cutout.emulation.*` overlay, which crashes the AVD.
+        description: 'FTL physical device model (arcfox=flip; a Pixel/notch model = real display-cutout coverage)'
         type: string
         default: 'arcfox'
       version:

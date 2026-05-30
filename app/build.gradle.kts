@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc79"  // RC79 (large-font/edge-case UX fixes, all adaptive at fontScale>=1.3: Login button wrap, opaque Settings drawer, model-card grow, View/Save/Share grow, Margin/Overlap stack, construction-preview printer framed at start; + the with_image capture harness)
+        versionName = "1.0-rc80"  // RC80 (Test Battery pre-33 fix: RuntimeShader isolated into PrinterInkShader so PosterPreview loads on API<33; dropped unneeded WRITE_EXTERNAL_STORAGE; estimateUploadBytes PNG-size floor + cloud-upload ETA display; LiteRT RegionSource inSampleSize + scratch-prefix skip-resume; gemini screenshot state; cutout coverage → FTL notch device)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
