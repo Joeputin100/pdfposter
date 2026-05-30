@@ -74,6 +74,25 @@ capture_scrolled() {  # $1=config
   ls -l "$OUT/$cfg-with_image-"*.png
 }
 
+# RC79: the assembly preview animates a ~38s cycle that LOOPS, so a single
+# screencap rarely lands on the Printing phase (printer framed at the start —
+# the #3 fix). Scroll to the preview, then burst-capture across more than a full
+# cycle so at least one frame catches the printer at a cycle start.
+capture_preview_burst() {  # $1=config
+  local cfg="$1"
+  echo "=== $cfg / preview printer burst ==="
+  adb shell am force-stop "$PKG" || true
+  adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
+  sleep 9
+  for i in $(seq 1 8); do adb shell input swipe 180 640 180 160 350; done  # scroll down to the preview
+  sleep 2
+  for n in $(seq -w 1 14); do                 # 14 × ~4s ≈ 56s > one 38s cycle
+    adb exec-out screencap -p > "$OUT/$cfg-preview-burst-$n.png"
+    sleep 3
+  done
+  ls -l "$OUT/$cfg-preview-burst-"*.png
+}
+
 # --- baseline ---
 run_config baseline
 
@@ -84,6 +103,7 @@ adb shell settings put system font_scale 2.0
 echo "effective font_scale: $(adb shell settings get system font_scale)"
 run_config font360
 capture_scrolled font360
+capture_preview_burst font360
 adb shell settings put system font_scale 1.0
 adb shell wm size reset
 adb shell wm density reset
