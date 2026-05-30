@@ -710,6 +710,19 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                    // rc80: cloud-upscale ETA, mirroring the on-device path's
+                    // etaForLocal display in the low-DPI modal. Set in
+                    // runAiUpscale from the real measured upload throughput
+                    // (etaForFal) and cleared when the job ends.
+                    val cloudEta = viewModel.cloudEtaText
+                    if (!cloudEta.isNullOrEmpty()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.upscale_ai_eta, cloudEta),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     Spacer(Modifier.height(12.dp))
                     // RC24: indeterminate progress bar while we're waiting in
                     // queue WITHOUT a position estimate. As soon as the backend
