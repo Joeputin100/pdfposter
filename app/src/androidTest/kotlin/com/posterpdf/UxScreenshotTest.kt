@@ -21,10 +21,11 @@ import java.io.File
 @RunWith(AndroidJUnit4::class)
 class UxScreenshotTest {
     // RC77: dense screens wired to the `--es screenshot <state>` hook. Dropped
-    // low_dpi_modal (identical to model_picker's modal) and gemini (no simple
-    // launch flag — tracked follow-up).
+    // low_dpi_modal (identical to model_picker's modal).
+    // rc80: added `gemini` — the Q&A sheet now has a launch flag
+    // (seedGeminiSheetForScreenshot populates a sample Reply).
     private val states = listOf(
-        "main", "compare", "model_picker", "settings", "getting_started",
+        "main", "compare", "model_picker", "settings", "getting_started", "gemini",
     )
 
     @Test
