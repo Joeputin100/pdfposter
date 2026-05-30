@@ -876,4 +876,5 @@
     <string name="gemini_qa_voice_stop_cd">Остановить голосовой ввод</string>
     <string name="gemini_qa_action_taken">Понял — выполняю…</string>
     <string name="gemini_qa_error">Что-то пошло не так: %1$s</string>
+    <string name="upscale_ai_eta">Примерно %1$s</string>
 </resources>

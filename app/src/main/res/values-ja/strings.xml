@@ -878,4 +878,5 @@
     <string name="gemini_qa_voice_stop_cd">音声入力を停止</string>
     <string name="gemini_qa_action_taken">了解しました — 実行中です…</string>
     <string name="gemini_qa_error">エラーが発生しました: %1$s</string>
+    <string name="upscale_ai_eta">推定 %1$s</string>
 </resources>

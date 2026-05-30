@@ -879,4 +879,5 @@
     <string name="gemini_qa_voice_stop_cd">Detener entrada de voz</string>
     <string name="gemini_qa_action_taken">Entendido: ejecutándolo ahora…</string>
     <string name="gemini_qa_error">Algo salió mal: %1$s</string>
+    <string name="upscale_ai_eta">Estimado %1$s</string>
 </resources>

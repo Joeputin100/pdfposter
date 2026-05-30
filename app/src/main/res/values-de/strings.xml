@@ -878,4 +878,5 @@
     <string name="gemini_qa_voice_stop_cd">Spracheingabe stoppen</string>
     <string name="gemini_qa_action_taken">Verstanden &#8212; wird ausgeführt&#8230;</string>
     <string name="gemini_qa_error">Etwas ist schiefgelaufen: %1$s</string>
+    <string name="upscale_ai_eta">Geschätzt %1$s</string>
 </resources>

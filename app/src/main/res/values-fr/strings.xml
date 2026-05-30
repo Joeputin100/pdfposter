@@ -878,4 +878,5 @@
     <string name="gemini_qa_voice_stop_cd">Arrêter la saisie vocale</string>
     <string name="gemini_qa_action_taken">Compris — exécution en cours…</string>
     <string name="gemini_qa_error">Une erreur s\'est produite : %1$s</string>
+    <string name="upscale_ai_eta">Estimé %1$s</string>
 </resources>

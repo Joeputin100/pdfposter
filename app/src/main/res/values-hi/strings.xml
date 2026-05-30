@@ -878,4 +878,5 @@
     <string name="gemini_qa_voice_stop_cd">वॉइस इनपुट बंद करें</string>
     <string name="gemini_qa_action_taken">समझ गया — अभी कर रहा हूँ…</string>
     <string name="gemini_qa_error">कुछ गड़बड़ हो गई: %1$s</string>
+    <string name="upscale_ai_eta">अनुमानित %1$s</string>
 </resources>

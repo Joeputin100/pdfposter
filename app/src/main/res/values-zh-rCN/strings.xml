@@ -875,4 +875,5 @@
     <string name="gemini_qa_voice_stop_cd">停止语音输入</string>
     <string name="gemini_qa_action_taken">明白了 — 正在执行…</string>
     <string name="gemini_qa_error">出错了：%1$s</string>
+    <string name="upscale_ai_eta">预计 %1$s</string>
 </resources>
