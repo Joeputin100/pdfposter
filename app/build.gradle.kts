@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc80"  // RC80 (Test Battery pre-33 fix: RuntimeShader isolated into PrinterInkShader so PosterPreview loads on API<33; dropped unneeded WRITE_EXTERNAL_STORAGE; estimateUploadBytes PNG-size floor + cloud-upload ETA display; LiteRT RegionSource inSampleSize + scratch-prefix skip-resume; gemini screenshot state; cutout coverage → FTL notch device)
+        versionName = "1.0-rc80"  // RC80 (Test Battery pre-33 fix: RuntimeShader isolated into PrinterInkShader so PosterPreview loads on API<33; dropped unneeded WRITE_EXTERNAL_STORAGE; estimateUploadBytes PNG-size floor + cloud-upload ETA display; LiteRT RegionSource inSampleSize + scratch-prefix skip-resume; gemini screenshot state; cutout coverage → FTL notch device; @FtlOnly excludes on-device ML UpscalePdfDeviceTest from the GPU-less emulator battery → fixes chronic Test Battery red)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
