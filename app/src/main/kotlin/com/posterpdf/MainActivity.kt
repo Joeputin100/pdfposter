@@ -2352,7 +2352,9 @@ private fun OrientationCard(
 @Composable
 fun AdvancedOptionsSection(viewModel: MainViewModel) {
     val context = LocalContext.current
-    var expanded by remember { mutableStateOf(false) }
+    // RC79 UX-capture: seed the initial expanded state from the debug flag so
+    // `--es screenshot with_image` renders this section open (default false in prod).
+    var expanded by remember { mutableStateOf(viewModel.expandAdvancedForScreenshot) }
     
     GlassCard {
         Column {

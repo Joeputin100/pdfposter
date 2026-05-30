@@ -119,6 +119,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         FileOutputStream(seedFile).use { fos -> bmp.compress(Bitmap.CompressFormat.PNG, 100, fos) }
         selectedImageUri = Uri.fromFile(seedFile)
         sourcePixelDimensions = bmp.width to bmp.height
+        expandAdvancedForScreenshot = true  // render Advanced Styling open for the capture
     }
 
     /** "DPI" or "DPCM" depending on [units]. */
@@ -1184,6 +1185,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // capture matrix can review it at 360dp width + 200% font. Set only under
     // ENABLE_TEST_HOOKS (MainActivity --es screenshot settings); false in prod.
     var openSettingsForScreenshot by mutableStateOf(false)
+
+    // RC79 UX-capture: pre-expand the Advanced Styling section so the with_image
+    // capture can show its toggle paragraphs at 200% font. Set only under
+    // ENABLE_TEST_HOOKS (seedFullImageForScreenshot); false in prod.
+    var expandAdvancedForScreenshot by mutableStateOf(false)
 
     // H-P2: content screens reachable from the hamburger drawer.
     var showGettingStarted by mutableStateOf(false)

@@ -66,7 +66,7 @@ capture_scrolled() {  # $1=config
   adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
   sleep 9  # splash skip + image decode + preview first frame
   adb exec-out screencap -p > "$OUT/$cfg-with_image-1.png"
-  for i in 2 3 4; do
+  for i in 2 3 4 5 6; do                          # extra frames: Advanced Styling is now expanded (longer page)
     adb shell input swipe 180 640 180 160 450   # scroll down
     sleep 2
     adb exec-out screencap -p > "$OUT/$cfg-with_image-$i.png"
