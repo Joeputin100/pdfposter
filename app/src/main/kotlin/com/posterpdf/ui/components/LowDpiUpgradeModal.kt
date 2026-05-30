@@ -286,7 +286,10 @@ private val ALL_MODELS = setOf(
     UpscaleModel.IMAGEN,
 )
 
-private const val DEFAULT_BYTES_PER_SECOND = 500_000L
+// rc80: promoted from private so MainViewModel can reuse the same fallback
+// throughput when computing the cloud-upscale ETA (cloudEtaText) before any
+// real probe measurement exists. Same 500 KB/s "unknown network" default.
+internal const val DEFAULT_BYTES_PER_SECOND = 500_000L
 
 /**
  * Per-model upscale options modal (Phase H-P1.10).

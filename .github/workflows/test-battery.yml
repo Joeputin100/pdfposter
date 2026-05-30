@@ -249,7 +249,10 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: gradle connectedDebugAndroidTest --stacktrace -Pandroid.testInstrumentationRunnerArguments.excludeFAL=true
+          # excludeFAL skips the cloud/FAL SmokeTest cases (assumeFalse); notAnnotation
+          # drops @FtlOnly device tests (UpscalePdfDeviceTest's real on-device ML upscale),
+          # which can't run on the GPU-less software emulator — those live in ftl-upscale-test.yml.
+          script: gradle connectedDebugAndroidTest --stacktrace -Pandroid.testInstrumentationRunnerArguments.excludeFAL=true -Pandroid.testInstrumentationRunnerArguments.notAnnotation=com.posterpdf.FtlOnly
 
       - name: Upload instrumentation reports
         if: always()

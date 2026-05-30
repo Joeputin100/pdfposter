@@ -301,6 +301,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var lastMeasuredBytesPerSecond by mutableStateOf<Long?>(null)
         private set
 
+    /** rc80: human-friendly cloud-upscale ETA ("about 3 minutes") shown in the
+     *  RC19 AI-upscale progress dialog. Mirrors the on-device path, which shows
+     *  an [com.posterpdf.ml.etaForLocal] estimate in the low-DPI modal. Computed
+     *  in [runAiUpscale] from the estimated upload bytes + target output
+     *  megapixels via [com.posterpdf.ml.etaForFal], using the probe's real
+     *  measured throughput when available (else a default). Null until a cloud
+     *  upscale is launched; cleared when the job ends. */
+    var cloudEtaText by mutableStateOf<String?>(null)
+        private set
+
     /**
      * Cloud-gate entry point. Probes connectivity + real upload speed, then:
      *  - Offline     → pop the offline block dialog (does NOT run [onProceed]).
@@ -798,6 +808,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // (offline), warns (slow / probe-failed), or runs onProceed silently.
         // The on-device free path keeps its own gateLongJob untouched.
         val inputBytes = estimateUploadBytes(context, uri, srcW, srcH)
+        // rc80: surface a cloud ETA in the RC19 progress dialog, mirroring the
+        // on-device path's etaForLocal display. Use the probe's REAL measured
+        // upload throughput when we have one; else fall back to the same
+        // default the low-DPI modal uses. Output MP is the *target* print size
+        // (poster inches × targetDpi) — what the user asked the print to be,
+        // and what drives etaForFal's inference + download terms. The backend
+        // ultimately picks the exact scale, so this is an estimate, but it's
+        // the same intent the modal shows for on-device.
+        cloudEtaText = run {
+            val bps = lastMeasuredBytesPerSecond ?: com.posterpdf.ui.components.DEFAULT_BYTES_PER_SECOND
+            val rawW = posterWidth.toDoubleOrNull() ?: 24.0
+            val rawH = posterHeight.toDoubleOrNull() ?: 36.0
+            val posterWIn = if (units == "Metric") rawW / 2.54 else rawW
+            val posterHIn = if (units == "Metric") rawH / 2.54 else rawH
+            val targetOutputMp =
+                ((posterWIn * targetDpi) * (posterHIn * targetDpi) / 1_000_000.0)
+                    .toLong().coerceAtLeast(1L)
+            com.posterpdf.ml.etaForFal(inputBytes, targetOutputMp, bps)
+                ?.let { com.posterpdf.ml.formatEta(it) }
+        }
         gateCloudUpload(context, inputBytes) {
             launchAiUpscaleNow(context, uri, modelId, displayName, srcW, srcH, minScale)
         }
@@ -909,6 +939,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } finally {
                 isAiUpscaling = false
                 pendingUpscaleModelLabel = null
+                cloudEtaText = null  // rc80: drop the ETA once the job ends.
             }
         }
     }
@@ -917,28 +948,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         aiUpscaleJob?.cancel()
         isAiUpscaling = false
         pendingUpscaleModelLabel = null
+        cloudEtaText = null  // rc80
         // RC53: stop the foreground service so the notification dismisses
         // immediately (see cancelFreeUpscale comment).
         com.posterpdf.ml.UpscaleForegroundService.stop(appContext)
     }
 
     /**
-     * Cloud-gate (2026-05-29): best-effort size of the bytes that will be
-     * uploaded for a cloud upscale, used by [gateCloudUpload] to estimate the
-     * upload ETA. Prefers the source file's encoded length (what actually goes
-     * over the wire); falls back to a pixel-count proxy. Over-estimating only
-     * makes the gate warn slightly sooner, which is the safe direction.
+     * Cloud-gate (2026-05-29): best-effort size of the bytes that will ACTUALLY
+     * go over the wire for a cloud upscale, used by [gateCloudUpload] to
+     * estimate the upload ETA.
+     *
+     * rc80 fix: AiUpscaleRepository re-encodes the source to **PNG** before
+     * uploading (`users/{uid}/upscale-input/{hash}.png`). A JPEG source's
+     * encoded length therefore badly UNDER-estimates the real upload — a 1 MB
+     * JPEG can re-encode to many MB of PNG — so the >60 s slow-warning fired
+     * too late. We now take `max(sourceEncodedLength, pixelProxy)` where the
+     * pixel proxy `srcW*srcH*3` (≈ uncompressed RGB) is a floor that tracks the
+     * uploaded PNG far better for photographic JPEGs. (PNG of a noisy photo is
+     * typically a bit under raw RGB, so the proxy is a reasonable, slightly
+     * conservative estimate.) We keep the URI-length read in the `max` so an
+     * already-large source — e.g. a PNG bigger than its raw RGB, or an image
+     * whose encoded size genuinely exceeds the proxy — still wins. Over-
+     * estimating only makes the gate warn slightly sooner, the safe direction.
      */
     private fun estimateUploadBytes(context: Context, uri: Uri, srcW: Int, srcH: Int): Long {
         val fromUri = runCatching {
             context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
                 afd.length.takeIf { it > 0L && it != android.content.res.AssetFileDescriptor.UNKNOWN_LENGTH }
             }
-        }.getOrNull()
-        if (fromUri != null) return fromUri
-        // Fallback: ~3 bytes/px is a generous proxy for a re-encoded PNG of a
-        // photo; clamp to at least 1 so the ETA math stays well-defined.
-        return (srcW.toLong() * srcH.toLong() * 3L).coerceAtLeast(1L)
+        }.getOrNull() ?: 0L
+        // ~3 bytes/px ≈ uncompressed RGB — a PNG-sized floor for the re-encoded
+        // upload. Clamp to at least 1 so the ETA math stays well-defined.
+        val pixelProxy = (srcW.toLong() * srcH.toLong() * 3L).coerceAtLeast(1L)
+        return maxOf(fromUri, pixelProxy)
     }
 
     /**
@@ -1190,6 +1233,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // capture can show its toggle paragraphs at 200% font. Set only under
     // ENABLE_TEST_HOOKS (seedFullImageForScreenshot); false in prod.
     var expandAdvancedForScreenshot by mutableStateOf(false)
+
+    // rc80: UX screenshot harness — open the Gemini Q&A sheet (populated with a
+    // sample reply) on launch so the capture matrix can review this dense
+    // screen at 360dp width + 200% font. Set only under ENABLE_TEST_HOOKS
+    // (MainActivity --es screenshot gemini); false in prod. MainActivity reads
+    // this to initialize its showGeminiSheet flag.
+    var showGeminiSheetForScreenshot by mutableStateOf(false)
+        private set
+
+    /** rc80: populate geminiQaState with a realistic sample reply and request
+     *  the sheet be shown, for the `gemini` screenshot state. Test-only. */
+    fun seedGeminiSheetForScreenshot() {
+        geminiQaState = com.posterpdf.ui.components.GeminiQaState.Reply(
+            text = "For a 24×36\" poster at 150 DPI you'd want about 3600×5400 px " +
+                "(19 MP). Your image is 8 MP, so I'd suggest the Topaz Gigapixel " +
+                "model — it should comfortably reach a crisp 150 DPI at this size.",
+            remainingQueries = 4,
+        )
+        showGeminiSheetForScreenshot = true
+    }
 
     // H-P2: content screens reachable from the hamburger drawer.
     var showGettingStarted by mutableStateOf(false)

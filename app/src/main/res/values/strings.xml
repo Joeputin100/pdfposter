@@ -533,6 +533,10 @@
     <!-- RC38: MainActivity — sharpening / upscale-failure / DPI-confirm modals -->
     <string name="upscale_free_dialog_title">Sharpening your photo</string>
     <string name="upscale_ai_dialog_title">Sharpening with AI</string>
+    <!-- rc80: cloud-upscale ETA line in the AI progress dialog. %1$s is a
+         human-friendly duration like "about 3 minutes" (from UpscaleEta.formatEta).
+         TODO(rc80): fan out this key to the 9 locale strings.xml files. -->
+    <string name="upscale_ai_eta">Estimated %1$s</string>
     <string name="upscale_failed_dialog_title">Upscale didn\'t finish</string>
     <string name="upscale_failed_dialog_body">Sorry &#8212; that didn\'t work. Your credits have been refunded; you can try again or pick a different model.</string>
     <string name="upscale_failed_dialog_details">Details: %1$s</string>

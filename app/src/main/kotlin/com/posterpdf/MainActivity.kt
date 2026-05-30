@@ -164,6 +164,9 @@ class MainActivity : ComponentActivity() {
                 // (read below, before setContent paints — see drawerState).
                 "getting_started" -> viewModel.showGettingStarted = true
                 "settings" -> viewModel.openSettingsForScreenshot = true
+                // rc80: open the Gemini Q&A sheet populated with a sample reply
+                // so the UX matrix can review this dense screen at font360.
+                "gemini" -> viewModel.seedGeminiSheetForScreenshot()
                 // RC79 UX-capture: seed a real image URI so the FULL main flow
                 // renders (image info → poster size → Advanced Styling →
                 // construction preview) — all gated on a non-null
@@ -488,7 +491,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     // RC69: live credit balance is observed in MainViewModel.creditBalance
     // (Firestore snapshot listener); read it directly at each call site.
     var showPurchaseSheet by remember { mutableStateOf(false) }
-    var showGeminiSheet by remember { mutableStateOf(false) }
+    // rc80: the `gemini` screenshot state opens this sheet on launch (the
+    // ViewModel flag is set in onCreate under ENABLE_TEST_HOOKS; false in prod).
+    var showGeminiSheet by remember { mutableStateOf(viewModel.showGeminiSheetForScreenshot) }
 
     // Handle back button to close drawer
     BackHandler(enabled = drawerState.isOpen) {
@@ -706,6 +711,19 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = detail,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    // rc80: cloud-upscale ETA, mirroring the on-device path's
+                    // etaForLocal display in the low-DPI modal. Set in
+                    // runAiUpscale from the real measured upload throughput
+                    // (etaForFal) and cleared when the job ends.
+                    val cloudEta = viewModel.cloudEtaText
+                    if (!cloudEta.isNullOrEmpty()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.upscale_ai_eta, cloudEta),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

@@ -41,6 +41,7 @@ import org.junit.runner.RunWith
  *    `tile engine path=CPU` is exercised even on GPU-capable hardware.
  */
 @RunWith(AndroidJUnit4::class)
+@FtlOnly  // real on-device ML upscale — FTL hardware only, excluded from the emulator battery
 class UpscalePdfDeviceTest {
 
     @Test

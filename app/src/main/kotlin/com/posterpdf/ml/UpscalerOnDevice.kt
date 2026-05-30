@@ -9,6 +9,8 @@ import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -100,14 +102,22 @@ object UpscalerOnDevice {
      * Progress is reported per tile (UI continuity, RC10/RC11). On each
      * completed band we persist [UpscaleStateStore.saveBand] for resume.
      *
-     * Resume note: a streamed PNG is a SINGLE continuous zlib stream split
-     * across IDAT chunks, so a partially-written file cannot be safely
-     * continued by appending a second Deflater's output (and its IHDR is
-     * already written). [resumeFromBand] is therefore best-effort: this impl
-     * re-encodes from band 0 (a process kill re-runs the upscale to completion
-     * rather than corrupting the file). The band-keyed state is kept so a
-     * future raw-scratch prefix can restore the skip-completed-bands
-     * optimization without changing callers. Returns [dest].
+     * Resume note (RC80 scratch-prefix skip-resume): a streamed PNG is a SINGLE
+     * continuous zlib stream split across IDAT chunks, so a partial PNG cannot
+     * be continued by appending. We therefore CANNOT skip re-emitting bands to
+     * the PNG — but we CAN skip the expensive part (model inference) for bands
+     * already computed in a prior run. As each band's RGB rows are produced we
+     * persist them as a raw scratch artifact ([scratchBandFile]) under a
+     * per-source scratch prefix in cacheDir. On resume we walk the bands in
+     * order: for a band whose scratch file already exists AND has the exact
+     * expected byte length, we LOAD its rows (no inference) and emit them; for
+     * any other band we run inference, write its scratch file, and emit. Band
+     * boundaries are fully determined by the source dimensions, so they're
+     * identical across runs for the same source (the scratch prefix encodes
+     * srcW x srcH so a changed source invalidates stale scratch). On successful
+     * completion the scratch prefix is deleted. [resumeFromBand] is used only as
+     * a hint for logging / progress; correctness comes from per-band scratch
+     * validation, not from trusting the counter. Returns [dest].
      *
      * @param sourceUri the source image to upscale (read by region).
      * @param dest the destination PNG file (overwritten).
@@ -148,11 +158,21 @@ object UpscalerOnDevice {
                 1,
                 (BAND_BUDGET_BYTES / (bytesPerOutRow.toLong() * TILE_OUT)).toInt(),
             )
+            // RC80 scratch-prefix skip-resume. Band boundaries are fully
+            // determined by srcW/srcH, so they're identical across runs for the
+            // same source; the scratch dir name encodes srcW x srcH so a changed
+            // source can't collide with stale scratch. Each completed band's RGB
+            // rows are written to bandIndex.scratch under this dir; on resume a
+            // band whose scratch file exists with the EXACT expected byte length
+            // is loaded instead of re-inferred. A streamed PNG still can't be
+            // appended, so we always re-emit every band to the PNG — but we skip
+            // the expensive inference for already-computed bands.
+            val scratchDir = scratchDirFor(context, sourceUri.toString(), outW, outH)
             if (resumeFromBand > 0) {
                 android.util.Log.i(
                     "UPSCALE_TEST",
-                    "upscaleToFile: resumeFromBand=$resumeFromBand requested; " +
-                        "re-encoding from band 0 (streamed PNG can't be appended)",
+                    "upscaleToFile: resumeFromBand=$resumeFromBand; scratch=${scratchDir.absolutePath} " +
+                        "(loading any valid scratch bands, re-inferring the rest)",
                 )
             }
 
@@ -177,85 +197,176 @@ object UpscalerOnDevice {
                 var bandTileTop = 0
                 while (bandTileTop < tileRows) {
                     val bandTileBot = minOf(bandTileTop + bandTilesY, tileRows)
-                    for (ty in bandTileTop until bandTileBot) {
-                        val idealY = ty * TILE_IN
-                        // Anchor the bottom edge tile-row back so the model
-                        // still gets a full 50px-tall region.
-                        val srcY = if (idealY + TILE_IN <= srcH) idealY
-                                   else (srcH - TILE_IN).coerceAtLeast(0)
-                        // Output rows this tile-row owns (its non-overlapping,
-                        // in-bounds slice), absolute in the output image.
-                        val destRowStart = idealY * SCALE
-                        val destRowEnd = minOf((idealY + TILE_IN) * SCALE, outH)
-                        for (tx in 0 until tileCols) {
-                            val idealX = tx * TILE_IN
-                            val srcX = if (idealX + TILE_IN <= srcW) idealX
-                                       else (srcW - TILE_IN).coerceAtLeast(0)
-                            val destColStart = idealX * SCALE
-                            val destColEnd = minOf((idealX + TILE_IN) * SCALE, outW)
-
-                            val tile = src.region(
-                                Rect(srcX, srcY, srcX + TILE_IN, srcY + TILE_IN),
-                            )
-                            tile.getPixels(tilePixels, 0, TILE_IN, 0, 0, TILE_IN, TILE_IN)
-                            tile.recycle()
-
-                            inBuf.rewind()
-                            for (px in tilePixels) {
-                                inBuf.putFloat(((px ushr 16) and 0xFF).toFloat())
-                                inBuf.putFloat(((px ushr 8) and 0xFF).toFloat())
-                                inBuf.putFloat((px and 0xFF).toFloat())
-                            }
-                            inBuf.rewind(); outBuf.rewind()
-                            eng.run(inBuf, outBuf)
-
-                            // Unpack the 200x200 tile output once, clamped.
-                            outBuf.rewind()
-                            for (i in 0 until TILE_OUT * TILE_OUT) {
-                                val r = outBuf.float.toInt().coerceIn(0, 255)
-                                val g = outBuf.float.toInt().coerceIn(0, 255)
-                                val b = outBuf.float.toInt().coerceIn(0, 255)
-                                outPixels[i] = (r shl 16) or (g shl 8) or b
-                            }
-
-                            // Composite only this tile's owned output region,
-                            // sampling the tile by its anchored local offset.
-                            for (oy in destRowStart until destRowEnd) {
-                                val localRow = oy - srcY * SCALE      // in [0,200)
-                                val rowArr = band[oy - bandTileTop * TILE_OUT]
-                                val tileRowBase = localRow * TILE_OUT
-                                var bi = destColStart * 3
-                                for (ox in destColStart until destColEnd) {
-                                    val rgb = outPixels[tileRowBase + (ox - srcX * SCALE)]
-                                    rowArr[bi] = ((rgb ushr 16) and 0xFF).toByte()
-                                    rowArr[bi + 1] = ((rgb ushr 8) and 0xFF).toByte()
-                                    rowArr[bi + 2] = (rgb and 0xFF).toByte()
-                                    bi += 3
-                                }
-                            }
-
-                            done++
-                            onProgress?.invoke(done.coerceAtMost(totalTiles), totalTiles)
-                        }
-                    }
-                    // Emit only the output rows that exist (last band is short).
+                    // Rows this band emits (last band is short).
                     val emitRows = minOf(
                         (bandTileBot - bandTileTop) * TILE_OUT,
                         outH - bandTileTop * TILE_OUT,
                     )
+                    val tilesInBand = (bandTileBot - bandTileTop) * tileCols
+                    val expectedScratchBytes = emitRows.toLong() * bytesPerOutRow
+                    val scratchFile = scratchBandFile(scratchDir, bandIndex)
+
+                    // Fast path: a valid scratch band from a prior run — load its
+                    // rows (no inference) and emit. Validated by exact length so a
+                    // torn/half-written scratch file is ignored and recomputed.
+                    val loaded = if (scratchFile.isFile && scratchFile.length() == expectedScratchBytes) {
+                        try {
+                            DataInputStream(scratchFile.inputStream().buffered()).use { din ->
+                                for (r in 0 until emitRows) din.readFully(band[r], 0, bytesPerOutRow)
+                            }
+                            true
+                        } catch (_: Throwable) {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+
+                    if (!loaded) {
+                        for (ty in bandTileTop until bandTileBot) {
+                            val idealY = ty * TILE_IN
+                            // Anchor the bottom edge tile-row back so the model
+                            // still gets a full 50px-tall region.
+                            val srcY = if (idealY + TILE_IN <= srcH) idealY
+                                       else (srcH - TILE_IN).coerceAtLeast(0)
+                            // Output rows this tile-row owns (its non-overlapping,
+                            // in-bounds slice), absolute in the output image.
+                            val destRowStart = idealY * SCALE
+                            val destRowEnd = minOf((idealY + TILE_IN) * SCALE, outH)
+                            for (tx in 0 until tileCols) {
+                                val idealX = tx * TILE_IN
+                                val srcX = if (idealX + TILE_IN <= srcW) idealX
+                                           else (srcW - TILE_IN).coerceAtLeast(0)
+                                val destColStart = idealX * SCALE
+                                val destColEnd = minOf((idealX + TILE_IN) * SCALE, outW)
+
+                                val tile = src.region(
+                                    Rect(srcX, srcY, srcX + TILE_IN, srcY + TILE_IN),
+                                )
+                                tile.getPixels(tilePixels, 0, TILE_IN, 0, 0, TILE_IN, TILE_IN)
+                                tile.recycle()
+
+                                inBuf.rewind()
+                                for (px in tilePixels) {
+                                    inBuf.putFloat(((px ushr 16) and 0xFF).toFloat())
+                                    inBuf.putFloat(((px ushr 8) and 0xFF).toFloat())
+                                    inBuf.putFloat((px and 0xFF).toFloat())
+                                }
+                                inBuf.rewind(); outBuf.rewind()
+                                eng.run(inBuf, outBuf)
+
+                                // Unpack the 200x200 tile output once, clamped.
+                                outBuf.rewind()
+                                for (i in 0 until TILE_OUT * TILE_OUT) {
+                                    val r = outBuf.float.toInt().coerceIn(0, 255)
+                                    val g = outBuf.float.toInt().coerceIn(0, 255)
+                                    val b = outBuf.float.toInt().coerceIn(0, 255)
+                                    outPixels[i] = (r shl 16) or (g shl 8) or b
+                                }
+
+                                // Composite only this tile's owned output region,
+                                // sampling the tile by its anchored local offset.
+                                for (oy in destRowStart until destRowEnd) {
+                                    val localRow = oy - srcY * SCALE      // in [0,200)
+                                    val rowArr = band[oy - bandTileTop * TILE_OUT]
+                                    val tileRowBase = localRow * TILE_OUT
+                                    var bi = destColStart * 3
+                                    for (ox in destColStart until destColEnd) {
+                                        val rgb = outPixels[tileRowBase + (ox - srcX * SCALE)]
+                                        rowArr[bi] = ((rgb ushr 16) and 0xFF).toByte()
+                                        rowArr[bi + 1] = ((rgb ushr 8) and 0xFF).toByte()
+                                        rowArr[bi + 2] = (rgb and 0xFF).toByte()
+                                        bi += 3
+                                    }
+                                }
+
+                                done++
+                                onProgress?.invoke(done.coerceAtMost(totalTiles), totalTiles)
+                            }
+                        }
+                        // Persist this freshly-computed band to scratch (atomic:
+                        // write to .tmp then rename) so a later resume can skip
+                        // its inference. Best-effort: a scratch write failure must
+                        // NOT fail the upscale — we just lose the resume speedup.
+                        writeScratchBand(scratchFile, band, emitRows, bytesPerOutRow)
+                    } else {
+                        // Loaded from scratch: advance progress by this band's
+                        // tile count so the UI/notification still reaches 100%.
+                        done += tilesInBand
+                        onProgress?.invoke(done.coerceAtMost(totalTiles), totalTiles)
+                    }
+
+                    // Emit this band's rows to the (non-appendable) streamed PNG.
                     for (r in 0 until emitRows) sink.writeRow(band[r])
-                    // Persist the count of fully-completed bands (monotonic), so
-                    // a future skip-resume can restart at lastBand*bandTilesY
-                    // tile-rows. (This impl re-encodes from 0 — see KDoc.)
+                    // Persist the count of fully-completed bands (monotonic), so a
+                    // resume knows how far the prior run got (used for logging /
+                    // progress; per-band scratch validation drives correctness).
                     bandIndex++
                     UpscaleStateStore.saveBand(context, sourceUri.toString(), bandIndex)
                     bandTileTop = bandTileBot
                 }
                 sink.close()
             }
+            // Success: the final PNG is complete, so the scratch prefix is no
+            // longer needed. (MainViewModel additionally clears the band-index
+            // state via UpscaleStateStore.clear on success.)
+            deleteScratchDir(scratchDir)
             dest
         } finally {
             src.close()
+        }
+    }
+
+    // ── RC80 scratch-resume helpers ────────────────────────────────────────
+
+    /**
+     * Per-source scratch directory under cacheDir. The name encodes a stable
+     * hash of the source URI plus the output dimensions, so (a) different
+     * sources never collide and (b) a source whose pixels/dimensions changed
+     * (different outW/outH) can't be matched against stale scratch bands.
+     */
+    private fun scratchDirFor(ctx: Context, sourceUri: String, outW: Int, outH: Int): File {
+        val key = "${sourceUri}|${outW}x${outH}"
+        val hash = Integer.toHexString(key.hashCode())
+        return File(ctx.cacheDir, "upscale_scratch_${hash}_${outW}x$outH").apply { mkdirs() }
+    }
+
+    private fun scratchBandFile(dir: File, bandIndex: Int): File =
+        File(dir, "$bandIndex.scratch")
+
+    /**
+     * Write [emitRows] rows of [bytesPerOutRow] bytes each from [band] to
+     * [scratchFile], atomically (.tmp + rename) so a process kill mid-write
+     * leaves no partially-written file that a later resume would trust.
+     * Best-effort: any failure is swallowed (we just lose the resume speedup).
+     */
+    private fun writeScratchBand(
+        scratchFile: File,
+        band: Array<ByteArray>,
+        emitRows: Int,
+        bytesPerOutRow: Int,
+    ) {
+        try {
+            val tmp = File(scratchFile.parentFile, scratchFile.name + ".tmp")
+            DataOutputStream(BufferedOutputStream(FileOutputStream(tmp))).use { dout ->
+                for (r in 0 until emitRows) dout.write(band[r], 0, bytesPerOutRow)
+            }
+            if (!tmp.renameTo(scratchFile)) {
+                // Rename can fail if the destination already exists on some FSes.
+                scratchFile.delete()
+                if (!tmp.renameTo(scratchFile)) tmp.delete()
+            }
+        } catch (e: Throwable) {
+            android.util.Log.w("UPSCALE_TEST", "writeScratchBand failed: ${e.message}")
+        }
+    }
+
+    private fun deleteScratchDir(dir: File) {
+        try {
+            dir.listFiles()?.forEach { it.delete() }
+            dir.delete()
+        } catch (_: Throwable) {
+            // best-effort cleanup
         }
     }
 

@@ -8,7 +8,6 @@
          internet" before a cloud upscale. That call requires this permission. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- Phase G3: Google Play Billing Library v7. Required for BillingClient + launchBillingFlow. -->
     <uses-permission android:name="com.android.vending.BILLING" />
     <!-- RC11: foreground service so the on-device upscaler can survive
