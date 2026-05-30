@@ -1784,12 +1784,23 @@ private fun MainScreenContent(viewModel: MainViewModel) {
 
                                     OrientationSelector(viewModel)
 
-                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                        val marginTitle = stringResource(R.string.info_margin_title)
-                                        val marginBody = stringResource(R.string.info_margin_body)
-                                        val overlapTitle = stringResource(R.string.info_overlap_title)
-                                        val overlapBody = stringResource(R.string.info_overlap_body)
-                                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                    // RC79: at large font (>=200% / fontScale>=1.3) the
+                                    // half-width (weight 1f) Margin / Overlap fields are
+                                    // too narrow for their floating labels, which then
+                                    // overflow UPWARD into the Orientation cards. Lay the
+                                    // two fields out vertically (full width each) at large
+                                    // font; keep the side-by-side Row below 1.3 so the
+                                    // normal-font layout is unchanged. The two field-rows
+                                    // are extracted into composable lambdas so both layout
+                                    // branches share identical onValueChange / logEvent /
+                                    // saveAllSettings + info-dialog behavior.
+                                    val largeFont = LocalConfiguration.current.fontScale >= 1.3f
+                                    val marginTitle = stringResource(R.string.info_margin_title)
+                                    val marginBody = stringResource(R.string.info_margin_body)
+                                    val overlapTitle = stringResource(R.string.info_overlap_title)
+                                    val overlapBody = stringResource(R.string.info_overlap_body)
+                                    val marginField: @Composable (Modifier) -> Unit = { rowModifier ->
+                                        Row(rowModifier, verticalAlignment = Alignment.CenterVertically) {
                                              ConfigInput(
                                                  label = stringResource(R.string.margin_with_unit, unitLabel),
                                                  value = viewModel.margin,
@@ -1804,7 +1815,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 infoDialogContent = marginTitle to marginBody
                                             }) { Icon(Icons.Default.Info, null, Modifier.size(18.dp)) }
                                         }
-                                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                    }
+                                    val overlapField: @Composable (Modifier) -> Unit = { rowModifier ->
+                                        Row(rowModifier, verticalAlignment = Alignment.CenterVertically) {
                                              ConfigInput(
                                                  label = stringResource(R.string.overlap_with_unit, unitLabel),
                                                  value = viewModel.overlap,
@@ -1818,6 +1831,17 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                             IconButton(onClick = {
                                                 infoDialogContent = overlapTitle to overlapBody
                                             }) { Icon(Icons.Default.Info, null, Modifier.size(18.dp)) }
+                                        }
+                                    }
+                                    if (largeFont) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                            marginField(Modifier.fillMaxWidth())
+                                            overlapField(Modifier.fillMaxWidth())
+                                        }
+                                    } else {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                            marginField(Modifier.weight(1f))
+                                            overlapField(Modifier.weight(1f))
                                         }
                                     }
                                     

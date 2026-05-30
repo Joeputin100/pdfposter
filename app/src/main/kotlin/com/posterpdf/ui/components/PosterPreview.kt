@@ -187,6 +187,60 @@ fun PosterPreview(viewModel: MainViewModel) {
     var jiggleStartedAt by remember { mutableLongStateOf(0L) }
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
 
+    // RC79: hoisted printer geometry. The printer's top edge (printerTopY) and
+    // body height (printerBodyH) used to be computed only INSIDE the Canvas draw
+    // lambda, so the SideEffect that picks the camera offset couldn't see them
+    // and had to nudge the camera by a fixed fraction of viewport height
+    // (0.18 * height) during Printing. On a tall poster, layout.layoutTop — and
+    // therefore printerTopY — goes strongly negative (the grid is taller than the
+    // viewport, so its centred top sits above y=0), and the printer body sits even
+    // further above that. The fixed 0.18 nudge couldn't pull such a printer into
+    // frame, so it started off-screen above the viewport top.
+    //
+    // We recompute the SAME geometry here (mirroring the Canvas math exactly:
+    // padding=28, gap=18, availableW/H, PaneGeometry.compute, printerWidth clamp,
+    // printerBodyH=width*0.55, printerTopY=(layoutTop-bodyH-6).coerceAtMost(-4))
+    // keyed on boxSize + the poster params, so the SideEffect can position the
+    // printer's top edge at a small margin below the viewport top during Printing.
+    // The Canvas keeps its own local copies of these values for drawing — this
+    // remember is read ONLY by the SideEffect's camera math, so the drawn printer
+    // size / position are unchanged.
+    val printerGeom: Pair<Float, Float> = remember(
+        boxSize, viewModel.posterWidth, viewModel.posterHeight,
+        viewModel.paperSize, viewModel.orientation, viewModel.margin, viewModel.overlap,
+        viewModel.units,
+    ) {
+        if (boxSize.width <= 0 || boxSize.height <= 0) {
+            0f to 0f
+        } else {
+            val padding = 28f
+            val gap = 18f
+            val availableW = (boxSize.width - 2 * padding).coerceAtLeast(1f)
+            val availableH = (boxSize.height - 2 * padding).coerceAtLeast(1f)
+            val pw = viewModel.posterWidth.toDoubleOrNull() ?: 1.0
+            val ph = viewModel.posterHeight.toDoubleOrNull() ?: 1.0
+            val paperW = viewModel.currentPaperWidthInches()
+            val paperH = viewModel.currentPaperHeightInches()
+            val m = viewModel.margin.toDoubleOrNull() ?: 0.0
+            val o = viewModel.overlap.toDoubleOrNull() ?: 0.0
+            val layout = com.posterpdf.ui.components.preview.PaneGeometry.compute(
+                posterW = pw, posterH = ph,
+                paperW = paperW, paperH = paperH,
+                margin = m, overlap = o,
+                availableW = availableW, availableH = availableH,
+                interPaneGap = gap,
+            )
+            val printableWpx = layout.printableW.toFloat() * layout.scale
+            val printableHpx = layout.printableH.toFloat() * layout.scale
+            val portraitEdgePx = minOf(printableWpx, printableHpx)
+            val printerWidth = (portraitEdgePx * 1.15f)
+                .coerceIn(boxSize.width * 0.35f, boxSize.width * 0.85f)
+            val printerBodyH = printerWidth * 0.55f
+            val printerTopY = (layout.layoutTop - printerBodyH - 6f).coerceAtMost(-4f)
+            printerTopY to printerBodyH
+        }
+    }
+
     // RC3 camera-pan offset (in canvas pixels). 0 during Printing; lerps from
     // 0 → -panTargetPx during Panning; holds at -panTargetPx through the rest
     // of the cycle; eases back to 0 during Reset. Applied as a pure Y-translate
@@ -234,7 +288,35 @@ fun PosterPreview(viewModel: MainViewModel) {
         // leaving roughly 70% of viewport height below for the stack +
         // (after the new Panning stack-translate-and-rotate) the rotated
         // stack to occupy before Panning hands off to grid view.
-        val printerVisibleOffset = boxSize.height * 0.18f
+        //
+        // RC79: the fixed 0.18*height nudge wasn't enough on tall posters /
+        // small viewports (360dp + 200% font review): the printer lives ABOVE
+        // the grid at canvas-y printerTopY, which goes strongly negative when
+        // the grid is taller than the viewport, so a fixed downward nudge
+        // couldn't pull the printer's top edge below the viewport top — the
+        // printer started off-screen. We now DERIVE the Printing-phase offset
+        // from the printer's actual position (hoisted into printerGeom): after
+        // the camera translate the printer top edge sits at screen-y
+        // (printerTopY + animY); we solve animY so that lands at a small margin
+        // (printerTopMargin) below the viewport top. Because the printer body
+        // (printerBodyH = printerWidth*0.55, printerWidth ≤ 0.85*width) is always
+        // shorter than the 300dp preview viewport, putting the top edge at a
+        // small margin keeps the WHOLE printer body in frame across viewport
+        // sizes. The southward pan is preserved: Panning still lerps from this
+        // (positive) start offset down to -panTarget (grid view), and Reset
+        // eases back up to it so the next cycle starts framed on the printer.
+        val printerTopY = printerGeom.first
+        // Small top margin so the printer reads as resting just below the top
+        // edge of the visible table rather than flush against it.
+        val printerTopMargin = boxSize.height * 0.05f
+        // animY that lands printerTopY at printerTopMargin (screen coords).
+        // printerTopY is ≤ -4f, so this is always positive (shifts content down,
+        // pulling the above-grid printer into frame). Fall back to the old fixed
+        // fraction only before the geometry is measured (printerTopY == 0f).
+        val printerVisibleOffset = if (printerTopY < 0f)
+            printerTopMargin - printerTopY
+        else
+            boxSize.height * 0.18f
         val animY = if (!cycleEnabled) 0f else when (phase) {
             AssemblyPhase.Printing -> printerVisibleOffset
             AssemblyPhase.Panning -> {
