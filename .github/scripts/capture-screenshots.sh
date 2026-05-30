@@ -53,6 +53,27 @@ capture() {  # $1=config $2=state
 
 run_config() { local cfg="$1"; for s in "${STATES[@]}"; do capture "$cfg" "$s"; done; }
 
+# RC79: the `with_image` state seeds a real image URI so the FULL main flow
+# renders (image info → poster size → Advanced Styling → construction preview).
+# Those lower sections are image-gated + below the fold, so we scroll down and
+# grab several frames. NOTE: the construction preview animates (assembly cycle),
+# so its frame is whatever the animation is on at capture time. Swipe coords are
+# calibrated for the font360 360x780 viewport.
+capture_scrolled() {  # $1=config
+  local cfg="$1"
+  echo "=== $cfg / with_image (scrolled) ==="
+  adb shell am force-stop "$PKG" || true
+  adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
+  sleep 9  # splash skip + image decode + preview first frame
+  adb exec-out screencap -p > "$OUT/$cfg-with_image-1.png"
+  for i in 2 3 4; do
+    adb shell input swipe 180 640 180 160 450   # scroll down
+    sleep 2
+    adb exec-out screencap -p > "$OUT/$cfg-with_image-$i.png"
+  done
+  ls -l "$OUT/$cfg-with_image-"*.png
+}
+
 # --- baseline ---
 run_config baseline
 
@@ -62,6 +83,7 @@ adb shell wm density 160
 adb shell settings put system font_scale 2.0
 echo "effective font_scale: $(adb shell settings get system font_scale)"
 run_config font360
+capture_scrolled font360
 adb shell settings put system font_scale 1.0
 adb shell wm size reset
 adb shell wm density reset

@@ -106,6 +106,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** RC79 UX-capture: like [seedScreenshotImage] but ALSO materializes a real
+     *  file URI into [selectedImageUri], so the full main flow renders (image
+     *  info → poster size → Advanced Styling → construction preview) — all gated
+     *  on a non-null URI. Mirrors the device-test seed; debug-only, driven by the
+     *  `--es screenshot with_image` hook. Tiny bundled image, so the synchronous
+     *  decode+write (same thread seedScreenshotImage already decodes on) is fine. */
+    fun seedFullImageForScreenshot(context: android.content.Context) {
+        seedScreenshotImage(context)
+        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.dogcow) ?: return
+        val seedFile = File(context.cacheDir, "ux_capture_seed_${System.currentTimeMillis()}.png")
+        FileOutputStream(seedFile).use { fos -> bmp.compress(Bitmap.CompressFormat.PNG, 100, fos) }
+        selectedImageUri = Uri.fromFile(seedFile)
+        sourcePixelDimensions = bmp.width to bmp.height
+    }
+
     /** "DPI" or "DPCM" depending on [units]. */
     val currentResolutionUnitLabel: String
         get() = if (units == "Metric") "DPCM" else "DPI"

@@ -163,6 +163,15 @@ class MainActivity : ComponentActivity() {
                 // (read below, before setContent paints — see drawerState).
                 "getting_started" -> viewModel.showGettingStarted = true
                 "settings" -> viewModel.openSettingsForScreenshot = true
+                // RC79 UX-capture: seed a real image URI so the FULL main flow
+                // renders (image info → poster size → Advanced Styling →
+                // construction preview) — all gated on a non-null
+                // selectedImageUri + below the fold. capture-screenshots.sh
+                // scroll-captures this state to reach the lower sections.
+                "with_image" -> {
+                    viewModel.isFirstRun = false
+                    viewModel.seedFullImageForScreenshot(this)
+                }
                 else -> { /* main: no-op */ }
             }
         }
