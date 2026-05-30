@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas as AndroidCanvas
 import android.graphics.Paint
-import android.graphics.RuntimeShader
 import android.os.Build
 import com.caverock.androidsvg.SVG
 import androidx.compose.animation.core.LinearEasing
@@ -75,9 +74,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.posterpdf.MainViewModel
 import com.posterpdf.ui.components.preview.AssemblyPhase
-import com.posterpdf.ui.components.preview.PRINTER_INK_AGSL
 import com.posterpdf.ui.components.preview.drawHand
-import com.posterpdf.ui.components.preview.drawPrinter
 import com.posterpdf.R
 import com.posterpdf.ui.components.preview.drawScissors
 import com.posterpdf.ui.components.preview.drawTearingBand
@@ -470,8 +467,18 @@ fun PosterPreview(viewModel: MainViewModel) {
     // H-P1.8: dot-matrix printer ink streak — AGSL, gated to API 33+; null on
     // older devices (drawPrinter handles the fallback path). The RC3 redesign
     // dropped the dust puff (no more "stack lands on desk" beat).
-    val inkShader = remember(cycleEnabled) {
-        if (cycleEnabled) RuntimeShader(PRINTER_INK_AGSL) else null
+    //
+    // RC80: `RuntimeShader` is API 33. Constructing it here used to put the
+    // class directly in PosterPreview's bytecode, so ART's verification of the
+    // PosterPreview method failed on pre-33 devices (NoClassDefFoundError →
+    // process crash) BEFORE the cycleEnabled (>=33) guard could run. We now
+    // build it via createPrinterInkShader() (a @RequiresApi(33) function in the
+    // separate PrinterInkShader class, loaded lazily only on the 33+ path) and
+    // hold the result as Any? so PosterPreview's own bytecode never names
+    // RuntimeShader. The actual draw goes through drawPrinterWithInk(), which
+    // does the RuntimeShader cast inside that same isolated class.
+    val inkShader: Any? = remember(cycleEnabled) {
+        if (cycleEnabled) createPrinterInkShader() else null
     }
 
     Column(
@@ -1221,7 +1228,12 @@ fun PosterPreview(viewModel: MainViewModel) {
                         (cycleSeconds.floatValue / 1.6f) % 1f
                     } else 0f
                     if (printerAppearT > 0f) {
-                        drawPrinter(
+                        // RC80: route through drawPrinterWithInk (separate
+                        // class) so the RuntimeShader cast / drawPrinter call
+                        // never appears in PosterPreview's bytecode. inkShader
+                        // is Any? here; the helper casts it to RuntimeShader
+                        // only on API 33+.
+                        drawPrinterWithInk(
                             cx = printerSlotX,
                             topY = printerTopY,
                             width = printerWidth,
