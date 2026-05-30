@@ -1896,7 +1896,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).height(80.dp),
+                                        modifier = Modifier.weight(1f).height(if (LocalConfiguration.current.fontScale >= 1.3f) (80f * LocalConfiguration.current.fontScale).dp else 80.dp),
                                         shape = RoundedCornerShape(20.dp),
                                         contentPadding = PaddingValues(8.dp),
                                     ) {
@@ -1924,7 +1924,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).height(80.dp),
+                                        modifier = Modifier.weight(1f).height(if (LocalConfiguration.current.fontScale >= 1.3f) (80f * LocalConfiguration.current.fontScale).dp else 80.dp),
                                         shape = RoundedCornerShape(20.dp),
                                         contentPadding = PaddingValues(8.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
@@ -1960,7 +1960,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).height(80.dp),
+                                        modifier = Modifier.weight(1f).height(if (LocalConfiguration.current.fontScale >= 1.3f) (80f * LocalConfiguration.current.fontScale).dp else 80.dp),
                                         shape = RoundedCornerShape(20.dp),
                                         contentPadding = PaddingValues(8.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
