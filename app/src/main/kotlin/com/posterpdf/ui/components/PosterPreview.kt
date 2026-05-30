@@ -1,0 +1,1870 @@
+package com.posterpdf.ui.components
+
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas as AndroidCanvas
+import android.graphics.Paint
+import android.os.Build
+import com.caverock.androidsvg.SVG
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import com.posterpdf.MainViewModel
+import com.posterpdf.ui.components.preview.AssemblyPhase
+import com.posterpdf.ui.components.preview.drawHand
+import com.posterpdf.R
+import com.posterpdf.ui.components.preview.drawScissors
+import com.posterpdf.ui.components.preview.drawTearingBand
+import com.posterpdf.ui.components.preview.drawScotchTape
+import com.posterpdf.ui.components.preview.drawThumbTack
+import com.posterpdf.ui.util.Hapt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sin
+
+// RC17: WOOD_AGSL procedural shader removed. Replaced with a raster
+// wood texture (R.drawable.wood_table, sourced from a real photograph)
+// drawn via BitmapShader + ShaderBrush — see the woodShader/woodBrush
+// initialization in PosterPreview() and the drawWithCache block on the
+// outer preview Box.
+
+@Composable
+fun PosterPreview(viewModel: MainViewModel) {
+    val context = LocalContext.current
+
+    val infinite = rememberInfiniteTransition(label = "preview_loop")
+    val t by infinite.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(8000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "time"
+    )
+
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            now = System.currentTimeMillis()
+            delay(16)
+        }
+    }
+
+    // Phase D: 12-second Assembly Cycle clock + per-phase derived state.
+    // The cycle (and the AGSL workbench shader, and the decoration draws) are gated
+    // on API 33+ because RuntimeShader is API 33. On older devices the preview is
+    // the static accurate Phase C output with a linear-gradient workbench fallback.
+    val cycleEnabled = Build.VERSION.SDK_INT >= 33
+    val cycleSeconds = remember { mutableFloatStateOf(0f) }
+
+    // RC58: detect single-page posters at the composable level so the cycle
+    // ticker can use the shorter [AssemblyPhase.cycleLength] (38s instead of
+    // 47s). On a single page there are no gaps to close and no seams to tape,
+    // so the Tightening + Taping phases are skipped entirely. Recomputed
+    // whenever the geometry inputs change.
+    val singlePane: Boolean = remember(
+        viewModel.posterWidth, viewModel.posterHeight,
+        viewModel.paperSize, viewModel.margin, viewModel.overlap,
+    ) {
+        val pw = viewModel.posterWidth.toDoubleOrNull() ?: 1.0
+        val ph = viewModel.posterHeight.toDoubleOrNull() ?: 1.0
+        val paperW = viewModel.currentPaperWidthInches()
+        val paperH = viewModel.currentPaperHeightInches()
+        val mm = viewModel.margin.toDoubleOrNull() ?: 0.0
+        val oo = viewModel.overlap.toDoubleOrNull() ?: 0.0
+        val (rr, cc) = com.posterpdf.ui.components.preview.PaneGeometry.computePaneCount(
+            posterW = pw, posterH = ph,
+            paperW = paperW, paperH = paperH,
+            margin = mm, overlap = oo,
+        )
+        rr == 1 && cc == 1
+    }
+
+    LaunchedEffect(cycleEnabled, singlePane) {
+        if (!cycleEnabled) return@LaunchedEffect
+        val start = System.currentTimeMillis()
+        while (true) {
+            val elapsed = (System.currentTimeMillis() - start) / 1000f
+            cycleSeconds.floatValue = elapsed % AssemblyPhase.cycleLength(singlePane)
+            delay(16)
+        }
+    }
+    val phase = AssemblyPhase.phaseAt(cycleSeconds.floatValue, singlePane)
+    val phaseT = phase.localProgress(cycleSeconds.floatValue, singlePane)
+
+    val hapt = Hapt(LocalHapticFeedback.current)
+
+    // One-shot confirm haptic when the cycle enters the Pinning phase
+    // (tacks land in the corners — the "it's done" beat). RC3 retiming.
+    val lastPhase = remember { mutableStateOf<AssemblyPhase?>(null) }
+    LaunchedEffect(phase) {
+        if (lastPhase.value != phase && phase == AssemblyPhase.Pinning) {
+            hapt.confirm()
+        }
+        lastPhase.value = phase
+    }
+
+    // RC14: outer-box `zoom`/`pan` state removed — see RC14 notes on the
+    // outer Box modifier. Pinch-to-zoom is now `userZoom` (drives a
+    // graphicsLayer on the inner Canvas) and drag-to-pan goes through
+    // `userPanY` (folded into cameraOffsetYpx).
+
+    // Per-pane jiggle: tap a specific page to jiggle just that page.
+    // paneBounds is filled during Canvas draw and read by the tap handler;
+    // using a plain MutableList (not state) to avoid recompositions on every frame.
+    val paneBounds = remember { mutableListOf<PaneBounds>() }
+    var jiggledPane by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var jiggleStartedAt by remember { mutableLongStateOf(0L) }
+    var boxSize by remember { mutableStateOf(IntSize.Zero) }
+
+    // RC79: hoisted printer geometry. The printer's top edge (printerTopY) and
+    // body height (printerBodyH) used to be computed only INSIDE the Canvas draw
+    // lambda, so the SideEffect that picks the camera offset couldn't see them
+    // and had to nudge the camera by a fixed fraction of viewport height
+    // (0.18 * height) during Printing. On a tall poster, layout.layoutTop — and
+    // therefore printerTopY — goes strongly negative (the grid is taller than the
+    // viewport, so its centred top sits above y=0), and the printer body sits even
+    // further above that. The fixed 0.18 nudge couldn't pull such a printer into
+    // frame, so it started off-screen above the viewport top.
+    //
+    // We recompute the SAME geometry here (mirroring the Canvas math exactly:
+    // padding=28, gap=18, availableW/H, PaneGeometry.compute, printerWidth clamp,
+    // printerBodyH=width*0.55, printerTopY=(layoutTop-bodyH-6).coerceAtMost(-4))
+    // keyed on boxSize + the poster params, so the SideEffect can position the
+    // printer's top edge at a small margin below the viewport top during Printing.
+    // The Canvas keeps its own local copies of these values for drawing — this
+    // remember is read ONLY by the SideEffect's camera math, so the drawn printer
+    // size / position are unchanged.
+    val printerGeom: Pair<Float, Float> = remember(
+        boxSize, viewModel.posterWidth, viewModel.posterHeight,
+        viewModel.paperSize, viewModel.orientation, viewModel.margin, viewModel.overlap,
+        viewModel.units,
+    ) {
+        if (boxSize.width <= 0 || boxSize.height <= 0) {
+            0f to 0f
+        } else {
+            val padding = 28f
+            val gap = 18f
+            val availableW = (boxSize.width - 2 * padding).coerceAtLeast(1f)
+            val availableH = (boxSize.height - 2 * padding).coerceAtLeast(1f)
+            val pw = viewModel.posterWidth.toDoubleOrNull() ?: 1.0
+            val ph = viewModel.posterHeight.toDoubleOrNull() ?: 1.0
+            val paperW = viewModel.currentPaperWidthInches()
+            val paperH = viewModel.currentPaperHeightInches()
+            val m = viewModel.margin.toDoubleOrNull() ?: 0.0
+            val o = viewModel.overlap.toDoubleOrNull() ?: 0.0
+            val layout = com.posterpdf.ui.components.preview.PaneGeometry.compute(
+                posterW = pw, posterH = ph,
+                paperW = paperW, paperH = paperH,
+                margin = m, overlap = o,
+                availableW = availableW, availableH = availableH,
+                interPaneGap = gap,
+            )
+            val printableWpx = layout.printableW.toFloat() * layout.scale
+            val printableHpx = layout.printableH.toFloat() * layout.scale
+            val portraitEdgePx = minOf(printableWpx, printableHpx)
+            val printerWidth = (portraitEdgePx * 1.15f)
+                .coerceIn(boxSize.width * 0.35f, boxSize.width * 0.85f)
+            val printerBodyH = printerWidth * 0.55f
+            val printerTopY = (layout.layoutTop - printerBodyH - 6f).coerceAtMost(-4f)
+            printerTopY to printerBodyH
+        }
+    }
+
+    // RC3 camera-pan offset (in canvas pixels). 0 during Printing; lerps from
+    // 0 → -panTargetPx during Panning; holds at -panTargetPx through the rest
+    // of the cycle; eases back to 0 during Reset. Applied as a pure Y-translate
+    // to every pane and prop drawn inside the inner Canvas, AND fed to the
+    // wood-grain shader's iOriginY uniform so the table grain scrolls in sync.
+    // RC7: Pan target dropped 0.38 → 0.15. The 0.38 value pushed the top
+    // row of pages above the viewport on tall layouts (user feedback +
+    // Screenshot_20260503_153224). 0.15 still moves the printer body
+    // mostly off-screen but keeps every row visible.
+    val cameraOffsetYpx = remember { mutableFloatStateOf(0f) }
+    // RC17: 2D pan/camera. Pre-RC17 only the Y axis was user-controllable;
+    // user wanted "should also be able to pan left and right." Animated
+    // camera (cycle) is still vertical-only — there's no horizontal cycle
+    // motion — so cameraOffsetXpx is just the clamped userPanX.
+    val userPanX = remember { mutableFloatStateOf(0f) }
+    val userPanY = remember { mutableFloatStateOf(0f) }
+    val cameraOffsetXpx = remember { mutableFloatStateOf(0f) }
+    // RC22: zoom clamped to [0.4, 3]. Pre-RC22 the floor was 1, so the user
+    // could only zoom IN (close-up inspection of seams). They wanted the
+    // option to zoom OUT to see the entire poster + printer at once,
+    // especially on big posters where the printer is 4-5× the height of
+    // the visible viewport. 0.4 is enough headroom to fit a 24×36-inch
+    // poster + the printer above it within a 800px-tall preview surface.
+    // The wood texture renders out to the full draw area regardless of
+    // zoom, so empty corners don't appear at zoom < 1.
+    val userZoom = remember { mutableFloatStateOf(1f) }
+    androidx.compose.runtime.SideEffect {
+        val panTarget = boxSize.height * 0.15f
+        // RC52: at the start of the cycle, position the camera high enough
+        // that the printer body + the output-page stack below it are both
+        // in the viewport. The printer lives at canvas y ≈ -printerBodyH
+        // (above the grid's layoutTop), and the page stack rests just below
+        // the printer's slot. printerVisibleOffset shifts the canvas down by
+        // ~30% of viewport height — empirically enough to bring both into
+        // frame across phone aspect ratios. The grid then pans into view as
+        // construction proceeds. Pre-RC52 the cycle started at 0 (grid
+        // centered, printer off-screen above), so the user never saw the
+        // printer or stack — the cycle felt like it began mid-action.
+        // RC59: dropped 0.30 → 0.18 to bring the printer closer to the top
+        // edge of the visible "table" during Printing. RC52 picked 0.30
+        // empirically to ensure the printer body + page stack both rendered
+        // in-frame on small phones, but on real devices that landed the
+        // printer mid-canvas with a lot of empty wood-grain above it. 0.18
+        // pulls the printer body up to ~top quintile of the viewport,
+        // leaving roughly 70% of viewport height below for the stack +
+        // (after the new Panning stack-translate-and-rotate) the rotated
+        // stack to occupy before Panning hands off to grid view.
+        //
+        // RC79: the fixed 0.18*height nudge wasn't enough on tall posters /
+        // small viewports (360dp + 200% font review): the printer lives ABOVE
+        // the grid at canvas-y printerTopY, which goes strongly negative when
+        // the grid is taller than the viewport, so a fixed downward nudge
+        // couldn't pull the printer's top edge below the viewport top — the
+        // printer started off-screen. We now DERIVE the Printing-phase offset
+        // from the printer's actual position (hoisted into printerGeom): after
+        // the camera translate the printer top edge sits at screen-y
+        // (printerTopY + animY); we solve animY so that lands at a small margin
+        // (printerTopMargin) below the viewport top. Because the printer body
+        // (printerBodyH = printerWidth*0.55, printerWidth ≤ 0.85*width) is always
+        // shorter than the 300dp preview viewport, putting the top edge at a
+        // small margin keeps the WHOLE printer body in frame across viewport
+        // sizes. The southward pan is preserved: Panning still lerps from this
+        // (positive) start offset down to -panTarget (grid view), and Reset
+        // eases back up to it so the next cycle starts framed on the printer.
+        val printerTopY = printerGeom.first
+        // Small top margin so the printer reads as resting just below the top
+        // edge of the visible table rather than flush against it.
+        val printerTopMargin = boxSize.height * 0.05f
+        // animY that lands printerTopY at printerTopMargin (screen coords).
+        // printerTopY is ≤ -4f, so this is always positive (shifts content down,
+        // pulling the above-grid printer into frame). Fall back to the old fixed
+        // fraction only before the geometry is measured (printerTopY == 0f).
+        val printerVisibleOffset = if (printerTopY < 0f)
+            printerTopMargin - printerTopY
+        else
+            boxSize.height * 0.18f
+        val animY = if (!cycleEnabled) 0f else when (phase) {
+            AssemblyPhase.Printing -> printerVisibleOffset
+            AssemblyPhase.Panning -> {
+                // Animate from printer-view (positive offset) DOWN to
+                // grid-view (-panTarget). Same ease as before but bridging
+                // the new start point to the existing hold target.
+                val k = phaseT
+                val eased = if (k < 0.5f) 2f * k * k
+                    else 1f - (-2f * k + 2f) * (-2f * k + 2f) / 2f
+                printerVisibleOffset * (1f - eased) + (-panTarget) * eased
+            }
+            AssemblyPhase.Reset -> {
+                // Animate from grid-view (-panTarget) back to printer-view
+                // (printerVisibleOffset) so the next cycle starts where this
+                // one began. Linear is fine here — Reset is short.
+                -panTarget + (printerVisibleOffset - (-panTarget)) * phaseT
+            }
+            else -> -panTarget // Hold grid-view through Arranging..Pinning..Cutting.
+        }
+        val maxAbsX = boxSize.width * 1.5f
+        val maxAbsY = boxSize.height * 1.5f
+        val combinedY = (animY + userPanY.floatValue).coerceIn(-maxAbsY, maxAbsY)
+        val combinedX = userPanX.floatValue.coerceIn(-maxAbsX, maxAbsX)
+        if (cameraOffsetYpx.floatValue != combinedY) {
+            cameraOffsetYpx.floatValue = combinedY
+        }
+        if (cameraOffsetXpx.floatValue != combinedX) {
+            cameraOffsetXpx.floatValue = combinedX
+        }
+    }
+    val jiggleDurationMs = 600f
+    val jigglePhase = if (jiggledPane == null) 0f else {
+        val elapsed = (now - jiggleStartedAt).toFloat()
+        (elapsed / jiggleDurationMs).coerceIn(0f, 1f)
+    }
+    val jiggleAmp = if (jigglePhase >= 1f) 0f else (1f - jigglePhase)
+    val jiggleSwing = sin((jigglePhase * 4f * Math.PI).toFloat()) * jiggleAmp
+
+    var previewBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(viewModel.selectedImageUri) {
+        val uri = viewModel.selectedImageUri ?: return@LaunchedEffect
+        val bitmap = withContext(Dispatchers.IO) {
+            try {
+                // Phase H-P1.13: branch on SVG. Three-pronged detection
+                // (MIME → extension → magic-byte sniff) keeps us robust to
+                // providers that mis-report content-type. SVG renders into
+                // a 512px-target bitmap (preview-sized; PDF path renders
+                // fresh per tile at 300 DPI).
+                val resolver = context.contentResolver
+                val mime = resolver.getType(uri)?.lowercase()
+                val path = uri.toString().lowercase()
+                val mimeSaysSvg = mime != null && mime.startsWith("image/svg")
+                val pathSaysSvg = path.endsWith(".svg") || path.endsWith(".svgz")
+                val isSvg = if (mimeSaysSvg || pathSaysSvg) {
+                    true
+                } else {
+                    // Magic-byte sniff: read up to 256 bytes and look for
+                    // the standard XML/SVG markers. Keeps us safe against
+                    // octet-stream providers.
+                    val sniff = try {
+                        resolver.openInputStream(uri)?.use { input ->
+                            val buf = ByteArray(256)
+                            val n = input.read(buf)
+                            if (n <= 0) null else String(buf, 0, n, Charsets.UTF_8).trimStart()
+                        }
+                    } catch (_: Exception) {
+                        null
+                    }
+                    sniff != null && (
+                        sniff.startsWith("<?xml") ||
+                            sniff.startsWith("<svg") ||
+                            sniff.startsWith("<!DOCTYPE svg")
+                        )
+                }
+                viewModel.sourceIsSvg = isSvg
+                if (isSvg) {
+                    resolver.openInputStream(uri)?.use { input ->
+                        val svg = SVG.getFromInputStream(input)
+                        // Pick a render target: SVG intrinsic size if present,
+                        // else 1024 — gives the preview enough resolution for
+                        // the construction-preview Canvas. Cap to 1024 to keep
+                        // memory bounded; the live-preview canvas itself is
+                        // ~300dp tall, so we don't need more pixels than that.
+                        val intrinsicW = svg.documentWidth
+                        val intrinsicH = svg.documentHeight
+                        val targetMax = 1024
+                        val (w, h) = if (intrinsicW > 0f && intrinsicH > 0f) {
+                            val s = (targetMax / kotlin.math.max(intrinsicW, intrinsicH))
+                                .coerceAtMost(1f)
+                            (intrinsicW * s).toInt().coerceAtLeast(1) to
+                                (intrinsicH * s).toInt().coerceAtLeast(1)
+                        } else {
+                            // Edge case: SVG with no intrinsic dims (e.g. a
+                            // viewBox-only document). Render square.
+                            targetMax to targetMax
+                        }
+                        // Force the doc to render at our target size even if
+                        // it had no intrinsic dims.
+                        svg.setDocumentWidth(w.toFloat())
+                        svg.setDocumentHeight(h.toFloat())
+                        // RC34: pre-fill the bitmap with opaque white before
+                        // rendering the SVG. Most SVGs use transparent
+                        // backgrounds, so a freshly-allocated ARGB_8888
+                        // bitmap with no fill produced a near-blank thumbnail
+                        // when scaled down for the model-picker cards (and
+                        // the top-of-screen sample image disappeared on
+                        // dark surfaces). White matches the printed-poster
+                        // background and makes the SVG visible regardless
+                        // of theme.
+                        val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                        val canvas = AndroidCanvas(b)
+                        canvas.drawColor(android.graphics.Color.WHITE)
+                        svg.renderToCanvas(canvas)
+                        b
+                    }
+                } else {
+                    resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
+                }
+            } catch (_: Exception) {
+                null
+            }
+        }
+        previewBitmap = bitmap?.asImageBitmap()
+        // Phase H-P1.9: lift the source dims to the ViewModel so MainActivity
+        // can gate View/Save/Share on currentDpi < 150 without re-decoding.
+        bitmap?.let { viewModel.sourcePixelDimensions = it.width to it.height }
+        // RC69: publish the decoded bitmap so the low-DPI upgrade picker can
+        // render from the Scaffold body (DockedDrawer) instead of here.
+        viewModel.sourcePreviewBitmap = previewBitmap
+    }
+
+    // RC17: replaced procedural AGSL wood with a raster wood texture per
+    // user request ("replace procedurally generated table surface with a
+    // raster one"). The bitmap is decoded once and wrapped in a tiled
+    // BitmapShader so wood fills any viewport size without distortion.
+    // RC18: single wood image scaled to fit, no tile. RC17 used REPEAT
+    // tile mode which made multiple seam lines visible across the
+    // viewport (user: "background wood image is tiled. just use 1 wood
+    // image, all arranged pages and the printer should fit in the wood
+    // image (scale the wood image up to fit. its 4k so should still
+    // look sharp )"). The source bitmap is 1024×825 (downscaled from a
+    // 4608×3712 photograph); we draw it stretched to size + pan offset
+    // so the whole panable area gets ONE seamless wood field.
+    val woodBitmap = remember(context) {
+        android.graphics.BitmapFactory.decodeResource(
+            context.resources,
+            com.posterpdf.R.drawable.wood_table,
+        )
+    }
+    val woodImageBitmap = remember(woodBitmap) { woodBitmap.asImageBitmap() }
+    // H-P1.8: dot-matrix printer ink streak — AGSL, gated to API 33+; null on
+    // older devices (drawPrinter handles the fallback path). The RC3 redesign
+    // dropped the dust puff (no more "stack lands on desk" beat).
+    //
+    // RC80: `RuntimeShader` is API 33. Constructing it here used to put the
+    // class directly in PosterPreview's bytecode, so ART's verification of the
+    // PosterPreview method failed on pre-33 devices (NoClassDefFoundError →
+    // process crash) BEFORE the cycleEnabled (>=33) guard could run. We now
+    // build it via createPrinterInkShader() (a @RequiresApi(33) function in the
+    // separate PrinterInkShader class, loaded lazily only on the 33+ path) and
+    // hold the result as Any? so PosterPreview's own bytecode never names
+    // RuntimeShader. The actual draw goes through drawPrinterWithInk(), which
+    // does the RuntimeShader cast inside that same isolated class.
+    val inkShader: Any? = remember(cycleEnabled) {
+        if (cycleEnabled) createPrinterInkShader() else null
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            androidx.compose.ui.res.stringResource(R.string.preview_live_assembly_inline),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // RC3: gesture coverage extends to the WHOLE preview — table + panes +
+        // decorations + hand all pinch-zoom and pan together. The outermost Box
+        // holds the gestures + graphicsLayer; the inner Box draws the wood
+        // background INSIDE that transform so the table scales/pans with the
+        // panes (a fix for the user's "drag and pinch zoom affects the papers
+        // only" complaint).
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .onSizeChanged { boxSize = it }
+                // RC14: removed the outer detectTransformGestures + graphicsLayer
+                // pair (they scaled the *whole* viewport including its rounded
+                // frame, which the user read as "pinch is resizing the viewport").
+                // Pinch + drag are now handled on the inner Canvas-wrapping Box
+                // via Modifier.scrollable + a separate pointerInput, scaling the
+                // canvas content while the viewport stays fixed.
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { rawOffset ->
+                        hapt.tap()
+                        // RC14: tap math is now identity — no graphicsLayer
+                        // transform to invert, since the outer pan/zoom was
+                        // removed. Inner canvas zoom (userZoom) doesn't affect
+                        // tap hit-testing because pane bounds are computed in
+                        // pre-zoom canvas coords, matching where the user
+                        // visually sees the panes inside the (un-clipped)
+                        // viewport rect.
+                        val cx = rawOffset.x
+                        val cy = rawOffset.y
+                        val hit = paneBounds.firstOrNull { p ->
+                            cx >= p.left && cx <= p.left + p.width &&
+                                cy >= p.top && cy <= p.top + p.height
+                        }
+                        if (hit != null) {
+                            jiggledPane = hit.row to hit.col
+                            jiggleStartedAt = System.currentTimeMillis()
+                        }
+                    })
+                }
+                // RC14: removed the outer graphicsLayer that applied
+                // scaleX/scaleY = zoom and translationX/Y = pan. Those came
+                // from the detectTransformGestures handler we just deleted;
+                // their job is now done by userZoom on the inner Canvas
+                // graphicsLayer + userPanY on the camera offset state.
+                .clip(RoundedCornerShape(24.dp))
+                .drawWithCache {
+                    // RC17: wood texture now draws with the SAME camera offset
+                    // and zoom that the inner Canvas content applies, so the
+                    // table grain and the pages translate / scale together.
+                    // Pre-RC17 the wood used `iOriginY = -cameraOffsetYpx`
+                    // (opposite direction) and ignored userZoom entirely,
+                    // which the user read as "panning moves the table in the
+                    // opposite direction of the papers" + "pinch zoom doesn't
+                    // enlarge the grain."
+                    onDrawBehind {
+                        val zoom = userZoom.floatValue
+                        val tx = cameraOffsetXpx.floatValue
+                        val ty = cameraOffsetYpx.floatValue
+                        // RC18: draw a SINGLE stretched copy of the 1024×825
+                        // wood photo across a frame larger than the viewport,
+                        // instead of tiling. Tile mode showed seam lines at
+                        // every repeat and the user wanted "1 wood image, all
+                        // arranged pages and the printer should fit in the
+                        // wood image (scale the wood image up to fit. its
+                        // 4k so should still look sharp)." Source bitmap is
+                        // already a real photograph, so a 4× upscale to fill
+                        // the pan area is well within its detail budget.
+                        scale(zoom, pivot = Offset(size.width / 2f, size.height / 2f)) {
+                            translate(tx, ty) {
+                                val pad = maxOf(size.width, size.height)
+                                val frameW = (size.width + pad * 2f).toInt()
+                                val frameH = (size.height + pad * 2f).toInt()
+                                drawImage(
+                                    image = woodImageBitmap,
+                                    srcOffset = androidx.compose.ui.unit.IntOffset.Zero,
+                                    srcSize = androidx.compose.ui.unit.IntSize(
+                                        woodImageBitmap.width,
+                                        woodImageBitmap.height,
+                                    ),
+                                    dstOffset = androidx.compose.ui.unit.IntOffset(
+                                        x = -pad.toInt(),
+                                        y = -pad.toInt(),
+                                    ),
+                                    dstSize = androidx.compose.ui.unit.IntSize(frameW, frameH),
+                                )
+                            }
+                        }
+                    }
+                }
+                .shadow(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    // RC15: consolidated pan + pinch into ONE detectTransformGestures
+                    // handler. RC14's scrollable + separate transform pointerInput
+                    // didn't actually pan (user report: "viewport is still
+                    // draggable; can't pan inside") — they were probably contending
+                    // over the gesture handle. detectTransformGestures fires for
+                    // both 1-finger drag (zoomChange = 1, panChange = movement)
+                    // and 2-finger pinch (both nonzero), and consumes positions
+                    // internally so the parent Column.verticalScroll doesn't see
+                    // the gesture once we're past touchSlop.
+                    .pointerInput(Unit) {
+                        detectTransformGestures(panZoomLock = false) { _, panChange, zoomChange, _ ->
+                            // RC17: 2D pan + zoom. RC15 handler only used
+                            // panChange.y; user wanted left/right too.
+                            userPanX.floatValue += panChange.x
+                            userPanY.floatValue += panChange.y
+                            userZoom.floatValue = (userZoom.floatValue * zoomChange)
+                                .coerceIn(0.4f, 3f)
+                        }
+                    },
+            ) {
+            val paneInfo = viewModel.getPaneCount()
+            // RC5: clipToBounds prevents the camera-pan transform from
+            // letting page content (top 2 rows) bleed above the viewport.
+            // Without it, the cameraOff translate pushes content up and
+            // Canvas itself doesn\'t auto-clip — only the parent Compose
+            // layout would, but the way this nests, top overflow was
+            // visible to the user.
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clipToBounds()
+                    // RC14: pinch-to-zoom scales canvas content (paper/printer/
+                    // assembly props) inside the fixed viewport. Applied via
+                    // graphicsLayer on the Canvas itself so the viewport's
+                    // bounds and clip stay fixed.
+                    .graphicsLayer {
+                        scaleX = userZoom.floatValue
+                        scaleY = userZoom.floatValue
+                    },
+            ) {
+                if (paneInfo == null) {
+                    paneBounds.clear()
+                    return@Canvas
+                }
+                paneBounds.clear()
+
+                val padding = 28f
+                val gap = 18f
+                val availableW = (size.width - 2 * padding).coerceAtLeast(1f)
+                val availableH = (size.height - 2 * padding).coerceAtLeast(1f)
+                val pw = viewModel.posterWidth.toDoubleOrNull() ?: 1.0
+                val ph = viewModel.posterHeight.toDoubleOrNull() ?: 1.0
+                val paperW = viewModel.currentPaperWidthInches()
+                val paperH = viewModel.currentPaperHeightInches()
+                val m = viewModel.margin.toDoubleOrNull() ?: 0.0
+                val o = viewModel.overlap.toDoubleOrNull() ?: 0.0
+
+                val layout = com.posterpdf.ui.components.preview.PaneGeometry.compute(
+                    posterW = pw, posterH = ph,
+                    paperW = paperW, paperH = paperH,
+                    margin = m, overlap = o,
+                    availableW = availableW, availableH = availableH,
+                    interPaneGap = gap,
+                )
+                val rows = layout.rows
+                val cols = layout.cols
+                val marginPx = layout.marginPx
+                val overlapPx = layout.overlapPx
+
+                // RC20.2: tighten step closes BOTH the inter-page gap AND the
+                // page-margin gutters AND the overlap zone — so after Tightening
+                // the cut content rects butt up with their overlap zones occupying
+                // the same screen space (one strip, not two adjacent stripes).
+                // Pre-RC20.2 the step was just `gap`, which left 2*marginPx of
+                // empty paper visible between adjacent printable rects ("visible
+                // gaps") and made each pair of overlap zones render as a doubled
+                // strip ("doubled overlaps after closing gaps"). Now the seams
+                // align with where the tape strip math expects them.
+                val tightenStep = gap + 2f * marginPx + overlapPx
+
+                val src = previewBitmap
+
+                val outlinePx = when (viewModel.outlineThickness) {
+                    "Thin" -> 1.2f
+                    "Heavy" -> 3.5f
+                    else -> 2.2f
+                }
+                val outlineEffect = when (viewModel.outlineStyle) {
+                    "Dashed" -> PathEffect.dashPathEffect(floatArrayOf(12f, 7f), 0f)
+                    "Dotted" -> PathEffect.dashPathEffect(floatArrayOf(2f, 7f), 0f)
+                    else -> null
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // RC3 construction-arc geometry. Computed once per Canvas frame
+                // and read by every pane below + the prop draws further down.
+                //  stack center  = where pages collapse onto the desk during
+                //                  Panning + Arranging-start.
+                //  printer slot  = where pages emerge during Printing / fall back
+                //                  during Reset.
+                // API <33 devices skip every per-phase offset and render the static
+                // assembled output (Phase-C source of truth).
+                // ─────────────────────────────────────────────────────────────
+                val printableWpx = layout.printableW.toFloat() * layout.scale
+                val printableHpx = layout.printableH.toFloat() * layout.scale
+                val assembledBlockW = cols * (printableWpx - overlapPx) + overlapPx
+                val assembledBlockH = rows * (printableHpx - overlapPx) + overlapPx
+                // RC16: real printers feed paper in PORTRAIT regardless of
+                // the eventual orientation, so the printer body is sized to
+                // the SHORTER edge of the paper × ~1.15 (just enough wider
+                // than the page to cradle the feed slot). The user's
+                // mental model: "slightly wider than 1 sheet of paper in
+                // portrait format. Landscape sheets exit the printer in
+                // portrait and rotate 90° CCW as they hit the table."
+                val portraitEdgePx = minOf(printableWpx, printableHpx)
+                val printerWidth = (portraitEdgePx * 1.15f)
+                    .coerceIn(size.width * 0.35f, size.width * 0.85f)
+                val printerBodyH = printerWidth * 0.55f
+                // RC15: position printer's bottom edge just above the pages
+                // so the printer body sits ABOVE the top row, not on top of
+                // it. RC14 used printerTopY = -printerWidth*0.10 which put
+                // the bottom edge well below layout.layoutTop and overlapped
+                // the assembled-stack area (user report: "printer overlaps
+                // the top row of pages"). 6dp gap below the body keeps the
+                // paper-out slot clearly separated from the page rectangle.
+                val printerTopY = (layout.layoutTop - printerBodyH - 6f).coerceAtMost(-4f)
+                val printerSlotY = printerTopY + printerBodyH * 0.71f
+                val printerSlotX = size.width / 2f
+                val stackCenterX = layout.layoutLeft + assembledBlockW / 2f
+                val stackCenterY = layout.layoutTop + assembledBlockH / 2f
+                val cameraOff = cameraOffsetYpx.floatValue
+
+                // RC3: scissors trace the assembled block's PERIMETER during
+                // Cutting (top → right → bottom → left). Each edge gets ~25% of
+                // the phase. As the scissors pass each edge, that edge's white
+                // border alpha fades to 0.
+                fun edgeAlpha(start: Float, end: Float): Float {
+                    if (phase != AssemblyPhase.Cutting) {
+                        return when {
+                            phase.ordinal() <= AssemblyPhase.Arranging.ordinal() -> 1f
+                            else -> 0f
+                        }
+                    }
+                    return (1f - ((phaseT - start) / (end - start))).coerceIn(0f, 1f)
+                }
+                val borderTopAlpha    = edgeAlpha(0.00f, 0.25f)
+                val borderRightAlpha  = edgeAlpha(0.25f, 0.50f)
+                val borderBottomAlpha = edgeAlpha(0.50f, 0.75f)
+                val borderLeftAlpha   = edgeAlpha(0.75f, 1.00f)
+
+                // RC17: 2D camera translate. Wood (drawn in the outer
+                // drawWithCache) applies the SAME translation, so wood
+                // and content move together and now in the same direction.
+                val cameraOffX = cameraOffsetXpx.floatValue
+                withTransform({
+                    if (cameraOff != 0f || cameraOffX != 0f) translate(cameraOffX, cameraOff)
+                }) {
+
+                for (pane in layout.panes) {
+                    val r = pane.row
+                    val c = pane.col
+                    val dx = pane.pageLeft
+                    val dy = pane.pageTop
+                    val pageW = pane.pageWidth
+                    val pageH = pane.pageHeight
+
+                    // Tap-bounds (canvas coords) — include cameraOff so taps land
+                    // on the visually-displayed pane regardless of camera-pan.
+                    paneBounds.add(PaneBounds(r, c, dx, dy + cameraOff, pageW, pageH))
+
+                    val isJiggled = jiggledPane?.let { it.first == r && it.second == c } == true
+                    val paneJiggleAngle = if (isJiggled) jiggleSwing * 4.5f else 0f
+                    val paneJiggleDx = if (isJiggled) jiggleSwing * 2.5f else 0f
+                    val paneJiggleDy = if (isJiggled) -jiggleAmp * 1.8f else 0f
+                    val paneCenter = Offset(dx + pageW / 2f, dy + pageH / 2f)
+
+                    val paneIndex = r * cols + c
+                    val paneCount = (rows * cols).coerceAtLeast(1)
+
+                    // Pane home stays at (dx, dy); printer-emerge / arrange / tighten
+                    // / etc are expressed as offsets from home.
+                    val toPrinterDx = (printerSlotX - pageW / 2f) - dx
+                    val toPrinterDy = (printerSlotY - pageH / 2f) - dy
+                    // Gap-closing offset for Tightening: shift each pane toward
+                    // layout center by tightenStep (gap + margin gutters + overlap).
+                    val tightenDx = -((c - (cols - 1) / 2f) * tightenStep)
+                    val tightenDy = -((r - (rows - 1) / 2f) * tightenStep)
+
+                    // Per-phase pane offset relative to home.
+                    var paneOffX: Float
+                    var paneOffY: Float
+                    var paneAlpha = 1f
+                    // RC23: landscape paper exits the (always-portrait) printer
+                    // body in portrait orientation and rotates 90° CCW as it
+                    // lands on the table. paneRotationDeg holds the current
+                    // rotation around the pane's displayed centre — non-zero
+                    // only during Printing for landscape pages, lerping from
+                    // -90° at emergeT=0 down to 0° at emergeT=1.
+                    val isLandscapePaper = pageW > pageH
+                    var paneRotationDeg = 0f
+
+                    if (!cycleEnabled) {
+                        paneOffX = 0f
+                        paneOffY = 0f
+                    } else when (phase) {
+                        AssemblyPhase.Printing -> {
+                            // Stagger each pane by 200ms; per-pane local progress 0..1
+                            // over a 1.8s window. Pages slide DOWN out of the slot.
+                            val staggerStart = paneIndex * 0.20f
+                            val tInPhase = cycleSeconds.floatValue - staggerStart
+                            val emergeT = (tInPhase / 1.8f).coerceIn(0f, 1f)
+                            val jitterX = sin(tInPhase.toDouble() * Math.PI * 8.0)
+                                .toFloat() * 1.6f * (1f - emergeT)
+                            // RC23/RC59: landscape paper holds at -90° (portrait
+                            // orientation) throughout Printing — pages stack up
+                            // in the slot in their physical printer-feed
+                            // orientation, NOT pre-rotated. The "rotate the
+                            // whole stack" moment now happens in Panning (see
+                            // below) where every pane rotates together with no
+                            // stagger, so the user sees the printer print a
+                            // portrait stack and only THEN watches it rotate
+                            // 90° as a unit. Pre-RC59 each pane lerped from
+                            // -90° to 0° during its own emerge window, which
+                            // looked like "pages spinning out one by one".
+                            if (isLandscapePaper) {
+                                paneRotationDeg = -90f
+                            }
+                            // RC21: invert the stack-offset direction so the
+                            // most-recently-printed pane (paneIndex = N-1)
+                            // sits AT the slot and earlier panes recede
+                            // BEHIND it. Combined with the row-major draw
+                            // order (later paneIndex drawn on top), this
+                            // matches a real printer pile: newest on top,
+                            // visible flush at the slot, oldest peeking out
+                            // from the back. Pre-RC21 the offset was
+                            // `paneIndex * 6f`, which inverted the visual
+                            // metaphor — newest pane was furthest from the
+                            // slot.
+                            // RC23: paneIndex * 6f (NOT inverted). Each new page
+                            // emerging from the printer lands BELOW the previous
+                            // ones (Y increases downward on screen). Drawing in
+                            // row-major order, the LAST pane (paneIndex = N-1,
+                            // = newest = bottom-right of the poster) draws on
+                            // TOP in z-order. So pane[N-1] is at the LOWEST
+                            // screen position AND visually on top — matching a
+                            // physical printer pile where each new sheet falls
+                            // forward of the previous and partially obscures it.
+                            // RC21 inverted this to (N-1-i)*6 which put the
+                            // newest at the slot (closest to printer) and was
+                            // visually wrong per RC22 user testing.
+                            val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
+                                paneIndex * 6f
+                            val easeOut = 1f - (1f - emergeT) * (1f - emergeT)
+                            paneOffX = toPrinterDx + jitterX
+                            paneOffY = toPrinterDy + (emergedY - toPrinterDy) * easeOut
+                            paneAlpha = if (emergeT <= 0f) 0f else 1f
+                        }
+
+                        AssemblyPhase.Panning -> {
+                            // Panes hold at the printer-emerged position; the CAMERA
+                            // moves around them (cameraOff handled by outer transform).
+                            // RC21: invert the stack-offset direction so the
+                            // most-recently-printed pane (paneIndex = N-1)
+                            // sits AT the slot and earlier panes recede
+                            // BEHIND it. Combined with the row-major draw
+                            // order (later paneIndex drawn on top), this
+                            // matches a real printer pile: newest on top,
+                            // visible flush at the slot, oldest peeking out
+                            // from the back. Pre-RC21 the offset was
+                            // `paneIndex * 6f`, which inverted the visual
+                            // metaphor — newest pane was furthest from the
+                            // slot.
+                            // RC23: paneIndex * 6f (NOT inverted). Each new page
+                            // emerging from the printer lands BELOW the previous
+                            // ones (Y increases downward on screen). Drawing in
+                            // row-major order, the LAST pane (paneIndex = N-1,
+                            // = newest = bottom-right of the poster) draws on
+                            // TOP in z-order. So pane[N-1] is at the LOWEST
+                            // screen position AND visually on top — matching a
+                            // physical printer pile where each new sheet falls
+                            // forward of the previous and partially obscures it.
+                            // RC21 inverted this to (N-1-i)*6 which put the
+                            // newest at the slot (closest to printer) and was
+                            // visually wrong per RC22 user testing.
+                            val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
+                                paneIndex * 6f
+
+                            // RC59: split the 4.5s Panning budget into two
+                            // sub-stages for landscape posters:
+                            //   moveT (0..0.4):  whole stack translates DOWN
+                            //                    (out of the printer tray)
+                            //   rotT  (0.4..1):  whole stack rotates 90° CCW
+                            //                    (-90° → 0°)
+                            // No stagger across panes — the entire stack moves
+                            // and rotates together so the user sees a unified
+                            // "pick up the stack and turn it" gesture instead
+                            // of pages spinning individually. Portrait posters
+                            // skip this (they're already in final orientation).
+                            val moveT = (phaseT / 0.4f).coerceIn(0f, 1f)
+                            val rotT = ((phaseT - 0.4f) / 0.6f).coerceIn(0f, 1f)
+                            val moveDy = if (isLandscapePaper)
+                                printerBodyH * 0.40f * moveT else 0f
+                            paneOffX = toPrinterDx
+                            paneOffY = emergedY + moveDy
+                            if (isLandscapePaper) {
+                                paneRotationDeg = -90f * (1f - rotT)
+                            }
+                        }
+
+                        AssemblyPhase.Arranging -> {
+                            // Hand picks panes one at a time. Each pane is staggered
+                            // across the phase; before its slice it stays at the
+                            // print-stack pile, after its slice it sits at home (with
+                            // white borders intact — pre-cut).
+                            // RC21: invert the stack-offset direction so the
+                            // most-recently-printed pane (paneIndex = N-1)
+                            // sits AT the slot and earlier panes recede
+                            // BEHIND it. Combined with the row-major draw
+                            // order (later paneIndex drawn on top), this
+                            // matches a real printer pile: newest on top,
+                            // visible flush at the slot, oldest peeking out
+                            // from the back. Pre-RC21 the offset was
+                            // `paneIndex * 6f`, which inverted the visual
+                            // metaphor — newest pane was furthest from the
+                            // slot.
+                            // RC23: paneIndex * 6f (NOT inverted). Each new page
+                            // emerging from the printer lands BELOW the previous
+                            // ones (Y increases downward on screen). Drawing in
+                            // row-major order, the LAST pane (paneIndex = N-1,
+                            // = newest = bottom-right of the poster) draws on
+                            // TOP in z-order. So pane[N-1] is at the LOWEST
+                            // screen position AND visually on top — matching a
+                            // physical printer pile where each new sheet falls
+                            // forward of the previous and partially obscures it.
+                            // RC21 inverted this to (N-1-i)*6 which put the
+                            // newest at the slot (closest to printer) and was
+                            // visually wrong per RC22 user testing.
+                            val emergedY = toPrinterDy + (printerBodyH * 0.55f) +
+                                paneIndex * 6f
+                            val slice = 1f / paneCount
+                            val sliceStart = paneIndex * slice
+                            val k = ((phaseT - sliceStart) / slice).coerceIn(0f, 1f)
+                            // Smooth ease-in-out for the lift-and-place arc.
+                            val eased = if (k < 0.5f) 2f * k * k
+                                else 1f - (-2f * k + 2f) * (-2f * k + 2f) / 2f
+                            paneOffX = toPrinterDx + (0f - toPrinterDx) * eased
+                            paneOffY = emergedY + (0f - emergedY) * eased
+                        }
+
+                        AssemblyPhase.Cutting -> {
+                            // Holds at home; scissors trace the perimeter and the
+                            // page borders fade per edge (handled in drawPaperFill
+                            // path below via per-edge alpha rects).
+                            paneOffX = 0f
+                            paneOffY = 0f
+                        }
+
+                        AssemblyPhase.Tightening -> {
+                            // Lerp from home → tightened-home (gaps removed).
+                            val springT = 1f - (1f - phaseT) * (1f - phaseT) * (1f - phaseT)
+                            paneOffX = tightenDx * springT
+                            paneOffY = tightenDy * springT
+                        }
+
+                        AssemblyPhase.Taping,
+                        AssemblyPhase.Pinning -> {
+                            // Hold at tightened-home through tape + pin.
+                            paneOffX = tightenDx
+                            paneOffY = tightenDy
+                        }
+
+                        AssemblyPhase.Reset -> {
+                            // Brief hold then quick fade-out.
+                            paneOffX = tightenDx
+                            paneOffY = tightenDy
+                            paneAlpha = (1f - phaseT).coerceIn(0f, 1f)
+                        }
+                    }
+
+                    if (paneAlpha <= 0.01f) continue
+
+                    // Margin-guide alpha — visible while panes have white borders,
+                    // gone once the borders are cut.
+                    val marginAlpha = if (!cycleEnabled) 1f else when (phase) {
+                        AssemblyPhase.Cutting ->
+                            (borderTopAlpha + borderRightAlpha +
+                                borderBottomAlpha + borderLeftAlpha) / 4f
+                        AssemblyPhase.Tightening,
+                        AssemblyPhase.Taping,
+                        AssemblyPhase.Pinning,
+                        AssemblyPhase.Reset -> 0f
+                        else -> 1f
+                    }
+
+                    withTransform({
+                        if (isJiggled) {
+                            rotate(paneJiggleAngle, pivot = paneCenter)
+                            translate(paneJiggleDx, paneJiggleDy)
+                        }
+                        if (paneOffX != 0f || paneOffY != 0f) translate(paneOffX, paneOffY)
+                        // RC23: rotation is applied AFTER the translate so the
+                        // pivot in the post-translate coord system equals the
+                        // pane's displayed centre (paneCenter is in original
+                        // coords; in the translated frame it's at the same
+                        // offset relative to current origin, which is exactly
+                        // the displayed centre once the offset has shifted us).
+                        if (paneRotationDeg != 0f) {
+                            rotate(paneRotationDeg, pivot = paneCenter)
+                        }
+                    }) {
+                        // RC3: paper "border" = the margin band around the printable
+                        // area. Before Cutting, full page is paper. During Cutting,
+                        // each edge fades independently. After Cutting, only the
+                        // printable rect remains as paper.
+                        // RC5: leftover paper from imperfect grid-fit. When the
+                        // poster image doesn't divide evenly into the page grid,
+                        // the rightmost column / bottom row tiles have unused
+                        // printable area on their trailing edges. We draw that
+                        // band separately so we can fade it with the same
+                        // borderRightAlpha / borderBottomAlpha that the page
+                        // margins use — i.e. the scissors visibly trim it
+                        // during the Cutting phase, then it's gone afterward.
+                        val leftoverRight = pane.imageDstWidth - pane.imageContentWidth
+                        val leftoverBottom = pane.imageDstHeight - pane.imageContentHeight
+                        val paperColor = Color(0xFFFAFAF7)
+                        val showFullPaper = !cycleEnabled ||
+                            phase.ordinal() <= AssemblyPhase.Arranging.ordinal()
+                        if (showFullPaper) {
+                            drawPaperFill(dx, dy, pageW, pageH, paperColor = paperColor)
+                        } else if (phase == AssemblyPhase.Cutting) {
+                            // Image-content rect always at full alpha.
+                            drawPaperFill(
+                                pageLeft = pane.imageDstLeft,
+                                pageTop = pane.imageDstTop,
+                                pageWidth = pane.imageContentWidth,
+                                pageHeight = pane.imageContentHeight,
+                                paperColor = paperColor,
+                            )
+                            // RC6 — torn paper effect. tearProgress is the
+                            // *inverse* of edgeAlpha so the band tears as the
+                            // scissors pass: 0=intact, 1=fully torn and fallen.
+                            val rightTear = 1f - borderRightAlpha
+                            val bottomTear = 1f - borderBottomAlpha
+                            if (leftoverRight > 0f) {
+                                drawTearingBand(
+                                    bandLeft = pane.imageDstLeft + pane.imageContentWidth,
+                                    bandTop = pane.imageDstTop,
+                                    bandWidth = leftoverRight,
+                                    bandHeight = pane.imageDstHeight,
+                                    tearProgress = rightTear,
+                                    isVertical = true,
+                                    seed = r * cols + c,
+                                )
+                            }
+                            if (leftoverBottom > 0f) {
+                                drawTearingBand(
+                                    bandLeft = pane.imageDstLeft,
+                                    bandTop = pane.imageDstTop + pane.imageContentHeight,
+                                    bandWidth = pane.imageContentWidth,
+                                    bandHeight = leftoverBottom,
+                                    tearProgress = bottomTear,
+                                    isVertical = false,
+                                    seed = (r * cols + c) * 31 + 7,
+                                )
+                            }
+                            drawBorderBands(
+                                pageLeft = dx, pageTop = dy,
+                                pageWidth = pageW, pageHeight = pageH,
+                                marginPx = marginPx,
+                                topAlpha = borderTopAlpha,
+                                rightAlpha = borderRightAlpha,
+                                bottomAlpha = borderBottomAlpha,
+                                leftAlpha = borderLeftAlpha,
+                            )
+                        } else {
+                            // Tightening / Taping / Pinning / Reset: only the
+                            // image-content rect remains as paper — leftover
+                            // is gone (consistent with the cut having happened).
+                            drawPaperFill(
+                                pageLeft = pane.imageDstLeft,
+                                pageTop = pane.imageDstTop,
+                                pageWidth = pane.imageContentWidth,
+                                pageHeight = pane.imageContentHeight,
+                                paperColor = paperColor,
+                            )
+                        }
+
+                        if (src != null) {
+                            val srcW = src.width
+                            val srcH = src.height
+                            val paneSrcX = (pane.sourceFracLeft * srcW).toInt().coerceIn(0, srcW - 1)
+                            val paneSrcY = (pane.sourceFracTop * srcH).toInt().coerceIn(0, srcH - 1)
+                            val paneSrcTileW = (pane.sourceFracWidth * srcW).toInt().coerceAtLeast(1).coerceAtMost(srcW - paneSrcX)
+                            val paneSrcTileH = (pane.sourceFracHeight * srcH).toInt().coerceAtLeast(1).coerceAtMost(srcH - paneSrcY)
+                            drawPaneImage(
+                                src = src,
+                                imageDstLeft = pane.imageDstLeft, imageDstTop = pane.imageDstTop,
+                                imageContentWidth = pane.imageContentWidth, imageContentHeight = pane.imageContentHeight,
+                                srcX = paneSrcX, srcY = paneSrcY,
+                                srcTileW = paneSrcTileW, srcTileH = paneSrcTileH,
+                            )
+                        }
+                        // Overlap zones now sit INSIDE the printable image area, not at the page edge —
+                        // matching where the seam will be after the user trims along the cut marks.
+                        drawPaneOverlapZones(
+                            rectLeft = pane.imageDstLeft, rectTop = pane.imageDstTop,
+                            rectWidth = pane.imageDstWidth, rectHeight = pane.imageDstHeight,
+                            overlapPx = overlapPx,
+                            row = r, col = c, rows = rows, cols = cols,
+                        )
+                        drawPaneMarginGuide(
+                            dx, dy, pageW, pageH, marginPx,
+                            alpha = marginAlpha,
+                            row = r, col = c, rows = rows, cols = cols,
+                        )
+                        drawCutLineOrOutline(
+                            viewModel,
+                            pane.imageDstLeft, pane.imageDstTop,
+                            pane.imageDstWidth, pane.imageDstHeight,
+                            overlapPx, outlinePx, outlineEffect,
+                        )
+                        drawPaneLabel(
+                            viewModel,
+                            pane.imageDstLeft, pane.imageDstTop,
+                            pane.imageDstWidth, pane.imageDstHeight,
+                            r, c,
+                        )
+                    }
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // RC9 — overlap fold animation. After all panes are drawn,
+                // during Taping (and held through Pinning/Reset-fadeout),
+                // each LEFT pane's right-edge overlap zone is redrawn ON
+                // TOP of the right pane's left-edge overlap with a wipe
+                // animation pivoted on the seam — physically: the LEFT
+                // page is lifted, its overlap flap folds down ON TOP of
+                // the RIGHT page's overlap, and the tape strip drawn in
+                // the next pass holds them together.
+                //
+                // Same scaffolding for horizontal seams (between rows).
+                // ─────────────────────────────────────────────────────────────
+                if (cycleEnabled && overlapPx > 0.5f &&
+                    phase.ordinal() >= AssemblyPhase.Taping.ordinal()) {
+                    val foldT = when (phase) {
+                        AssemblyPhase.Taping -> (phaseT * 3f).coerceIn(0f, 1f)
+                        AssemblyPhase.Reset -> (1f - phaseT).coerceIn(0f, 1f)
+                        else -> 1f
+                    }
+                    if (foldT > 0.001f) {
+                        val foldColor = Color(0xFFFF6F00).copy(alpha = 0.65f * foldT)
+                        // Vertical seams (between columns) — left pane's right overlap.
+                        for (pane in layout.panes) {
+                            val r = pane.row
+                            val c = pane.col
+                            if (c >= cols - 1) continue
+                            val tightenDx = -((c - (cols - 1) / 2f) * tightenStep)
+                            val tightenDy = -((r - (rows - 1) / 2f) * tightenStep)
+                            val stripLeft = pane.imageDstLeft + tightenDx + pane.imageContentWidth - overlapPx
+                            val stripTop = pane.imageDstTop + tightenDy
+                            val pivotX = stripLeft
+                            val pivotY = stripTop + pane.imageContentHeight / 2f
+                            withTransform({
+                                // Wipe: scale X from 0 to foldT, pivoted on the seam
+                                // (left edge of strip). Tilt up to -6° at start so the
+                                // strip reads as "lifted off the page" rather than
+                                // simply growing in width.
+                                rotate(
+                                    degrees = -6f * (1f - foldT),
+                                    pivot = Offset(pivotX, pivotY),
+                                )
+                                scale(
+                                    scaleX = foldT,
+                                    scaleY = 1f,
+                                    pivot = Offset(pivotX, pivotY),
+                                )
+                            }) {
+                                drawRect(
+                                    color = foldColor,
+                                    topLeft = Offset(stripLeft, stripTop),
+                                    size = Size(overlapPx, pane.imageContentHeight),
+                                )
+                            }
+                        }
+                        // Horizontal seams (between rows) — top pane's bottom overlap.
+                        for (pane in layout.panes) {
+                            val r = pane.row
+                            val c = pane.col
+                            if (r >= rows - 1) continue
+                            val tightenDx = -((c - (cols - 1) / 2f) * tightenStep)
+                            val tightenDy = -((r - (rows - 1) / 2f) * tightenStep)
+                            val stripLeft = pane.imageDstLeft + tightenDx
+                            val stripTop = pane.imageDstTop + tightenDy + pane.imageContentHeight - overlapPx
+                            val pivotX = stripLeft + pane.imageContentWidth / 2f
+                            val pivotY = stripTop
+                            withTransform({
+                                rotate(
+                                    degrees = -6f * (1f - foldT),
+                                    pivot = Offset(pivotX, pivotY),
+                                )
+                                scale(
+                                    scaleX = 1f,
+                                    scaleY = foldT,
+                                    pivot = Offset(pivotX, pivotY),
+                                )
+                            }) {
+                                drawRect(
+                                    color = foldColor,
+                                    topLeft = Offset(stripLeft, stripTop),
+                                    size = Size(pane.imageContentWidth, overlapPx),
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // RC3 props — printer, scissors (perimeter trace), hand 👌,
+                // tape, thumb tacks. All gated to API 33+ (cycleEnabled).
+                // ─────────────────────────────────────────────────────────────
+                if (cycleEnabled) {
+                    // RC14: printer now stays at full opacity across every
+                    // assembly phase. Pre-RC14 it faded out during Panning
+                    // and was invisible through the cut/tape/pin sequence,
+                    // which the user read as "the printer disappeared off
+                    // the table." Keeping it always visible matches the
+                    // user's mental model — a real printer doesn't vanish
+                    // mid-assembly.
+                    val printerAppearT = 1f
+                    // RC15: clamp inkScanT to 0 when not in the Printing
+                    // phase so the print-head stops moving once all pages
+                    // have emerged. Pre-RC15 the scan kept oscillating
+                    // through the entire animation, which read as a
+                    // printer that "keeps printing forever."
+                    val inkScanT = if (phase == AssemblyPhase.Printing) {
+                        (cycleSeconds.floatValue / 1.6f) % 1f
+                    } else 0f
+                    if (printerAppearT > 0f) {
+                        // RC80: route through drawPrinterWithInk (separate
+                        // class) so the RuntimeShader cast / drawPrinter call
+                        // never appears in PosterPreview's bytecode. inkShader
+                        // is Any? here; the helper casts it to RuntimeShader
+                        // only on API 33+.
+                        drawPrinterWithInk(
+                            cx = printerSlotX,
+                            topY = printerTopY,
+                            width = printerWidth,
+                            appearT = printerAppearT,
+                            inkScanT = inkScanT,
+                            inkShader = inkShader,
+                        )
+                    }
+
+                    // Tightened assembled-rect (post-Tightening), reused by
+                    // Taping/Pinning + the hand draws below.
+                    //
+                    // RC10: subtract the trailing-edge "leftover paper" that
+                    // gets torn away during Cutting. Pre-RC10 the assembled
+                    // rect spanned the full printable union, so thumb tacks
+                    // landed in empty space (the area where leftover paper
+                    // used to be) instead of in the corners of the actual
+                    // image. Same fix for tape strips that hit the bottom
+                    // and right edges.
+                    val rightLeftover = layout.panes
+                        .firstOrNull { it.col == cols - 1 }
+                        ?.let { it.imageDstWidth - it.imageContentWidth } ?: 0f
+                    val bottomLeftover = layout.panes
+                        .firstOrNull { it.row == rows - 1 }
+                        ?.let { it.imageDstHeight - it.imageContentHeight } ?: 0f
+                    val tCenterX = stackCenterX
+                    val tCenterY = stackCenterY
+                    // RC22: tLeft/tTop must equal pane[0].imageContent's
+                    // POST-TIGHTEN top-left corner, not stackCenterX-based.
+                    // The post-tighten left edge of pane[0]'s content is
+                    //   layout.layoutLeft + marginPx + (cols-1)/2 * tightenStep
+                    // (each pane shifts by tightenDx = -(c-(cols-1)/2)*tightenStep,
+                    // so pane[0] shifts +(cols-1)/2*tightenStep to the right).
+                    // Pre-RC22 we used stackCenterX − assembledBlockW/2 which
+                    // was off by `marginPx + (cols-1)/2 * tightenStep`, putting
+                    // tape strips and thumbtacks systematically left/up of the
+                    // actual seam/corner positions.
+                    val tightenedW = assembledBlockW - rightLeftover
+                    val tightenedH = assembledBlockH - bottomLeftover
+                    val tLeft = layout.layoutLeft + marginPx + (cols - 1) / 2f * tightenStep
+                    val tTop = layout.layoutTop + marginPx + (rows - 1) / 2f * tightenStep
+                    val tRight = tLeft + tightenedW
+                    val tBottom = tTop + tightenedH
+
+                    // ── Hand 👌 — drives Arranging, Tightening, Taping, Pinning.
+                    // RC5: bumped 0.45 → 0.65 of the smaller printable axis so
+                    // the hand reads as a real human-scale instrument rather
+                    // than a cursor. Still relative to paper size, so a bigger
+                    // poster gets a proportionally bigger hand.
+                    val handSize = (min(printableWpx, printableHpx)) * 0.65f
+                    val handOffFrameY = size.height - cameraOff + handSize
+                    val handOffFrameX = size.width + handSize
+
+                    when (phase) {
+                        AssemblyPhase.Arranging -> {
+                            // Slide in from below-right, hover over the pane being
+                            // placed at this moment, slide out once each pane is placed.
+                            val outerPaneCount = layout.panes.size.coerceAtLeast(1)
+                            val slice = 1f / outerPaneCount
+                            val activeIndex = (phaseT / slice).toInt().coerceIn(0, outerPaneCount - 1)
+                            val activePane = layout.panes[activeIndex]
+                            val targetX = activePane.pageLeft + activePane.pageWidth / 2f +
+                                handSize * 0.30f
+                            val targetY = activePane.pageTop + activePane.pageHeight / 2f +
+                                handSize * 0.30f
+                            val sliceStart = activeIndex * slice
+                            val sliceLocal = ((phaseT - sliceStart) / slice).coerceIn(0f, 1f)
+                            val approachK = (sliceLocal / 0.3f).coerceIn(0f, 1f)
+                            val retractK = ((sliceLocal - 0.7f) / 0.3f).coerceIn(0f, 1f)
+                            val hx = handOffFrameX +
+                                (targetX - handOffFrameX) * approachK -
+                                (targetX - handOffFrameX) * retractK
+                            val hy = handOffFrameY +
+                                (targetY - handOffFrameY) * approachK -
+                                (targetY - handOffFrameY) * retractK
+                            drawHand(hx, hy, handSize, alpha = 1f - retractK * 0.85f)
+                        }
+
+                        AssemblyPhase.Tightening -> {
+                            // Hand sweeps over the assembly center, "pushing" panes in.
+                            val approachK = (phaseT / 0.3f).coerceIn(0f, 1f)
+                            val retractK = ((phaseT - 0.7f) / 0.3f).coerceIn(0f, 1f)
+                            val cx0 = tCenterX + handSize * 0.30f
+                            val cy0 = tCenterY + handSize * 0.30f
+                            val hx = handOffFrameX +
+                                (cx0 - handOffFrameX) * approachK -
+                                (cx0 - handOffFrameX) * retractK
+                            val hy = handOffFrameY +
+                                (cy0 - handOffFrameY) * approachK -
+                                (cy0 - handOffFrameY) * retractK
+                            drawHand(hx, hy, handSize, alpha = 1f - retractK * 0.85f)
+                        }
+
+                        AssemblyPhase.Taping -> {
+                            // Hand orbits the assembly center as the strips fall in.
+                            val angle = (phaseT * Math.PI * 2.0).toFloat()
+                            val orbitR = (min(tightenedW, tightenedH)) * 0.30f
+                            val hx = tCenterX + kotlin.math.cos(angle) * orbitR +
+                                handSize * 0.20f
+                            val hy = tCenterY + kotlin.math.sin(angle) * orbitR +
+                                handSize * 0.20f
+                            drawHand(hx, hy, handSize, alpha = 0.95f)
+                        }
+
+                        AssemblyPhase.Pinning -> {
+                            // Hand visits each of the 4 corners in turn (TL, TR, BL, BR).
+                            val corners = listOf(
+                                tLeft to tTop, tRight to tTop,
+                                tLeft to tBottom, tRight to tBottom,
+                            )
+                            val cornerSlice = 1f / 4f
+                            val cornerIdx = (phaseT / cornerSlice).toInt().coerceIn(0, 3)
+                            val (tx, ty) = corners[cornerIdx]
+                            val sliceLocal = ((phaseT - cornerIdx * cornerSlice) / cornerSlice)
+                                .coerceIn(0f, 1f)
+                            val approachK = (sliceLocal / 0.5f).coerceIn(0f, 1f)
+                            val targetX = tx + handSize * 0.20f
+                            val targetY = ty + handSize * 0.20f
+                            val hx = handOffFrameX + (targetX - handOffFrameX) * approachK
+                            val hy = handOffFrameY + (targetY - handOffFrameY) * approachK
+                            drawHand(hx, hy, handSize, alpha = 0.95f)
+                        }
+
+                        else -> { /* no hand */ }
+                    }
+
+                    // ── Scissors prop — RC3: trace the perimeter of the assembled
+                    //    block (NOT slice through panes). Top L→R, right T→B,
+                    //    bottom R→L, left B→T. Each edge gets ~25% of the phase.
+                    if (phase == AssemblyPhase.Cutting) {
+                        val scissorsSize = (min(assembledBlockW, assembledBlockH)) * 0.30f
+                        val left = layout.layoutLeft
+                        val top = layout.layoutTop
+                        val right = layout.layoutLeft + assembledBlockW
+                        val bottom = layout.layoutTop + assembledBlockH
+                        val sx: Float
+                        val sy: Float
+                        val rotDeg: Float
+                        when {
+                            phaseT < 0.25f -> {
+                                val k = phaseT / 0.25f
+                                sx = left + (right - left) * k
+                                sy = top
+                                rotDeg = 0f
+                            }
+                            phaseT < 0.50f -> {
+                                val k = (phaseT - 0.25f) / 0.25f
+                                sx = right
+                                sy = top + (bottom - top) * k
+                                rotDeg = 90f
+                            }
+                            phaseT < 0.75f -> {
+                                val k = (phaseT - 0.50f) / 0.25f
+                                sx = right - (right - left) * k
+                                sy = bottom
+                                rotDeg = 180f
+                            }
+                            else -> {
+                                val k = (phaseT - 0.75f) / 0.25f
+                                sx = left
+                                sy = bottom - (bottom - top) * k
+                                rotDeg = 270f
+                            }
+                        }
+                        drawScissors(
+                            cx = sx, cy = sy,
+                            sizePx = scissorsSize,
+                            rotationDegrees = rotDeg,
+                            alpha = 1f,
+                        )
+                    }
+
+                    // ── Tape strips — RC3: applied during Taping phase, staggered
+                    //    one strip at a time. NEVER visible before Taping. Strip
+                    //    coords use the TIGHTENED layout (post-gap-close), so the
+                    //    tape sits exactly on the seams between adjacent printable
+                    //    rects.
+                    val tapeAppearT = when (phase) {
+                        AssemblyPhase.Taping -> phaseT.coerceIn(0f, 1f)
+                        AssemblyPhase.Pinning -> 1f
+                        AssemblyPhase.Reset -> (1f - phaseT).coerceIn(0f, 1f)
+                        else -> 0f
+                    }
+                    if (tapeAppearT > 0f && (cols > 1 || rows > 1)) {
+                        val seamStepX = printableWpx - overlapPx
+                        val seamStepY = printableHpx - overlapPx
+                        val tapeLen = printableWpx * 0.45f
+                        val tapeH = 14f
+                        val verticalSeamCount = rows * (cols - 1)
+                        val horizontalSeamCount = (rows - 1) * cols
+                        val totalStrips = (verticalSeamCount + horizontalSeamCount).coerceAtLeast(1)
+                        var stripIdx = 0
+                        for (rr in 0 until rows) {
+                            for (cc in 0 until cols - 1) {
+                                // RC20.2: place the seam at the center of the
+                                // shared overlap region, which sits at
+                                // pane[cc].imageContentLeft + printableWpx - overlapPx/2
+                                // = tLeft + cc*seamStepX + printableWpx - overlapPx/2.
+                                // The previous form, (cc+1)*seamStepX - overlapPx/2,
+                                // placed each tape strip overlapPx to the left of the
+                                // actual seam (matching the user's "tape pieces still
+                                // not on the seams" report).
+                                val seamX = tLeft + cc * seamStepX + printableWpx - overlapPx / 2f
+                                val seamY = tTop + rr * seamStepY + printableHpx / 2f
+                                val stripT = stripStaggerT(tapeAppearT, stripIdx, totalStrips)
+                                drawScotchTape(
+                                    centerX = seamX, centerY = seamY,
+                                    length = tapeLen, height = tapeH,
+                                    rotationDegrees = 90f + ((rr * 13 + cc * 7) % 9 - 4).toFloat(),
+                                    appearT = stripT,
+                                )
+                                stripIdx++
+                            }
+                        }
+                        for (rr in 0 until rows - 1) {
+                            for (cc in 0 until cols) {
+                                val seamX = tLeft + cc * seamStepX + printableWpx / 2f
+                                // RC20.2: same correction as the vertical-seam loop
+                                // above — center on the shared overlap region.
+                                val seamY = tTop + rr * seamStepY + printableHpx - overlapPx / 2f
+                                val stripT = stripStaggerT(tapeAppearT, stripIdx, totalStrips)
+                                drawScotchTape(
+                                    centerX = seamX, centerY = seamY,
+                                    length = tapeLen, height = tapeH,
+                                    rotationDegrees = ((rr * 11 + cc * 5) % 9 - 4).toFloat(),
+                                    appearT = stripT,
+                                )
+                                stripIdx++
+                            }
+                        }
+                    }
+
+                    // ── Thumb tacks — RC3: drop during Pinning phase (each corner
+                    //    on its own 25% slice), fade out during Reset.
+                    val pinT = when (phase) {
+                        AssemblyPhase.Pinning -> phaseT.coerceIn(0f, 1f)
+                        AssemblyPhase.Reset -> (1f - phaseT).coerceIn(0f, 1f)
+                        else -> 0f
+                    }
+                    if (pinT > 0f) {
+                        val tackR = 9f
+                        val inset = 6f
+                        val tlT = (pinT / 0.25f).coerceIn(0f, 1f)
+                        val trT = ((pinT - 0.25f) / 0.25f).coerceIn(0f, 1f)
+                        val blT = ((pinT - 0.50f) / 0.25f).coerceIn(0f, 1f)
+                        val brT = ((pinT - 0.75f) / 0.25f).coerceIn(0f, 1f)
+                        drawThumbTack(tLeft + inset, tTop + inset, tackR, tlT)
+                        drawThumbTack(tRight - inset, tTop + inset, tackR, trT)
+                        drawThumbTack(tLeft + inset, tBottom - inset, tackR, blT)
+                        drawThumbTack(tRight - inset, tBottom - inset, tackR, brT)
+                    }
+                }
+
+                } // end withTransform(camera-pan)
+            }
+            // RC7: phase caption at the bottom of the construction preview
+            // viewport. Narrates each step in plain English (already wired
+            // to stringResource so the locale-switch on RC7 also localizes
+            // the captions). Hidden during Reset.
+            if (cycleEnabled && phase != AssemblyPhase.Reset) {
+                val captionRes = when (phase) {
+                    AssemblyPhase.Printing -> R.string.preview_caption_printing
+                    AssemblyPhase.Panning -> R.string.preview_caption_panning
+                    AssemblyPhase.Arranging -> R.string.preview_caption_arranging
+                    AssemblyPhase.Cutting -> R.string.preview_caption_cutting
+                    AssemblyPhase.Tightening -> R.string.preview_caption_tightening
+                    AssemblyPhase.Taping -> R.string.preview_caption_taping
+                    AssemblyPhase.Pinning -> R.string.preview_caption_pinning
+                    AssemblyPhase.Reset -> null
+                }
+                if (captionRes != null) {
+                    androidx.compose.material3.Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color.Black.copy(alpha = 0.55f),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 12.dp, start = 16.dp, end = 16.dp),
+                    ) {
+                        androidx.compose.material3.Text(
+                            text = androidx.compose.ui.res.stringResource(captionRes),
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        )
+                    }
+                }
+            }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            LegendSwatch(Color(0xFF0A3D62).copy(alpha = 0.55f), androidx.compose.ui.res.stringResource(R.string.preview_legend_margin_inline))
+            LegendSwatch(Color(0xFFFF6F00).copy(alpha = 0.55f), androidx.compose.ui.res.stringResource(R.string.preview_legend_overlap_inline))
+        }
+
+        // Low-DPI surface (Plan G10 Step 1+2). Computes effective DPI from the
+        // source bitmap's pixel width over the configured poster width; if it
+        // falls in the warning band (1..149), shows a tappable card that opens
+        // the three-Mona-Lisa upgrade modal.
+        val sourcePixelW = previewBitmap?.width ?: 0
+        val posterWInchesD = viewModel.posterWidth.toDoubleOrNull() ?: 0.0
+        val posterHInchesD = viewModel.posterHeight.toDoubleOrNull() ?: 0.0
+        val currentDpi = if (posterWInchesD > 0) (sourcePixelW / posterWInchesD).toFloat() else 0f
+        // RC18: threshold is unit-aware (150 DPI / 59.05 DPCM).
+        // RC34: SVG sources are vector — DPI is meaningless. Suppress the
+        // low-resolution chip + the implicit modal-entry conditions when
+        // the source is SVG; the upgrade modal still has the "Vector
+        // source — no upscale needed" tag if it's reached via the
+        // explicit Sharpen-For-Print CTA.
+        val isLowDpi = !viewModel.sourceIsSvg && currentDpi > 1f && currentDpi < viewModel.lowResolutionThreshold
+        val pendingLabel = viewModel.pendingUpscaleModelLabel
+        // RC16: include showLowDpiModal as a third entry condition so the
+        // modal can still open from the SharpenForPrintCta after an upscale
+        // has completed (isLowDpi=false, pendingLabel=null). User report:
+        // "the sharpen for print button no longer works after the
+        // successful upscale." With this OR, the modal renders whenever
+        // the flag is set, regardless of resolution state.
+        if ((isLowDpi || pendingLabel != null || viewModel.showLowDpiModal) && previewBitmap != null) {
+            // RC4: showLowDpiModal lives on viewModel so the new MainActivity
+            // "Sharpen for print" CTA can also drive the modal. We read/write
+            // it directly here — no local alias.
+            Spacer(Modifier.height(8.dp))
+            // RC7: when an upscale model is queued, swap the warning Card
+            // for an "Upscaling with X to Y DPI" Card on tertiaryContainer
+            // so it no longer reads as an error. Tap still opens the modal.
+            val cardContainer = if (pendingLabel != null)
+                MaterialTheme.colorScheme.tertiaryContainer
+            else
+                MaterialTheme.colorScheme.errorContainer
+            val cardOnContainer = if (pendingLabel != null)
+                MaterialTheme.colorScheme.onTertiaryContainer
+            else
+                MaterialTheme.colorScheme.onErrorContainer
+            // Only render the inline status card when there's actually
+            // something resolution-related to say. After an upscale, the
+            // outer block re-enters via showLowDpiModal but isLowDpi /
+            // pendingLabel are both false; we just want the modal, not
+            // the (now-misleading) "Low resolution" inline.
+            if (isLowDpi || pendingLabel != null) {
+                Card(
+                    onClick = { viewModel.showLowDpiModal = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = cardContainer),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Text(
+                        text = if (pendingLabel != null) {
+                            val targetDpi = (currentDpi * 4f).toInt()
+                            androidx.compose.ui.res.stringResource(
+                                R.string.preview_upscaling_card, pendingLabel, targetDpi,
+                            )
+                        } else {
+                            androidx.compose.ui.res.stringResource(
+                                R.string.preview_low_dpi_inline,
+                                currentDpi.toInt(),
+                                viewModel.currentResolutionUnitLabel,
+                            )
+                        },
+                        modifier = Modifier.padding(12.dp),
+                        color = cardOnContainer,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+            // RC69: the LowDpiUpgradeModal (model picker) used to render here as
+            // a ModalBottomSheet. It now renders as a bottom-docked DockedDrawer
+            // in the Scaffold body (MainActivity.MainScreenContent), sourcing its
+            // bitmap from viewModel.sourcePreviewBitmap. The inline status Card
+            // above still sets viewModel.showLowDpiModal = true to open it.
+        }
+    }
+}
+
+private data class PaneBounds(
+    val row: Int,
+    val col: Int,
+    val left: Float,
+    val top: Float,
+    val width: Float,
+    val height: Float,
+)
+
+@Composable
+private fun LegendSwatch(color: Color, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(modifier = Modifier.size(12.dp).background(color, RoundedCornerShape(2.dp)))
+        Spacer(Modifier.width(4.dp))
+        Text(label, style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+/**
+ * Drop shadow + page surface — what the user holds in their hand.
+ * Behavior-preserving extraction from the previous inline drawPaneSurface lambda.
+ */
+private fun DrawScope.drawPaperFill(
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    paperColor: Color = Color(0xFFFAFAF7),
+) {
+    drawRoundRect(
+        color = Color.Black.copy(alpha = 0.32f),
+        topLeft = Offset(pageLeft + 4f, pageTop + 6f),
+        size = Size(pageWidth, pageHeight),
+        cornerRadius = CornerRadius(2f, 2f),
+    )
+    drawRect(paperColor, Offset(pageLeft, pageTop), Size(pageWidth, pageHeight))
+}
+
+/**
+ * Sample [src] at the pre-computed source-rect [srcX,srcY,srcTileW,srcTileH] and paint
+ * it into the content rect at [imageDstLeft,imageDstTop] with size
+ * [imageContentWidth,imageContentHeight]. The content rect is ≤ the printable rect
+ * (imageDstWidth/Height); on edge tiles where the source slice is clamped, the content
+ * rect is shorter, leaving blank paper on the trailing edge — mirroring PosterLogic's
+ * clip()+drawImage(fullPoster, translated) flow. Caller is responsible for
+ * null-checking [src] and clamping the source-rect ints.
+ */
+private fun DrawScope.drawPaneImage(
+    src: ImageBitmap,
+    imageDstLeft: Float, imageDstTop: Float,
+    imageContentWidth: Float, imageContentHeight: Float,
+    srcX: Int, srcY: Int,
+    srcTileW: Int, srcTileH: Int,
+) {
+    drawImage(
+        image = src,
+        srcOffset = IntOffset(srcX, srcY),
+        srcSize = IntSize(srcTileW, srcTileH),
+        dstOffset = IntOffset(imageDstLeft.toInt(), imageDstTop.toInt()),
+        dstSize = IntSize(imageContentWidth.toInt(), imageContentHeight.toInt()),
+    )
+}
+
+/**
+ * Orange-tinted overlap zones drawn on the seam edges of each pane. Edges that touch
+ * a neighbor get a tint; outer edges (no neighbor) are left clean. Operates on
+ * whatever rect the caller passes (rect-agnostic) — currently the printable rect,
+ * since cut marks and overlap zones live inside the printable area.
+ */
+private fun DrawScope.drawPaneOverlapZones(
+    rectLeft: Float, rectTop: Float,
+    rectWidth: Float, rectHeight: Float,
+    overlapPx: Float,
+    row: Int, col: Int, rows: Int, cols: Int,
+) {
+    if (overlapPx <= 0.5f) return
+    val overlapColor = Color(0xFFFF6F00).copy(alpha = 0.28f)
+    if (col < cols - 1) drawRect(overlapColor, Offset(rectLeft + rectWidth - overlapPx, rectTop), Size(overlapPx, rectHeight))
+    if (row < rows - 1) drawRect(overlapColor, Offset(rectLeft, rectTop + rectHeight - overlapPx), Size(rectWidth, overlapPx))
+    if (col > 0) drawRect(overlapColor, Offset(rectLeft, rectTop), Size(overlapPx, rectHeight))
+    if (row > 0) drawRect(overlapColor, Offset(rectLeft, rectTop), Size(rectWidth, overlapPx))
+}
+
+/**
+ * Faint blue lines at the printable-area boundary (margin lines). The page surface
+ * itself is already drawn as paper-cream by [drawPaperFill] and the image is inset
+ * by margin on every side, so no white overlay is needed in the margin area —
+ * the user sees the actual paper rather than an opaque overlay.
+ */
+private fun DrawScope.drawPaneMarginGuide(
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    marginPx: Float,
+    alpha: Float = 1f,
+    row: Int = 0, col: Int = 0, rows: Int = 1, cols: Int = 1,
+) {
+    if (marginPx <= 0.5f) return
+    if (alpha <= 0.001f) return
+    // RC50: alpha bumped 0.45 → 0.55 to match the legend swatch
+    // (LegendSwatch uses Color(0xFF0A3D62).copy(alpha = 0.55f)). Pre-RC50
+    // the rendered guide read noticeably lighter than its key, so users
+    // couldn't tell which color they were looking for in the preview.
+    //
+    // RC58: dropped from a single Stroke rect down to per-edge drawLine
+    // calls so we can omit edges that face the outside of the poster.
+    // Only edges that will be cut + taped (i.e., adjacent to a neighbor
+    // pane) get a guide line — outer edges of the poster have nothing to
+    // align to. Corner-continuity (the original RC50 motivation for
+    // Stroke) doesn't matter on these hand-picked edges because adjacent
+    // panes' shared seam means two abutting lines effectively form one
+    // continuous mark.
+    val borderColor = Color(0xFF0A3D62).copy(alpha = 0.55f * alpha.coerceIn(0f, 1f))
+    val sw = 2f
+    val l = pageLeft + marginPx
+    val t = pageTop + marginPx
+    val r = pageLeft + pageWidth - marginPx
+    val b = pageTop + pageHeight - marginPx
+    if (col > 0)         drawLine(borderColor, Offset(l, t), Offset(l, b), sw) // shared with left neighbor
+    if (col < cols - 1)  drawLine(borderColor, Offset(r, t), Offset(r, b), sw) // shared with right neighbor
+    if (row > 0)         drawLine(borderColor, Offset(l, t), Offset(r, t), sw) // shared with top neighbor
+    if (row < rows - 1)  drawLine(borderColor, Offset(l, b), Offset(r, b), sw) // shared with bottom neighbor
+}
+
+/**
+ * Outline / cut-marks overlay. The rect sits inside the page by [overlapPx] (the
+ * cut line is inside the overlap zone, mirroring how PosterLogic draws cut marks
+ * on the actual PDF). Returns early if the user has outlines disabled.
+ */
+private fun DrawScope.drawCutLineOrOutline(
+    viewModel: MainViewModel,
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    overlapPx: Float,
+    outlinePx: Float,
+    outlineEffect: PathEffect?,
+) {
+    if (!viewModel.showOutlines) return
+    val rx = pageLeft + overlapPx
+    val ry = pageTop + overlapPx
+    val rw = (pageWidth - 2 * overlapPx).coerceAtLeast(4f)
+    val rh = (pageHeight - 2 * overlapPx).coerceAtLeast(4f)
+    if (viewModel.outlineStyle == "CropMarks") {
+        val arm = min(rw, rh) * 0.10f
+        val sw = max(1.2f, outlinePx)
+        drawLine(Color.Black, Offset(rx, ry + arm), Offset(rx, ry), sw)
+        drawLine(Color.Black, Offset(rx, ry), Offset(rx + arm, ry), sw)
+        drawLine(Color.Black, Offset(rx + rw - arm, ry), Offset(rx + rw, ry), sw)
+        drawLine(Color.Black, Offset(rx + rw, ry), Offset(rx + rw, ry + arm), sw)
+        drawLine(Color.Black, Offset(rx, ry + rh - arm), Offset(rx, ry + rh), sw)
+        drawLine(Color.Black, Offset(rx, ry + rh), Offset(rx + arm, ry + rh), sw)
+        drawLine(Color.Black, Offset(rx + rw - arm, ry + rh), Offset(rx + rw, ry + rh), sw)
+        drawLine(Color.Black, Offset(rx + rw, ry + rh - arm), Offset(rx + rw, ry + rh), sw)
+    } else {
+        drawRect(
+            color = Color.Black.copy(alpha = 0.85f),
+            topLeft = Offset(rx, ry),
+            size = Size(rw, rh),
+            style = Stroke(width = outlinePx, pathEffect = outlineEffect, cap = StrokeCap.Round),
+        )
+    }
+}
+
+/**
+ * Grid label (e.g. "A1", "B3") at the bottom-left of the page, with a soft white
+ * shadow so it stays legible over photos. Returns early if labels are disabled.
+ */
+private fun DrawScope.drawPaneLabel(
+    viewModel: MainViewModel,
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    row: Int, col: Int,
+) {
+    if (!viewModel.labelPanes) return
+    val label = viewModel.getGridLabel(row, col)
+    val labelSize = min(pageWidth, pageHeight) * 0.22f
+    drawIntoCanvas { canvas ->
+        canvas.nativeCanvas.drawText(
+            label,
+            pageLeft + pageWidth * 0.08f,
+            pageTop + pageHeight - pageHeight * 0.08f,
+            Paint().apply {
+                color = android.graphics.Color.argb(235, 0, 0, 0)
+                textSize = labelSize
+                isAntiAlias = true
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+                setShadowLayer(5f, 0f, 0f, android.graphics.Color.argb(220, 255, 255, 255))
+            },
+        )
+    }
+}
+
+/**
+ * RC3: per-edge fading "white border" bands around a page during the Cutting
+ * phase. Each band is the margin region on one side of the page; alpha 1 =
+ * fully visible (uncut), 0 = invisible (scissors have just passed). When all
+ * four hit zero, only the printable rect remains as paper.
+ *
+ * Layout:
+ *  ┌──────────────────────────────┐
+ *  │            top               │
+ *  ├───┬──────────────────────┬───┤
+ *  │ l │  printable (handled  │ r │
+ *  │ e │  by the caller's     │ i │
+ *  │ f │  drawPaperFill on    │ g │
+ *  │ t │  the inset rect)     │ h │
+ *  │   │                      │ t │
+ *  ├───┴──────────────────────┴───┤
+ *  │           bottom             │
+ *  └──────────────────────────────┘
+ */
+private fun DrawScope.drawBorderBands(
+    pageLeft: Float, pageTop: Float, pageWidth: Float, pageHeight: Float,
+    marginPx: Float,
+    topAlpha: Float,
+    rightAlpha: Float,
+    bottomAlpha: Float,
+    leftAlpha: Float,
+) {
+    if (marginPx <= 0.5f) return
+    val paper = Color(0xFFFAFAF7)
+    if (topAlpha > 0.01f) {
+        drawRect(
+            color = paper.copy(alpha = topAlpha),
+            topLeft = Offset(pageLeft, pageTop),
+            size = Size(pageWidth, marginPx),
+        )
+    }
+    if (bottomAlpha > 0.01f) {
+        drawRect(
+            color = paper.copy(alpha = bottomAlpha),
+            topLeft = Offset(pageLeft, pageTop + pageHeight - marginPx),
+            size = Size(pageWidth, marginPx),
+        )
+    }
+    if (leftAlpha > 0.01f) {
+        drawRect(
+            color = paper.copy(alpha = leftAlpha),
+            topLeft = Offset(pageLeft, pageTop + marginPx),
+            size = Size(marginPx, pageHeight - 2f * marginPx),
+        )
+    }
+    if (rightAlpha > 0.01f) {
+        drawRect(
+            color = paper.copy(alpha = rightAlpha),
+            topLeft = Offset(pageLeft + pageWidth - marginPx, pageTop + marginPx),
+            size = Size(marginPx, pageHeight - 2f * marginPx),
+        )
+    }
+}
+
+/**
+ * Stagger helper for tape-strip reveals. Given the phase's overall progress
+ * [tapeAppearT] and an integer [stripIdx] of [totalStrips], returns the
+ * individual strip's 0..1 appearT. Each strip lights up at idx/total with a
+ * 30% ramp window — produces a clean one-after-another reveal.
+ */
+private fun stripStaggerT(
+    tapeAppearT: Float,
+    stripIdx: Int,
+    totalStrips: Int,
+): Float {
+    if (totalStrips <= 0) return tapeAppearT
+    val start = stripIdx.toFloat() / totalStrips.toFloat()
+    val window = (1f / totalStrips.toFloat()).coerceAtLeast(0.05f)
+    return ((tapeAppearT - start) / window).coerceIn(0f, 1f)
+}

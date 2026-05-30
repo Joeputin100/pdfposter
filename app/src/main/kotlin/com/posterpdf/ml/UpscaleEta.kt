@@ -1,0 +1,154 @@
+package com.posterpdf.ml
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+
+/**
+ * ETA estimation helpers for both upscale paths. Both functions return a
+ * range in seconds — the modal renders this as "~1–3 min" so users get
+ * a window, not a single brittle number.
+ */
+
+// --- DataStore: benchmark cache --------------------------------------------
+
+private const val UPSCALE_PREFS_NAME = "upscale_prefs"
+internal val Context.upscalePrefs: DataStore<Preferences> by preferencesDataStore(UPSCALE_PREFS_NAME)
+
+// Median ms it took the on-device ESRGAN to produce 1 MP of output during
+// the most recent benchmark. Written by [UpscalerOnDevice.benchmarkAndCache].
+internal val MS_PER_MP_KEY = longPreferencesKey("ms_per_megapixel")
+// When the benchmark last ran, in epoch ms. Re-run after STALE_AFTER_MS.
+internal val LAST_BENCHMARK_AT_KEY = longPreferencesKey("last_benchmark_at")
+
+/** 30 days — re-benchmark to catch device updates / Android version bumps. */
+internal const val STALE_AFTER_MS = 30L * 24L * 60L * 60L * 1000L
+
+/** One-shot read of the cached ms-per-megapixel; null if never benchmarked. */
+suspend fun cachedMsPerMegapixel(ctx: Context): Long? {
+    val prefs = ctx.upscalePrefs.data.first()
+    return prefs[MS_PER_MP_KEY]
+}
+
+/** Whether the cached benchmark is missing or older than [STALE_AFTER_MS]. */
+suspend fun benchmarkNeedsRefresh(ctx: Context, now: Long = System.currentTimeMillis()): Boolean {
+    val prefs = ctx.upscalePrefs.data.first()
+    val last = prefs[LAST_BENCHMARK_AT_KEY] ?: return true
+    if (prefs[MS_PER_MP_KEY] == null) return true
+    return now - last > STALE_AFTER_MS
+}
+
+internal suspend fun writeBenchmark(ctx: Context, msPerMp: Long, now: Long = System.currentTimeMillis()) {
+    ctx.upscalePrefs.edit { p ->
+        p[MS_PER_MP_KEY] = msPerMp
+        p[LAST_BENCHMARK_AT_KEY] = now
+    }
+}
+
+/** Observe the cached value as a Flow for Compose UI. */
+fun msPerMegapixelFlow(ctx: Context): Flow<Long?> =
+    ctx.upscalePrefs.data.map { it[MS_PER_MP_KEY] }
+
+// --- ETA estimators ---------------------------------------------------------
+
+/** ±25% window around [point] in seconds, clamped to ≥ 1 s. */
+private fun rangeAround(point: Double): IntRange {
+    val low = (point * 0.75).toInt().coerceAtLeast(1)
+    val high = (point * 1.25).toInt().coerceAtLeast(low + 1)
+    return low..high
+}
+
+/**
+ * On-device ETA in seconds for an upscale producing [outputMp] megapixels of
+ * output, given the cached [msPerMp] from [UpscalerOnDevice.benchmarkAndCache].
+ * Returns null if [msPerMp] is null (caller should show "estimating…").
+ */
+fun etaForLocal(outputMp: Long, msPerMp: Long?): IntRange? {
+    if (msPerMp == null || msPerMp <= 0) return null
+    val totalMs = outputMp * msPerMp
+    return rangeAround(totalMs / 1000.0)
+}
+
+/**
+ * FAL ETA in seconds. Empirical curve (no FAL-side telemetry available):
+ *   upload_time    = inputBytes / bandwidth
+ *   queue_constant = 30 s         # tighten with telemetry once we have it
+ *   inference_time = 0.5 s/MP of output (Topaz Gigapixel observed)
+ *   download_time  = outputBytes / bandwidth   (outputBytes ≈ inputBytes × scale²)
+ *
+ * [bytesPerSecond] is the caller's bandwidth estimate — pass a reasonable
+ * default like 500 KB/s for unknown networks. Returns null only if math
+ * underflows; callers should treat that as "unknown".
+ */
+fun etaForFal(
+    inputBytes: Long,
+    outputMp: Long,
+    bytesPerSecond: Long,
+): IntRange? {
+    if (bytesPerSecond <= 0 || inputBytes <= 0 || outputMp <= 0) return null
+    val uploadSec = inputBytes.toDouble() / bytesPerSecond
+    val queueSec = 30.0
+    val inferenceSec = outputMp * 0.5
+    // Output bytes guesstimate: lossy compression ≈ 1 byte per pixel for JPEG/PNG.
+    val outputBytesEstimate = outputMp * 1_000_000L
+    val downloadSec = outputBytesEstimate.toDouble() / bytesPerSecond
+    val total = uploadSec + queueSec + inferenceSec + downloadSec
+    return rangeAround(total)
+}
+
+// --- Cloud upload speed gate (2026-05-29) -----------------------------------
+
+/**
+ * Above this many seconds of *source-image upload* time, the cloud-upscale
+ * pre-flight gate pops the polite "this may take a while" warning. The user's
+ * spec scopes the gate to upload time only (download is out of scope).
+ */
+const val SLOW_UPLOAD_THRESHOLD_SEC = 60
+
+/**
+ * How long the source image alone would take to upload at [bytesPerSecond].
+ * Returns null when either input is non-positive (treated by callers as
+ * "unknown throughput"), so it never divides by zero.
+ */
+fun uploadEtaSeconds(inputBytes: Long, bytesPerSecond: Long): Double? {
+    if (bytesPerSecond <= 0L || inputBytes <= 0L) return null
+    return inputBytes.toDouble() / bytesPerSecond
+}
+
+/**
+ * Whether the cloud-upscale gate should warn that the upload may be slow.
+ * Conservative: an unknown ETA (null — e.g. a measured throughput of 0) is
+ * treated as "longer than the threshold" so we warn rather than silently
+ * grind.
+ */
+fun shouldWarnSlowUpload(inputBytes: Long, bytesPerSecond: Long): Boolean =
+    (uploadEtaSeconds(inputBytes, bytesPerSecond) ?: Double.MAX_VALUE) > SLOW_UPLOAD_THRESHOLD_SEC
+
+/**
+ * Render a seconds [range] as a human-friendly string. RC18 — collapsed
+ * the low–high range to a single rounded-up midpoint per user request:
+ * "ETA on card is '4.2 — 6.9 min'. lets make that more friendly using
+ * mean rounded up to next whole minute — 'about 6 minutes on your device'."
+ *
+ * Sub-minute jobs still render in seconds (rounded up to a tens-of-seconds
+ * grid) since "about 1 minute" is too coarse for a 30 s wait.
+ */
+fun formatEta(range: IntRange): String {
+    val midSec = (range.first + range.last) / 2
+    return when {
+        midSec < 60 -> {
+            val rounded = ((midSec + 9) / 10) * 10
+            "about $rounded s"
+        }
+        else -> {
+            val mins = (midSec + 59) / 60  // round up to next whole minute
+            if (mins == 1) "about 1 minute" else "about $mins minutes"
+        }
+    }
+}

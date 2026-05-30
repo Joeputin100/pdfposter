@@ -1,0 +1,213 @@
+package com.posterpdf.ui.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.ManageAccounts
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.posterpdf.R
+import com.posterpdf.data.backend.AuthSession
+
+/**
+ * RC35: OpenArt-style credit chip — coin + balance + Upgrade button —
+ * for the top bar. Replaces the prior `BadgedBox` whose Badge clipped at
+ * 99 (3 chars max). The chip wraps content so 4-digit balances display
+ * cleanly; the inner [CreditBadgeInline] handles the digit cascade.
+ *
+ * Tap-target geometry: tapping the coin/number opens the purchase sheet
+ * (same as the legacy badge); tapping Upgrade opens the same sheet — we
+ * don't differentiate yet, but the visual affordance separates "see
+ * balance" from "get more" so users coming from OpenArt's pattern feel
+ * at home.
+ */
+@Composable
+fun CreditChip(
+    balance: Int,
+    isAdmin: Boolean,
+    onTapBalance: () -> Unit,
+    onTapUpgrade: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 0.dp,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                modifier = Modifier
+                    .clickable(onClick = onTapBalance)
+                    .padding(start = 10.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CreditBadgeInline(balance = balance, isAdmin = isAdmin)
+            }
+            // Upgrade pill — pill-shaped on a slightly elevated tint to
+            // read as a primary CTA inside the chip without dwarfing
+            // the credit number.
+            Box(
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable(onClick = onTapUpgrade)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+            ) {
+                Text(
+                    stringResource(R.string.account_menu_upgrade),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * RC35: Account menu — Google profile photo (or generic avatar) opens a
+ * dropdown with Manage account / Creation history / Credits history /
+ * Sign out. When signed-out (anonymous or never-signed-in) the avatar
+ * is a tap-to-sign-in affordance and the menu collapses to a single
+ * Sign in item.
+ */
+@Composable
+fun AccountAvatarMenu(
+    session: AuthSession,
+    onManageAccount: () -> Unit,
+    onCreationHistory: () -> Unit,
+    onCreditsHistory: () -> Unit,
+    onSignOut: () -> Unit,
+    onSignIn: () -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    val signedIn = session.signedIn && !session.isAnonymous
+
+    if (!signedIn) {
+        // RC48: anonymous users see an explicit Login / Sign Up button
+        // instead of the generic-anonymous-pfp icon. The icon was
+        // ambiguous (read as "current account" rather than "tap to sign
+        // in"); the button copy makes the CTA unmistakable.
+        // RC79: at large accessibility font (>=1.3x) the single-line label
+        // truncated to "Login / Sig" on a 360dp top bar (rc77 edge audit,
+        // finding #3). Gate the single-line clamp on font scale: normal font
+        // keeps the RC49 single-line look untouched; large font lets the
+        // label wrap to 2 lines (option A) so the full "Login / Sign Up"
+        // stays readable. The top bar may grow a little taller at max font,
+        // which is acceptable.
+        val largeFont = LocalConfiguration.current.fontScale >= 1.3f
+        androidx.compose.material3.OutlinedButton(
+            onClick = onSignIn,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                horizontal = 12.dp, vertical = 6.dp,
+            ),
+        ) {
+            // RC49: maxLines=1 + softWrap=false keeps "Login / Sign Up"
+            // on a single line even when the top-bar Row is tight on width.
+            // Without these, the Text composable defaults to wrapping at any
+            // soft break (the / counts), producing a 2-line button that
+            // throws off the top bar's vertical alignment.
+            // RC79: only clamp at normal font; allow a 2-line wrap at large
+            // font so the label isn't cut mid-word.
+            Text(
+                stringResource(R.string.top_bar_login_signup),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = if (largeFont) 2 else 1,
+                softWrap = largeFont,
+            )
+        }
+        return
+    }
+
+    Box {
+        Box(
+            // RC56: requiredSize(36.dp) so the avatar enforces its own
+            // square dimensions even when the parent Row is tight on width.
+            // .size() respects parent constraints — when the row's other
+            // children (wordmark + credit chip) have already consumed all
+            // available width, .size(36.dp) gets clamped to e.g. 12×36
+            // and the RoundedCornerShape(50) clip renders as an ellipse.
+            // requiredSize ignores parent maxWidth and forces an exact
+            // 36×36 measurement, so the circle stays a circle.
+            modifier = Modifier
+                .requiredSize(36.dp)
+                .clip(RoundedCornerShape(50))
+                .clickable { open = true }
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50)),
+            contentAlignment = Alignment.Center,
+        ) {
+            val photo = session.photoUrl
+            if (photo != null) {
+                coil.compose.AsyncImage(
+                    model = photo,
+                    contentDescription = stringResource(R.string.account_label_top_cd),
+                    modifier = Modifier
+                        .requiredSize(36.dp)
+                        .clip(RoundedCornerShape(50)),
+                )
+            } else {
+                Icon(
+                    Icons.Filled.AccountCircle,
+                    contentDescription = stringResource(R.string.account_label_top_cd),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.account_menu_manage_account)) },
+                onClick = { open = false; onManageAccount() },
+                leadingIcon = { Icon(Icons.Filled.ManageAccounts, contentDescription = null) },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.account_menu_creation_history)) },
+                onClick = { open = false; onCreationHistory() },
+                leadingIcon = { Icon(Icons.Filled.PhotoLibrary, contentDescription = null) },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.account_menu_credits_history)) },
+                onClick = { open = false; onCreditsHistory() },
+                leadingIcon = { Icon(Icons.Filled.History, contentDescription = null) },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.account_menu_sign_out)) },
+                onClick = { open = false; onSignOut() },
+                leadingIcon = { Icon(Icons.Filled.Logout, contentDescription = null) },
+            )
+        }
+    }
+}
