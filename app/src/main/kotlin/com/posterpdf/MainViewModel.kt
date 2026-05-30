@@ -1234,6 +1234,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // ENABLE_TEST_HOOKS (seedFullImageForScreenshot); false in prod.
     var expandAdvancedForScreenshot by mutableStateOf(false)
 
+    // rc80: UX screenshot harness — open the Gemini Q&A sheet (populated with a
+    // sample reply) on launch so the capture matrix can review this dense
+    // screen at 360dp width + 200% font. Set only under ENABLE_TEST_HOOKS
+    // (MainActivity --es screenshot gemini); false in prod. MainActivity reads
+    // this to initialize its showGeminiSheet flag.
+    var showGeminiSheetForScreenshot by mutableStateOf(false)
+        private set
+
+    /** rc80: populate geminiQaState with a realistic sample reply and request
+     *  the sheet be shown, for the `gemini` screenshot state. Test-only. */
+    fun seedGeminiSheetForScreenshot() {
+        geminiQaState = com.posterpdf.ui.components.GeminiQaState.Reply(
+            text = "For a 24×36\" poster at 150 DPI you'd want about 3600×5400 px " +
+                "(19 MP). Your image is 8 MP, so I'd suggest the Topaz Gigapixel " +
+                "model — it should comfortably reach a crisp 150 DPI at this size.",
+            remainingQueries = 4,
+        )
+        showGeminiSheetForScreenshot = true
+    }
+
     // H-P2: content screens reachable from the hamburger drawer.
     var showGettingStarted by mutableStateOf(false)
     var showHelp by mutableStateOf(false)
