@@ -297,7 +297,7 @@ private fun openLocalPdf(context: android.content.Context, item: HistoryItem) {
         setDataAndType(uri, "application/pdf")
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    context.startActivity(Intent.createChooser(intent, "Open PDF"))
+    context.startActivity(Intent.createChooser(intent, context.getString(R.string.history_open_chooser_title)))
 }
 
 private fun sharePdf(context: android.content.Context, item: HistoryItem) {
@@ -311,7 +311,7 @@ private fun sharePdf(context: android.content.Context, item: HistoryItem) {
         putExtra(Intent.EXTRA_STREAM, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    context.startActivity(Intent.createChooser(intent, "Share PDF"))
+    context.startActivity(Intent.createChooser(intent, context.getString(R.string.history_share_chooser_title)))
 }
 
 /**

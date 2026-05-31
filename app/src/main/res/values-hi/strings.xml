@@ -879,4 +879,9 @@
     <string name="gemini_qa_action_taken">समझ गया — अभी कर रहा हूँ…</string>
     <string name="gemini_qa_error">कुछ गड़बड़ हो गई: %1$s</string>
     <string name="upscale_ai_eta">अनुमानित %1$s</string>
+    <string name="history_open_chooser_title">PDF खोलें</string>
+    <string name="history_share_chooser_title">PDF साझा करें</string>
+    <string name="voice_unavailable">इस डिवाइस पर वॉइस पहचान उपलब्ध नहीं है</string>
+    <string name="voice_mic_permission">माइक्रोफ़ोन अनुमति आवश्यक है</string>
+    <string name="voice_error_code">वॉइस त्रुटि (कोड %1$d)</string>
 </resources>

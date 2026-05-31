@@ -461,29 +461,12 @@ private fun MainScreenContent(viewModel: MainViewModel) {
         viewModel.handleGoogleSignInResult(result.data)
     }
 
-    val storagePermissions = arrayOf(
-        android.Manifest.permission.READ_EXTERNAL_STORAGE,
-        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-    )
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
-    ) { grants ->
-        val allGranted = grants.values.all { it }
-        if (allGranted) {
-            // Start debug logging if enabled
-        }
-    }
-    var permissionsRequested by remember { mutableStateOf(false) }
-    
-    LaunchedEffect(Unit) {
-        val hasPermissions = storagePermissions.all {
-            androidx.core.content.ContextCompat.checkSelfPermission(context, it) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        }
-        if (!hasPermissions && !permissionsRequested) {
-            permissionLauncher.launch(storagePermissions)
-            permissionsRequested = true
-        }
-    }
+    // RC81a: removed the launch-time READ/WRITE_EXTERNAL_STORAGE request. Image
+    // ingestion is entirely SAF (GetContent / share EXTRA_STREAM / ACTION_VIEW),
+    // which grants per-URI access with no storage permission, and output is written
+    // to app-private dirs. rc80 had already dropped WRITE_EXTERNAL_STORAGE from the
+    // manifest, so this block requested an undeclared permission that could never be
+    // granted — firing a doomed permission dialog on every cold start.
 
     // Info Dialog states
     var infoDialogContent by remember { mutableStateOf<Pair<String, String>?>(null) }
@@ -1657,7 +1640,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                         viewModel.logEvent(context, "Play Store link tapped")
                                         val intent = android.content.Intent(
                                             android.content.Intent.ACTION_VIEW,
-                                            android.net.Uri.parse("market://details?id=com.pdfposter"),
+                                            android.net.Uri.parse("market://details?id=${context.packageName}"),
                                         )
                                         try {
                                             context.startActivity(intent)
@@ -1665,7 +1648,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                                             context.startActivity(
                                                 android.content.Intent(
                                                     android.content.Intent.ACTION_VIEW,
-                                                    android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.pdfposter"),
+                                                    android.net.Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}"),
                                                 ),
                                             )
                                         }

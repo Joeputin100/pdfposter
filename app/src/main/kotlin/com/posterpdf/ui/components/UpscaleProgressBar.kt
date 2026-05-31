@@ -12,7 +12,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.posterpdf.R
 import kotlin.math.max
 
 /**
@@ -82,17 +84,22 @@ fun UpscaleProgressBar(
     }
 }
 
+// RC81c: was hardcoded English in a 9-locale app on the most-watched (paid) screen.
+// The upscale_progress_* keys have existed + been translated since the i18n baseline
+// (528b3cb) but were never wired — this @Composable now resolves them via stringResource,
+// which also localizes the %d number formatting through the resource framework.
+@Composable
 private fun stageLabel(state: UpscaleProgress): String = when (state) {
     is UpscaleProgress.Uploading ->
-        "Uploading… ${(state.pct * 100).toInt()}%"
-    UpscaleProgress.Queued -> "Waiting in queue…"
+        stringResource(R.string.upscale_progress_uploading, (state.pct * 100).toInt())
+    UpscaleProgress.Queued -> stringResource(R.string.upscale_progress_queued)
     is UpscaleProgress.Inferring -> {
         val ms = state.estimatedMsLeft
-        if (ms == null) "Upscaling…"
-        else "Upscaling… ~${max(1L, ms / 1000)}s left"
+        if (ms == null) stringResource(R.string.upscale_progress_inferring)
+        else stringResource(R.string.upscale_progress_inferring_eta, max(1L, ms / 1000).toInt())
     }
     is UpscaleProgress.Downloading ->
-        "Downloading… ${(state.pct * 100).toInt()}%"
+        stringResource(R.string.upscale_progress_downloading, (state.pct * 100).toInt())
     UpscaleProgress.Idle -> ""
     UpscaleProgress.Done -> ""
 }

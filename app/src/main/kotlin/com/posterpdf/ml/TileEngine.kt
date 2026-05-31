@@ -1,5 +1,6 @@
 package com.posterpdf.ml
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.tensorflow.lite.Interpreter
@@ -77,12 +78,20 @@ internal class TileEngine(private val model: ByteBuffer) {
             gpuDelegate = gpu
             return gpuInterp!!.also { interpreter = it }
         }
-        // CPU fallback: discard any GPU interpreter/delegate; run XNNPACK CPU
-        // (default-on for FP32 via setNumThreads).
+        // CPU fallback: discard any GPU interpreter/delegate; run XNNPACK CPU.
         gpuInterp?.close()
         gpu?.close()
-        return Interpreter(model, Interpreter.Options().apply { setNumThreads(4) })
-            .also { interpreter = it }
+        return Interpreter(
+            model,
+            Interpreter.Options().apply {
+                // RC81b: enable XNNPACK explicitly rather than relying on an implicit
+                // default that can shift across LiteRT versions, and size threads to
+                // the device instead of a hardcoded 4 (which oversubscribes little-core
+                // budget devices like the Redmi 6A / moto g54).
+                setUseXNNPACK(true)
+                setNumThreads(Runtime.getRuntime().availableProcessors().coerceIn(2, 4))
+            },
+        ).also { interpreter = it }
     }
 
     // Run one mid-grey tile on the REAL (GPU-delegated) interpreter; pass if the

@@ -143,8 +143,14 @@ class PosterLogic {
         printableH: Double,
         overlap: Double
     ): Triple<Int, Int, Int> {
-        val tileStepX = printableW - overlap
-        val tileStepY = printableH - overlap
+        // Defensive: posterW/H, printableW/H (page − 2·margin) and overlap come from
+        // free-form numeric TextFields. A non-positive printable area (margin·2 ≥ page)
+        // or overlap ≥ printable makes the step ≤ 0; dividing by it yields Infinity/NaN
+        // → Int.MAX_VALUE pages → OOM/hang. Treat a non-positive printable as one page,
+        // and floor the step at 10% of printable so the count stays finite + bounded.
+        if (printableW <= 0.0 || printableH <= 0.0) return Triple(1, 1, 1)
+        val tileStepX = (printableW - overlap).coerceAtLeast(printableW * 0.10)
+        val tileStepY = (printableH - overlap).coerceAtLeast(printableH * 0.10)
 
         val cols = if (posterW <= printableW) 1 else ceil((posterW - printableW) / tileStepX).toInt() + 1
         val rows = if (posterH <= printableH) 1 else ceil((posterH - printableH) / tileStepY).toInt() + 1
@@ -170,8 +176,10 @@ class PosterLogic {
         overlap: Double
     ): List<TileInfo> {
         val (_, rows, cols) = calculateSheetCount(posterW, posterH, printableW, printableH, overlap)
-        val tileStepX = printableW - overlap
-        val tileStepY = printableH - overlap
+        // Same step floor as calculateSheetCount so tile offsets match the page count
+        // even when overlap >= printable (degenerate input).
+        val tileStepX = (printableW - overlap).coerceAtLeast(printableW * 0.10)
+        val tileStepY = (printableH - overlap).coerceAtLeast(printableH * 0.10)
 
         val tiles = mutableListOf<TileInfo>()
         for (r in 0 until rows) {

@@ -880,4 +880,9 @@
     <string name="gemini_qa_action_taken">Entendido: ejecutándolo ahora…</string>
     <string name="gemini_qa_error">Algo salió mal: %1$s</string>
     <string name="upscale_ai_eta">Estimado %1$s</string>
+    <string name="history_open_chooser_title">Abrir PDF</string>
+    <string name="history_share_chooser_title">Compartir PDF</string>
+    <string name="voice_unavailable">El reconocimiento de voz no está disponible en este dispositivo</string>
+    <string name="voice_mic_permission">Se necesita permiso del micrófono</string>
+    <string name="voice_error_code">Error de voz (código %1$d)</string>
 </resources>

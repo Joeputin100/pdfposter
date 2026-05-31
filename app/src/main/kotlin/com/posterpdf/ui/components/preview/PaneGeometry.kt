@@ -61,6 +61,10 @@ object PaneGeometry {
      */
     private const val MAX_PANE_AXIS = 16
 
+    /** Floor for free-form paper/poster dimensions so a zero/blank value can't
+     *  produce an Infinity/NaN scale or source-fraction in [compute]. */
+    private const val MIN_DIM = 0.01
+
     /**
      * RC58: lightweight rows/cols computation that doesn't need a Canvas size.
      * Used at the composable level to detect single-page posters before the
@@ -91,25 +95,36 @@ object PaneGeometry {
         availableW: Float, availableH: Float,
         interPaneGap: Float,
     ): Layout {
-        val printableW = paperW - 2.0 * margin
-        val printableH = paperH - 2.0 * margin
-        val stepX = printableW - overlap
-        val stepY = printableH - overlap
+        // Defensive: paperW/H, posterW/H, margin, overlap come from free-form
+        // TextFields. computePaneCount() already guards step<=0; compute() did not,
+        // and it additionally divides by paperW/H (scale) and posterW/H (source
+        // fractions). A zero/blank dimension or margin*2 >= paper there yields an
+        // Infinity/NaN that propagates into every pane rect + the camera math,
+        // corrupting the whole frame. Clamp all dims/derived values to safe positives
+        // (coerceIn already bounds the final pane count).
+        val safePaperW = paperW.coerceAtLeast(MIN_DIM)
+        val safePaperH = paperH.coerceAtLeast(MIN_DIM)
+        val safePosterW = posterW.coerceAtLeast(MIN_DIM)
+        val safePosterH = posterH.coerceAtLeast(MIN_DIM)
+        val printableW = (safePaperW - 2.0 * margin).coerceAtLeast(safePaperW * 0.05)
+        val printableH = (safePaperH - 2.0 * margin).coerceAtLeast(safePaperH * 0.05)
+        val stepX = (printableW - overlap).coerceAtLeast(printableW * 0.05)
+        val stepY = (printableH - overlap).coerceAtLeast(printableH * 0.05)
 
-        val rawCols = if (posterW <= printableW) 1 else ceil((posterW - printableW) / stepX).toInt() + 1
-        val rawRows = if (posterH <= printableH) 1 else ceil((posterH - printableH) / stepY).toInt() + 1
+        val rawCols = if (safePosterW <= printableW) 1 else ceil((safePosterW - printableW) / stepX).toInt() + 1
+        val rawRows = if (safePosterH <= printableH) 1 else ceil((safePosterH - printableH) / stepY).toInt() + 1
         val cols = rawCols.coerceIn(1, MAX_PANE_AXIS)
         val rows = rawRows.coerceIn(1, MAX_PANE_AXIS)
 
         // Pick scale that fits (cols paperW + gaps), (rows paperH + gaps) into available.
-        val scaleX = if (cols == 1) availableW / paperW.toFloat()
-                     else (availableW - (cols - 1) * interPaneGap) / (cols * paperW.toFloat())
-        val scaleY = if (rows == 1) availableH / paperH.toFloat()
-                     else (availableH - (rows - 1) * interPaneGap) / (rows * paperH.toFloat())
+        val scaleX = if (cols == 1) availableW / safePaperW.toFloat()
+                     else (availableW - (cols - 1) * interPaneGap) / (cols * safePaperW.toFloat())
+        val scaleY = if (rows == 1) availableH / safePaperH.toFloat()
+                     else (availableH - (rows - 1) * interPaneGap) / (rows * safePaperH.toFloat())
         val scale = min(scaleX, scaleY).coerceAtLeast(0.1f)
 
-        val paneW = (paperW * scale).toFloat()
-        val paneH = (paperH * scale).toFloat()
+        val paneW = (safePaperW * scale).toFloat()
+        val paneH = (safePaperH * scale).toFloat()
         val marginPx = (margin * scale).toFloat()
         val overlapPx = (overlap * scale).toFloat()
 
@@ -130,10 +145,10 @@ object PaneGeometry {
 
                 val tilePosterX = c * stepX
                 val tilePosterY = r * stepY
-                val sourceFracLeft = (tilePosterX / posterW).toFloat().coerceIn(0f, 1f)
-                val sourceFracTop = (tilePosterY / posterH).toFloat().coerceIn(0f, 1f)
-                val sourceFracWidthUnclamped = (printableW / posterW).toFloat()
-                val sourceFracHeightUnclamped = (printableH / posterH).toFloat()
+                val sourceFracLeft = (tilePosterX / safePosterW).toFloat().coerceIn(0f, 1f)
+                val sourceFracTop = (tilePosterY / safePosterH).toFloat().coerceIn(0f, 1f)
+                val sourceFracWidthUnclamped = (printableW / safePosterW).toFloat()
+                val sourceFracHeightUnclamped = (printableH / safePosterH).toFloat()
                 val sourceFracWidth = sourceFracWidthUnclamped.coerceAtMost(1f - sourceFracLeft)
                 val sourceFracHeight = sourceFracHeightUnclamped.coerceAtMost(1f - sourceFracTop)
 
@@ -182,7 +197,7 @@ object PaneGeometry {
 
         return Layout(
             rows = rows, cols = cols,
-            paperW = paperW, paperH = paperH,
+            paperW = safePaperW, paperH = safePaperH,
             printableW = printableW, printableH = printableH,
             overlap = overlap,
             scale = scale,

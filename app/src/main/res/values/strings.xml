@@ -1021,4 +1021,9 @@
     <string name="community_relative_days_ago">%1$dd ago</string>
     <string name="community_post_by_author">by %1$s</string>
 
+    <string name="history_open_chooser_title">Open PDF</string>
+    <string name="history_share_chooser_title">Share PDF</string>
+    <string name="voice_unavailable">Voice recognition unavailable on this device</string>
+    <string name="voice_mic_permission">Microphone permission needed</string>
+    <string name="voice_error_code">Voice error (code %1$d)</string>
 </resources>

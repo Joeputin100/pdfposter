@@ -877,4 +877,9 @@
     <string name="gemini_qa_action_taken">Понял — выполняю…</string>
     <string name="gemini_qa_error">Что-то пошло не так: %1$s</string>
     <string name="upscale_ai_eta">Примерно %1$s</string>
+    <string name="history_open_chooser_title">Открыть PDF</string>
+    <string name="history_share_chooser_title">Поделиться PDF</string>
+    <string name="voice_unavailable">Распознавание речи недоступно на этом устройстве</string>
+    <string name="voice_mic_permission">Требуется разрешение на доступ к микрофону</string>
+    <string name="voice_error_code">Ошибка распознавания (код %1$d)</string>
 </resources>

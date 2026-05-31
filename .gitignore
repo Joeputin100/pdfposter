@@ -32,3 +32,15 @@ app/google-services.json
 # Coding-agent session transcripts (opencode etc.)
 session-*.md
 disco_chicken.png
+
+# Coding-agent worktrees + local Gradle caches — never commit.
+.claude/
+.gradle/
+
+# Local debug logs + screen-capture artifacts kept in the repo root.
+# (media patterns are root-anchored so the app's tracked res/raw/*.mp4 and
+#  drawable PNGs are unaffected.)
+*.log
+/Screen_Recording_*.mp4
+/AISelect_*.png
+/wood.png
