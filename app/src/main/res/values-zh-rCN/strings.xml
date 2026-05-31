@@ -876,4 +876,9 @@
     <string name="gemini_qa_action_taken">明白了 — 正在执行…</string>
     <string name="gemini_qa_error">出错了：%1$s</string>
     <string name="upscale_ai_eta">预计 %1$s</string>
+    <string name="history_open_chooser_title">打开 PDF</string>
+    <string name="history_share_chooser_title">分享 PDF</string>
+    <string name="voice_unavailable">此设备不支持语音识别</string>
+    <string name="voice_mic_permission">需要麦克风权限</string>
+    <string name="voice_error_code">语音错误（代码 %1$d）</string>
 </resources>

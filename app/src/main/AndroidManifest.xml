@@ -7,7 +7,11 @@
          ConnectivityManager.getNetworkCapabilities to detect "no validated
          internet" before a cloud upscale. That call requires this permission. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- RC81a: READ_EXTERNAL_STORAGE removed. All image ingestion is via the
+         Storage Access Framework (GetContent / share EXTRA_STREAM / ACTION_VIEW),
+         which grants per-URI read access with no storage permission on any API; the
+         launch-time runtime request was also removed. Keeping it only added a
+         Play data-safety declaration with no functional purpose. -->
     <!-- Phase G3: Google Play Billing Library v7. Required for BillingClient + launchBillingFlow. -->
     <uses-permission android:name="com.android.vending.BILLING" />
     <!-- RC11: foreground service so the on-device upscaler can survive

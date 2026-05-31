@@ -23,7 +23,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0-rc80"  // RC80 (Test Battery pre-33 fix: RuntimeShader isolated into PrinterInkShader so PosterPreview loads on API<33; dropped unneeded WRITE_EXTERNAL_STORAGE; estimateUploadBytes PNG-size floor + cloud-upload ETA display; LiteRT RegionSource inSampleSize + scratch-prefix skip-resume; gemini screenshot state; cutout coverage → FTL notch device; @FtlOnly excludes on-device ML UpscalePdfDeviceTest from the GPU-less emulator battery → fixes chronic Test Battery red)
+        versionName = "1.0-rc81"  // RC81 (review-fix batch from docs/reviews/2026-05-30-app-source-review.md). a: removed dead WRITE/READ_EXTERNAL_STORAGE launch request (rc80 regression) + manifest READ perm; Play Store URL uses real package id; dropped unused ktor-server-* from APK; overlap>=printable divide-by-zero guards (PosterLogic + PaneGeometry). b: ML cooperative-cancellation (ensureActive in tile loop), mutex-guarded TileEngine.close(), explicit XNNPACK + device-sized CPU threads. c: wired UpscaleProgressBar to existing 10-locale upscale_progress_* keys, localized History chooser titles + voice errors, EXTRA_LANGUAGE toLanguageTag()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -163,10 +163,10 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
 
-    // Ktor Server (if used as backend service)
-    implementation("io.ktor:ktor-server-core:$ktor_version")
-    implementation("io.ktor:ktor-server-netty:$ktor_version")
-    
+    // RC81a: removed unused ktor-server-core + ktor-server-netty. No io.ktor.server
+    // import exists in app/src/main — the Netty server was never started in-app and
+    // only bloated the APK / method count and widened the attack surface.
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 

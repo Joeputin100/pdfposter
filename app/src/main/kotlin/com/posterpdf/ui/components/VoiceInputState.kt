@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import com.posterpdf.R
 import java.util.Locale
 
 /**
@@ -52,11 +53,11 @@ class VoiceInputController(private val context: Context) {
 
     fun start(onFinalTranscript: (String) -> Unit) {
         if (recognizer == null) {
-            error = "Voice recognition unavailable on this device"
+            error = context.getString(R.string.voice_unavailable)
             return
         }
         if (!hasPermission()) {
-            error = "Microphone permission needed"
+            error = context.getString(R.string.voice_mic_permission)
             return
         }
         transcript = ""
@@ -64,7 +65,7 @@ class VoiceInputController(private val context: Context) {
         isListening = true
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         }
         recognizer.setRecognitionListener(object : RecognitionListener {
@@ -75,7 +76,7 @@ class VoiceInputController(private val context: Context) {
             override fun onEndOfSpeech() {}
             override fun onError(errorCode: Int) {
                 isListening = false
-                error = "Voice error (code $errorCode)"
+                error = context.getString(R.string.voice_error_code, errorCode)
             }
             override fun onResults(results: Bundle?) {
                 isListening = false

@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.BufferedOutputStream
 import java.io.DataInputStream
@@ -196,6 +197,13 @@ object UpscalerOnDevice {
                 val sink = StreamingPngSink(BufferedOutputStream(fos), outW, outH)
                 var bandTileTop = 0
                 while (bandTileTop < tileRows) {
+                    // RC81b: cooperative cancellation. withTimeout(15min) and user-cancel
+                    // only take effect at a suspension point, and the native eng.run()
+                    // is an uninterruptible JNI call — so without an explicit check the
+                    // upscale runs to completion regardless of cancel/timeout. Check once
+                    // per band here (and per tile below). `this` is the withContext
+                    // CoroutineScope (the non-receiver use{} lambda preserves it).
+                    ensureActive()
                     val bandTileBot = minOf(bandTileTop + bandTilesY, tileRows)
                     // Rows this band emits (last band is short).
                     val emitRows = minOf(
@@ -234,6 +242,7 @@ object UpscalerOnDevice {
                             val destRowStart = idealY * SCALE
                             val destRowEnd = minOf((idealY + TILE_IN) * SCALE, outH)
                             for (tx in 0 until tileCols) {
+                                ensureActive()  // RC81b: honor cancel/timeout between tiles
                                 val idealX = tx * TILE_IN
                                 val srcX = if (idealX + TILE_IN <= srcW) idealX
                                            else (srcW - TILE_IN).coerceAtLeast(0)

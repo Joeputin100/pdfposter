@@ -879,4 +879,9 @@
     <string name="gemini_qa_action_taken">Compris — exécution en cours…</string>
     <string name="gemini_qa_error">Une erreur s\'est produite : %1$s</string>
     <string name="upscale_ai_eta">Estimé %1$s</string>
+    <string name="history_open_chooser_title">Ouvrir le PDF</string>
+    <string name="history_share_chooser_title">Partager le PDF</string>
+    <string name="voice_unavailable">La reconnaissance vocale n\'est pas disponible sur cet appareil</string>
+    <string name="voice_mic_permission">Autorisation du microphone requise</string>
+    <string name="voice_error_code">Erreur vocale (code %1$d)</string>
 </resources>
