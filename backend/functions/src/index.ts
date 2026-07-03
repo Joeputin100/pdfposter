@@ -413,6 +413,7 @@ export { getPricing, refreshPricing } from './pricing';
 export { getFalBalance } from './balance';
 export { dailySweep, deleteCloudCopy } from './storageBilling';
 export { eraseAccount } from './eraseAccount';
+export { redeemPurchase } from './redeemPurchase';
 // RC22 fix: requestUpscale + getUpscaleStatus weren't being exported from
 // the index, so they never deployed. AiUpscaleRepository on the client got
 // a NOT_FOUND when calling functions.getHttpsCallable("requestUpscale")
