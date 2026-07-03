@@ -1,6 +1,6 @@
 # Poster PDF Privacy Policy
 
-Last updated: 2026-04-24
+Last updated: 2026-07-02
 
 Poster PDF ("we", "us", "our") respects your privacy. This policy explains what data is collected, why, and how it is used.
 
@@ -65,4 +65,4 @@ We may update this policy. The "Last updated" date will reflect revisions.
 
 ## 10. Contact
 For privacy requests or support:
-- Email: support@pdfposter.app (replace with your preferred address)
+- Email: joeputin100@gmail.com

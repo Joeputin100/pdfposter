@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Poster PDF</title>
+<link rel="icon" href="icon.png">
+<style>
+  :root { --navy:#0A3D62; --teal:#27CBD0; --cream:#F7EEDC; --ink:#123; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Georgia, 'Times New Roman', serif; background:#FBF6EA; color:var(--ink); line-height:1.65; }
+  header { background:var(--navy); color:var(--cream); padding:40px 24px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header .brand { display:flex; align-items:center; gap:14px; font-family:'Helvetica Neue',Arial,sans-serif; }
+  header img { width:52px; height:52px; border-radius:12px; }
+  header .brand b { font-size:22px; letter-spacing:.02em; }
+  header h1 { font-size:34px; margin-top:18px; font-weight:700; }
+  header .meta { color:var(--teal); font-family:Arial,sans-serif; font-size:14px; letter-spacing:.12em; margin-top:6px; }
+  main { padding:36px 24px 64px; }
+  main h2 { font-family:'Helvetica Neue',Arial,sans-serif; font-size:19px; color:var(--navy);
+            margin:34px 0 10px; padding-bottom:6px; border-bottom:2px solid var(--teal); }
+  main h3 { font-size:16px; color:var(--navy); margin:16px 0 4px; }
+  main p, main li { font-size:16.5px; }
+  main ul { padding-left:24px; margin:8px 0; }
+  main a { color:var(--navy); }
+  .contact { background:var(--navy); color:var(--cream); border-radius:10px; padding:18px 22px; margin-top:28px; }
+  .contact a { color:var(--teal); font-weight:bold; }
+  footer { text-align:center; font-family:Arial,sans-serif; font-size:13px; color:#7a7264; padding:24px; }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand"><img src="icon.png" alt="Poster PDF icon"><b>Poster PDF</b></div>
+  <h1>Privacy Policy</h1>
+  <div class="meta">LAST UPDATED · JULY 2, 2026</div>
+</div></header>
+<main><div class="wrap">
+  <p>Poster PDF (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) respects your privacy. This policy explains what data is collected, why, and how it is used.</p>
+
+  <h2>1. Data We Collect</h2>
+  <h3>a) Account Data</h3>
+  <ul><li>Google account identifier (when signed in)</li>
+      <li>Basic authentication metadata provided by Firebase Authentication</li></ul>
+  <h3>b) App Usage Data</h3>
+  <ul><li>Posters generated count</li>
+      <li>Upscale usage counters (free and paid)</li>
+      <li>Credit balances and transactions</li>
+      <li>History metadata (generation timestamps, source hash, output references)</li></ul>
+  <h3>c) Image / File Data</h3>
+  <ul><li>Source images selected by the user (stored locally in the app sandbox; optionally encrypted)</li>
+      <li>Upscaled image outputs (local cache and optional cloud storage references)</li>
+      <li>Generated PDF files (local storage)</li></ul>
+  <h3>d) Debug Logs (optional)</h3>
+  <ul><li>If Debug Logging is enabled by the user, app events may be written to local storage</li></ul>
+
+  <h2>2. Why We Use Data</h2>
+  <ul><li>Provide core app features (poster generation)</li>
+      <li>Enforce free-tier and credit limits fairly</li>
+      <li>Persist user state across reinstall/sign-in</li>
+      <li>Process and track upscaling transactions safely with stage/commit/refund</li>
+      <li>Show generation/upscale history</li></ul>
+
+  <h2>3. Legal Basis / Consent</h2>
+  <ul><li>We process data necessary to provide the app service.</li>
+      <li>Optional features (debug logging) are user-controlled.</li></ul>
+
+  <h2>4. Third-Party Services</h2>
+  <ul><li>Firebase (Authentication, Firestore, Functions)</li>
+      <li>Google Play Billing (for purchases)</li>
+      <li>fal.ai (for AI upscaling requests via backend proxy)</li></ul>
+  <p>Your API requests to third-party providers are proxied through backend services where possible to protect secrets.</p>
+
+  <h2>5. Data Retention</h2>
+  <ul><li>Free-tier remote upscale artifacts: up to 30 days (planned policy)</li>
+      <li>Paid-tier remote upscale artifacts: retained unless deleted by the user (planned policy)</li>
+      <li>Transaction and accounting records may be retained for abuse prevention and billing reconciliation.</li></ul>
+
+  <h2>6. Security</h2>
+  <ul><li>Sensitive API secrets are stored server-side (Secret Manager)</li>
+      <li>App sandbox and encryption are used for local sensitive files where implemented</li>
+      <li>Access controls are enforced via authenticated backend rules</li></ul>
+
+  <h2>7. Your Choices</h2>
+  <ul><li>Disable debug logging</li>
+      <li>Delete local files from device storage</li>
+      <li>Request account/history deletion (see Contact below)</li></ul>
+
+  <h2>8. Children</h2>
+  <p>Poster PDF is not directed to children under 13 (or the local digital age of consent).</p>
+
+  <h2>9. Changes</h2>
+  <p>We may update this policy. The &ldquo;Last updated&rdquo; date will reflect revisions.</p>
+
+  <h2>10. Contact</h2>
+  <div class="contact">For privacy requests, account/history deletion, or support:
+    <a href="mailto:joeputin100@gmail.com">joeputin100@gmail.com</a></div>
+</div></main>
+<footer>© 2026 Poster PDF · <a href="/">posterpdf.web.app</a></footer>
+</body>
+</html>

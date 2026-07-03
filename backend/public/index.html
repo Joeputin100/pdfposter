@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poster PDF — Print it huge.</title>
+<meta name="description" content="Turn any picture into a print-ready poster. AI upscaling, tiled PDF pages, printed at home.">
+<link rel="icon" href="icon.png">
+<style>
+  :root { --navy:#0A3D62; --deep:#062C49; --ink:#041F35; --teal:#27CBD0; --cream:#F7EEDC; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background: radial-gradient(1200px 800px at 20% 10%, #10517F 0%, var(--navy) 45%, var(--deep) 80%, var(--ink) 100%);
+    color:var(--cream); font-family:'Helvetica Neue',Arial,sans-serif; text-align:center; padding:32px;
+    background-attachment: fixed;
+  }
+  .grid { position:fixed; inset:0; pointer-events:none;
+    background: repeating-linear-gradient(0deg, rgba(247,238,220,.045) 0 1px, transparent 1px 40px),
+                repeating-linear-gradient(90deg, rgba(247,238,220,.045) 0 1px, transparent 1px 40px); }
+  img.logo { width:132px; height:132px; border-radius:30px; box-shadow:0 18px 40px rgba(4,31,53,.6); }
+  .eyebrow { margin-top:30px; color:var(--teal); font-weight:700; font-size:14px; letter-spacing:.42em; }
+  h1 { font-family:Georgia,'Times New Roman',serif; font-size:clamp(42px,8vw,72px); margin-top:10px; }
+  h1 em { color:var(--teal); }
+  p.tag { margin-top:14px; font-size:19px; color:rgba(247,238,220,.85); max-width:430px; }
+  .soon { margin-top:34px; display:inline-block; border:1px solid rgba(39,203,208,.6); color:var(--teal);
+          border-radius:999px; padding:10px 22px; font-size:14px; letter-spacing:.18em; }
+  footer { position:fixed; bottom:18px; left:0; right:0; font-size:13px; color:rgba(247,238,220,.55); }
+  footer a { color:rgba(247,238,220,.8); }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<img class="logo" src="icon.png" alt="Poster PDF — teal printing press with a Mona Lisa print">
+<div class="eyebrow">POSTER&nbsp;PDF</div>
+<h1>Print it <em>huge.</em></h1>
+<p class="tag">Any picture — AI-upscaled, tiled into PDF pages, printed at home.</p>
+<div class="soon">COMING SOON TO GOOGLE PLAY</div>
+<footer><a href="/privacy-policy">Privacy Policy</a> · <a href="mailto:joeputin100@gmail.com">Contact</a> · © 2026 Poster PDF</footer>
+</body>
+</html>

@@ -1,0 +1,28 @@
+# Deploy the public website (landing page + privacy policy) to Firebase
+# Hosting site "posterpdf" (https://posterpdf.web.app). Run with:
+#   gcloud builds submit --config=cloudbuild-hosting.yaml .
+#
+# The site is separate from the project's default hosting site so the URL
+# reads "posterpdf.web.app" rather than the raw GCP project id. Site
+# creation is idempotent (|| true) — it only actually creates on first run.
+
+steps:
+  - name: 'node:20'
+    entrypoint: 'bash'
+    dir: 'backend'
+    args:
+      - '-c'
+      - |
+        set -euo pipefail
+        npm install -g firebase-tools@13
+        firebase hosting:sites:create posterpdf \
+          --project static-webbing-461904-c4 --non-interactive \
+          || echo "site posterpdf already exists (or name taken — check output above)"
+        firebase deploy \
+          --project static-webbing-461904-c4 \
+          --only hosting:posterpdf \
+          --non-interactive
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+timeout: '600s'
