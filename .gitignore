@@ -44,3 +44,6 @@ disco_chicken.png
 /Screen_Recording_*.mp4
 /AISelect_*.png
 /wood.png
+
+# rc82: local signing credentials (never commit)
+.secrets/
