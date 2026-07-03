@@ -12,6 +12,11 @@ name: Screenshots (Emulator capture)
 
 on:
   workflow_dispatch:
+    inputs:
+      store_mode:
+        description: 'Capture Play-listing screenshots (1080x2340, story states only)'
+        type: boolean
+        default: false
   push:
     branches: ['feat/md3e-redesign']
     paths:
@@ -102,7 +107,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: bash .github/scripts/capture-screenshots.sh
+          script: STORE_MODE=${{ inputs.store_mode && '1' || '0' }} bash .github/scripts/capture-screenshots.sh
 
       - name: Upload screenshots
         if: always()

@@ -93,6 +93,39 @@ capture_preview_burst() {  # $1=config
   ls -l "$OUT/$cfg-preview-burst-"*.png
 }
 
+# --- rc83: STORE_MODE — clean Play-listing captures at a modern phone
+# resolution (1080x2340 @440dpi ≈ Pixel 7 class), baseline font, portrait.
+# Captures the eight-shot story from docs/screenshots/README.md as far as
+# launch-state hooks allow, then exits (skips the QA matrix entirely).
+if [ "${STORE_MODE:-0}" = "1" ]; then
+  adb shell wm size 1080x2340
+  adb shell wm density 440
+  sleep 2
+  for s in main model_picker compare settings gemini getting_started; do
+    capture store "$s"
+  done
+  # with_image: top frame + scrolled frames (coords scaled for 1080x2340).
+  adb shell am force-stop "$PKG" || true
+  adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
+  sleep 9
+  adb exec-out screencap -p > "$OUT/store-with_image-1.png"
+  for i in 2 3 4; do
+    adb shell input swipe 540 1900 540 500 450
+    sleep 2
+    adb exec-out screencap -p > "$OUT/store-with_image-$i.png"
+  done
+  # Construction-cycle burst: scroll to the animated preview, then sample
+  # past a full ~38s cycle so some frame lands on the photogenic phases.
+  for i in $(seq 1 6); do adb shell input swipe 540 1900 540 500 350; done
+  sleep 2
+  for n in $(seq -w 1 14); do
+    adb exec-out screencap -p > "$OUT/store-construction-$n.png"
+    sleep 3
+  done
+  echo "STORE_MODE captures done:"; ls -l "$OUT"
+  exit 0
+fi
+
 # --- baseline ---
 run_config baseline
 
