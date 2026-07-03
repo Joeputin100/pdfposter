@@ -781,6 +781,8 @@
     <string name="upscale_option_aurasr_pros">Лучше для рисунков, аниме и иллюстраций — быстрая GAN-обработка</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">Медленнее ESRGAN; текст менее чёткий, чем у Topaz</string>
+    <string name="upscale_option_seedvr_pros">Огромные постеры за копейки — чёткие, чистые детали</string>
+    <string name="upscale_option_seedvr_cons">Сглаженный вид · смягчает мелкое зерно фото</string>
     <string name="upscale_option_ccsr_pros">Точная передача фото, регулируемый масштаб — средний уровень</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">Устаревшая модель; может сглаживать мелкие детали</string>

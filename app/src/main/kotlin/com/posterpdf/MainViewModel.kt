@@ -1289,6 +1289,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         loadSettings()
+        // rc83: warm the live fal model rates at app start so the upgrade
+        // modal's first open already has fresh prices (it also refreshes
+        // itself on open; both paths share ModelRates' 5-min staleness gate).
+        viewModelScope.launch { com.posterpdf.upscale.ModelRates.refreshIfStale() }
         viewModelScope.launch {
             auth.session.collectLatest { s ->
                 authSession = s

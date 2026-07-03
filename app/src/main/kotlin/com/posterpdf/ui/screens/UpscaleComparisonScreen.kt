@@ -97,6 +97,9 @@ private enum class CompareModel(val label: String, val key: String) {
     // been baked yet for the four subjects, so the load path falls back to
     // Topaz's asset and the synth-fallback tag surfaces.
     Ccsr("CCSR", "ccsr"),
+    // rc83: SeedVR2 — real samples baked for all 4 subjects on 2026-07-03
+    // (fal-ai/seedvr/upscale/image, 2x, PNG).
+    SeedVr("SeedVR2", "seedvr"),
 }
 
 /** Subjects that have synthesized fallback outputs for given models.

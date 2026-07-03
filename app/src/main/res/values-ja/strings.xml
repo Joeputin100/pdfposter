@@ -781,6 +781,8 @@
     <string name="upscale_option_aurasr_pros">アート、アニメ、イラスト向け &#8212; 高速なGAN仕上げ</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">ESRGANより低速。テキストではTopazほど鮮明ではない</string>
+    <string name="upscale_option_seedvr_pros">巨大ポスターを低価格で — くっきりクリーンな仕上がり</string>
+    <string name="upscale_option_seedvr_cons">磨かれた質感 · 写真の微細な粒子は滑らかに</string>
     <string name="upscale_option_ccsr_pros">写真忠実、スケール調整可能な中位モデル</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">古いモデル。細部を過度に滑らかにすることがある</string>

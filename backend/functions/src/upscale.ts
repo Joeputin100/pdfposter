@@ -16,6 +16,15 @@ import { logger } from 'firebase-functions/v2';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import axios from 'axios';
+// rc83: live pricing — fal's billing API is the source of truth for COGS;
+// static costFns below are the offline fallback only. See falPricing.ts.
+import {
+  getLivePricing,
+  liveCostUsd,
+  recordObservedSeconds,
+  markUnavailable,
+  type LiveModelPrice,
+} from './falPricing.js';
 
 const FAL_KEY = defineSecret('FAL_KEY');
 
@@ -27,7 +36,9 @@ const FAL_KEY = defineSecret('FAL_KEY');
 // rc82: 'imagen' removed — Google retires imagen-4.0-upscale-preview on
 // 2026-08-03 with no GA successor (see vertex-imagen.ts deletion commit).
 // All remaining cloud models route via FAL, so FalModel === UpscaleModel.
-type UpscaleModel = 'topaz' | 'recraft' | 'aurasr' | 'esrgan' | 'ccsr';
+// rc83: 'seedvr' added (ByteDance SeedVR2) — backfills the cheap-big-print
+// niche Imagen vacated ($0.001/MP, outputs to ~10k px long side).
+type UpscaleModel = 'topaz' | 'recraft' | 'aurasr' | 'esrgan' | 'ccsr' | 'seedvr';
 type FalModel = UpscaleModel;
 
 interface RequestUpscaleInput {
@@ -126,7 +137,27 @@ const MODELS: Record<FalModel, ModelSpec> = {
       output_format: 'png',
     }),
   },
+  // rc83: SeedVR2 (ByteDance). Crisp modern look, huge output headroom
+  // (~10k px long side), billed per output MP. Schema probed 2026-07-03:
+  // output_format DEFAULTS TO JPG — pinning png is load-bearing here, not
+  // defensive (lossless-assets rule).
+  seedvr: {
+    endpoint: 'fal-ai/seedvr/upscale/image',
+    supportedScales: [2, 3, 4],
+    costFn: (mp) => mp * 0.001,
+    body: (url, scale) => ({
+      image_url: url,
+      upscale_mode: 'factor',
+      upscale_factor: scale,
+      output_format: 'png',
+    }),
+  },
 };
+
+/** modelId → FAL endpoint id, for the live-pricing fetcher. */
+const ENDPOINTS: Record<string, string> = Object.fromEntries(
+  (Object.entries(MODELS) as Array<[FalModel, ModelSpec]>).map(([m, s]) => [m, s.endpoint]),
+);
 
 // Helpers kept so pickScale + computeCreditsForJob stay model-agnostic
 // (they survived the rc82 Imagen removal because every model now lives in
@@ -179,16 +210,19 @@ function pickScale(
 }
 
 /**
- * Charge for a job using the model-specific COGS curve at the picked scale.
- * ceil() so we never under-charge.
+ * Charge for a job at the picked scale. rc83: COGS comes from fal's LIVE
+ * billing metadata when available (accurate-to-the-minute requirement);
+ * the model's static costFn is only the offline fallback. ceil() so we
+ * never under-charge.
  */
 function computeCreditsForJob(
   modelId: UpscaleModel,
   inputMp: number,
   scale: number,
+  live?: LiveModelPrice,
 ): number {
   const outputMp = inputMp * scale * scale;
-  const cogs = costFnFor(modelId)(outputMp);
+  const cogs = liveCostUsd(modelId, outputMp, live) ?? costFnFor(modelId)(outputMp);
   return Math.ceil(cogs / CREDIT_COST_BUDGET_USD);
 }
 
@@ -210,7 +244,7 @@ function assertSignedIn(request: CallableRequest<unknown>): string {
 
 function assertModel(m: unknown): UpscaleModel {
   if (m === 'topaz' || m === 'recraft' || m === 'aurasr' || m === 'esrgan'
-      || m === 'ccsr') return m;
+      || m === 'ccsr' || m === 'seedvr') return m;
   // rc82: 'imagen' intentionally rejected here — old sideloaded RC builds
   // may still request it after Google's 2026-08-03 endpoint retirement.
   if (m === 'imagen') {
@@ -250,6 +284,9 @@ function assertModel(m: unknown): UpscaleModel {
 //   guards here following the same shape.
 const CCSR_MAX_OUTPUT_MP = 8;
 const RECRAFT_MAX_INPUT_MP = 1.5;
+// rc83: SeedVR2 caps at ~10,000 px on the long side; 80 MP is a safe MP
+// proxy for poster-shaped aspect ratios (10000×8000 = 80 MP).
+const SEEDVR_MAX_OUTPUT_MP = 80;
 
 function assertModelCapacity(modelId: UpscaleModel, inputMp: number, outputMp: number): void {
   if (modelId === 'ccsr' && outputMp > CCSR_MAX_OUTPUT_MP) {
@@ -267,6 +304,14 @@ function assertModelCapacity(modelId: UpscaleModel, inputMp: number, outputMp: n
       `(roughly 1024×1024); your image is ${inputMp.toFixed(1)} MP. ` +
       `Pick a different model — Topaz, AuraSR, ESRGAN, and CCSR all ` +
       `accept larger inputs.`,
+    );
+  }
+  if (modelId === 'seedvr' && outputMp > SEEDVR_MAX_OUTPUT_MP) {
+    throw new HttpsError(
+      'invalid-argument',
+      `SeedVR2 can only handle outputs up to ${SEEDVR_MAX_OUTPUT_MP} MP; ` +
+      `this job would produce ${outputMp.toFixed(1)} MP. ` +
+      `Pick a smaller poster size, a smaller scale, or a different model.`,
     );
   }
 }
@@ -510,6 +555,13 @@ async function submitFalJob(
       validateStatus: () => true,
     },
   );
+  if (resp.status === 404) {
+    // rc83: endpoint gone at fal — flag it so the client hides the card
+    // and future requestUpscale calls reject before debiting. The throw
+    // still rides the normal refund path for THIS job.
+    void markUnavailable(modelId);
+    throw new Error(`FAL endpoint retired/missing (404): ${spec.endpoint}`);
+  }
   if (resp.status >= 400) {
     throw new Error(`FAL submit failed: ${resp.status} ${JSON.stringify(resp.data)}`);
   }
@@ -657,7 +709,25 @@ export const requestUpscale = onCall(
     const minScale = typeof data.minScale === 'number' && data.minScale >= 1 && data.minScale <= 16
       ? data.minScale : undefined;
     const scale = pickScale(modelId, inputMp, posterW, posterH, targetDpi, minScale);
-    const required = computeCreditsForJob(modelId, inputMp, scale);
+
+    // rc83: charge from LIVE fal pricing — a cache older than 60s is
+    // refreshed synchronously here so the debited amount reflects fal's
+    // billing metadata at charge time. Fetch failure degrades to the last
+    // cached values, then to the static costFn fallback.
+    const livePricing = await getLivePricing(ENDPOINTS, FAL_KEY.value(), 60_000)
+      .catch((err) => {
+        logger.warn('live pricing unavailable; using static fallback', { err: String(err) });
+        return null;
+      });
+    const livePrice = livePricing?.models?.[modelId];
+    if (livePrice && livePrice.available === false) {
+      throw new HttpsError(
+        'failed-precondition',
+        'This upscaler is temporarily unavailable at our provider. ' +
+        'Pick a different model — no credits were charged.',
+      );
+    }
+    const required = computeCreditsForJob(modelId, inputMp, scale, livePrice);
 
     // RC47: reject jobs that exceed the per-model FAL cap BEFORE debiting
     // credits or hitting FAL. Otherwise the user pays, FAL 422s, and we
@@ -720,6 +790,13 @@ export const requestUpscale = onCall(
         resultPayload = responseUrl
           ? await fetchFalResult(responseUrl, FAL_KEY.value())
           : finalStatus;
+
+        // rc83: feed the billed inference_time back into the compute-second
+        // quote curve (EMA). Fire-and-forget — never blocks the response.
+        const observedSec = finalStatus.metrics?.inference_time;
+        if (typeof observedSec === 'number') {
+          void recordObservedSeconds(modelId, inputMp * scale * scale, observedSec);
+        }
       }
 
       const outputUrl = extractOutputUrl(resultPayload);
@@ -779,5 +856,29 @@ export const getUpscaleStatus = onCall(
       out[k] = v instanceof Timestamp ? v.toDate().toISOString() : v;
     }
     return out;
+  },
+);
+
+/**
+ * rc83: live model rates for the client's model-picker cards. UX path —
+ * tolerates a 10-minute cache (the CHARGE path in requestUpscale refreshes
+ * at 60s independently, so a stale card price can never mis-bill; the
+ * server recomputes at debit time). No auth requirement: pricing is public
+ * information and the cards render before sign-in.
+ */
+export const getModelPricing = onCall(
+  {
+    region: 'us-central1',
+    timeoutSeconds: 30,
+    memory: '256MiB',
+    secrets: [FAL_KEY],
+  },
+  async () => {
+    const doc = await getLivePricing(ENDPOINTS, FAL_KEY.value(), 10 * 60_000);
+    return {
+      fetchedAtMs: doc.fetchedAtMs,
+      models: doc.models,
+      creditCostBudgetUsd: CREDIT_COST_BUDGET_USD,
+    };
   },
 );

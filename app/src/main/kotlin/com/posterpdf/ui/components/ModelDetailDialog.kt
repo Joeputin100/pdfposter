@@ -435,4 +435,22 @@ fun detailFor(model: UpscaleModel): ModelDetailCopy = when (model) {
     )
     // rc82: Google Imagen 4 detail copy removed with the tier — Google
     // retires imagen-4.0-upscale-preview on 2026-08-03 with no successor.
+    // rc83: SeedVR2 (ByteDance) — the budget big-print tier.
+    UpscaleModel.SEEDVR -> ModelDetailCopy(
+        bestFor = listOf("Huge prints", "AI art & graphics", "Budget"),
+        pickWhen = "When you want the biggest poster for the fewest credits. " +
+            "SeedVR2 is ByteDance's latest-generation upscaler with the " +
+            "largest output headroom in the lineup — up to roughly 10,000 " +
+            "pixels on the long side — at the lowest per-megapixel price.",
+        standsOut = "A crisp, clean, modern look. SeedVR2 rebuilds fine " +
+            "detail confidently, which flatters AI-generated art, posters, " +
+            "and graphics. On real photographs it slightly polishes " +
+            "surfaces — film grain and skin texture come out smoother than " +
+            "the original. If preserving every pore and grain matters, " +
+            "AuraSR and Topaz are the photo-purist picks.",
+        worthThePrice = "The cheapest cloud upscale per megapixel, and the " +
+            "only model that comfortably reaches wall-mural sizes. For " +
+            "giant prints of graphics or AI art it's the clear value pick; " +
+            "for text-heavy posters Topaz still has the edge on lettering.",
+    )
 }

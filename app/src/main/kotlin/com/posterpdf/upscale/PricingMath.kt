@@ -36,8 +36,24 @@ internal fun cogsForOption(
     inputMp: Double,
     pickedScale: Int,
 ): Double {
-    if (option.flatUsd > 0.0) return option.flatUsd
     val outputMp = inputMp * pickedScale * pickedScale
+    // rc83: live fal rates take precedence (see ModelRates); the baked-in
+    // constants below are the offline / fetch-not-yet-landed fallback.
+    val live = ModelRates.rates[option.model]
+    if (live?.unitPrice != null && live.unit != null) {
+        return when (live.unit) {
+            "megapixels" -> live.unitPrice * outputMp
+            "images" -> live.unitPrice
+            "compute seconds" ->
+                live.unitPrice * ((live.secBase ?: 4.0) + (live.secPerMp ?: 1.0) * outputMp)
+            else -> staticCogs(option, outputMp)
+        }
+    }
+    return staticCogs(option, outputMp)
+}
+
+private fun staticCogs(option: UpscaleOption, outputMp: Double): Double {
+    if (option.flatUsd > 0.0) return option.flatUsd
     return outputMp * option.perOutputMp
 }
 

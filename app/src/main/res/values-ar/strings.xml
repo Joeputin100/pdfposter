@@ -780,6 +780,8 @@
     <string name="upscale_option_aurasr_pros">الأفضل للفن والأنمي والرسوم التوضيحية &#8212; صقل GAN سريع</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">أبطأ من ESRGAN؛ أقل حدة على النص من Topaz</string>
+    <string name="upscale_option_seedvr_pros">ملصقات ضخمة بتكلفة زهيدة — تفاصيل واضحة ونظيفة</string>
+    <string name="upscale_option_seedvr_cons">مظهر مصقول · ينعّم حبيبات الصور الدقيقة</string>
     <string name="upscale_option_ccsr_pros">وفيّ للصور، قابل لضبط المقياس، فئة متوسطة</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">نموذج قديم؛ قد يفرط في تنعيم التفاصيل الدقيقة</string>

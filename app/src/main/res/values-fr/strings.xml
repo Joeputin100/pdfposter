@@ -781,6 +781,8 @@
     <string name="upscale_option_aurasr_pros">Idéal pour l\'art, l\'anime et les illustrations &#8212; finition GAN rapide</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">Plus lent qu\'ESRGAN ; moins net que Topaz sur le texte</string>
+    <string name="upscale_option_seedvr_pros">Des posters géants pour quelques centimes — détails nets</string>
+    <string name="upscale_option_seedvr_cons">Rendu lissé · adoucit le grain fin des photos</string>
     <string name="upscale_option_ccsr_pros">Fidèle aux photos, échelle ajustable de niveau intermédiaire</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">Modèle daté ; peut sur-lisser les détails fins</string>

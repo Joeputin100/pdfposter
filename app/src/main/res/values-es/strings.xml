@@ -781,6 +781,8 @@
     <string name="upscale_option_aurasr_pros">Mejor para arte, anime e ilustraciones — pulido GAN rápido</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">Más lento que ESRGAN; menos nítido en texto que Topaz</string>
+    <string name="upscale_option_seedvr_pros">Pósteres enormes por centavos — detalle nítido y limpio</string>
+    <string name="upscale_option_seedvr_cons">Aspecto pulido · suaviza el grano fino de las fotos</string>
     <string name="upscale_option_ccsr_pros">Fiel a la foto, escala ajustable, gama media</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">Modelo antiguo; puede suavizar en exceso los detalles finos</string>

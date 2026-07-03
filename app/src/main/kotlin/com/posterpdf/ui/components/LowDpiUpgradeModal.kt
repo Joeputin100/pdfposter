@@ -132,7 +132,7 @@ private const val CARD_HEIGHT_DP = 340
 private fun scaledCardHeightDp(fontScale: Float): Int =
     (CARD_HEIGHT_DP * fontScale).toInt().coerceAtLeast(CARD_HEIGHT_DP)
 
-enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR }
+enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR, SEEDVR }
 
 internal data class UpscaleOption(
     val model: UpscaleModel,
@@ -209,6 +209,18 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
     // successor (dedicated Imagen endpoints are being consolidated into
     // generative Gemini image models, which fail our fidelity bar; see
     // the gemini-3.1-flash-image probe from 2026-07-02).
+    // rc83: SeedVR2 (ByteDance) backfills the cheap-big-print niche —
+    // $0.001/MP with ~10k-px output headroom. Honest positioning: crisp,
+    // slightly polished look; AuraSR/Topaz preserve photo grain better.
+    UpscaleOption(
+        model = UpscaleModel.SEEDVR,
+        displayNameRes = R.string.upscale_option_seedvr_name,
+        prosRes = R.string.upscale_option_seedvr_pros,
+        consRes = R.string.upscale_option_seedvr_cons,
+        scale = 2,
+        supportedScales = listOf(2, 3, 4),
+        perOutputMp = 0.001,  // fallback; live rate via ModelRates
+    ),
     // RC29: CCSR — second photo-faithful adjustable model. Sits between
     // ESRGAN (cheap, predictable) and Topaz (premium edges) on price, with
     // configurable scale (2/3/4×) so the user can dial detail vs. cost.
@@ -267,6 +279,8 @@ private val ALL_MODELS = setOf(
     // RC32: CCSR was added to ALL_OPTIONS in RC29 but the picker filters
     // through this set, so without this entry the card never rendered.
     UpscaleModel.CCSR,
+    // rc83: SeedVR2 — same render gotcha as CCSR.
+    UpscaleModel.SEEDVR,
 )
 
 // rc80: promoted from private so MainViewModel can reuse the same fallback
@@ -435,16 +449,32 @@ fun LowDpiUpgradeModal(
     // is odd (the user reported a large empty space between the last
     // model card and "Help me decide…"). It now renders as a full-width
     // row BELOW the grid; see further down.
-    val visibleOptions: List<UpscaleModel> = remember(inputMp, posterWInches, posterHInches, targetDpi) {
+    // rc83: refresh live fal rates when the modal opens (≤5-min cache); the
+    // version state re-keys the sort/prices when new rates land. Cards for
+    // models fal reports unavailable are hidden entirely.
+    LaunchedEffect(Unit) { com.posterpdf.upscale.ModelRates.refreshIfStale() }
+    val ratesVersion = com.posterpdf.upscale.ModelRates.version.intValue
+    val visibleOptions: List<UpscaleModel> = remember(inputMp, posterWInches, posterHInches, targetDpi, ratesVersion) {
         val withCost = ALL_OPTIONS
             .filter { it.model in ALL_MODELS }
+            .filter { com.posterpdf.upscale.ModelRates.isAvailable(it.model) }
             .map { opt ->
                 val scale = pickScale(opt, inputMp, posterWInches, posterHInches, targetDpi)
                 val credits = creditsForOption(opt, inputMp, scale)
                 opt.model to credits
             }
+        // rc83: free on-device card pinned to the top-left, "keep as-is"
+        // beside it, then paid models cheapest→priciest.
         withCost
-            .sortedBy { (_, credits) -> credits }
+            .sortedWith(
+                compareBy { (model, credits) ->
+                    when (model) {
+                        UpscaleModel.FREE_LOCAL -> Int.MIN_VALUE
+                        UpscaleModel.NONE -> Int.MIN_VALUE + 1
+                        else -> credits
+                    }
+                }
+            )
             .map { (model, _) -> model }
     }
 

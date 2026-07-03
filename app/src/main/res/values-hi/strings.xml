@@ -780,6 +780,8 @@
     <string name="upscale_option_aurasr_pros">कला, anime &amp; चित्रों के लिए सर्वोत्तम &#8212; तेज़ GAN पॉलिश</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">ESRGAN से धीमा; टेक्स्ट पर Topaz जितना तीक्ष्ण नहीं</string>
+    <string name="upscale_option_seedvr_pros">कुछ ही पैसों में विशाल पोस्टर — साफ़, स्पष्ट डिटेल</string>
+    <string name="upscale_option_seedvr_cons">पॉलिश लुक · फ़ोटो का बारीक ग्रेन नरम हो जाता है</string>
     <string name="upscale_option_ccsr_pros">फ़ोटो-निष्ठावान, स्केल-समायोज्य मध्य-स्तर</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">पुराना मॉडल; बारीक विवरण को अति-चिकना कर सकता है</string>

@@ -780,6 +780,8 @@
     <string name="upscale_option_aurasr_pros">最适合艺术、动漫和插画 &#8212; 快速 GAN 润色</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">比 ESRGAN 慢；文字不如 Topaz 清晰</string>
+    <string name="upscale_option_seedvr_pros">超大海报，花费极低——细节清晰干净</string>
+    <string name="upscale_option_seedvr_cons">画面偏精修 · 会柔化照片细微颗粒</string>
     <string name="upscale_option_ccsr_pros">忠实于照片，可调倍率的中端选项</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">较旧的模型；可能过度平滑细节</string>

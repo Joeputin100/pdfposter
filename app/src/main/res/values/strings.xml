@@ -710,6 +710,9 @@
     <string name="upscale_option_aurasr_cons">Occasional artifacts on skies and skin</string>
     <string name="upscale_option_ccsr_pros">Photo-faithful, scale-tunable mid-tier</string>
     <string name="upscale_option_ccsr_cons">Slower than ESRGAN; less crisp on text than Topaz</string>
+    <string name="upscale_option_seedvr_name" translatable="false">SeedVR2</string>
+    <string name="upscale_option_seedvr_pros">Huge posters for pennies — crisp, clean detail</string>
+    <string name="upscale_option_seedvr_cons">Polished look · softens fine photo grain</string>
     <string name="upscale_option_topaz_pros">Best for text, line art &amp; print-shop polish</string>
     <string name="upscale_option_topaz_cons">30× the cost for ~10–20% sharper edges</string>
     <!-- RC60: Google Imagen pros/cons. Material 3 body-small budget; ~80 chars each.
