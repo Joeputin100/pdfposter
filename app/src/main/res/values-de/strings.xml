@@ -788,8 +788,6 @@
     <string name="upscale_option_free_cons">Langsamer auf älteren Telefonen; max. 4&#215;</string>
     <string name="upscale_option_free_pros">Kostenlos, offline, ohne Internet</string>
     <string name="upscale_option_free_upscale">Kostenlose Verbesserung</string>
-    <string name="upscale_option_imagen_cons">Max. 17 MP Ausgabe · Google-Sicherheitsfilter aktiv</string>
-    <string name="upscale_option_imagen_pros">Fotogetreue Verbesserung — von Google entwickelt</string>
     <string name="upscale_option_now_cons">Sichtbare Pixelung bei großen Drucken</string>
     <string name="upscale_option_now_pixelated">Jetzt (pixelig)</string>
     <string name="upscale_option_now_pros">Schnellste, kostenlos, auf jedem Gerät</string>
@@ -803,8 +801,6 @@
     <string name="vm_error_ai_failed_prefix">KI-Upscale fehlgeschlagen: %1$s</string>
     <string name="vm_error_couldnt_open_image">Quellbild konnte nicht geöffnet werden</string>
     <string name="vm_error_decode_failed">Upscale abgeschlossen, aber das Ergebnisbild konnte nicht dekodiert werden</string>
-    <string name="vm_error_imagen_content_filter">Die Sicherheitsfilter von Google Imagen konnten dieses Bild nicht verarbeiten. Ihre Credits wurden nicht belastet — probieren Sie einen anderen Upscaler.</string>
-    <string name="vm_error_imagen_too_large">Google Imagen verarbeitet nur Ausgaben bis 17 Megapixel. Wählen Sie eine kleinere Postergröße oder ein anderes Modell.</string>
     <string name="vm_error_sharpening_timed_out">Schärfung nach 15 Minuten abgebrochen &#8212; versuchen Sie eine kleinere Postergröße oder verwenden Sie stattdessen eine KI-Option.</string>
     <string name="vm_error_upscale_failed_inline">Upscale fehlgeschlagen: %1$s</string>
     <string name="vm_phase_done">Fertig</string>

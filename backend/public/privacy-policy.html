@@ -78,8 +78,8 @@
   <ul><li>Firebase / Google Cloud (Authentication, Firestore, Cloud Functions, Storage, Crashlytics, Cloud Messaging)</li>
       <li>Google Play Billing (for purchases)</li>
       <li>fal.ai (AI upscaling models, via our backend proxy)</li>
-      <li>Google Cloud Vertex AI (Imagen image generation/upscaling, via our backend proxy)</li></ul>
-  <p>When you choose a cloud AI model, the image is made available to the AI provider (fal.ai or Vertex AI) through a private, time-limited link, solely to fulfil your request. API keys and requests are proxied through our backend so secrets never live in the app.</p>
+      <li>Google Cloud Vertex AI (Gemini &mdash; powers the in-app AI assistant, via our backend proxy; receives your typed/spoken questions as text, not your images)</li></ul>
+  <p>When you choose a cloud AI model, the image is made available to the AI provider (fal.ai) through a private, time-limited link, solely to fulfil your request. API keys and requests are proxied through our backend so secrets never live in the app.</p>
 
   <h2>5. Data Retention</h2>
   <ul><li>Cloud copies of posters and upscale results are stored <b>free for 30 days</b>.</li>

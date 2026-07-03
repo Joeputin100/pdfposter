@@ -97,9 +97,6 @@ private enum class CompareModel(val label: String, val key: String) {
     // been baked yet for the four subjects, so the load path falls back to
     // Topaz's asset and the synth-fallback tag surfaces.
     Ccsr("CCSR", "ccsr"),
-    // RC60: Imagen added to the catalog. Samples baked for all 4 subjects
-    // via backend/scripts/bake-imagen-demo.py — no Topaz-fallback warning.
-    Imagen("Google Imagen", "imagen"),
 }
 
 /** Subjects that have synthesized fallback outputs for given models.

@@ -46,9 +46,9 @@ We never collect: your location, contacts, calendar, browsing history, advertisi
 - Firebase / Google Cloud (Authentication, Firestore, Cloud Functions, Storage, Crashlytics, Cloud Messaging)
 - Google Play Billing (for purchases)
 - fal.ai (AI upscaling models, via our backend proxy)
-- Google Cloud Vertex AI (Imagen image generation/upscaling, via our backend proxy)
+- Google Cloud Vertex AI (Gemini — powers the in-app AI assistant, via our backend proxy; receives your typed/spoken questions as text, not your images)
 
-When you choose a cloud AI model, the image is made available to the AI provider (fal.ai or Vertex AI) through a private, time-limited link, solely to fulfil your request. API keys and requests are proxied through our backend so secrets never live in the app.
+When you choose a cloud AI model, the image is made available to the AI provider (fal.ai) through a private, time-limited link, solely to fulfil your request. API keys and requests are proxied through our backend so secrets never live in the app.
 
 ## 5. Data Retention
 - Cloud copies of posters and upscale results are stored **free for 30 days**.

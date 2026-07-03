@@ -277,7 +277,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // --- Cloud connection & upload-speed gate (2026-05-29) ------------------
-    // Pre-flight gate for CLOUD upscales (FAL / Imagen — the paths that upload
+    // Pre-flight gate for CLOUD upscales (FAL — the paths that upload
     // the source image to Firebase Storage). Mirrors the on-device gateLongJob
     // pattern above: probe first, then either block (offline), warn (slow /
     // probe-failed) by stashing the pending launch, or proceed silently.

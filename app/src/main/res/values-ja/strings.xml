@@ -788,8 +788,6 @@
     <string name="upscale_option_free_cons">古い端末では低速。最大4×</string>
     <string name="upscale_option_free_pros">無料、オフライン、インターネット不要</string>
     <string name="upscale_option_free_upscale">無料アップスケール</string>
-    <string name="upscale_option_imagen_cons">17 MPの出力上限・Googleの安全フィルター適用</string>
-    <string name="upscale_option_imagen_pros">写真に忠実なアップスケール &#8212; Google製</string>
     <string name="upscale_option_now_cons">大きな印刷で目立つピクセル化</string>
     <string name="upscale_option_now_pixelated">現在 (ピクセル化)</string>
     <string name="upscale_option_now_pros">最速、無料、どの端末でも動作</string>
@@ -803,8 +801,6 @@
     <string name="vm_error_ai_failed_prefix">AIアップスケール失敗: %1$s</string>
     <string name="vm_error_couldnt_open_image">元画像を開けませんでした</string>
     <string name="vm_error_decode_failed">アップスケールは完了しましたが、結果画像をデコードできませんでした</string>
-    <string name="vm_error_imagen_content_filter">Google Imagenの安全フィルターがこの画像を処理できませんでした。クレジットは消費されていません &#8212; 別のアップスケーラーをお試しください。</string>
-    <string name="vm_error_imagen_too_large">Google Imagenの出力上限は17メガピクセルです。ポスターサイズを小さくするか、別のモデルをお試しください。</string>
     <string name="vm_error_sharpening_timed_out">15分後に鮮明化がタイムアウトしました &#8212; ポスターサイズを小さくするか、代わりにAIオプションをご使用ください。</string>
     <string name="vm_error_upscale_failed_inline">アップスケール失敗: %1$s</string>
     <string name="vm_phase_done">完了</string>

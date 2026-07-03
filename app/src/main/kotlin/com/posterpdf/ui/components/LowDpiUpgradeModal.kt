@@ -132,7 +132,7 @@ private const val CARD_HEIGHT_DP = 340
 private fun scaledCardHeightDp(fontScale: Float): Int =
     (CARD_HEIGHT_DP * fontScale).toInt().coerceAtLeast(CARD_HEIGHT_DP)
 
-enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR, IMAGEN }
+enum class UpscaleModel { NONE, FREE_LOCAL, TOPAZ, RECRAFT, AURASR, ESRGAN, CCSR }
 
 internal data class UpscaleOption(
     val model: UpscaleModel,
@@ -204,30 +204,16 @@ internal val ALL_OPTIONS: List<UpscaleOption> = listOf(
         supportedScales = listOf(4),
         perOutputMp = 0.00125,
     ),
-    // RC60: Google Imagen 4 — Pure-Google mid-tier cloud upscale. Sits
-    // between AuraSR and CCSR in the grid order. Per-call flat pricing
-    // (~$0.03/call). Supports x2/x3/x4. Backend routes via Vertex AI
-    // (not FAL); UI shape is identical to the FAL-routed models. Output
-    // capped at 17 MP by the API — assertModelCapacity rejects larger
-    // jobs before debiting credits.
-    UpscaleOption(
-        model = UpscaleModel.IMAGEN,
-        displayNameRes = R.string.upscale_option_imagen_name,
-        prosRes = R.string.upscale_option_imagen_pros,
-        consRes = R.string.upscale_option_imagen_cons,
-        scale = 4,
-        supportedScales = listOf(2, 3, 4),
-        // Flat per-call cost — set perOutputMp=0 and use flatUsd so the
-        // card's credit-math doesn't multiply by output MP.
-        perOutputMp = 0.0,
-        flatUsd = 0.03,
-    ),
+    // rc82: Google Imagen 4 tier REMOVED — Google retires the
+    // imagen-4.0-upscale-preview endpoint on 2026-08-03 with no GA
+    // successor (dedicated Imagen endpoints are being consolidated into
+    // generative Gemini image models, which fail our fidelity bar; see
+    // the gemini-3.1-flash-image probe from 2026-07-02).
     // RC29: CCSR — second photo-faithful adjustable model. Sits between
     // ESRGAN (cheap, predictable) and Topaz (premium edges) on price, with
     // configurable scale (2/3/4×) so the user can dial detail vs. cost.
     // RC33: positioned before Topaz so the grid reads in ascending-price
     // order (NONE → FREE → RECRAFT → ESRGAN → AURASR → CCSR → TOPAZ).
-    // RC60: Imagen inserted between AuraSR and CCSR (see comment above).
     UpscaleOption(
         model = UpscaleModel.CCSR,
         displayNameRes = R.string.upscale_option_ccsr,
@@ -281,9 +267,6 @@ private val ALL_MODELS = setOf(
     // RC32: CCSR was added to ALL_OPTIONS in RC29 but the picker filters
     // through this set, so without this entry the card never rendered.
     UpscaleModel.CCSR,
-    // RC60: Google Imagen — same gotcha as CCSR; the card won't render
-    // unless its model is listed here.
-    UpscaleModel.IMAGEN,
 )
 
 // rc80: promoted from private so MainViewModel can reuse the same fallback
@@ -440,8 +423,8 @@ fun LowDpiUpgradeModal(
 
     // RC61: dynamic price sort. ALL_OPTIONS' static array order doesn't
     // reflect actual cost for a given input image + target poster + DPI —
-    // e.g. Imagen at $0.03 flat is cheap on a 16 MP output but more
-    // expensive than per-MP CCSR on a 2 MP output, so the card ordering
+    // e.g. flat-fee Recraft is cheap on a large output but pricier than
+    // per-MP ESRGAN on a tiny 2 MP output, so the card ordering
     // should re-rank per situation. Re-sort whenever the pricing inputs
     // change. NONE and FREE_LOCAL anchor at the top (both cost 0); paid
     // models sort by their computed credit cost using the SAME helpers
@@ -748,9 +731,6 @@ private fun iconForModel(model: UpscaleModel): Int = when (model) {
     // RC29.1: CCSR's official logo is the eastern bluebird from FAL's
     // model card (sourced from v3b.fal.media). 256×256 PNG.
     UpscaleModel.CCSR -> R.drawable.ic_model_ccsr
-    // RC60: Google Imagen — explicit fallback to the generic AI upscale
-    // demo icon for v1. Custom Google-branded icon is a Spec C polish item.
-    UpscaleModel.IMAGEN -> R.drawable.ai_upscale_demo
     else -> R.drawable.ai_upscale_demo
 }
 

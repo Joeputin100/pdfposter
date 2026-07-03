@@ -16,12 +16,6 @@ import { logger } from 'firebase-functions/v2';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import axios from 'axios';
-// RC60: Vertex AI Imagen 4 upscale (Pure-Google upscale path, parallel to FAL).
-import {
-  callVertexImagen,
-  VertexImagenError,
-  type FailureReason as VertexFailureReason,
-} from './vertex-imagen.js';
 
 const FAL_KEY = defineSecret('FAL_KEY');
 
@@ -30,11 +24,11 @@ const FAL_KEY = defineSecret('FAL_KEY');
 //
 // RC3+ collapsed topaz_4x/topaz_8x → topaz; backend now picks the smallest
 // scale factor that meets the target DPI (saves 5-10× cost on typical posters).
-type UpscaleModel = 'topaz' | 'recraft' | 'aurasr' | 'esrgan' | 'ccsr' | 'imagen';
-// RC60: subtype of UpscaleModel that excludes 'imagen' — used to type the
-// FAL-shaped MODELS map and FAL-specific helpers. Imagen routes via Vertex
-// AI through a separate code path and doesn't belong in MODELS.
-type FalModel = Exclude<UpscaleModel, 'imagen'>;
+// rc82: 'imagen' removed — Google retires imagen-4.0-upscale-preview on
+// 2026-08-03 with no GA successor (see vertex-imagen.ts deletion commit).
+// All remaining cloud models route via FAL, so FalModel === UpscaleModel.
+type UpscaleModel = 'topaz' | 'recraft' | 'aurasr' | 'esrgan' | 'ccsr';
+type FalModel = UpscaleModel;
 
 interface RequestUpscaleInput {
   modelId: UpscaleModel;
@@ -134,34 +128,15 @@ const MODELS: Record<FalModel, ModelSpec> = {
   },
 };
 
-// RC60: Imagen 4 upscale doesn't fit the FAL-shaped ModelSpec (no endpoint
-// for FAL, no FAL body builder). Separate registry; requestUpscale routes
-// on modelId === 'imagen' below.
-//
-// Pricing: ~$0.03 per output image flat (Imagen 4 preview pricing not yet
-// published on Google's public pricing page as of 2026-05-25; this is an
-// internal estimate aligned with the user's stated $0.02-$0.03 sweet spot
-// from the brainstorming transcript). Per-CALL, not per-MP — Vertex bills
-// per request for upscale, unlike Topaz's per-MP model. Revise once Google
-// publishes preview pricing.
-const IMAGEN_COST_PER_CALL_USD = 0.03;
-
-const IMAGEN_SPEC = {
-  supportedScales: [2, 3, 4] as const,
-  // costFn signature matches FAL ModelSpec for symmetry through costFnFor().
-  costFn: (_outputMp: number) => IMAGEN_COST_PER_CALL_USD,
-};
-
-// Helpers so pickScale + computeCreditsForJob can be model-agnostic across
-// FAL-routed models (in MODELS map) and Imagen (in IMAGEN_SPEC).
+// Helpers kept so pickScale + computeCreditsForJob stay model-agnostic
+// (they survived the rc82 Imagen removal because every model now lives in
+// the FAL-shaped MODELS map).
 function supportedScalesFor(modelId: UpscaleModel): readonly number[] {
-  if (modelId === 'imagen') return IMAGEN_SPEC.supportedScales;
-  return MODELS[modelId as FalModel].supportedScales;
+  return MODELS[modelId].supportedScales;
 }
 
 function costFnFor(modelId: UpscaleModel): (outputMp: number) => number {
-  if (modelId === 'imagen') return IMAGEN_SPEC.costFn;
-  return MODELS[modelId as FalModel].costFn;
+  return MODELS[modelId].costFn;
 }
 
 /**
@@ -235,10 +210,19 @@ function assertSignedIn(request: CallableRequest<unknown>): string {
 
 function assertModel(m: unknown): UpscaleModel {
   if (m === 'topaz' || m === 'recraft' || m === 'aurasr' || m === 'esrgan'
-      || m === 'ccsr' || m === 'imagen') return m;
+      || m === 'ccsr') return m;
+  // rc82: 'imagen' intentionally rejected here — old sideloaded RC builds
+  // may still request it after Google's 2026-08-03 endpoint retirement.
+  if (m === 'imagen') {
+    throw new HttpsError(
+      'failed-precondition',
+      'The Google Imagen upscaler was retired by Google. Please update the ' +
+      'app and pick a different model — no credits were charged.',
+    );
+  }
   throw new HttpsError(
     'invalid-argument',
-    'modelId must be one of: topaz, recraft, aurasr, esrgan, ccsr, imagen',
+    'modelId must be one of: topaz, recraft, aurasr, esrgan, ccsr',
   );
 }
 
@@ -266,9 +250,6 @@ function assertModel(m: unknown): UpscaleModel {
 //   guards here following the same shape.
 const CCSR_MAX_OUTPUT_MP = 8;
 const RECRAFT_MAX_INPUT_MP = 1.5;
-// RC60: Imagen 4 upscale preview is capped at 17 MP output by the API.
-// Reject larger jobs before debiting credits.
-const IMAGEN_MAX_OUTPUT_MP = 17;
 
 function assertModelCapacity(modelId: UpscaleModel, inputMp: number, outputMp: number): void {
   if (modelId === 'ccsr' && outputMp > CCSR_MAX_OUTPUT_MP) {
@@ -286,14 +267,6 @@ function assertModelCapacity(modelId: UpscaleModel, inputMp: number, outputMp: n
       `(roughly 1024×1024); your image is ${inputMp.toFixed(1)} MP. ` +
       `Pick a different model — Topaz, AuraSR, ESRGAN, and CCSR all ` +
       `accept larger inputs.`,
-    );
-  }
-  if (modelId === 'imagen' && outputMp > IMAGEN_MAX_OUTPUT_MP) {
-    throw new HttpsError(
-      'invalid-argument',
-      `Google Imagen can only handle outputs up to ${IMAGEN_MAX_OUTPUT_MP} MP; ` +
-      `this job would produce ${outputMp.toFixed(1)} MP. ` +
-      `Pick a smaller poster size, a smaller scale, or a different model.`,
     );
   }
 }
@@ -700,89 +673,11 @@ export const requestUpscale = onCall(
     // 1. Debit credits + create tx atomically.
     const txId = await debitAndCreateTx(uid, modelId, inputUrl, inputMp, required, isAdmin);
 
-    // 2. Outside the transaction, kick off the upscaler. RC60: routes by
-    // modelId. Imagen goes through Vertex AI (synchronous POST, returns
-    // base64 bytes inline); FAL models continue through the existing
-    // submit→poll→fetch→download pipeline.
+    // 2. Outside the transaction, kick off the upscaler. rc82: the RC60
+    // Vertex Imagen branch was removed with the tier (endpoint retired by
+    // Google 2026-08-03); every model now takes the FAL pipeline.
     try {
-      // RC60: Imagen 4 path — synchronous Vertex call. The input URI MUST
-      // stay in gs:// form (Vertex's `gcsUri` field rejects HTTPS), so we
-      // skip resolveFetchableUrl for Imagen. The output comes back as
-      // base64-encoded bytes which we write to the default Firebase
-      // Storage bucket using the same shape as FAL's downloadAndStoreOutput
-      // (line ~627), then return a v4 signed HTTPS URL so the Android
-      // client's URL().openStream() can fetch it.
-      if (modelId === 'imagen') {
-        if (!inputUrl.startsWith('gs://')) {
-          throw new HttpsError(
-            'invalid-argument',
-            'Imagen requires a gs:// input URL; received non-gs:// scheme',
-          );
-        }
-        const factorStr = `x${scale}` as 'x2' | 'x3' | 'x4';
-        let pngBytes: Buffer;
-        try {
-          pngBytes = await callVertexImagen({
-            inputGsUri: inputUrl,
-            upscaleFactor: factorStr,
-          });
-        } catch (e) {
-          if (e instanceof VertexImagenError) {
-            // Persist the normalized failure_reason so the client can
-            // surface a localized message via vm_error_imagen_<reason>.
-            // RC60: log the raw HTTP status + reason for debuggability —
-            // closes Spec A Open Verification Item #3 (refining on first
-            // observed real-world block).
-            logger.warn('imagen call failed', {
-              uid, txId,
-              httpStatus: e.httpStatus,
-              failureReason: e.failureReason,
-              message: e.message,
-            });
-            await getFirestore()
-              .collection('upscaleTransactions')
-              .doc(txId)
-              .set(
-                { failureReason: e.failureReason as VertexFailureReason },
-                { merge: true },
-              );
-            // Re-throw so the outer catch refunds the user and signals
-            // failure to the client. refundAndFail is idempotent.
-            throw new Error(`Imagen failed (${e.failureReason}): ${e.message}`);
-          }
-          throw e;
-        }
-        // Write the bytes into our default bucket + sign a v4 HTTPS URL.
-        // Same path layout as the FAL flow (downloadAndStoreOutput) so
-        // the existing storage-retention cleanup picks them up.
-        const bucket = getStorage().bucket();
-        const objectPath = `upscaled/${uid}/${txId}.png`;
-        const file = bucket.file(objectPath);
-        await file.save(pngBytes, {
-          contentType: 'image/png',
-          resumable: false,
-          metadata: { cacheControl: 'private, max-age=86400' },
-        });
-        const [signedUrl] = await file.getSignedUrl({
-          version: 'v4',
-          action: 'read',
-          expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-        });
-        await getFirestore()
-          .collection('upscaleTransactions')
-          .doc(txId)
-          .set(
-            {
-              status: 'succeeded',
-              outputUrl: signedUrl,
-              completedAt: FieldValue.serverTimestamp(),
-            },
-            { merge: true },
-          );
-        return { txId };
-      }
-
-      // FAL path (unchanged) — submit → poll → fetch → download.
+      // FAL path — submit → poll → fetch → download.
       const fetchableUrl = await resolveFetchableUrl(inputUrl);
       const submit = await submitFalJob(modelId, fetchableUrl, scale, FAL_KEY.value());
 

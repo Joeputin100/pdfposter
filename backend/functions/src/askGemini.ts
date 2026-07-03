@@ -39,7 +39,7 @@ export function buildToolDefinitions(): unknown[] {
             properties: {
               upscaleModel: {
                 type: 'string',
-                enum: ['none', 'free_local', 'topaz', 'recraft', 'aurasr', 'esrgan', 'ccsr', 'imagen'],
+                enum: ['none', 'free_local', 'topaz', 'recraft', 'aurasr', 'esrgan', 'ccsr'],
                 description: 'Which AI upscaler to quote. Use \'free_local\' for the no-cost on-device option.',
               },
               targetWidthInches: { type: 'number', description: 'Desired poster width in inches.' },

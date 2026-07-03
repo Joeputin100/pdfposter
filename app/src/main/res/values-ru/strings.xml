@@ -788,8 +788,6 @@
     <string name="upscale_option_free_cons">Медленнее на старых телефонах; максимум 4×</string>
     <string name="upscale_option_free_pros">Бесплатно, офлайн, без интернета</string>
     <string name="upscale_option_free_upscale">Бесплатное улучшение</string>
-    <string name="upscale_option_imagen_cons">Предел 17 МП на выходе · действуют фильтры безопасности Google</string>
-    <string name="upscale_option_imagen_pros">Точная передача фото — от Google</string>
     <string name="upscale_option_now_cons">Заметная пикселизация при крупной печати</string>
     <string name="upscale_option_now_pixelated">Сейчас (пикселизировано)</string>
     <string name="upscale_option_now_pros">Максимально быстро, бесплатно, работает на любом устройстве</string>
@@ -803,8 +801,6 @@
     <string name="vm_error_ai_failed_prefix">AI-масштабирование не удалось: %1$s</string>
     <string name="vm_error_couldnt_open_image">Не удалось открыть исходное изображение</string>
     <string name="vm_error_decode_failed">Масштабирование завершено, но результат не удалось декодировать</string>
-    <string name="vm_error_imagen_content_filter">Фильтры безопасности Google Imagen не смогли обработать это изображение. Кредиты не списаны — попробуйте другой масштабировщик.</string>
-    <string name="vm_error_imagen_too_large">Google Imagen поддерживает результат не более 17 мегапикселей. Попробуйте меньший размер постера или другую модель.</string>
     <string name="vm_error_sharpening_timed_out">Время на улучшение истекло через 15 минут — попробуйте меньший размер постера или используйте AI-вариант.</string>
     <string name="vm_error_upscale_failed_inline">Ошибка масштабирования: %1$s</string>
     <string name="vm_phase_done">Готово</string>

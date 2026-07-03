@@ -788,8 +788,6 @@
     <string name="upscale_option_free_cons">Mais lento em celulares antigos; máximo de 4&#215;</string>
     <string name="upscale_option_free_pros">Gratuito, offline, funciona sem internet</string>
     <string name="upscale_option_free_upscale">Aprimoramento grátis</string>
-    <string name="upscale_option_imagen_cons">Limite de 17 MP na saída · filtros de segurança do Google se aplicam</string>
-    <string name="upscale_option_imagen_pros">Aumento de resolução fiel à foto &#8212; feito pelo Google</string>
     <string name="upscale_option_now_cons">Pixelação visível em impressões grandes</string>
     <string name="upscale_option_now_pixelated">Agora (pixelado)</string>
     <string name="upscale_option_now_pros">Mais rápido, gratuito, funciona em qualquer dispositivo</string>
@@ -803,8 +801,6 @@
     <string name="vm_error_ai_failed_prefix">Falha no aprimoramento por IA: %1$s</string>
     <string name="vm_error_couldnt_open_image">Não foi possível abrir a imagem de origem</string>
     <string name="vm_error_decode_failed">Aprimoramento concluído, mas não foi possível decodificar a imagem resultante</string>
-    <string name="vm_error_imagen_content_filter">Os filtros de segurança do Google Imagen não puderam processar esta imagem. Seus créditos não foram cobrados &#8212; tente outro aprimorador.</string>
-    <string name="vm_error_imagen_too_large">O Google Imagen suporta apenas saídas de até 17 megapixels. Tente um tamanho de pôster menor ou outro modelo.</string>
     <string name="vm_error_sharpening_timed_out">Aprimoramento expirou após 15 minutos &#8212; tente um tamanho de pôster menor ou use uma opção de IA.</string>
     <string name="vm_error_upscale_failed_inline">Falha no aprimoramento: %1$s</string>
     <string name="vm_phase_done">Concluído</string>

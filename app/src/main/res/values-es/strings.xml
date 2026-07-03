@@ -785,8 +785,6 @@
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">Modelo antiguo; puede suavizar en exceso los detalles finos</string>
     <string name="upscale_option_esrgan_pros">Limpieza económica — base predecible de código abierto</string>
-    <string name="upscale_option_imagen_cons">Tope de salida de 17 MP &#183; se aplican los filtros de Google</string>
-    <string name="upscale_option_imagen_pros">Escalado fiel a la foto — hecho por Google</string>
     <string name="upscale_option_free_cons">Más lento en teléfonos antiguos; máximo 4&#215;</string>
     <string name="upscale_option_free_pros">Gratis, sin conexión, funciona sin internet</string>
     <string name="upscale_option_free_upscale">Mejora gratuita</string>
@@ -803,8 +801,6 @@
     <string name="vm_error_ai_failed_prefix">Falló la ampliación IA: %1$s</string>
     <string name="vm_error_couldnt_open_image">No se pudo abrir la imagen fuente</string>
     <string name="vm_error_decode_failed">La ampliación se completó pero no se pudo decodificar la imagen resultante</string>
-    <string name="vm_error_imagen_content_filter">Los filtros de seguridad de Google Imagen no pudieron procesar esta imagen. No se cobraron tus créditos — prueba con otro ampliador.</string>
-    <string name="vm_error_imagen_too_large">Google Imagen solo admite salidas de hasta 17 megapíxeles. Prueba con un tamaño de póster menor o con otro modelo.</string>
     <string name="vm_error_sharpening_timed_out">Tiempo agotado al optimizar tras 15 minutos — prueba un tamaño de póster más pequeño o usa una opción IA.</string>
     <string name="vm_error_upscale_failed_inline">Error al ampliar: %1$s</string>
     <string name="vm_phase_done">Listo</string>

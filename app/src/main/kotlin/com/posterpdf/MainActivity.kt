@@ -645,7 +645,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     }
 
     // Cloud-gate (2026-05-29) — pre-flight connection & upload-speed gate for
-    // CLOUD upscales (FAL / Imagen). gateCloudUpload in MainViewModel probes
+    // CLOUD upscales (FAL). gateCloudUpload in MainViewModel probes
     // first, then flips one of these two flags. Mirrors the showLongJobConfirm
     // pattern above (the on-device equivalent). The slow warning is dismissible
     // (Continue / Cancel); offline is a hard block (Got it) that steers to the

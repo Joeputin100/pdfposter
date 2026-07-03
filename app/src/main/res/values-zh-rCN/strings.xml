@@ -787,8 +787,6 @@
     <string name="upscale_option_free_cons">在较旧的手机上较慢；最高 4&#215;</string>
     <string name="upscale_option_free_pros">免费、离线，无需联网即可使用</string>
     <string name="upscale_option_free_upscale">免费提升</string>
-    <string name="upscale_option_imagen_cons">输出上限 17 MP · 受 Google 安全过滤器限制</string>
-    <string name="upscale_option_imagen_pros">照片级还原放大 — Google 出品</string>
     <string name="upscale_option_now_cons">大尺寸打印时可见明显像素化</string>
     <string name="upscale_option_now_pixelated">当前（像素化）</string>
     <string name="upscale_option_now_pros">最快、免费，适用于任何设备</string>
@@ -802,8 +800,6 @@
     <string name="vm_error_ai_failed_prefix">AI 提升失败：%1$s</string>
     <string name="vm_error_couldnt_open_image">无法打开原始图像</string>
     <string name="vm_error_decode_failed">提升完成但结果图像无法解码</string>
-    <string name="vm_error_imagen_content_filter">Google Imagen 的安全过滤器无法处理此图片。未扣除点数 — 请尝试其他提升器。</string>
-    <string name="vm_error_imagen_too_large">Google Imagen 仅支持最高 17 兆像素的输出。请尝试更小的海报尺寸或其他模型。</string>
     <string name="vm_error_sharpening_timed_out">锐化在 15 分钟后超时 &#8212; 请尝试更小的海报尺寸或改用 AI 选项。</string>
     <string name="vm_error_upscale_failed_inline">提升失败：%1$s</string>
     <string name="vm_phase_done">完成</string>
