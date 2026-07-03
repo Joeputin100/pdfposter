@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">Esto elimina permanentemente tu perfil, saldo de créditos, pósters generados y cualquier ampliación almacenada en la nube. Solo conservamos los registros financieros mínimos exigidos por ley.</string>
     <string name="erase_confirm_button">Borrar cuenta</string>
     <string name="erase_confirm_keep">Conservar cuenta</string>
+    <string name="erase_account_done">Tu cuenta y tus datos en la nube se han eliminado.</string>
+    <string name="erase_account_failed">No se pudo eliminar la cuenta — comprueba tu conexión e inténtalo de nuevo.</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">¿Borrar tu cuenta?</string>
     <string name="erase_confirm_type_instruction">Escribe CANCEL abajo para confirmar.</string>

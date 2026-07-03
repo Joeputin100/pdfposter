@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">यह आपकी प्रोफ़ाइल, क्रेडिट बैलेंस, बनाए गए पोस्टर और क्लाउड-स्टोर अपस्केल स्थायी रूप से हटा देता है। हम केवल कानूनी रूप से ज़रूरी न्यूनतम वित्तीय रिकॉर्ड रखते हैं।</string>
     <string name="erase_confirm_button">अकाउंट मिटाएं</string>
     <string name="erase_confirm_keep">अकाउंट रखें</string>
+    <string name="erase_account_done">आपका खाता और क्लाउड डेटा मिटा दिया गया है।</string>
+    <string name="erase_account_failed">खाता मिटाने में विफल — कृपया अपना कनेक्शन जांचें और फिर से प्रयास करें।</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">अपना अकाउंट मिटाएं?</string>
     <string name="erase_confirm_type_instruction">पुष्टि के लिए नीचे CANCEL टाइप करें।</string>

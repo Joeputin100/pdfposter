@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">Isso exclui permanentemente seu perfil, saldo de créditos, pôsteres gerados e quaisquer melhorias armazenadas na nuvem. Mantemos apenas os registros financeiros mínimos exigidos por lei.</string>
     <string name="erase_confirm_button">Excluir conta</string>
     <string name="erase_confirm_keep">Manter conta</string>
+    <string name="erase_account_done">Sua conta e seus dados na nuvem foram excluídos.</string>
+    <string name="erase_account_failed">Falha ao excluir a conta — verifique sua conexão e tente novamente.</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">Excluir sua conta?</string>
     <string name="erase_confirm_type_instruction">Digite CANCEL abaixo para confirmar.</string>

@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">Cela supprime définitivement votre profil, votre solde de crédits, vos affiches générées et vos agrandissements stockés dans le cloud. Nous conservons uniquement les documents financiers minimaux requis par la loi.</string>
     <string name="erase_confirm_button">Supprimer le compte</string>
     <string name="erase_confirm_keep">Conserver le compte</string>
+    <string name="erase_account_done">Votre compte et vos données cloud ont été supprimés.</string>
+    <string name="erase_account_failed">Échec de la suppression du compte — vérifiez votre connexion et réessayez.</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">Supprimer votre compte ?</string>
     <string name="erase_confirm_type_instruction">Tapez CANCEL ci-dessous pour confirmer.</string>

@@ -397,6 +397,8 @@
     <string name="erase_confirm_body">プロフィール、クレジット残高、生成したポスター、クラウド保存のアップスケール画像をすべて完全に削除します。法律で義務付けられている最低限の財務記録のみ保持されます。</string>
     <string name="erase_confirm_button">アカウントを削除</string>
     <string name="erase_confirm_keep">アカウントを保持</string>
+    <string name="erase_account_done">アカウントとクラウドデータを削除しました。</string>
+    <string name="erase_account_failed">アカウントの削除に失敗しました。接続を確認してもう一度お試しください。</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">アカウントを削除しますか？</string>
     <string name="erase_confirm_type_instruction">確認のため、下に CANCEL と入力してください。</string>

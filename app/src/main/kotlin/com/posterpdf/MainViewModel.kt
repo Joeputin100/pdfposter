@@ -26,9 +26,11 @@ import com.posterpdf.data.backend.AuthSession
 import com.posterpdf.data.backend.BackendClient
 import com.posterpdf.data.backend.HistoryItem
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 
@@ -1995,6 +1997,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             auth.ensureSignedIn() // immediately go back to anonymous
             refreshHistory()
+        }
+    }
+
+    /**
+     * rc82: DANGER ZONE confirm → real server-side wipe via the eraseAccount
+     * callable (archives the credit ledger, then deletes the Firestore user
+     * tree, the Storage users/{uid}/ prefix, and the Auth record), then local
+     * sign-out back to a fresh anonymous session. Replaces the RC35 stub that
+     * only signed out locally. Backend is idempotent, so on failure the user
+     * can simply retry from the same dialog.
+     */
+    fun eraseAccount(context: Context) {
+        viewModelScope.launch {
+            try {
+                FirebaseFunctions.getInstance("us-central1")
+                    .getHttpsCallable("eraseAccount")
+                    .call()
+                    .await()
+                logEvent(context, "Account erase completed server-side")
+                signOut()
+                successMessage = context.getString(R.string.erase_account_done)
+            } catch (t: Throwable) {
+                logEvent(context, "Account erase FAILED", t.message)
+                errorMessage = context.getString(R.string.erase_account_failed)
+            }
         }
     }
 

@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">Это навсегда удалит ваш профиль, баланс кредитов, созданные постеры и все облачные копии масштабированных изображений. Мы храним только минимально необходимые финансовые записи, предусмотренные законом.</string>
     <string name="erase_confirm_button">Удалить аккаунт</string>
     <string name="erase_confirm_keep">Сохранить аккаунт</string>
+    <string name="erase_account_done">Ваш аккаунт и облачные данные удалены.</string>
+    <string name="erase_account_failed">Не удалось удалить аккаунт — проверьте подключение и повторите попытку.</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">Удалить аккаунт?</string>
     <string name="erase_confirm_type_instruction">Введите CANCEL ниже для подтверждения.</string>

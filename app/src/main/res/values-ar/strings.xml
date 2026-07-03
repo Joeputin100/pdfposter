@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">سيؤدي هذا إلى حذف ملفك الشخصي ورصيدك وملصقاتك المُنشأة وأي تكبيرات مخزَّنة سحابياً بشكل دائم. نحتفظ فقط بالحد الأدنى من السجلات المالية المطلوبة قانوناً.</string>
     <string name="erase_confirm_button">مسح الحساب</string>
     <string name="erase_confirm_keep">الاحتفاظ بالحساب</string>
+    <string name="erase_account_done">تم حذف حسابك وبياناتك السحابية.</string>
+    <string name="erase_account_failed">فشل حذف الحساب — يُرجى التحقق من الاتصال والمحاولة مرة أخرى.</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">مسح حسابك؟</string>
     <string name="erase_confirm_type_instruction">اكتب CANCEL أدناه للتأكيد.</string>

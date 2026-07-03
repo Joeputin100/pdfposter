@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">Dies löscht dauerhaft Ihr Profil, Ihr Credit-Guthaben, generierte Poster und alle in der Cloud gespeicherten Upscales. Wir behalten nur die gesetzlich vorgeschriebenen Mindest-Finanzdaten.</string>
     <string name="erase_confirm_button">Konto löschen</string>
     <string name="erase_confirm_keep">Konto behalten</string>
+    <string name="erase_account_done">Ihr Konto und Ihre Cloud-Daten wurden gelöscht.</string>
+    <string name="erase_account_failed">Kontolöschung fehlgeschlagen – bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut.</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">Konto löschen?</string>
     <string name="erase_confirm_type_instruction">Geben Sie unten CANCEL ein, um zu bestätigen.</string>

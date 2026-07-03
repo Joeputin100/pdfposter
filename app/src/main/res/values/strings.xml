@@ -501,6 +501,8 @@
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_button">Erase account</string>
     <string name="erase_confirm_keep">Keep account</string>
+    <string name="erase_account_done">Your account and cloud data have been erased.</string>
+    <string name="erase_account_failed">Account erase failed — check your connection and try again.</string>
 
     <!-- RC38: CreditsHistoryScreen -->
     <string name="credits_history_title">Credits history</string>

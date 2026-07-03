@@ -901,10 +901,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             onEraseAccount = {
                 viewModel.showManageAccount = false
                 viewModel.logEvent(context, "Account erase confirmed")
-                // Backend wipe lands in a follow-up RC; for now we
-                // sign the user out locally so subsequent sessions
-                // are decoupled from the previous identity.
-                viewModel.signOut()
+                viewModel.eraseAccount(context)
             },
         )
     }
