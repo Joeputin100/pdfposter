@@ -181,6 +181,30 @@ Baseline profiles encode "which classes/methods to AOT-compile at install time" 
 
 **Status:** Long-term polish; runs in parallel with engineering.
 
+**⚠️ 2026-07-03 — PRE-LAUNCH SUBSET (user-requested, blocks launch):**
+A minimum-cleanup pass must land BEFORE the Play production release —
+the listing links to posterpdf.web.app, but the repo is public and one
+search away. Launch-gating items only:
+1. **Delete stale root clutter**: `posterpdf-rc35..rc40-*.apk` (old debug
+   builds in repo root), `wood.png`, `AISelect_20260506_155101_Chrome_OpenArt.png`,
+   `poster pdf.png` (superseded blue-logo concept — final brand is the teal
+   press; archive under docs/ if worth keeping), `keystore_gen.yaml` if stale.
+2. **Commit or drop `docs/logo-variations/`** (46 untracked candidate PNGs
+   from 2026-05-01 — the only high-res masters of the final logo family;
+   recommend committing a curated subset).
+3. **Top-level README.md** with the Print Room brand: hero (reuse
+   `play-listing/feature-graphic.png`), 1-paragraph pitch, screenshots
+   (reuse the rc83 store set), Play Store badge/link once live, privacy
+   policy + posterpdf.web.app links, build badge, license note.
+4. **LICENSE decision** (see A below — default today is "no license" =
+   all rights reserved, fine but make it explicit).
+5. **Repo description + topics + social preview** (use `hero-1280x640` /
+   feature graphic).
+6. Sweep for internal-only docs that read wrong publicly (docs/reviews,
+   old specs are fine; check nothing embarrassing/secret-adjacent).
+
+Rest of TODO 7 (below) stays post-launch.
+
 **Why:** The repo at `https://github.com/Joeputin100/pdfposter` is the public artifact of this app. For a Play-Store-featured-app candidate, the GitHub repo is the secondary calling card — recruiters, fellow developers, journalists, and the curious all land there before they land on the Play Store listing. Currently it's a working dev repo, not a showcase.
 
 **Workstreams:**
