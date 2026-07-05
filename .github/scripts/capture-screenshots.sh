@@ -125,11 +125,15 @@ if [ "${STORE_MODE:-0}" = "1" ]; then
     adb exec-out screencap -p > "$OUT/store-construction-$n.png"
     sleep 3
   done
-  # rc83: product-video raw footage via the EMULATOR-side recorder
-  # (`adb emu screenrecord`) which writes webm on the HOST — the device-side
-  # `adb shell screenrecord` needs a hardware h264 encoder the swiftshader
-  # emulator lacks (first attempt crashed the emulator: "no frame!" spam →
-  # "error: closed"). Edit (cuts, title cards, speed-ramps) happens off-CI.
+  # rc83: product-video raw footage — DISABLED BY DEFAULT (STORE_VIDEO=1 to
+  # try). BOTH recorders crash this runner's emulator: device-side
+  # screenrecord needs a hw h264 encoder swiftshader lacks, and even the
+  # emulator-side `adb emu screenrecord` kills it (runs 28654310187,
+  # 28729212356 — "no frame!" spam then "error: closed"). The product video
+  # is assembled OFF-CI from the construction burst frames instead
+  # (1 fps × 45 s at 10 fps playback ≈ the 6×-accelerated loop the
+  # docs/screenshots README always wanted).
+  if [ "${STORE_VIDEO:-0}" = "1" ]; then
   vstart() { adb emu screenrecord start "$OUT/$1.webm" || echo "WARN: emu recorder start failed for $1"; }
   vstop()  { adb emu screenrecord stop || true; sleep 1; }
   vstate() {  # $1=name $2=seconds $3=state — static screen segment
@@ -156,6 +160,7 @@ if [ "${STORE_MODE:-0}" = "1" ]; then
   vstart vid-cycle; sleep 45; vstop
   vstate vid-picker 10 model_picker
   vstate vid-gemini 10 gemini
+  fi  # STORE_VIDEO
   echo "STORE_MODE captures done:"; ls -l "$OUT"
   exit 0
 fi
