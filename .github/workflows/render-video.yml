@@ -1,0 +1,38 @@
+name: Render product video
+
+# rc83: renders the Play-listing product video from tools/video/ — frame-
+# stepped CSS animation via the runner's Chrome, then an ffmpeg encode +
+# narration/music mix. Offloaded from the dev box (local render pegs the
+# CPU for ~10 minutes). Output lands as the `product-video` artifact.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    name: Render + encode
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install puppeteer-core
+        working-directory: tools/video
+        run: npm install --no-save puppeteer-core@23
+
+      - name: Render frames (Chrome, frame-stepped)
+        working-directory: tools/video
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
+        run: node render-frames.js
+
+      - name: Encode + audio mix
+        run: bash tools/video/mix.sh
+
+      - name: Upload video
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-video
+          path: tools/video/product-video.mp4
+          retention-days: 14

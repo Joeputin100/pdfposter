@@ -1,0 +1,58 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'><style>
+:root { --navy:#0A3D62; --deep:#062C49; --ink:#041F35; --teal:#27CBD0; --cream:#F7EEDC; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { width:1920px; height:1080px; overflow:hidden; position:relative;
+  background: radial-gradient(1600px 1000px at 25% 15%, #10517F 0%, var(--navy) 45%, var(--deep) 80%, var(--ink) 100%);
+  font-family:'Nimbus Sans',Arial,sans-serif; }
+.grid { position:absolute; inset:-100px;
+  background: repeating-linear-gradient(0deg, rgba(247,238,220,.05) 0 1px, transparent 1px 48px),
+              repeating-linear-gradient(90deg, rgba(247,238,220,.05) 0 1px, transparent 1px 48px);
+  animation: drift 40s linear infinite; }
+@keyframes drift { from { transform: translate(0,0);} to { transform: translate(48px,48px);} }
+.eyebrow { font-weight:700; font-size:26px; letter-spacing:.42em; color:var(--teal); }
+h1 { font-family:'C059',Georgia,serif; color:var(--cream); font-weight:700; }
+.copy { position:absolute; left:120px; top:50%; transform:translateY(-50%); width:800px; }
+.chip { display:inline-flex; align-items:center; justify-content:center; width:76px; height:76px;
+  border-radius:22px; background:var(--teal); color:var(--ink); font-size:42px; font-weight:800; margin-bottom:34px;
+  animation: chipPop .5s cubic-bezier(.34,1.56,.64,1) .25s both; }
+@keyframes chipPop { from { transform:scale(0); opacity:0;} to { transform:scale(1); opacity:1;} }
+.copy h1 { font-size:88px; line-height:1.04; clip-path: inset(0 100% 0 0);
+  animation: reveal .7s cubic-bezier(.7,0,.2,1) .4s forwards; }
+@keyframes reveal { to { clip-path: inset(0 0% 0 0);} }
+.copy p { margin-top:26px; font-size:34px; line-height:1.45; color:rgba(247,238,220,.85); max-width:680px;
+  opacity:0; animation: rise .6s cubic-bezier(.2,.8,.2,1) .8s forwards; }
+@keyframes rise { from { opacity:0; transform:translateY(26px);} to { opacity:1; transform:translateY(0);} }
+.phone { position:absolute; right:150px; top:60px; height:960px; border-radius:36px;
+  box-shadow: 0 12px 24px rgba(4,31,53,.55), 0 40px 90px rgba(4,31,53,.6); }
+.phone.fromRight { animation: slideR .9s cubic-bezier(.2,.9,.25,1.08) .15s both; }
+@keyframes slideR { from { transform: translateX(560px) rotate(5deg); opacity:0;} to { transform:none; opacity:1;} }
+.phone.fromBottom { animation: slideB .9s cubic-bezier(.2,.9,.25,1.08) .15s both; }
+@keyframes slideB { from { transform: translateY(700px) rotate(-3deg); opacity:0;} to { transform:none; opacity:1;} }
+
+.ripple { position:absolute; right:405px; top:420px; width:24px; height:24px; border-radius:50%;
+  border:5px solid var(--teal); opacity:0; animation: rip .9s ease-out 1.5s; }
+@keyframes rip { 0% { transform:scale(.4); opacity:.95;} 100% { transform:scale(6); opacity:0;} }
+
+.fp { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.fp h1 { font-size:110px; clip-path:inset(0 100% 0 0); animation: reveal .7s cubic-bezier(.7,0,.2,1) .15s forwards; }
+.fp h1 em { color:var(--teal); font-style:italic; }
+.rows { margin-top:64px; display:flex; flex-direction:column; gap:30px; }
+.row { display:flex; align-items:center; gap:26px; font-size:46px; color:var(--cream); font-weight:700;
+  opacity:0; animation: rowIn .55s cubic-bezier(.2,.9,.3,1.1) both; }
+@keyframes rowIn { from { opacity:0; transform:translateX(-60px);} to { opacity:1; transform:none;} }
+.ck { width:52px; height:52px; }
+.ck path { stroke-dasharray: 30; stroke-dashoffset: 30; animation: draw-ck .45s ease-out both; }
+@keyframes draw-ck { to { stroke-dashoffset: 0; } }
+</style></head><body><div class='grid'></div><div class='fp'><h1>Free. Private. <em>Yours.</em></h1><div class='rows'><div class='row' style='animation-delay:1.0s'>
+          <svg class='ck' style='animation-delay:1.12s' viewBox='0 0 24 24'>
+            <path d='M4 12.5 L10 18.5 L20 6.5' fill='none' stroke='#27CBD0' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/>
+          </svg><span>No ads</span></div><div class='row' style='animation-delay:1.55s'>
+          <svg class='ck' style='animation-delay:1.67s' viewBox='0 0 24 24'>
+            <path d='M4 12.5 L10 18.5 L20 6.5' fill='none' stroke='#27CBD0' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/>
+          </svg><span>No tracking</span></div><div class='row' style='animation-delay:2.1s'>
+          <svg class='ck' style='animation-delay:2.22s' viewBox='0 0 24 24'>
+            <path d='M4 12.5 L10 18.5 L20 6.5' fill='none' stroke='#27CBD0' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/>
+          </svg><span>Works offline</span></div><div class='row' style='animation-delay:2.65s'>
+          <svg class='ck' style='animation-delay:2.77s' viewBox='0 0 24 24'>
+            <path d='M4 12.5 L10 18.5 L20 6.5' fill='none' stroke='#27CBD0' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/>
+          </svg><span>Free forever on your device</span></div></div></div></body></html>
