@@ -205,7 +205,7 @@
     <!-- FAQ स्क्रीन -->
     <string name="screen_faq_title">अक्सर पूछे जाने वाले सवाल</string>
     <string name="faq_q_credits">क्रेडिट क्यों माँगता है?</string>
-    <string name="faq_a_credits">क्रेडिट AI अपस्केल कॉल्स के लिए होते हैं — Topaz, Recraft, AuraSR, Magnific। हर प्रोवाइडर प्रति इमेज चार्ज करता है, इसलिए हम प्रति इमेज क्रेडिट लेते हैं। PosterPDF खुद (पोस्टर जनरेशन, ऑन-डिवाइस अपस्केल, हिस्ट्री, 30-दिन क्लाउड स्टोरेज) किसी भी इमेज सोर्स के साथ मुफ़्त है। क्रेडिट केवल तब लागू होते हैं जब आप AI अपस्केल विकल्प चुनते हैं।</string>
+    <string name="faq_a_credits">क्रेडिट AI अपस्केल कॉल्स के लिए होते हैं — Topaz, Recraft, AuraSR, SeedVR2। हर प्रोवाइडर प्रति इमेज चार्ज करता है, इसलिए हम प्रति इमेज क्रेडिट लेते हैं। PosterPDF खुद (पोस्टर जनरेशन, ऑन-डिवाइस अपस्केल, हिस्ट्री, 30-दिन क्लाउड स्टोरेज) किसी भी इमेज सोर्स के साथ मुफ़्त है। क्रेडिट केवल तब लागू होते हैं जब आप AI अपस्केल विकल्प चुनते हैं।</string>
     <string name="faq_q_credit_value">मेरे क्रेडिट की कीमत चुकाई राशि से कम क्यों है?</string>
     <string name="faq_a_credit_value">मार्जिन पारदर्शिता: अंतर्निहित AI प्रोवाइडर हमसे आपकी भुगतान राशि का लगभग दो-तिहाई चार्ज करते हैं। बाकी तीसरे हिस्से में Play Store का 15%% कट, सर्वर लागत (Cloud Functions + Firestore + Storage) शामिल है और डेवलपमेंट के लिए एक छोटा मार्जिन बचता है। हम FAL.ai लागत से ~50%% ऊपर रखते हैं — इससे काम चलता है, अमीर नहीं बनते। सटीक USD-equivalent हर क्रेडिट पैक पर दिखाई जाती है ताकि कोई आश्चर्य न हो।</string>
     <string name="faq_q_offline">क्या इसे ऑफ़लाइन इस्तेमाल किया जा सकता है?</string>
@@ -233,7 +233,7 @@
     <string name="getting_started_feat_storage_body">हम आपके बनाए PDF 30 दिनों तक रखते हैं ताकि आप किसी अन्य डिवाइस से फिर डाउनलोड कर सकें।</string>
     <string name="getting_started_feat_history_title">हमेशा की हिस्ट्री</string>
     <string name="getting_started_feat_history_body">आपके बनाए हर पोस्टर की लोकल हिस्ट्री इस फ़ोन पर बनी रहती है।</string>
-    <string name="getting_started_paid_explainer">AI अपस्केल (Topaz, Recraft, Magnific…) ऑप्ट-इन है और क्रेडिट इस्तेमाल करता है। हम AI प्रोवाइडर की प्रति-इमेज लागत से इतना ऊपर चार्ज करते हैं कि Play Store फीस और सर्वर कवर हों — सटीक मार्जिन के लिए FAQ देखें।</string>
+    <string name="getting_started_paid_explainer">AI अपस्केल (Topaz, Recraft, SeedVR2…) ऑप्ट-इन है और क्रेडिट इस्तेमाल करता है। हम AI प्रोवाइडर की प्रति-इमेज लागत से इतना ऊपर चार्ज करते हैं कि Play Store फीस और सर्वर कवर हों — सटीक मार्जिन के लिए FAQ देखें।</string>
     <string name="getting_started_tour_section">3-स्टेप टूर</string>
     <string name="getting_started_tour1_title">इमेज चुनें</string>
     <string name="getting_started_tour1_body">ऊपर फ़ोटो कार्ड टैप करें। जितना हाई-रेज़ोल्यूशन हो उतना अच्छा — छोटे फ़ोन स्क्रीनशॉट वॉल-पोस्टर साइज़ पर पिक्सलेटेड दिखेंगे।</string>
@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_title">आपके PDF की क्लाउड कॉपी</string>
     <string name="privacy_sec_storage_body">जब आप AI अपस्केल का उपयोग करते हैं, तो आपकी अपस्केल की गई इमेज और उससे बना PDF हमारे सर्वर (Google Cloud Storage) पर सेव होता है और सिर्फ आपके अकाउंट से जुड़ा रहता है। बिना अपस्केल, ऑफ़लाइन, या साइन आउट होकर बनाए गए पोस्टर सिर्फ आपके डिवाइस पर रहते हैं। डिफ़ॉल्ट रिटेंशन 30 दिन है; पेड टियर इसे बढ़ाते हैं। Settings → Cloud storage में क्लाउड कॉपी पूरी तरह बंद कर सकते हैं।</string>
     <string name="privacy_sec_fal_title">AI अपस्केल (FAL.ai)</string>
-    <string name="privacy_sec_fal_body">जब आप AI अपस्केल विकल्प (Topaz, Recraft, AuraSR, ESRGAN, Magnific) टैप करते हैं, तो सोर्स इमेज प्रोसेसिंग के लिए FAL.ai को भेजी जाती है, और अपस्केल नतीजा वापस आता है। FAL.ai इनपुट और आउटपुट अपनी TOS में निर्धारित अवधि के लिए रखता है — आमतौर पर मिनटों से घंटों तक, लेकिन उनकी पॉलिसी सीधे पढ़ें:</string>
+    <string name="privacy_sec_fal_body">जब आप AI अपस्केल विकल्प (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2) टैप करते हैं, तो सोर्स इमेज प्रोसेसिंग के लिए FAL.ai को भेजी जाती है, और अपस्केल नतीजा वापस आता है। FAL.ai इनपुट और आउटपुट अपनी TOS में निर्धारित अवधि के लिए रखता है — आमतौर पर मिनटों से घंटों तक, लेकिन उनकी पॉलिसी सीधे पढ़ें:</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">रिटेंशन</string>
     <string name="privacy_sec_retention_body">आपकी Settings → Cloud storage… पसंद से तय होता है। फ्री टियर: 30 दिन। पेड टियर: 90 दिन, 1 साल, या अनिश्चितकाल। Firestore में हिस्ट्री मेटाडेटा भी उतने ही समय के लिए। लोकल फ़ाइलें और लोकल हिस्ट्री तब तक बनी रहती है जब तक आप अनइंस्टॉल न करें या Reset to Defaults न टैप करें।</string>
@@ -607,7 +607,7 @@
     <string name="gs_feat_upscale_body">4× अपस्केल आपके फ़ोन पर स्थानीय रूप से चलता है &#8212; कोई इंटरनेट नहीं, कोई क्रेडिट नहीं।</string>
     <string name="gs_feat_upscale_title">ऑन-डिवाइस अपस्केल</string>
     <string name="gs_intro_body">PosterPDF किसी भी छवि को मुद्रण योग्य दीवार पोस्टर में बदल देता है, letter या A4 पृष्ठों पर टाइल किया जाता है ताकि आप इसे घर पर असेंबल कर सकें। एक फ़ोटो चुनें, तय करें कि आप तैयार पोस्टर कितना बड़ा चाहते हैं, और हम एक प्रिंट-तैयार PDF बनाएंगे जिसे आप सीधे अपने प्रिंटर पर भेज सकते हैं।</string>
-    <string name="gs_paid_explainer">AI अपस्केल (Topaz, Recraft, Magnific&#8230;) ऑप्ट-इन है और क्रेडिट का उपयोग करता है। हम AI प्रदाता की प्रति-छवि लागत से इतना अधिक शुल्क लेते हैं कि Play Store की फ़ीस और सर्वर की लागत निकल आए &#8212; सटीक मार्जिन ब्रेकडाउन के लिए FAQ देखें।</string>
+    <string name="gs_paid_explainer">AI अपस्केल (Topaz, Recraft, SeedVR2&#8230;) ऑप्ट-इन है और क्रेडिट का उपयोग करता है। हम AI प्रदाता की प्रति-छवि लागत से इतना अधिक शुल्क लेते हैं कि Play Store की फ़ीस और सर्वर की लागत निकल आए &#8212; सटीक मार्जिन ब्रेकडाउन के लिए FAQ देखें।</string>
     <string name="gs_screen_title">शुरू करना</string>
     <string name="gs_section_4_step_tour">4-चरण दौरा</string>
     <string name="gs_section_what_you_get_for_free">मुफ़्त में आपको क्या मिलता है</string>
@@ -716,7 +716,7 @@
     <string name="privacy_contact_title">संपर्क</string>
     <string name="privacy_deletion_body">स्थानीय डेटा: सेटिंग्स → डिफ़ॉल्ट पर रीसेट प्राथमिकताएं और ऑन-डिवाइस इतिहास इंडेक्स मिटा देता है। प्रति-पोस्टर क्लाउड प्रति: इतिहास खोलें, पंक्ति पर लाल क्लाउड-ऑफ़ बटन पर टैप करें। खाता-व्यापी (auth + सारा Firestore इतिहास + सारे क्लाउड PDF): अपने Google साइन-इन से जुड़े पते से jc24q@pm.me पर ईमेल करें। हम 7 दिनों के भीतर प्रक्रिया करते हैं।</string>
     <string name="privacy_deletion_title">हटाने के मार्ग</string>
-    <string name="privacy_fal_body">जब आप किसी AI अपस्केल विकल्प (Topaz, Recraft, AuraSR, ESRGAN, Magnific) पर टैप करते हैं, तो स्रोत छवि प्रसंस्करण के लिए FAL.ai को भेजी जाती है, और अपस्केल किया गया परिणाम वापस मिलता है। FAL.ai अपने TOS में निर्धारित अवधि के लिए इनपुट और आउटपुट रखता है &#8212; आम तौर पर मिनटों से घंटों तक, लेकिन उनकी नीति सीधे पढ़ें:</string>
+    <string name="privacy_fal_body">जब आप किसी AI अपस्केल विकल्प (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2) पर टैप करते हैं, तो स्रोत छवि प्रसंस्करण के लिए FAL.ai को भेजी जाती है, और अपस्केल किया गया परिणाम वापस मिलता है। FAL.ai अपने TOS में निर्धारित अवधि के लिए इनपुट और आउटपुट रखता है &#8212; आम तौर पर मिनटों से घंटों तक, लेकिन उनकी नीति सीधे पढ़ें:</string>
     <string name="privacy_fal_title">AI अपस्केल (FAL.ai)</string>
     <string name="privacy_firestore_body">जब आप एक पोस्टर बनाते हैं, हम रिकॉर्ड करते हैं: पोस्टर की चौड़ाई और ऊँचाई, पेपर साइज़, ओरिएंटेशन, मार्जिन, ओवरलैप, आउटपुट DPI, पेज काउंट, और एक निर्माण टाइमस्टैम्प। यह Firestore पर /users/{uid}/history में जाता है। हम Firestore में स्रोत छवि बाइट्स या कोई पिक्सेल डेटा संग्रहीत नहीं करते।</string>
     <string name="privacy_firestore_title">इतिहास मेटाडेटा (Firestore)</string>

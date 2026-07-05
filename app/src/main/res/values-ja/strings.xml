@@ -205,7 +205,7 @@
     <!-- よくある質問画面 -->
     <string name="screen_faq_title">よくある質問</string>
     <string name="faq_q_credits">なぜクレジットが必要なのですか？</string>
-    <string name="faq_a_credits">クレジットはAIアップスケール（Topaz、Recraft、AuraSR、Magnific）の利用料に充てられます。各プロバイダーが画像ごとに課金するため、クレジットも画像単位で消費されます。PosterPDF本体（ポスター生成・端末内アップスケール・履歴・30日間クラウドストレージ）はどの画像ソースでも無料です。クレジットはAIアップスケールを選んだ場合のみ必要です。</string>
+    <string name="faq_a_credits">クレジットはAIアップスケール（Topaz、Recraft、AuraSR、SeedVR2）の利用料に充てられます。各プロバイダーが画像ごとに課金するため、クレジットも画像単位で消費されます。PosterPDF本体（ポスター生成・端末内アップスケール・履歴・30日間クラウドストレージ）はどの画像ソースでも無料です。クレジットはAIアップスケールを選んだ場合のみ必要です。</string>
     <string name="faq_q_credit_value">支払った金額よりクレジットの価値が低いのはなぜですか？</string>
     <string name="faq_a_credit_value">料金の内訳を開示します：AIプロバイダーへの支払いは受取額の約3分の2です。残りの3分の1はPlay Storeの15%%手数料、サーバーコスト（Cloud Functions + Firestore + Storage）、そして開発資金としてのわずかなマージンです。FAL.aiの原価に対して約50%%上乗せを目標としており、運営を維持できる程度で、大きな利益にはなりません。各クレジットパックにはドル換算が表示されるため、価格は明確です。</string>
     <string name="faq_q_offline">オフラインで使えますか？</string>
@@ -233,7 +233,7 @@
     <string name="getting_started_feat_storage_body">生成したPDFを30日間保存し、別の端末から再ダウンロードできます。</string>
     <string name="getting_started_feat_history_title">履歴は永続保存</string>
     <string name="getting_started_feat_history_body">作成したポスターはすべてこの端末のローカル履歴に残ります。</string>
-    <string name="getting_started_paid_explainer">AIアップスケール（Topaz、Recraft、Magnific…）はオプションでクレジットを使用します。AIプロバイダーの画像単価に対して、Play Store手数料とサーバーコストを賄う分だけ上乗せしています。詳細な料金内訳はよくある質問をご覧ください。</string>
+    <string name="getting_started_paid_explainer">AIアップスケール（Topaz、Recraft、SeedVR2…）はオプションでクレジットを使用します。AIプロバイダーの画像単価に対して、Play Store手数料とサーバーコストを賄う分だけ上乗せしています。詳細な料金内訳はよくある質問をご覧ください。</string>
     <string name="getting_started_tour_section">3ステップで使う</string>
     <string name="getting_started_tour1_title">画像を選ぶ</string>
     <string name="getting_started_tour1_body">上部の写真カードをタップします。可能な限り高解像度の画像を使ってください。小さなスクリーンショットは壁掛けポスターサイズに拡大するとピクセル化して見えます。</string>
@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_title">PDF のクラウドコピー</string>
     <string name="privacy_sec_storage_body">AI アップスケールを使用すると、アップスケールされた画像とそれから生成された PDF は当社のサーバー（Google Cloud Storage）に保存され、ご自身のアカウントにのみ紐付けられます。AI アップスケールなしで作成、オフラインで作成、またはサインアウト状態で作成されたポスターはデバイスにのみ残ります。デフォルトの保持期間は 30 日です。有料プランで延長できます。設定 → クラウドストレージで、クラウドコピーを完全に無効にできます。</string>
     <string name="privacy_sec_fal_title">AIアップスケール（FAL.ai）</string>
-    <string name="privacy_sec_fal_body">AIアップスケール（Topaz、Recraft、AuraSR、ESRGAN、Magnific）を選択すると、元画像が処理のためFAL.aiに送信され、アップスケール結果が返されます。FAL.aiは入出力データをTOSに定められた期間（通常は数分〜数時間）保持します。FAL.aiのポリシーは直接ご確認ください：</string>
+    <string name="privacy_sec_fal_body">AIアップスケール（Topaz、Recraft、AuraSR、ESRGAN、SeedVR2）を選択すると、元画像が処理のためFAL.aiに送信され、アップスケール結果が返されます。FAL.aiは入出力データをTOSに定められた期間（通常は数分〜数時間）保持します。FAL.aiのポリシーは直接ご確認ください：</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">保持期間</string>
     <string name="privacy_sec_retention_body">設定 → クラウドストレージ… の選択によって異なります。無料プラン：30日。有料プラン：90日、1年、または無期限。FirestoreのメタデータもFirestoreの履歴も同じ保持期間に従います。ローカルファイルとローカル履歴はアンインストールまたは「デフォルトに戻す」を実行するまで端末上に残ります。</string>
@@ -608,7 +608,7 @@
     <string name="gs_feat_upscale_body">4×アップスケールはお使いのスマホでローカルに実行 &#8212; インターネット不要、クレジット不要。</string>
     <string name="gs_feat_upscale_title">オンデバイスアップスケール</string>
     <string name="gs_intro_body">Poster PDFは、どんな画像も自宅で組み立てられるよう、レターやA4ページにタイル分割した壁掛けポスターに変換します。写真を選び、完成サイズを設定すると、プリンターに直接送れる印刷対応PDFを生成します。</string>
-    <string name="gs_paid_explainer">AIアップスケール(Topaz、Recraft、Magnific&#8230;)はオプションで、クレジットを使用します。AIプロバイダーの画像単価に十分上乗せして、Playストア手数料とサーバー費用をまかなっています &#8212; 正確な内訳はFAQをご覧ください。</string>
+    <string name="gs_paid_explainer">AIアップスケール(Topaz、Recraft、SeedVR2&#8230;)はオプションで、クレジットを使用します。AIプロバイダーの画像単価に十分上乗せして、Playストア手数料とサーバー費用をまかなっています &#8212; 正確な内訳はFAQをご覧ください。</string>
     <string name="gs_screen_title">はじめに</string>
     <string name="gs_section_4_step_tour">4ステップツアー</string>
     <string name="gs_section_what_you_get_for_free">無料で使える機能</string>
@@ -717,7 +717,7 @@
     <string name="privacy_contact_title">お問い合わせ</string>
     <string name="privacy_deletion_body">ローカルデータ: 設定 → 既定値にリセットで設定とオンデバイス履歴インデックスを消去します。ポスター単位のクラウドコピー: 履歴を開き、該当行の赤いクラウドオフボタンをタップします。アカウント全体(認証 + すべてのFirestore履歴 + すべてのクラウドPDF): Googleログインに紐づくアドレスから jc24q@pm.me までメールしてください。7日以内に処理いたします。</string>
     <string name="privacy_deletion_title">削除の経路</string>
-    <string name="privacy_fal_body">AIアップスケールオプション(Topaz、Recraft、AuraSR、ESRGAN、Magnific)をタップすると、元画像はFAL.aiで処理するために送信され、アップスケール結果が返されます。FAL.aiは入出力をTOSで定めた期間 &#8212; 通常は数分から数時間 &#8212; 保持します。直接ポリシーをご確認ください:</string>
+    <string name="privacy_fal_body">AIアップスケールオプション(Topaz、Recraft、AuraSR、ESRGAN、SeedVR2)をタップすると、元画像はFAL.aiで処理するために送信され、アップスケール結果が返されます。FAL.aiは入出力をTOSで定めた期間 &#8212; 通常は数分から数時間 &#8212; 保持します。直接ポリシーをご確認ください:</string>
     <string name="privacy_fal_title">AIアップスケール (FAL.ai)</string>
     <string name="privacy_firestore_body">ポスターを生成すると、ポスターの幅と高さ、用紙サイズ、向き、マージン、重なり、出力DPI、ページ数、作成タイムスタンプを記録します。これらは Firestore の /users/{uid}/history に保存されます。元画像のバイトやピクセルデータは Firestore に保存しません。</string>
     <string name="privacy_firestore_title">履歴メタデータ (Firestore)</string>

@@ -205,7 +205,7 @@
     <!-- FAQ-Bildschirm -->
     <string name="screen_faq_title">FAQ</string>
     <string name="faq_q_credits">Warum werden Credits benötigt?</string>
-    <string name="faq_a_credits">Credits bezahlen KI-Upscale-Aufrufe — Topaz, Recraft, AuraSR, Magnific. Da jeder Anbieter pro Bild berechnet, berechnen wir Credits pro Bild. PosterPDF selbst (Poster-Generierung, Upscale auf dem Gerät, Verlauf, 30-Tage-Cloud-Speicher) ist mit beliebiger Bildquelle kostenlos. Credits gelten nur bei Wahl einer KI-Upscale-Option.</string>
+    <string name="faq_a_credits">Credits bezahlen KI-Upscale-Aufrufe — Topaz, Recraft, AuraSR, SeedVR2. Da jeder Anbieter pro Bild berechnet, berechnen wir Credits pro Bild. PosterPDF selbst (Poster-Generierung, Upscale auf dem Gerät, Verlauf, 30-Tage-Cloud-Speicher) ist mit beliebiger Bildquelle kostenlos. Credits gelten nur bei Wahl einer KI-Upscale-Option.</string>
     <string name="faq_q_credit_value">Warum sind meine Credits weniger wert als der Kaufpreis?</string>
     <string name="faq_a_credit_value">Transparenz bei der Marge: Die zugrundeliegenden KI-Anbieter berechnen uns etwa zwei Drittel dessen, was Sie zahlen. Das verbleibende Drittel deckt den 15%% Play Store-Anteil, Serverkosten (Cloud Functions + Firestore + Storage) und lässt eine kleine Marge zur Finanzierung der Entwicklung. Wir zielen auf ~50%% über den reinen FAL.ai-Kosten — das reicht, um die Lichter anzulassen, aber nicht um reich zu werden. Der genaue USD-Äquivalent wird für jedes Credit-Paket angezeigt, damit es keine Überraschungen gibt.</string>
     <string name="faq_q_offline">Kann ich die App offline nutzen?</string>
@@ -233,7 +233,7 @@
     <string name="getting_started_feat_storage_body">Wir speichern Ihre generierten PDFs 30 Tage, damit Sie sie von einem anderen Gerät erneut herunterladen können.</string>
     <string name="getting_started_feat_history_title">Verlauf für immer</string>
     <string name="getting_started_feat_history_body">Jedes erstellte Poster bleibt im lokalen Verlauf auf diesem Telefon.</string>
-    <string name="getting_started_paid_explainer">KI-Upscale (Topaz, Recraft, Magnific…) ist optional und verbraucht Credits. Wir berechnen genug über den Pro-Bild-Kosten des KI-Anbieters, um Play Store-Gebühren und Server zu decken — siehe FAQ für die genaue Margin-Aufschlüsselung.</string>
+    <string name="getting_started_paid_explainer">KI-Upscale (Topaz, Recraft, SeedVR2…) ist optional und verbraucht Credits. Wir berechnen genug über den Pro-Bild-Kosten des KI-Anbieters, um Play Store-Gebühren und Server zu decken — siehe FAQ für die genaue Margin-Aufschlüsselung.</string>
     <string name="getting_started_tour_section">3-Schritte-Tour</string>
     <string name="getting_started_tour1_title">Bild auswählen</string>
     <string name="getting_started_tour1_body">Tippen Sie auf die Fotokarte oben. Verwenden Sie die höchstauflösende Kopie, die Sie haben — kleine Handy-Screenshots wirken pixelig, wenn sie auf Wandpostergröße vergrößert werden.</string>
@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_title">Cloud-Kopien Ihrer PDFs</string>
     <string name="privacy_sec_storage_body">Wenn Sie AI-Upscale verwenden, werden Ihr hochskaliertes Bild und das daraus erstellte PDF auf unseren Servern (Google Cloud Storage) gespeichert und nur Ihrem Konto zugeordnet. Poster, die ohne AI-Upscale, offline oder ohne Anmeldung erstellt wurden, bleiben nur auf Ihrem Gerät. Standard-Aufbewahrungszeit beträgt 30 Tage; bezahlte Tarife verlängern dies. Cloud-Kopien können Sie vollständig unter Einstellungen → Cloud-Speicher deaktivieren.</string>
     <string name="privacy_sec_fal_title">KI-Upscale (FAL.ai)</string>
-    <string name="privacy_sec_fal_body">Wenn Sie eine KI-Upscale-Option tippen (Topaz, Recraft, AuraSR, ESRGAN, Magnific), wird das Quellbild zur Verarbeitung an FAL.ai gesendet und das hochskalierte Ergebnis zurückgegeben. FAL.ai behält Ein- und Ausgabe für den in ihren AGB festgelegten Zeitraum — typischerweise Minuten bis Stunden, aber lesen Sie deren Richtlinien direkt:</string>
+    <string name="privacy_sec_fal_body">Wenn Sie eine KI-Upscale-Option tippen (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), wird das Quellbild zur Verarbeitung an FAL.ai gesendet und das hochskalierte Ergebnis zurückgegeben. FAL.ai behält Ein- und Ausgabe für den in ihren AGB festgelegten Zeitraum — typischerweise Minuten bis Stunden, aber lesen Sie deren Richtlinien direkt:</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Aufbewahrung</string>
     <string name="privacy_sec_retention_body">Festgelegt durch Ihre Wahl unter Einstellungen → Cloud-Speicher…. Kostenloser Tarif: 30 Tage. Kostenpflichtige Tarife: 90 Tage, 1 Jahr oder unbegrenzt. Verlaufsmetadaten in Firestore folgen derselben Aufbewahrung. Lokale Dateien und der lokale Verlauf verbleiben auf Ihrem Gerät, bis Sie deinstallieren oder Zurücksetzen tippen.</string>
@@ -608,7 +608,7 @@
     <string name="gs_feat_upscale_body">4&#215;-Upscale läuft lokal auf Ihrem Telefon &#8212; kein Internet, keine Credits.</string>
     <string name="gs_feat_upscale_title">Upscale auf dem Gerät</string>
     <string name="gs_intro_body">PosterPDF verwandelt jedes Bild in ein druckbares Wandposter, gekachelt auf Letter- oder A4-Seiten, sodass Sie es zu Hause zusammensetzen können. Wählen Sie ein Foto, legen Sie die gewünschte Endgröße fest, und wir generieren ein druckfertiges PDF, das Sie direkt an Ihren Drucker senden können.</string>
-    <string name="gs_paid_explainer">KI-Upscale (Topaz, Recraft, Magnific&#8230;) ist optional und verbraucht Credits. Wir berechnen genug über den Pro-Bild-Kosten des KI-Anbieters, um Play Store-Gebühren und Server zu decken &#8212; siehe FAQ für die genaue Margin-Aufschlüsselung.</string>
+    <string name="gs_paid_explainer">KI-Upscale (Topaz, Recraft, SeedVR2&#8230;) ist optional und verbraucht Credits. Wir berechnen genug über den Pro-Bild-Kosten des KI-Anbieters, um Play Store-Gebühren und Server zu decken &#8212; siehe FAQ für die genaue Margin-Aufschlüsselung.</string>
     <string name="gs_screen_title">Erste Schritte</string>
     <string name="gs_section_4_step_tour">4-Schritte-Tour</string>
     <string name="gs_section_what_you_get_for_free">Was Sie kostenlos erhalten</string>
@@ -717,7 +717,7 @@
     <string name="privacy_contact_title">Kontakt</string>
     <string name="privacy_deletion_body">Lokale Daten: Einstellungen &#8594; Zurücksetzen löscht Präferenzen und den lokalen Verlaufsindex auf dem Gerät. Pro-Poster-Cloud-Kopie: Öffnen Sie den Verlauf, tippen Sie auf die rote Cloud-aus-Schaltfläche in der Zeile. Kontoweite Löschung (Auth + alle Firestore-Verlaufsdaten + alle Cloud-PDFs): Schreiben Sie an jc24q@pm.me von der Adresse, die mit Ihrer Google-Anmeldung verknüpft ist. Wir bearbeiten innerhalb von 7 Tagen.</string>
     <string name="privacy_deletion_title">Löschungsmöglichkeiten</string>
-    <string name="privacy_fal_body">Wenn Sie eine KI-Upscale-Option tippen (Topaz, Recraft, AuraSR, ESRGAN, Magnific), wird das Quellbild zur Verarbeitung an FAL.ai gesendet und das hochskalierte Ergebnis zurückgegeben. FAL.ai behält Ein- und Ausgabe für den in ihren AGB festgelegten Zeitraum &#8212; typischerweise Minuten bis Stunden, aber lesen Sie deren Richtlinien direkt:</string>
+    <string name="privacy_fal_body">Wenn Sie eine KI-Upscale-Option tippen (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), wird das Quellbild zur Verarbeitung an FAL.ai gesendet und das hochskalierte Ergebnis zurückgegeben. FAL.ai behält Ein- und Ausgabe für den in ihren AGB festgelegten Zeitraum &#8212; typischerweise Minuten bis Stunden, aber lesen Sie deren Richtlinien direkt:</string>
     <string name="privacy_fal_title">KI-Upscale (FAL.ai)</string>
     <string name="privacy_firestore_body">Wenn Sie ein Poster generieren, speichern wir: Posterbreite und -höhe, Papierformat, Ausrichtung, Rand, Überlappung, Ausgabe-DPI, Seitenanzahl und einen Erstellungszeitstempel. Dies geht in Firestore unter /users/{uid}/history. Wir speichern NICHT die Quellbild-Bytes oder Pixeldaten in Firestore.</string>
     <string name="privacy_firestore_title">Verlaufsmetadaten (Firestore)</string>

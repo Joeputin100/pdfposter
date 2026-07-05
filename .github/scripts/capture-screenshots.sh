@@ -122,36 +122,37 @@ if [ "${STORE_MODE:-0}" = "1" ]; then
     adb exec-out screencap -p > "$OUT/store-construction-$n.png"
     sleep 3
   done
-  # rc83: product-video raw footage. Four segments pulled as separate MP4s;
-  # the edit (cuts, title cards, speed-ramps) happens off-CI with ffmpeg.
-  record() {  # $1=name $2=seconds $3=state
+  # rc83: product-video raw footage via the EMULATOR-side recorder
+  # (`adb emu screenrecord`) which writes webm on the HOST — the device-side
+  # `adb shell screenrecord` needs a hardware h264 encoder the swiftshader
+  # emulator lacks (first attempt crashed the emulator: "no frame!" spam →
+  # "error: closed"). Edit (cuts, title cards, speed-ramps) happens off-CI.
+  vstart() { adb emu screenrecord start "$OUT/$1.webm" || echo "WARN: emu recorder start failed for $1"; }
+  vstop()  { adb emu screenrecord stop || true; sleep 1; }
+  vstate() {  # $1=name $2=seconds $3=state — static screen segment
     echo "=== video: $1 ($3, ${2}s) ==="
     adb shell am force-stop "$PKG" || true
     adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot "$3"
     sleep 8
-    adb shell screenrecord --time-limit "$2" --bit-rate 12000000 "/sdcard/$1.mp4"
-    adb pull "/sdcard/$1.mp4" "$OUT/$1.mp4" || true
+    vstart "$1"; sleep "$2"; vstop
   }
-  record vid-main 12 main
+  vstate vid-main 10 main
   # with_image + slow scroll through the full page during recording
   adb shell am force-stop "$PKG" || true
   adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
   sleep 9
-  adb shell screenrecord --time-limit 24 --bit-rate 12000000 /sdcard/vid-scroll.mp4 &
-  sleep 2
+  vstart vid-scroll
   for i in 1 2 3 4; do adb shell input swipe 540 1800 540 700 900; sleep 3; done
-  wait || true
-  adb pull /sdcard/vid-scroll.mp4 "$OUT/vid-scroll.mp4" || true
-  # construction cycle: scroll to preview, record a full ~40s loop
+  sleep 2; vstop
+  # construction cycle: scroll to the preview, record a full ~40s loop
   adb shell am force-stop "$PKG" || true
   adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
   sleep 9
   for i in $(seq 1 6); do adb shell input swipe 540 1900 540 500 350; done
   sleep 2
-  adb shell screenrecord --time-limit 45 --bit-rate 12000000 /sdcard/vid-cycle.mp4
-  adb pull /sdcard/vid-cycle.mp4 "$OUT/vid-cycle.mp4" || true
-  record vid-picker 10 model_picker
-  record vid-gemini 10 gemini
+  vstart vid-cycle; sleep 45; vstop
+  vstate vid-picker 10 model_picker
+  vstate vid-gemini 10 gemini
   echo "STORE_MODE captures done:"; ls -l "$OUT"
   exit 0
 fi

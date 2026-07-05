@@ -205,7 +205,7 @@
     <!-- Pantalla de FAQ -->
     <string name="screen_faq_title">Preguntas frecuentes</string>
     <string name="faq_q_credits">¿Por qué pide créditos?</string>
-    <string name="faq_a_credits">Los créditos pagan las llamadas de ampliación IA — Topaz, Recraft, AuraSR, Magnific. Cada proveedor cobra por imagen, así que nosotros cobramos créditos por imagen. PosterPDF en sí (generación de pósters, ampliación en dispositivo, historial, almacenamiento en la nube por 30 días) es gratuito con cualquier fuente de imagen. Los créditos solo aplican cuando eliges una opción de ampliación IA.</string>
+    <string name="faq_a_credits">Los créditos pagan las llamadas de ampliación IA — Topaz, Recraft, AuraSR, SeedVR2. Cada proveedor cobra por imagen, así que nosotros cobramos créditos por imagen. PosterPDF en sí (generación de pósters, ampliación en dispositivo, historial, almacenamiento en la nube por 30 días) es gratuito con cualquier fuente de imagen. Los créditos solo aplican cuando eliges una opción de ampliación IA.</string>
     <string name="faq_q_credit_value">¿Por qué mis créditos valen menos que el precio que pagué?</string>
     <string name="faq_a_credit_value">Transparencia de márgenes: los proveedores de IA subyacentes nos cobran aproximadamente dos tercios de lo que tú pagas. El otro tercio cubre el 15%% de comisión de Play Store, costos del servidor (Cloud Functions + Firestore + Storage) y deja un pequeño margen para financiar el desarrollo. Apuntamos a ~50%% sobre el costo bruto de FAL.ai — suficiente para mantener el servicio, no para hacernos ricos. El equivalente en USD se muestra en cada paquete de créditos para que no haya sorpresas.</string>
     <string name="faq_q_offline">¿Puedo usarla sin conexión?</string>
@@ -233,7 +233,7 @@
     <string name="getting_started_feat_storage_body">Conservamos tus PDF generados durante 30 días para que puedas volver a descargarlos desde otro dispositivo.</string>
     <string name="getting_started_feat_history_title">Historial permanente</string>
     <string name="getting_started_feat_history_body">Cada póster que creas permanece en tu historial local en este teléfono.</string>
-    <string name="getting_started_paid_explainer">La ampliación IA (Topaz, Recraft, Magnific…) es opcional y usa créditos. Cobramos lo suficiente sobre el costo por imagen del proveedor de IA para cubrir las tarifas de Play Store y los servidores — consulta las preguntas frecuentes para el desglose exacto del margen.</string>
+    <string name="getting_started_paid_explainer">La ampliación IA (Topaz, Recraft, SeedVR2…) es opcional y usa créditos. Cobramos lo suficiente sobre el costo por imagen del proveedor de IA para cubrir las tarifas de Play Store y los servidores — consulta las preguntas frecuentes para el desglose exacto del margen.</string>
     <string name="getting_started_tour_section">Tour en 3 pasos</string>
     <string name="getting_started_tour1_title">Elige una imagen</string>
     <string name="getting_started_tour1_body">Toca la tarjeta de foto en la parte superior. Usa la copia de mayor resolución que tengas — las capturas de pantalla pequeñas del teléfono se verán pixeladas cuando se amplíen al tamaño de un póster de pared.</string>
@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_title">Copias en la nube de tus PDF</string>
     <string name="privacy_sec_storage_body">Cuando usas el aumento por IA, tu imagen aumentada y el PDF generado se guardan en nuestros servidores (Google Cloud Storage), asociados solo a tu cuenta. Los pósters hechos sin aumento por IA, sin conexión o sin sesión iniciada se quedan solo en tu dispositivo. La retención predeterminada es de 30 días; los niveles de pago la amplían. Puedes desactivar las copias en la nube en Ajustes → Almacenamiento en la nube.</string>
     <string name="privacy_sec_fal_title">Ampliación IA (FAL.ai)</string>
-    <string name="privacy_sec_fal_body">Cuando tocas una opción de ampliación IA (Topaz, Recraft, AuraSR, ESRGAN, Magnific), la imagen fuente se envía a FAL.ai para su procesamiento y se devuelve el resultado ampliado. FAL.ai conserva la entrada y la salida durante el período establecido en sus TOS — normalmente de minutos a horas, pero consulta su política directamente:</string>
+    <string name="privacy_sec_fal_body">Cuando tocas una opción de ampliación IA (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), la imagen fuente se envía a FAL.ai para su procesamiento y se devuelve el resultado ampliado. FAL.ai conserva la entrada y la salida durante el período establecido en sus TOS — normalmente de minutos a horas, pero consulta su política directamente:</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Retención</string>
     <string name="privacy_sec_retention_body">Determinada por tu elección en Ajustes → Almacenamiento en la nube…. Nivel gratuito: 30 días. Niveles de pago: 90 días, 1 año o indefinido. Los metadatos del historial en Firestore siguen la misma retención. Los archivos locales y el historial local permanecen en tu dispositivo hasta que desinstales la app o toques Restablecer valores predeterminados.</string>
@@ -608,7 +608,7 @@
     <string name="gs_feat_upscale_body">La ampliación 4&#215; se ejecuta localmente en tu teléfono — sin internet, sin créditos.</string>
     <string name="gs_feat_upscale_title">Ampliación en dispositivo</string>
     <string name="gs_intro_body">PosterPDF convierte cualquier imagen en un póster de pared imprimible, dividido en páginas Letter o A4 para que puedas ensamblarlo en casa. Elige una foto, define el tamaño final del póster y generaremos un PDF listo para imprimir que puedes enviar directamente a tu impresora.</string>
-    <string name="gs_paid_explainer">La ampliación IA (Topaz, Recraft, Magnific&#8230;) es opcional y usa créditos. Cobramos lo suficiente sobre el costo por imagen del proveedor de IA para cubrir las tarifas de Play Store y los servidores — consulta las preguntas frecuentes para el desglose exacto del margen.</string>
+    <string name="gs_paid_explainer">La ampliación IA (Topaz, Recraft, SeedVR2&#8230;) es opcional y usa créditos. Cobramos lo suficiente sobre el costo por imagen del proveedor de IA para cubrir las tarifas de Play Store y los servidores — consulta las preguntas frecuentes para el desglose exacto del margen.</string>
     <string name="gs_screen_title">Primeros pasos</string>
     <string name="gs_section_4_step_tour">Tour en 4 pasos</string>
     <string name="gs_section_what_you_get_for_free">Qué obtienes gratis</string>
@@ -717,7 +717,7 @@
     <string name="privacy_contact_title">Contacto</string>
     <string name="privacy_deletion_body">Datos locales: Ajustes &#8594; Restablecer valores predeterminados borra las preferencias y el índice del historial en el dispositivo. Copia en la nube por póster: abre el Historial y toca el botón rojo de nube tachada en la fila. Eliminación completa de la cuenta (autenticación + todo el historial de Firestore + todos los PDF en la nube): envía un correo a jc24q@pm.me desde la dirección vinculada a tu inicio de sesión de Google. Lo procesamos en 7 días.</string>
     <string name="privacy_deletion_title">Formas de eliminar datos</string>
-    <string name="privacy_fal_body">Cuando tocas una opción de ampliación IA (Topaz, Recraft, AuraSR, ESRGAN, Magnific), la imagen fuente se envía a FAL.ai para su procesamiento y se devuelve el resultado ampliado. FAL.ai conserva la entrada y la salida durante el período establecido en sus TOS — normalmente de minutos a horas, pero consulta su política directamente:</string>
+    <string name="privacy_fal_body">Cuando tocas una opción de ampliación IA (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), la imagen fuente se envía a FAL.ai para su procesamiento y se devuelve el resultado ampliado. FAL.ai conserva la entrada y la salida durante el período establecido en sus TOS — normalmente de minutos a horas, pero consulta su política directamente:</string>
     <string name="privacy_fal_title">Ampliación IA (FAL.ai)</string>
     <string name="privacy_firestore_body">Cuando generas un póster, registramos: ancho y alto del póster, tamaño de papel, orientación, margen, superposición, DPI de salida, número de páginas y una marca de tiempo de creación. Esto va a Firestore en /users/{uid}/history. NO almacenamos los bytes de la imagen fuente ni ningún dato de píxeles en Firestore.</string>
     <string name="privacy_firestore_title">Metadatos del historial (Firestore)</string>
