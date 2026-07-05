@@ -62,6 +62,9 @@ class UxScreenshotTest {
      * the Advanced Styling card's expansion state.
      */
     @Test
+    @FtlOnly  // capture utility, not a regression test: 60s of screenshot
+              // bursts kills the GH software emulator (run 28739035940);
+              // the battery filters notAnnotation=FtlOnly.
     fun captureStoreAssemblyBurst() {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val ctx = ApplicationProvider.getApplicationContext<android.content.Context>()
