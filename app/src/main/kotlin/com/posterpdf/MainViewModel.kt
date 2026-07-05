@@ -101,10 +101,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // upgrade picker is the relevant state when launched with
     // `--es screenshot model_picker`.
     fun seedScreenshotImage(context: android.content.Context) {
-        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.dogcow)
+        // rc83: Mona Lisa (public domain, on-brand) replaced the Clarus
+        // dogcow as the store-capture demo image; kept deliberately low-res
+        // so the low-DPI upgrade story still tells itself.
+        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.mona_demo)
         if (bmp != null) {
             sourcePreviewBitmap = bmp.asImageBitmap()
-            sourcePixelDimensions = 400 to 300
+            sourcePixelDimensions = bmp.width to bmp.height
         }
     }
 
@@ -116,7 +119,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *  decode+write (same thread seedScreenshotImage already decodes on) is fine. */
     fun seedFullImageForScreenshot(context: android.content.Context) {
         seedScreenshotImage(context)
-        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.dogcow) ?: return
+        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.mona_demo) ?: return
         val seedFile = File(context.cacheDir, "ux_capture_seed_${System.currentTimeMillis()}.png")
         FileOutputStream(seedFile).use { fos -> bmp.compress(Bitmap.CompressFormat.PNG, 100, fos) }
         selectedImageUri = Uri.fromFile(seedFile)
