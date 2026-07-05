@@ -90,9 +90,10 @@ class UxScreenshotTest {
             Thread.sleep(400L)
         }
         Thread.sleep(1_000L)
-        // Sample past a full ~38s assembly cycle so the burst catches several
-        // distinct phases (tiles landing, taping, reveal).
-        for (i in 1..16) {
+        // Sample past a full ~38s assembly cycle. 24 frames x 2s = 48s: the
+        // 16-frame run (28733841132) spanned only 32s and missed the top-down
+        // tile-grid phase entirely — a full cycle plus margin can't.
+        for (i in 1..24) {
             val f = File(outDir, "store-assy-%02d.png".format(i))
             device.takeScreenshot(f)
             check(f.length() > 0) { "empty assembly burst frame $i" }
