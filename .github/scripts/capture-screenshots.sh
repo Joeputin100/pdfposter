@@ -116,7 +116,10 @@ if [ "${STORE_MODE:-0}" = "1" ]; then
   done
   # Construction-cycle burst: scroll to the animated preview, then sample
   # past a full ~38s cycle so some frame lands on the photogenic phases.
-  for i in $(seq 1 6); do adb shell input swipe 540 1900 540 500 350; done
+  # Scroll pattern proven by the with_image-4 framing (3 slow swipes) plus
+  # one nudge to center the tile grid — fast 350ms swipes fling unreliably.
+  for i in 1 2 3; do adb shell input swipe 540 1800 540 700 900; sleep 1; done
+  adb shell input swipe 540 1500 540 1000 600
   sleep 2
   for n in $(seq -w 1 14); do
     adb exec-out screencap -p > "$OUT/store-construction-$n.png"
