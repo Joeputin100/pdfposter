@@ -82,7 +82,10 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-shots-api33-disk4g
+          # rc83: -v2 busts a corrupted cached AVD snapshot ("Failed to find
+          # ColorBuffer" + emulator death at the with_image state, runs
+          # 28729212356 / 28729406787 — Jul 3 runs on the v1 cache were fine).
+          key: avd-shots-api33-disk4g-v2
 
       - name: Create AVD + warm cache
         if: steps.avd-cache.outputs.cache-hit != 'true'
