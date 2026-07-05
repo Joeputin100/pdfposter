@@ -66,6 +66,14 @@ class UxScreenshotTest {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val ctx = ApplicationProvider.getApplicationContext<android.content.Context>()
         val outDir = File(ctx.getExternalFilesDir(null), "ux-shots").apply { mkdirs() }
+        // FTL zeroes the animation scales for instrumentation runs, which
+        // freezes the assembly cycle's animator-driven camera while its
+        // clock-driven captions keep advancing (run 28734179277: 24 frames,
+        // 9 caption phases, one camera pose). Re-enable them — this burst
+        // exists precisely to photograph motion.
+        device.executeShellCommand("settings put global animator_duration_scale 1")
+        device.executeShellCommand("settings put global transition_animation_scale 1")
+        device.executeShellCommand("settings put global window_animation_scale 1")
         ctx.startActivity(
             ctx.packageManager.getLaunchIntentForPackage("com.posterpdf")!!
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
