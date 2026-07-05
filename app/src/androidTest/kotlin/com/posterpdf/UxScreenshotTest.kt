@@ -5,8 +5,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiScrollable
-import androidx.test.uiautomator.UiSelector
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -60,8 +58,8 @@ class UxScreenshotTest {
      * the Live Assembly Preview at the page bottom, feeding the product
      * video's animation segment. Runs on FTL because the GH-runner emulator
      * proved unable to survive this state reliably (6 crashed runs on
-     * 2026-07-05). UiScrollable.flingToEnd is deterministic where raw swipe
-     * counts were not — the Advanced Styling card changes the page length.
+     * 2026-07-05). Ten full-screen swipes bottom the page out regardless of
+     * the Advanced Styling card's expansion state.
      */
     @Test
     fun captureStoreAssemblyBurst() {
@@ -79,10 +77,17 @@ class UxScreenshotTest {
         device.takeScreenshot(top)
         check(top.length() > 0) { "empty with_image top screenshot" }
         // Scroll to the bottom, where the Live Assembly Preview lives.
-        try {
-            UiScrollable(UiSelector().scrollable(true)).flingToEnd(10)
-        } catch (_: Exception) {
-            // Page not scrollable (huge screen?) — capture from wherever we are.
+        // NOT UiScrollable(scrollable(true)) — that matched the horizontal
+        // paper-size carousel (first scrollable in the tree) and flung THAT
+        // (FTL run 28733394914). Ten raw full-screen swipes bottom out the
+        // vertical page deterministically; over-swiping is harmless.
+        repeat(10) {
+            device.swipe(
+                device.displayWidth / 2, (device.displayHeight * 0.85).toInt(),
+                device.displayWidth / 2, (device.displayHeight * 0.15).toInt(),
+                40,
+            )
+            Thread.sleep(400L)
         }
         Thread.sleep(1_000L)
         // Sample past a full ~38s assembly cycle so the burst catches several
