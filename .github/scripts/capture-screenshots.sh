@@ -114,12 +114,11 @@ if [ "${STORE_MODE:-0}" = "1" ]; then
     sleep 2
     adb exec-out screencap -p > "$OUT/store-with_image-$i.png"
   done
-  # Construction-cycle burst: scroll to the animated preview, then sample
-  # past a full ~38s cycle so some frame lands on the photogenic phases.
-  # Scroll pattern proven by the with_image-4 framing (3 slow swipes) plus
-  # one nudge to center the tile grid — fast 350ms swipes fling unreliably.
-  for i in 1 2 3; do adb shell input swipe 540 1800 540 700 900; sleep 1; done
-  adb shell input swipe 540 1500 540 1000 600
+  # Construction-cycle burst: scroll to the BOTTOM of the page (the preview
+  # is the last major element) — fixed swipe counts kept missing because the
+  # Advanced Styling section's expansion changes the page length. Eight slow
+  # swipes guarantees the end stop; over-scroll is impossible.
+  for i in $(seq 1 8); do adb shell input swipe 540 1800 540 700 900; sleep 1; done
   sleep 2
   for n in $(seq -w 1 14); do
     adb exec-out screencap -p > "$OUT/store-construction-$n.png"
