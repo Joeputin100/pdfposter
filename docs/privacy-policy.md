@@ -69,7 +69,7 @@ When you choose a cloud AI model, the image is made available to the AI provider
 
 ## 8. Your Choices
 - Use on-device upscaling to keep images entirely local
-- Delete cloud copies from within the app
+- Delete cloud copies from within the app, or wipe ALL cloud data (keeping your account and credits) self-service at https://posterpdf.web.app/delete-data
 - Disable debug logging
 - Delete local files from device storage
 - Request account/history deletion: https://posterpdf.web.app/delete-account

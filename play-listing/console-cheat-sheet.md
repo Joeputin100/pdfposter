@@ -59,6 +59,9 @@ Overview answers:
 - Is all of the user data collected by your app encrypted in transit? **Yes**
 - Do you provide a way for users to request that their data is deleted? **Yes**
 - Account deletion URL: `https://posterpdf.web.app/delete-account`
+- "Delete data" URL (partial, no account deletion): `https://posterpdf.web.app/delete-data`
+  (both pages are SELF-SERVICE as of 2026-07-08: Google sign-in on the page →
+  server-side deletion executes immediately; no email round-trip)
 
 Declare these data types (everything: **Collected = yes, Shared = no**;
 fal.ai/Firebase are "service providers" processing on our behalf, which

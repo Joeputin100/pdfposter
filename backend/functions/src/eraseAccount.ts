@@ -64,8 +64,12 @@ export const eraseAccount = onCall(
         if (inBatch > 0) await batch.commit();
       }
 
-      // 2. Storage: everything under the user's private prefix.
+      // 2. Storage: everything under the user's private prefixes. rc84 fix:
+      // upscale OUTPUTS live under upscaled/{uid}/ (see upscale.ts
+      // downloadAndStoreOutput) — deleting only users/{uid}/ left erased
+      // accounts' images behind.
       await getStorage().bucket().deleteFiles({ prefix: `users/${uid}/`, force: true });
+      await getStorage().bucket().deleteFiles({ prefix: `upscaled/${uid}/`, force: true });
 
       // 3. Firestore: user doc + all subcollections.
       await db.recursiveDelete(userRef);

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Delete Your Account — Poster PDF</title>
+<title>Delete Your Cloud Data — Poster PDF</title>
 <link rel="icon" href="icon.png">
 <style>
   :root { --navy:#0A3D62; --teal:#27CBD0; --cream:#F7EEDC; --ink:#123; --danger:#B3261E; }
@@ -20,14 +20,15 @@
   p, li { font-size:16.5px; } ul { padding-left:24px; margin:8px 0; }
   .card { background:#fff; border:1px solid #E5DBC6; border-radius:14px; padding:26px; margin-top:26px; font-family:'Helvetica Neue',Arial,sans-serif; }
   button { font-family:inherit; font-size:17px; font-weight:600; border:none; border-radius:10px; padding:14px 22px; cursor:pointer; }
-  .g-btn { background:var(--navy); color:#fff; display:inline-flex; align-items:center; gap:10px; }
+  .g-btn { background:var(--navy); color:#fff; }
   .g-btn:hover { background:#0c4a77; }
   .danger-btn { background:var(--danger); color:#fff; width:100%; margin-top:16px; }
   .danger-btn:disabled { background:#d9a5a1; cursor:not-allowed; }
   .who { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
   .who img { width:44px; height:44px; border-radius:50%; }
   .who .em { font-weight:700; }
-  input[type=text] { width:100%; font-size:17px; padding:12px 14px; border:1.5px solid #C9BFA8; border-radius:10px; margin-top:10px; font-family:'Helvetica Neue',Arial,sans-serif; }
+  label.chk { display:flex; gap:10px; align-items:flex-start; margin-top:12px; font-size:15.5px; cursor:pointer; }
+  label.chk input { margin-top:4px; transform:scale(1.3); }
   .muted { color:#6d6455; font-size:14px; }
   .hidden { display:none; }
   .ok { color:#1a7f37; font-weight:700; }
@@ -41,45 +42,47 @@
 <body>
 <header><div class="wrap">
   <div class="brand"><img src="icon.png" alt="Poster PDF icon"><b>Poster PDF</b></div>
-  <h1>Delete Your Account</h1>
+  <h1>Delete Your Cloud Data</h1>
 </div></header>
 <main><div class="wrap">
-  <p>This page permanently deletes your <b>Poster PDF</b> account and its data, immediately and self-service — sign in with the same Google account you use in the app, confirm, and the deletion runs on our servers right away.</p>
-  <p style="margin-top:10px">Only deleting your cloud images and history — but keeping your account and credits? Use <a href="/delete-data">Delete Cloud Data</a> instead.</p>
+  <p>This page deletes the content <b>Poster PDF</b> stores for you in the cloud — <b>without deleting your account</b>. Your sign-in, credit balance, and purchase records stay intact; your cloud images and history are removed immediately, self-service.</p>
+  <p style="margin-top:10px">Want everything gone, including the account itself? Use <a href="/delete-account">Delete Account</a> instead.</p>
 
   <h2>What gets deleted</h2>
   <ul>
-    <li>Your account record (Google account link and authentication metadata)</li>
-    <li>Usage counters, generation/upscale history, and notifications</li>
-    <li>Credit balance and credit log <em>(unused purchased credits are forfeited — contact us first with refund questions)</em></li>
-    <li>Every image and upscale result stored in your cloud storage area</li>
+    <li>All images you uploaded for cloud AI upscaling, and all upscaled results</li>
+    <li>Cloud copies of your generated posters</li>
+    <li>Your generation/upscale history and notifications</li>
   </ul>
-  <h2>What we retain</h2>
-  <ul><li>Purchase/transaction records required for tax, billing reconciliation, and abuse prevention — kept only as long as legally necessary (see the <a href="/privacy-policy">privacy policy</a>, §5)</li></ul>
-  <p style="margin-top:8px">Deletion is executed <b>immediately</b> when you confirm below. Files stored only on your device are untouched — uninstalling the app or clearing its storage removes them.</p>
+  <h2>What is kept</h2>
+  <ul>
+    <li>Your account (you stay signed in) and your credit balance</li>
+    <li>Purchase/transaction records required for tax, billing reconciliation, and abuse prevention (<a href="/privacy-policy">privacy policy</a>, §5) — the records only; their associated image files are deleted above</li>
+    <li>Files on your own device (the app's local storage is yours — clear it from Android settings anytime)</li>
+  </ul>
 
   <div class="card" id="card">
     <div id="step-signin">
       <p style="margin-bottom:14px"><b>Step 1 — verify it's you.</b></p>
       <button class="g-btn" id="btn-signin">Sign in with Google</button>
-      <p class="muted" style="margin-top:12px">We only use this to verify account ownership. Signing in here does not create anything.</p>
+      <p class="muted" style="margin-top:12px">We only use this to verify account ownership.</p>
     </div>
     <div id="step-confirm" class="hidden">
-      <div class="who"><img id="photo" alt="" referrerpolicy="no-referrer"><div><div class="em" id="email"></div><div class="muted">This is the account that will be deleted.</div></div></div>
-      <p><b>Step 2 — confirm.</b> Type <b>DELETE</b> below to enable the button.</p>
-      <input type="text" id="confirm-input" autocomplete="off" autocapitalize="characters" placeholder="DELETE">
-      <button class="danger-btn" id="btn-delete" disabled>Permanently delete my account</button>
+      <div class="who"><img id="photo" alt="" referrerpolicy="no-referrer"><div><div class="em" id="email"></div><div class="muted">Cloud data for this account will be deleted.</div></div></div>
+      <label class="chk"><input type="checkbox" id="confirm-chk">
+        I understand my cloud images, posters, and history will be permanently deleted, and that this cannot be undone. My account and credits are kept.</label>
+      <button class="danger-btn" id="btn-delete" disabled>Delete my cloud data</button>
       <div class="err hidden" id="error"></div>
     </div>
     <div id="step-done" class="hidden">
-      <p class="ok">✓ Your account and cloud data have been erased.</p>
-      <p class="muted" style="margin-top:10px">You have been signed out everywhere. If you reinstall the app later, a brand-new account is created. Deletion completed at <span id="when"></span>.</p>
+      <p class="ok">✓ Your cloud data has been deleted.</p>
+      <p class="muted" style="margin-top:10px">Your account and credits are untouched. New posters and upscales will create fresh cloud data only if you choose cloud features again. Completed at <span id="when"></span>.</p>
     </div>
   </div>
 
-  <p class="muted" style="margin-top:26px">Can't sign in (lost account access)? Email <a href="mailto:joeputin100@gmail.com">joeputin100@gmail.com</a> from any address and we'll verify ownership another way — requests are completed within 30 days.</p>
+  <p class="muted" style="margin-top:26px">Can't sign in? Email <a href="mailto:joeputin100@gmail.com">joeputin100@gmail.com</a> and we'll verify ownership another way — requests are completed within 30 days.</p>
 </div></main>
-<footer><a href="/">posterpdf.web.app</a> · <a href="/privacy-policy">Privacy Policy</a> · <a href="/delete-data">Delete Cloud Data</a> · © 2026 Poster PDF</footer>
+<footer><a href="/">posterpdf.web.app</a> · <a href="/privacy-policy">Privacy Policy</a> · <a href="/delete-account">Delete Account</a> · © 2026 Poster PDF</footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js" integrity="sha384-ZaR6mWzmJtrRibZ1Vm7SoHFr8OXjyAuGAXalGDKqbxFT18oi/z+oZLIRFkpeNor1" crossorigin="anonymous"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js" integrity="sha384-I1LYojsZ5RM1cOda44Z2h42Qa6YfsQ1XkXxREnhp4ueYBR/4d1pG1K+NZM537Vsj" crossorigin="anonymous"></script>
@@ -95,9 +98,7 @@
   const auth = firebase.auth();
 
   $("btn-signin").onclick = async () => {
-    try {
-      await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    } catch (e) { /* popup closed etc. — stay on step 1 */ }
+    try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); } catch (e) {}
   };
   auth.onAuthStateChanged((u) => {
     if (u && !u.isAnonymous) {
@@ -107,8 +108,8 @@
       $("step-confirm").classList.remove("hidden");
     }
   });
-  $("confirm-input").addEventListener("input", (e) => {
-    $("btn-delete").disabled = e.target.value.trim() !== "DELETE";
+  $("confirm-chk").addEventListener("change", (e) => {
+    $("btn-delete").disabled = !e.target.checked;
   });
   $("btn-delete").onclick = async () => {
     const btn = $("btn-delete");
@@ -116,16 +117,15 @@
     btn.innerHTML = '<span class="spinner"></span>Deleting…';
     $("error").classList.add("hidden");
     try {
-      await firebase.app().functions("us-central1").httpsCallable("eraseAccount")();
-      await auth.signOut().catch(() => {});
+      await firebase.app().functions("us-central1").httpsCallable("eraseCloudData")();
       $("step-confirm").classList.add("hidden");
       $("when").textContent = new Date().toLocaleString();
       $("step-done").classList.remove("hidden");
     } catch (e) {
-      $("error").textContent = "Deletion failed (" + (e && e.message ? e.message : "network error") + "). Nothing was partially charged — please try again.";
+      $("error").textContent = "Deletion failed (" + (e && e.message ? e.message : "network error") + "). Please try again.";
       $("error").classList.remove("hidden");
       btn.disabled = false;
-      btn.textContent = "Permanently delete my account";
+      btn.textContent = "Delete my cloud data";
     }
   };
 </script>
