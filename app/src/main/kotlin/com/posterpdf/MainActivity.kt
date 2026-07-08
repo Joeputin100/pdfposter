@@ -451,6 +451,9 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     val drawerState = rememberDrawerState(
         initialValue = if (viewModel.openSettingsForScreenshot) DrawerValue.Open else DrawerValue.Closed,
     )
+    // rc84: Play UGC policy — "Blocked users" manager dialog, opened from
+    // the settings drawer row below.
+    var showBlockedUsers by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val hapt = Hapt(LocalHapticFeedback.current)
@@ -645,7 +648,7 @@ private fun MainScreenContent(viewModel: MainViewModel) {
     }
 
     // Cloud-gate (2026-05-29) — pre-flight connection & upload-speed gate for
-    // CLOUD upscales (FAL / Imagen). gateCloudUpload in MainViewModel probes
+    // CLOUD upscales (FAL). gateCloudUpload in MainViewModel probes
     // first, then flips one of these two flags. Mirrors the showLongJobConfirm
     // pattern above (the on-device equivalent). The slow warning is dismissible
     // (Continue / Cancel); offline is a hard block (Got it) that steers to the
@@ -901,11 +904,17 @@ private fun MainScreenContent(viewModel: MainViewModel) {
             onEraseAccount = {
                 viewModel.showManageAccount = false
                 viewModel.logEvent(context, "Account erase confirmed")
-                // Backend wipe lands in a follow-up RC; for now we
-                // sign the user out locally so subsequent sessions
-                // are decoupled from the previous identity.
-                viewModel.signOut()
+                viewModel.eraseAccount(context)
             },
+        )
+    }
+
+    // rc84: Play UGC policy — blocked-users manager (unblock path),
+    // opened from the settings drawer's "Blocked users" row.
+    if (showBlockedUsers) {
+        com.posterpdf.ui.screens.BlockedUsersDialog(
+            viewModel = viewModel,
+            onDismiss = { showBlockedUsers = false },
         )
     }
 
@@ -1308,6 +1317,21 @@ private fun MainScreenContent(viewModel: MainViewModel) {
                          scope.launch { drawerState.close() }
                      },
                      icon = { Icon(Icons.Default.Forum, null) },
+                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                 )
+                 // rc84: Play UGC policy — the unblock path. Opens a dialog
+                 // listing locally-blocked community users with a per-entry
+                 // Unblock button (block list lives in MainViewModel /
+                 // DataStore, never on the server).
+                 NavigationDrawerItem(
+                     label = { Text(stringResource(R.string.drawer_blocked_users)) },
+                     selected = false,
+                     onClick = {
+                         viewModel.logEvent(context, "Blocked users opened")
+                         showBlockedUsers = true
+                         scope.launch { drawerState.close() }
+                     },
+                     icon = { Icon(Icons.Default.Block, null) },
                      modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                  )
 

@@ -2,6 +2,12 @@
   "functions": {
     "source": "functions"
   },
+  "hosting": {
+    "site": "posterpdf",
+    "public": "public",
+    "cleanUrls": true,
+    "ignore": ["firebase.json", "**/.*"]
+  },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"

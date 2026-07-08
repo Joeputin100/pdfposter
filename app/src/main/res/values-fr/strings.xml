@@ -205,7 +205,7 @@
     <!-- Écran FAQ -->
     <string name="screen_faq_title">FAQ</string>
     <string name="faq_q_credits">Pourquoi des crédits sont-ils demandés ?</string>
-    <string name="faq_a_credits">Les crédits paient les appels d\'agrandissement IA — Topaz, Recraft, AuraSR, Magnific. Chaque fournisseur facture par image, donc nous facturons des crédits par image. PosterPDF lui-même (génération d\'affiches, agrandissement sur l\'appareil, historique, stockage cloud 30 jours) est gratuit quelle que soit la source d\'image. Les crédits s\'appliquent uniquement lorsque vous choisissez une option d\'agrandissement IA.</string>
+    <string name="faq_a_credits">Les crédits paient les appels d\'agrandissement IA — Topaz, Recraft, AuraSR, SeedVR2. Chaque fournisseur facture par image, donc nous facturons des crédits par image. PosterPDF lui-même (génération d\'affiches, agrandissement sur l\'appareil, historique, stockage cloud 30 jours) est gratuit quelle que soit la source d\'image. Les crédits s\'appliquent uniquement lorsque vous choisissez une option d\'agrandissement IA.</string>
     <string name="faq_q_credit_value">Pourquoi mes crédits valent-ils moins que le prix payé ?</string>
     <string name="faq_a_credit_value">Transparence sur la marge : les fournisseurs IA sous-jacents nous facturent environ les deux tiers de ce que vous payez. Le tiers restant couvre la commission de 15%% du Play Store, les coûts serveur (Cloud Functions + Firestore + Storage), et laisse une petite marge pour financer le développement. Nous visons ~50%% au-dessus du coût brut FAL.ai — suffisant pour couvrir nos frais, pas pour s\'enrichir. L\'équivalent en USD est affiché sur chaque forfait de crédits, sans mauvaise surprise.</string>
     <string name="faq_q_offline">Peut-on l\'utiliser hors ligne ?</string>
@@ -233,7 +233,7 @@
     <string name="getting_started_feat_storage_body">Vos PDF générés sont conservés 30 jours pour que vous puissiez les retélécharger depuis un autre appareil.</string>
     <string name="getting_started_feat_history_title">Historique permanent</string>
     <string name="getting_started_feat_history_body">Chaque affiche créée reste dans votre historique local sur ce téléphone.</string>
-    <string name="getting_started_paid_explainer">L\'agrandissement IA (Topaz, Recraft, Magnific…) est optionnel et utilise des crédits. Nous facturons suffisamment au-dessus du coût par image du fournisseur IA pour couvrir les frais du Play Store et les serveurs — consultez la FAQ pour la répartition exacte de la marge.</string>
+    <string name="getting_started_paid_explainer">L\'agrandissement IA (Topaz, Recraft, SeedVR2…) est optionnel et utilise des crédits. Nous facturons suffisamment au-dessus du coût par image du fournisseur IA pour couvrir les frais du Play Store et les serveurs — consultez la FAQ pour la répartition exacte de la marge.</string>
     <string name="getting_started_tour_section">Visite en 3 étapes</string>
     <string name="getting_started_tour1_title">Choisir une image</string>
     <string name="getting_started_tour1_body">Appuyez sur la carte photo en haut. Utilisez la copie en plus haute résolution disponible — les petites captures d\'écran seront pixelisées une fois agrandies à la taille d\'une affiche murale.</string>
@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_title">Copies cloud de vos PDF</string>
     <string name="privacy_sec_storage_body">Lorsque vous utilisez l\'amélioration par IA, l\'image améliorée et le PDF généré sont stockés sur nos serveurs (Google Cloud Storage), liés à votre compte. Les affiches créées sans amélioration IA, hors ligne ou sans connexion restent uniquement sur votre appareil. La durée de conservation par défaut est de 30 jours ; les niveaux payants l\'allongent. Vous pouvez désactiver complètement les copies cloud dans Paramètres → Stockage cloud.</string>
     <string name="privacy_sec_fal_title">Agrandissement IA (FAL.ai)</string>
-    <string name="privacy_sec_fal_body">Lorsque vous appuyez sur une option d\'agrandissement IA (Topaz, Recraft, AuraSR, ESRGAN, Magnific), l\'image source est envoyée à FAL.ai pour traitement, et le résultat agrandi est renvoyé. FAL.ai conserve les entrées et sorties pendant la période définie dans leurs CGU — généralement de quelques minutes à quelques heures, mais lisez directement leur politique :</string>
+    <string name="privacy_sec_fal_body">Lorsque vous appuyez sur une option d\'agrandissement IA (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), l\'image source est envoyée à FAL.ai pour traitement, et le résultat agrandi est renvoyé. FAL.ai conserve les entrées et sorties pendant la période définie dans leurs CGU — généralement de quelques minutes à quelques heures, mais lisez directement leur politique :</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Conservation</string>
     <string name="privacy_sec_retention_body">Définie par votre choix dans Paramètres → Stockage cloud…. Niveau gratuit : 30 jours. Niveaux payants : 90 jours, 1 an ou indéfini. Les métadonnées d\'historique dans Firestore suivent la même conservation. Les fichiers locaux et l\'historique local restent sur votre appareil jusqu\'à la désinstallation ou jusqu\'à ce que vous appuyiez sur Rétablir les valeurs par défaut.</string>
@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">Cela supprime définitivement votre profil, votre solde de crédits, vos affiches générées et vos agrandissements stockés dans le cloud. Nous conservons uniquement les documents financiers minimaux requis par la loi.</string>
     <string name="erase_confirm_button">Supprimer le compte</string>
     <string name="erase_confirm_keep">Conserver le compte</string>
+    <string name="erase_account_done">Votre compte et vos données cloud ont été supprimés.</string>
+    <string name="erase_account_failed">Échec de la suppression du compte — vérifiez votre connexion et réessayez.</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">Supprimer votre compte ?</string>
     <string name="erase_confirm_type_instruction">Tapez CANCEL ci-dessous pour confirmer.</string>
@@ -606,7 +608,7 @@
     <string name="gs_feat_upscale_body">L\'agrandissement 4&#215; s\'exécute localement sur votre téléphone &#8212; sans internet, sans crédits.</string>
     <string name="gs_feat_upscale_title">Agrandissement sur l\'appareil</string>
     <string name="gs_intro_body">PosterPDF transforme n\'importe quelle image en affiche murale imprimable, répartie sur des pages Letter ou A4 pour un assemblage à domicile. Choisissez une photo, définissez la taille souhaitée de l\'affiche finale, et nous générerons un PDF prêt à imprimer à envoyer directement à votre imprimante.</string>
-    <string name="gs_paid_explainer">L\'agrandissement IA (Topaz, Recraft, Magnific&#8230;) est optionnel et utilise des crédits. Nous facturons suffisamment au-dessus du coût par image du fournisseur IA pour couvrir les frais du Play Store et les serveurs &#8212; consultez la FAQ pour la répartition exacte de la marge.</string>
+    <string name="gs_paid_explainer">L\'agrandissement IA (Topaz, Recraft, SeedVR2&#8230;) est optionnel et utilise des crédits. Nous facturons suffisamment au-dessus du coût par image du fournisseur IA pour couvrir les frais du Play Store et les serveurs &#8212; consultez la FAQ pour la répartition exacte de la marge.</string>
     <string name="gs_screen_title">Démarrage rapide</string>
     <string name="gs_section_4_step_tour">Visite en 4 étapes</string>
     <string name="gs_section_what_you_get_for_free">Ce que vous obtenez gratuitement</string>
@@ -715,7 +717,7 @@
     <string name="privacy_contact_title">Contact</string>
     <string name="privacy_deletion_body">Données locales : Paramètres &#8594; Rétablir les valeurs par défaut efface les préférences et l\'index d\'historique sur l\'appareil. Copie cloud par affiche : ouvrez l\'Historique, appuyez sur le bouton cloud barré rouge sur la ligne. Compte complet (auth + tout l\'historique Firestore + tous les PDF cloud) : envoyez un e-mail à jc24q@pm.me depuis l\'adresse liée à votre connexion Google. Nous traitons la demande dans les 7 jours.</string>
     <string name="privacy_deletion_title">Méthodes de suppression</string>
-    <string name="privacy_fal_body">Lorsque vous appuyez sur une option d\'agrandissement IA (Topaz, Recraft, AuraSR, ESRGAN, Magnific), l\'image source est envoyée à FAL.ai pour traitement, et le résultat agrandi est renvoyé. FAL.ai conserve les entrées et sorties pendant la période définie dans leurs CGU &#8212; généralement de quelques minutes à quelques heures, mais lisez directement leur politique :</string>
+    <string name="privacy_fal_body">Lorsque vous appuyez sur une option d\'agrandissement IA (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), l\'image source est envoyée à FAL.ai pour traitement, et le résultat agrandi est renvoyé. FAL.ai conserve les entrées et sorties pendant la période définie dans leurs CGU &#8212; généralement de quelques minutes à quelques heures, mais lisez directement leur politique :</string>
     <string name="privacy_fal_title">Agrandissement IA (FAL.ai)</string>
     <string name="privacy_firestore_body">Lorsque vous générez une affiche, nous enregistrons : la largeur et la hauteur de l\'affiche, le format de papier, l\'orientation, la marge, le chevauchement, le DPI de sortie, le nombre de pages et un horodatage de création. Ces données sont envoyées à Firestore à /users/{uid}/history. Nous ne stockons PAS les octets de l\'image source ni aucune donnée de pixels dans Firestore.</string>
     <string name="privacy_firestore_title">Métadonnées de l\'historique (Firestore)</string>
@@ -779,6 +781,8 @@
     <string name="upscale_option_aurasr_pros">Idéal pour l\'art, l\'anime et les illustrations &#8212; finition GAN rapide</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">Plus lent qu\'ESRGAN ; moins net que Topaz sur le texte</string>
+    <string name="upscale_option_seedvr_pros">Des posters géants pour quelques centimes — détails nets</string>
+    <string name="upscale_option_seedvr_cons">Rendu lissé · adoucit le grain fin des photos</string>
     <string name="upscale_option_ccsr_pros">Fidèle aux photos, échelle ajustable de niveau intermédiaire</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">Modèle daté ; peut sur-lisser les détails fins</string>
@@ -786,8 +790,6 @@
     <string name="upscale_option_free_cons">Plus lent sur les anciens téléphones ; 4&#215; max</string>
     <string name="upscale_option_free_pros">Gratuit, hors ligne, fonctionne sans internet</string>
     <string name="upscale_option_free_upscale">Mise à l\'échelle gratuite</string>
-    <string name="upscale_option_imagen_cons">Plafond de sortie 17 MP · filtres de sécurité Google appliqués</string>
-    <string name="upscale_option_imagen_pros">Agrandissement fidèle aux photos &#8212; signé Google</string>
     <string name="upscale_option_now_cons">Pixelisation visible sur les grandes impressions</string>
     <string name="upscale_option_now_pixelated">Maintenant (pixelisé)</string>
     <string name="upscale_option_now_pros">Le plus rapide, gratuit, fonctionne sur n\'importe quel appareil</string>
@@ -799,8 +801,6 @@
     <string name="upscale_option_topaz_pros">Idéal pour le texte, le dessin au trait et la finition imprimerie</string>
     <string name="vm_error_ai_error_prefix">Erreur d\'agrandissement IA : %1$s</string>
     <string name="vm_error_ai_failed_prefix">Échec de l\'agrandissement IA : %1$s</string>
-    <string name="vm_error_imagen_content_filter">Les filtres de sécurité de Google Imagen n\'ont pas pu traiter cette image. Vos crédits n\'ont pas été débités &#8212; essayez un autre agrandisseur.</string>
-    <string name="vm_error_imagen_too_large">Google Imagen ne peut traiter que des sorties jusqu\'à 17 mégapixels. Essayez une taille d\'affiche plus petite ou un autre modèle.</string>
     <string name="vm_error_couldnt_open_image">Impossible d\'ouvrir l\'image source</string>
     <string name="vm_error_decode_failed">Agrandissement terminé mais l\'image résultante n\'a pas pu être décodée</string>
     <string name="vm_error_sharpening_timed_out">L\'amélioration a expiré après 15 minutes &#8212; essayez une taille d\'affiche plus petite ou utilisez plutôt une option IA.</string>
@@ -863,6 +863,26 @@
     <string name="community_relative_hours_ago">il y a %1$d h</string>
     <string name="community_relative_days_ago">il y a %1$d j</string>
     <string name="community_post_by_author">par %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">Plus d\'actions</string>
+    <string name="community_report_action">Signaler</string>
+    <string name="community_block_action">Bloquer l\'utilisateur</string>
+    <string name="community_report_dialog_title">Signaler un contenu</string>
+    <string name="community_report_reason_spam">Spam</string>
+    <string name="community_report_reason_offensive">Offensant ou dangereux</string>
+    <string name="community_report_reason_other">Autre</string>
+    <string name="community_report_detail_placeholder">Ajoutez des détails (facultatif)</string>
+    <string name="community_report_submit" tools:maxLength="14">Signaler</string>
+    <string name="community_report_submitted">Signalement envoyé. Merci.</string>
+    <string name="community_report_failed">Échec de l\'envoi du signalement : %1$s</string>
+    <string name="community_block_confirm_title">Bloquer cet utilisateur ?</string>
+    <string name="community_block_confirm">Masquer tous les posts et réponses de %1$s sur cet appareil ? Vous pouvez le débloquer à tout moment depuis le menu latéral.</string>
+    <string name="community_block_yes" tools:maxLength="14">Bloquer</string>
+    <string name="community_blocked_toast">Utilisateur bloqué.</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">Utilisateurs bloqués</string>
+    <string name="blocked_users_empty">Vous n\'avez bloqué personne.</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">Débloquer</string>
     <!-- RC65: Gemini Q&A -->
     <string name="top_bar_gemini_cd">Demander à Gemini</string>
     <string name="gemini_qa_sheet_header">Interroger Gemini sur votre affiche</string>

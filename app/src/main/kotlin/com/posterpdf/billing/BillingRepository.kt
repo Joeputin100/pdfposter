@@ -1,13 +1,12 @@
 package com.posterpdf.billing
 
-// ASSUMES (to be implemented in G12 by another agent):
-//   suspend fun BackendApi.getPricing(): PricingResponseDto
-//   suspend fun BackendApi.grantTestCredits(credits: Int): Int           // returns new balance
-//   suspend fun BackendApi.redeemPurchase(purchaseToken: String, productId: String): Int  // returns new balance
-//
-// Until those exist, the calls below are stubbed out (commented) so this
-// file compiles standalone. Nothing in the rest of the app depends on this
-// class yet — wiring into MainViewModel / MainActivity is G12's job.
+// rc82: redeemPurchase is now REAL — the `redeemPurchase` Firebase callable
+// (backend/functions/src/redeemPurchase.ts) grants credits server-side,
+// idempotent on purchaseToken, with Play RSA signature verification once
+// PLAY_LICENSE_PUBKEY holds the Console licensing key. This closes the
+// 2026-05-30 review's billing criticals (client-side grant stub; grant-
+// before-consume replay). TEST_MODE remains a debug-build-only local
+// display shortcut and never touches the server ledger.
 
 import android.app.Activity
 import android.content.Context
@@ -28,6 +27,7 @@ import com.android.billingclient.api.acknowledgePurchase
 import com.android.billingclient.api.consumePurchase
 import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
+import com.google.firebase.functions.FirebaseFunctions
 import com.posterpdf.BuildConfig
 import com.posterpdf.data.backend.BackendApi
 import kotlinx.coroutines.CompletableDeferred
@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.tasks.await
 
 /**
  * Wraps Google Play Billing Library v7 with a coroutine-friendly surface.
@@ -248,7 +249,7 @@ class BillingRepository(
                 if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) continue
                 val productId = purchase.products.firstOrNull() ?: continue
 
-                val newBalance = redeemWithBackoff(purchase.purchaseToken, productId)
+                val newBalance = redeemWithBackoff(purchase, productId)
                 if (newBalance == null) {
                     Log.w(TAG, "Redeem failed after retries; will retry on next restore")
                     continue
@@ -271,19 +272,34 @@ class BillingRepository(
 
     /**
      * Backend redeem with exponential backoff: 250ms, 1s, 4s. Returns the
-     * authoritative new balance, or null if all attempts failed.
+     * authoritative new balance, or null if all attempts failed (the token
+     * stays unconsumed, so [queryAndRestorePurchases] re-presents it on next
+     * launch and the server's purchaseToken idempotency makes that safe).
+     *
+     * rc82: real implementation. The server re-verifies everything — the
+     * signed originalJson + Play RSA signature travel with the request, and
+     * credits are granted exactly once per purchaseToken, server-side.
      */
-    private suspend fun redeemWithBackoff(token: String, productId: String): Int? {
+    private suspend fun redeemWithBackoff(purchase: Purchase, productId: String): Int? {
         val delaysMs = longArrayOf(250L, 1000L, 4000L)
         for ((attempt, wait) in delaysMs.withIndex()) {
             try {
-                // G12: return backendApi.redeemPurchase(token, productId)
-                @Suppress("UNUSED_VARIABLE") val unused = backendApi
-                @Suppress("UNUSED_VARIABLE") val t = token
-                @Suppress("UNUSED_VARIABLE") val p = productId
-                // Stub: pretend the server granted the SKU's credit count.
-                val grant = pricing.creditsFor(productId) ?: 0
-                return CreditBalance.flow.value + grant
+                val result = FirebaseFunctions.getInstance("us-central1")
+                    .getHttpsCallable("redeemPurchase")
+                    .call(
+                        mapOf(
+                            "purchaseToken" to purchase.purchaseToken,
+                            "productId" to productId,
+                            "purchaseJson" to purchase.originalJson,
+                            "signature" to purchase.signature,
+                        )
+                    )
+                    .await()
+                @Suppress("UNCHECKED_CAST")
+                val data = result.data as? Map<String, Any?>
+                val balance = (data?.get("balance") as? Number)?.toInt()
+                    ?: error("redeemPurchase returned no balance")
+                return balance
             } catch (t: Throwable) {
                 Log.w(TAG, "redeemPurchase attempt ${attempt + 1} failed: ${t.message}")
                 if (attempt < delaysMs.lastIndex) delay(wait)
@@ -361,6 +377,10 @@ class BillingRepository(
                 if (result.responseCode == BillingClient.BillingResponseCode.OK) return client
                 lastErr = result
             }
+            // rc82 (review S3): drop the dead client on terminal failure so
+            // the next caller builds a fresh one instead of reusing a corpse.
+            runCatching { client.endConnection() }
+            billingClient = null
             error("BillingClient connect failed: ${lastErr?.responseCode} ${lastErr?.debugMessage}")
         }
     }
@@ -389,11 +409,12 @@ class BillingRepository(
         private const val TAG = "BillingRepository"
 
         /**
-         * TEST_MODE skips the real BillingClient and routes purchases through
-         * the backend's `grantTestCredits` faucet. On for debug builds; off
-         * for release. (Future: combine with an `ALLOW_TEST_BILLING` BuildConfig
-         * field to allow turning it off in debug too.)
+         * TEST_MODE skips the real BillingClient and shows a LOCAL-ONLY
+         * balance bump (never touches the server ledger — Firestore rules
+         * make `credits` server-writable only). rc82 (review S3): gated on
+         * BOTH debug build AND the explicit ENABLE_TEST_HOOKS flag, which
+         * release builds pin to false in app/build.gradle.kts.
          */
-        val TEST_MODE: Boolean = BuildConfig.DEBUG
+        val TEST_MODE: Boolean = BuildConfig.DEBUG && BuildConfig.ENABLE_TEST_HOOKS
     }
 }

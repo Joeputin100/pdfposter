@@ -433,29 +433,24 @@ fun detailFor(model: UpscaleModel): ModelDetailCopy = when (model) {
             "for predictable-and-cheap, ESRGAN; for tunable photo polish, " +
             "CCSR is the right middle ground.",
     )
-    // RC60: Google Imagen 4 — Pure-Google mid-tier upscale via Vertex AI.
-    // The "Made by Google" angle is the differentiator vs the FAL-routed
-    // models; data stays inside our GCP project end-to-end.
-    UpscaleModel.IMAGEN -> ModelDetailCopy(
-        bestFor = listOf("Photos", "Pure Google", "Tunable scale"),
-        pickWhen = "When you want a Google-stack upscaler that doesn't route " +
-            "your image to a third-party service. Imagen 4 is trained by " +
-            "Google and runs on Vertex AI, so the image stays inside our " +
-            "Google Cloud project end-to-end. Supports 2×, 3×, or 4× scale " +
-            "with output up to 17 megapixels.",
-        standsOut = "Google's newest super-resolution model — reconstructs " +
-            "textures and sharpens edges without re-imagining the image. " +
-            "Behaves like ESRGAN or CCSR in spirit (precise, no hallucinated " +
-            "detail) but with Google's training data and quality bar. " +
-            "Vertex AI also applies Google's safety filters, which can " +
-            "occasionally false-positive on unusual poster graphics — when " +
-            "that happens you get a full credit refund.",
-        worthThePrice = "Flat per-image pricing (~3 credits per call regardless " +
-            "of poster size), which makes the cost predictable up front. " +
-            "Lands in the same price bracket as AuraSR and CCSR for typical " +
-            "outputs. For tiny posters Imagen will feel a touch more " +
-            "expensive than per-MP models; for 16-MP outputs it's a steal. " +
-            "For the sharpest edges on text, Topaz still wins; for Pure-Google " +
-            "lineage with safety-filter protection, Imagen is the right pick.",
+    // rc82: Google Imagen 4 detail copy removed with the tier — Google
+    // retires imagen-4.0-upscale-preview on 2026-08-03 with no successor.
+    // rc83: SeedVR2 (ByteDance) — the budget big-print tier.
+    UpscaleModel.SEEDVR -> ModelDetailCopy(
+        bestFor = listOf("Huge prints", "AI art & graphics", "Budget"),
+        pickWhen = "When you want the biggest poster for the fewest credits. " +
+            "SeedVR2 is ByteDance's latest-generation upscaler with the " +
+            "largest output headroom in the lineup — up to roughly 10,000 " +
+            "pixels on the long side — at the lowest per-megapixel price.",
+        standsOut = "A crisp, clean, modern look. SeedVR2 rebuilds fine " +
+            "detail confidently, which flatters AI-generated art, posters, " +
+            "and graphics. On real photographs it slightly polishes " +
+            "surfaces — film grain and skin texture come out smoother than " +
+            "the original. If preserving every pore and grain matters, " +
+            "AuraSR and Topaz are the photo-purist picks.",
+        worthThePrice = "The cheapest cloud upscale per megapixel, and the " +
+            "only model that comfortably reaches wall-mural sizes. For " +
+            "giant prints of graphics or AI art it's the clear value pick; " +
+            "for text-heavy posters Topaz still has the edge on lettering.",
     )
 }

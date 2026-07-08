@@ -37,19 +37,14 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("../release.keystore")
-            // RC21: read from env vars (KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD).
-            // Falls back to "posterpdf" for local dev so anyone cloning the repo
-            // can build without env-setup. Until the keystore itself is rotated,
-            // the fallback IS the live password — TODO 4 step 1 (rotate keystore)
-            // remains open. Env-var support is the prerequisite that lets a
-            // future rotation land without re-touching this file.
-            //
-            // takeIf { isNotEmpty() } guards against GitHub Actions setting the
-            // env var to "" when a secret is unset — which would otherwise
-            // bypass the ?: fallback and corrupt the keystore decrypt.
-            storePassword = System.getenv("KEYSTORE_PASSWORD")?.takeIf { it.isNotEmpty() } ?: "posterpdf"
-            keyAlias = System.getenv("KEY_ALIAS")?.takeIf { it.isNotEmpty() } ?: "posterpdf"
-            keyPassword = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotEmpty() } ?: "posterpdf"
+            // rc82: keystore rotated (fresh key + random passwords, GH secrets
+            // KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD set 2026-07-02).
+            // No plaintext fallback: this repo is public, so a fallback IS a
+            // published password. Unset env → signing tasks fail loudly, which
+            // is the intended behavior for clones without credentials.
+            storePassword = System.getenv("KEYSTORE_PASSWORD").orEmpty()
+            keyAlias = System.getenv("KEY_ALIAS").orEmpty()
+            keyPassword = System.getenv("KEY_PASSWORD").orEmpty()
         }
     }
 

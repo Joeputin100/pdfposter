@@ -205,7 +205,7 @@
     <!-- Tela de perguntas frequentes -->
     <string name="screen_faq_title">Perguntas frequentes</string>
     <string name="faq_q_credits">Por que é necessário usar créditos?</string>
-    <string name="faq_a_credits">Os créditos pagam pelas chamadas de melhoria por IA — Topaz, Recraft, AuraSR, Magnific. Cada provedor cobra por imagem, então cobramos créditos por imagem. O PosterPDF em si (geração de pôster, melhoria no dispositivo, histórico, armazenamento em nuvem por 30 dias) é gratuito com qualquer fonte de imagem. Os créditos só se aplicam quando você escolhe uma opção de melhoria por IA.</string>
+    <string name="faq_a_credits">Os créditos pagam pelas chamadas de melhoria por IA — Topaz, Recraft, AuraSR, SeedVR2. Cada provedor cobra por imagem, então cobramos créditos por imagem. O PosterPDF em si (geração de pôster, melhoria no dispositivo, histórico, armazenamento em nuvem por 30 dias) é gratuito com qualquer fonte de imagem. Os créditos só se aplicam quando você escolhe uma opção de melhoria por IA.</string>
     <string name="faq_q_credit_value">Por que meus créditos valem menos do que paguei?</string>
     <string name="faq_a_credit_value">Transparência de margem: os provedores de IA subjacentes nos cobram cerca de dois terços do que você paga. O restante cobre a taxa de 15%% da Play Store, custos de servidor (Cloud Functions + Firestore + Storage) e deixa uma pequena margem para o desenvolvimento. Visamos cerca de ~50%% acima do custo bruto do FAL.ai — o suficiente para manter tudo funcionando, não o suficiente para enriquecer. O equivalente exato em USD é mostrado em cada pacote de créditos, sem surpresas.</string>
     <string name="faq_q_offline">Posso usar sem internet?</string>
@@ -233,7 +233,7 @@
     <string name="getting_started_feat_storage_body">Mantemos seus PDFs gerados por 30 dias para que você possa baixá-los novamente em outro dispositivo.</string>
     <string name="getting_started_feat_history_title">Histórico para sempre</string>
     <string name="getting_started_feat_history_body">Cada pôster que você criar permanece no histórico local deste celular.</string>
-    <string name="getting_started_paid_explainer">Melhoria por IA (Topaz, Recraft, Magnific…) é opcional e usa créditos. Cobramos o suficiente acima do custo por imagem do provedor de IA para cobrir as taxas da Play Store e os servidores — veja as Perguntas frequentes para o detalhamento exato da margem.</string>
+    <string name="getting_started_paid_explainer">Melhoria por IA (Topaz, Recraft, SeedVR2…) é opcional e usa créditos. Cobramos o suficiente acima do custo por imagem do provedor de IA para cobrir as taxas da Play Store e os servidores — veja as Perguntas frequentes para o detalhamento exato da margem.</string>
     <string name="getting_started_tour_section">Tour em 3 etapas</string>
     <string name="getting_started_tour1_title">Escolha uma imagem</string>
     <string name="getting_started_tour1_body">Toque no cartão de foto no topo. Use a cópia de maior resolução disponível — capturas de tela pequenas ficarão pixeladas quando ampliadas ao tamanho de pôster de parede.</string>
@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_title">Cópias dos seus PDFs na nuvem</string>
     <string name="privacy_sec_storage_body">Quando você usa o aprimoramento por IA, sua imagem aprimorada e o PDF gerado são armazenados em nossos servidores (Google Cloud Storage), vinculados apenas à sua conta. Pôsteres feitos sem aprimoramento por IA, offline ou sem login ficam apenas no seu dispositivo. A retenção padrão é de 30 dias; planos pagos estendem isso. Você pode desativar as cópias na nuvem em Configurações → Armazenamento em nuvem.</string>
     <string name="privacy_sec_fal_title">Melhoria por IA (FAL.ai)</string>
-    <string name="privacy_sec_fal_body">Quando você toca em uma opção de melhoria por IA (Topaz, Recraft, AuraSR, ESRGAN, Magnific), a imagem de origem é enviada ao FAL.ai para processamento e o resultado melhorado é retornado. O FAL.ai retém a entrada e a saída pelo período definido em seus Termos de Serviço — geralmente de minutos a horas, mas leia a política deles diretamente:</string>
+    <string name="privacy_sec_fal_body">Quando você toca em uma opção de melhoria por IA (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), a imagem de origem é enviada ao FAL.ai para processamento e o resultado melhorado é retornado. O FAL.ai retém a entrada e a saída pelo período definido em seus Termos de Serviço — geralmente de minutos a horas, mas leia a política deles diretamente:</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Retenção</string>
     <string name="privacy_sec_retention_body">Definida pela sua escolha em Configurações → Armazenamento em nuvem…. Plano gratuito: 30 dias. Planos pagos: 90 dias, 1 ano ou indefinidamente. Os metadados do histórico no Firestore seguem a mesma retenção. Arquivos locais e histórico local permanecem no seu dispositivo até você desinstalar o app ou tocar em Restaurar padrões.</string>
@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">Isso exclui permanentemente seu perfil, saldo de créditos, pôsteres gerados e quaisquer melhorias armazenadas na nuvem. Mantemos apenas os registros financeiros mínimos exigidos por lei.</string>
     <string name="erase_confirm_button">Excluir conta</string>
     <string name="erase_confirm_keep">Manter conta</string>
+    <string name="erase_account_done">Sua conta e seus dados na nuvem foram excluídos.</string>
+    <string name="erase_account_failed">Falha ao excluir a conta — verifique sua conexão e tente novamente.</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">Excluir sua conta?</string>
     <string name="erase_confirm_type_instruction">Digite CANCEL abaixo para confirmar.</string>
@@ -606,7 +608,7 @@
     <string name="gs_feat_upscale_body">Aprimoramento 4&#215; executado localmente no seu celular &#8212; sem internet, sem créditos.</string>
     <string name="gs_feat_upscale_title">Aprimoramento no dispositivo</string>
     <string name="gs_intro_body">PosterPDF transforma qualquer imagem em um pôster de parede imprimível, dividido em páginas Letter ou A4 para você montar em casa. Escolha uma foto, defina o tamanho desejado para o pôster finalizado e geraremos um PDF pronto para impressão que você pode enviar diretamente para a impressora.</string>
-    <string name="gs_paid_explainer">Aprimoramento por IA (Topaz, Recraft, Magnific&#8230;) é opcional e usa créditos. Cobramos o suficiente acima do custo por imagem do provedor de IA para cobrir as taxas da Play Store e os servidores &#8212; veja as Perguntas frequentes para o detalhamento exato da margem.</string>
+    <string name="gs_paid_explainer">Aprimoramento por IA (Topaz, Recraft, SeedVR2&#8230;) é opcional e usa créditos. Cobramos o suficiente acima do custo por imagem do provedor de IA para cobrir as taxas da Play Store e os servidores &#8212; veja as Perguntas frequentes para o detalhamento exato da margem.</string>
     <string name="gs_screen_title">Primeiros passos</string>
     <string name="gs_section_4_step_tour">Tour em 4 etapas</string>
     <string name="gs_section_what_you_get_for_free">O que você recebe gratuitamente</string>
@@ -715,7 +717,7 @@
     <string name="privacy_contact_title">Contato</string>
     <string name="privacy_deletion_body">Dados locais: Configurações &#8594; Restaurar padrões apaga as preferências e o índice de histórico no dispositivo. Cópia na nuvem por pôster: abra o Histórico, toque no botão vermelho de nuvem desativada na linha. Exclusão de toda a conta (autenticação + todo o histórico do Firestore + todos os PDFs na nuvem): envie um e-mail para jc24q@pm.me a partir do endereço vinculado ao seu login Google. Processamos em até 7 dias.</string>
     <string name="privacy_deletion_title">Caminhos de exclusão</string>
-    <string name="privacy_fal_body">Quando você toca em uma opção de aprimoramento por IA (Topaz, Recraft, AuraSR, ESRGAN, Magnific), a imagem de origem é enviada ao FAL.ai para processamento e o resultado aprimorado é retornado. O FAL.ai retém a entrada e a saída pelo período definido em seus Termos de Serviço &#8212; geralmente de minutos a horas, mas leia a política deles diretamente:</string>
+    <string name="privacy_fal_body">Quando você toca em uma opção de aprimoramento por IA (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), a imagem de origem é enviada ao FAL.ai para processamento e o resultado aprimorado é retornado. O FAL.ai retém a entrada e a saída pelo período definido em seus Termos de Serviço &#8212; geralmente de minutos a horas, mas leia a política deles diretamente:</string>
     <string name="privacy_fal_title">Aprimoramento por IA (FAL.ai)</string>
     <string name="privacy_firestore_body">Quando você gera um pôster, registramos: largura e altura do pôster, tamanho do papel, orientação, margem, sobreposição, DPI de saída, número de páginas e um carimbo de data/hora de criação. Isso vai para o Firestore em /users/{uid}/history. NÃO armazenamos os bytes da imagem de origem nem dados de pixel no Firestore.</string>
     <string name="privacy_firestore_title">Metadados do histórico (Firestore)</string>
@@ -779,6 +781,8 @@
     <string name="upscale_option_aurasr_pros">Melhor para arte, anime e ilustrações &#8212; polimento GAN rápido</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">Mais lento que ESRGAN; menos nítido em texto que Topaz</string>
+    <string name="upscale_option_seedvr_pros">Pôsteres enormes por centavos — detalhes nítidos e limpos</string>
+    <string name="upscale_option_seedvr_cons">Visual polido · suaviza o grão fino das fotos</string>
     <string name="upscale_option_ccsr_pros">Fiel à foto, escala ajustável, nível intermediário</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">Modelo antigo; pode suavizar demais detalhes finos</string>
@@ -786,8 +790,6 @@
     <string name="upscale_option_free_cons">Mais lento em celulares antigos; máximo de 4&#215;</string>
     <string name="upscale_option_free_pros">Gratuito, offline, funciona sem internet</string>
     <string name="upscale_option_free_upscale">Aprimoramento grátis</string>
-    <string name="upscale_option_imagen_cons">Limite de 17 MP na saída · filtros de segurança do Google se aplicam</string>
-    <string name="upscale_option_imagen_pros">Aumento de resolução fiel à foto &#8212; feito pelo Google</string>
     <string name="upscale_option_now_cons">Pixelação visível em impressões grandes</string>
     <string name="upscale_option_now_pixelated">Agora (pixelado)</string>
     <string name="upscale_option_now_pros">Mais rápido, gratuito, funciona em qualquer dispositivo</string>
@@ -801,8 +803,6 @@
     <string name="vm_error_ai_failed_prefix">Falha no aprimoramento por IA: %1$s</string>
     <string name="vm_error_couldnt_open_image">Não foi possível abrir a imagem de origem</string>
     <string name="vm_error_decode_failed">Aprimoramento concluído, mas não foi possível decodificar a imagem resultante</string>
-    <string name="vm_error_imagen_content_filter">Os filtros de segurança do Google Imagen não puderam processar esta imagem. Seus créditos não foram cobrados &#8212; tente outro aprimorador.</string>
-    <string name="vm_error_imagen_too_large">O Google Imagen suporta apenas saídas de até 17 megapixels. Tente um tamanho de pôster menor ou outro modelo.</string>
     <string name="vm_error_sharpening_timed_out">Aprimoramento expirou após 15 minutos &#8212; tente um tamanho de pôster menor ou use uma opção de IA.</string>
     <string name="vm_error_upscale_failed_inline">Falha no aprimoramento: %1$s</string>
     <string name="vm_phase_done">Concluído</string>
@@ -863,6 +863,26 @@
     <string name="community_relative_hours_ago">há %1$dh</string>
     <string name="community_relative_days_ago">há %1$dd</string>
     <string name="community_post_by_author">por %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">Mais ações</string>
+    <string name="community_report_action">Denunciar</string>
+    <string name="community_block_action">Bloquear usuário</string>
+    <string name="community_report_dialog_title">Denunciar conteúdo</string>
+    <string name="community_report_reason_spam">Spam</string>
+    <string name="community_report_reason_offensive">Ofensivo ou inseguro</string>
+    <string name="community_report_reason_other">Outro</string>
+    <string name="community_report_detail_placeholder">Adicione detalhes (opcional)</string>
+    <string name="community_report_submit" tools:maxLength="14">Denunciar</string>
+    <string name="community_report_submitted">Denúncia enviada. Obrigado.</string>
+    <string name="community_report_failed">Não foi possível enviar a denúncia: %1$s</string>
+    <string name="community_block_confirm_title">Bloquear usuário?</string>
+    <string name="community_block_confirm">Ocultar todas as postagens e respostas de %1$s neste dispositivo? Você pode desbloquear a qualquer momento no menu lateral.</string>
+    <string name="community_block_yes" tools:maxLength="14">Bloquear</string>
+    <string name="community_blocked_toast">Usuário bloqueado.</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">Usuários bloqueados</string>
+    <string name="blocked_users_empty">Você não bloqueou ninguém.</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">Desbloquear</string>
 
     <!-- RC65: Gemini Q&A -->
     <string name="top_bar_gemini_cd">Perguntar ao Gemini</string>

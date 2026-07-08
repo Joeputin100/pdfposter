@@ -14,13 +14,13 @@ export const CREDIT_COST_BUDGET_USD = 0.00425;
 
 // Tiered SKU ladder with bonus credits — increases cash flow at the high
 // end at the cost of slightly lower per-pack margin.
-interface Sku {
+export interface Sku {
   id: string;
   priceUsd: number;
   baseCredits: number;
   bonusCredits: number;
 }
-const SKUS: Sku[] = [
+export const SKUS: Sku[] = [
   { id: 'credits_starter', priceUsd: 1.99, baseCredits: 199, bonusCredits: 0 },
   { id: 'credits_small',   priceUsd: 4.99, baseCredits: 499, bonusCredits: 25 },
   { id: 'credits_medium',  priceUsd: 9.99, baseCredits: 999, bonusCredits: 75 },

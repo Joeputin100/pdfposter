@@ -26,9 +26,11 @@ import com.posterpdf.data.backend.AuthSession
 import com.posterpdf.data.backend.BackendClient
 import com.posterpdf.data.backend.HistoryItem
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 
@@ -99,10 +101,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // upgrade picker is the relevant state when launched with
     // `--es screenshot model_picker`.
     fun seedScreenshotImage(context: android.content.Context) {
-        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.dogcow)
+        // rc83: Mona Lisa (public domain, on-brand) replaced the Clarus
+        // dogcow as the store-capture demo image; kept deliberately low-res
+        // so the low-DPI upgrade story still tells itself.
+        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.mona_demo)
         if (bmp != null) {
             sourcePreviewBitmap = bmp.asImageBitmap()
-            sourcePixelDimensions = 400 to 300
+            sourcePixelDimensions = bmp.width to bmp.height
         }
     }
 
@@ -114,7 +119,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *  decode+write (same thread seedScreenshotImage already decodes on) is fine. */
     fun seedFullImageForScreenshot(context: android.content.Context) {
         seedScreenshotImage(context)
-        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.dogcow) ?: return
+        val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.mona_demo) ?: return
         val seedFile = File(context.cacheDir, "ux_capture_seed_${System.currentTimeMillis()}.png")
         FileOutputStream(seedFile).use { fos -> bmp.compress(Bitmap.CompressFormat.PNG, 100, fos) }
         selectedImageUri = Uri.fromFile(seedFile)
@@ -275,7 +280,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // --- Cloud connection & upload-speed gate (2026-05-29) ------------------
-    // Pre-flight gate for CLOUD upscales (FAL / Imagen — the paths that upload
+    // Pre-flight gate for CLOUD upscales (FAL — the paths that upload
     // the source image to Firebase Storage). Mirrors the on-device gateLongJob
     // pattern above: probe first, then either block (offline), warn (slow /
     // probe-failed) by stashing the pending launch, or proceed silently.
@@ -1283,10 +1288,48 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var selectedCommunityPostId by mutableStateOf<String?>(null)
     var composingCommunityPost by mutableStateOf(false)
 
+    /** rc84: Play UGC policy — locally-persisted community block list.
+     *  Map of blocked author uid -> display name captured at block time
+     *  (display-only, for the Blocked-users dialog; falls back to a
+     *  truncated uid when blank). Posts AND replies whose author uid is
+     *  in the key set are filtered out of the community UI. Local-only
+     *  by design — hiding content on this device needs no server
+     *  round-trip. */
+    var blockedUsers by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
+
+    fun blockUser(uid: String, displayName: String) {
+        // rc84: self-block guard — the UI hides the action on own content,
+        // but keep the invariant here too.
+        if (uid.isBlank() || uid == authSession.uid) return
+        blockedUsers = blockedUsers + (uid to displayName)
+        persistBlockedUsers()
+        logEvent(appContext, "community_block", "uid=$uid")
+    }
+
+    fun unblockUser(uid: String) {
+        blockedUsers = blockedUsers - uid
+        persistBlockedUsers()
+        logEvent(appContext, "community_unblock", "uid=$uid")
+    }
+
+    private fun persistBlockedUsers() {
+        viewModelScope.launch {
+            repository.saveSetting(
+                SettingsRepository.COMMUNITY_BLOCKED_USERS,
+                blockedUsers.map { (uid, name) -> "$uid\n$name" }.toSet(),
+            )
+        }
+    }
+
     private var ignoreFlowUpdates = false
 
     init {
         loadSettings()
+        // rc83: warm the live fal model rates at app start so the upgrade
+        // modal's first open already has fresh prices (it also refreshes
+        // itself on open; both paths share ModelRates' 5-min staleness gate).
+        viewModelScope.launch { com.posterpdf.upscale.ModelRates.refreshIfStale() }
         viewModelScope.launch {
             auth.session.collectLatest { s ->
                 authSession = s
@@ -1364,6 +1407,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 settings[SettingsRepository.IS_FIRST_RUN]?.let { isFirstRun = it as Boolean } ?: run { isFirstRun = true }
                 settings[SettingsRepository.DEBUG_LOGGING_ENABLED]?.let { debugLoggingEnabled = it as Boolean }
                 settings[SettingsRepository.POSTERS_MADE_COUNT]?.let { postersMadeCount = it as Int }
+                // rc84: restore the community block list (Play UGC policy).
+                // Entries are "uid\ndisplayName"; split at the first '\n'.
+                (settings[SettingsRepository.COMMUNITY_BLOCKED_USERS] as? Set<*>)?.let { raw ->
+                    blockedUsers = raw.filterIsInstance<String>().associate { entry ->
+                        val sep = entry.indexOf('\n')
+                        if (sep >= 0) entry.take(sep) to entry.substring(sep + 1)
+                        else entry to ""
+                    }
+                }
                 // RC54: restore the imported source image after process death
                 // by re-decoding the persisted file URI. Only fires once per
                 // settings emit, and only when selectedImageUri is currently
@@ -1411,6 +1463,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 repository.saveSetting(SettingsRepository.IS_FIRST_RUN, false)
                 repository.saveSetting(SettingsRepository.DEBUG_LOGGING_ENABLED, debugLoggingEnabled)
                 repository.saveSetting(SettingsRepository.POSTERS_MADE_COUNT, postersMadeCount)
+                // rc84: re-save the block list so "Reset to defaults" (which
+                // clears the whole DataStore before calling saveAllSettings)
+                // can't silently wipe a safety feature.
+                repository.saveSetting(
+                    SettingsRepository.COMMUNITY_BLOCKED_USERS,
+                    blockedUsers.map { (uid, name) -> "$uid\n$name" }.toSet(),
+                )
                 isFirstRun = false
             } finally {
                 ignoreFlowUpdates = false
@@ -1995,6 +2054,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             auth.ensureSignedIn() // immediately go back to anonymous
             refreshHistory()
+        }
+    }
+
+    /**
+     * rc82: DANGER ZONE confirm → real server-side wipe via the eraseAccount
+     * callable (archives the credit ledger, then deletes the Firestore user
+     * tree, the Storage users/{uid}/ prefix, and the Auth record), then local
+     * sign-out back to a fresh anonymous session. Replaces the RC35 stub that
+     * only signed out locally. Backend is idempotent, so on failure the user
+     * can simply retry from the same dialog.
+     */
+    fun eraseAccount(context: Context) {
+        viewModelScope.launch {
+            try {
+                FirebaseFunctions.getInstance("us-central1")
+                    .getHttpsCallable("eraseAccount")
+                    .call()
+                    .await()
+                logEvent(context, "Account erase completed server-side")
+                signOut()
+                successMessage = context.getString(R.string.erase_account_done)
+            } catch (t: Throwable) {
+                logEvent(context, "Account erase FAILED", t.message)
+                errorMessage = context.getString(R.string.erase_account_failed)
+            }
         }
     }
 

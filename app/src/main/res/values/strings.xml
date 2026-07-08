@@ -253,7 +253,7 @@
     <!-- FAQ screen -->
     <string name="screen_faq_title">FAQ</string>
     <string name="faq_q_credits">Why does it ask for credits?</string>
-    <string name="faq_a_credits">Credits pay for AI upscale calls — Topaz, Recraft, AuraSR, Magnific. Each provider charges per image, so we charge credits per image. PosterPDF itself (poster generation, on-device upscale, history) is free with any image source. The 30-day cloud storage is included only for AI-upscaled images and the PDFs generated from them — non-upscaled posters, on-device-upscaled posters, offline output, and posters made while signed out all stay on your device, where they\'re already free.</string>
+    <string name="faq_a_credits">Credits pay for AI upscale calls — Topaz, Recraft, AuraSR, SeedVR2. Each provider charges per image, so we charge credits per image. PosterPDF itself (poster generation, on-device upscale, history) is free with any image source. The 30-day cloud storage is included only for AI-upscaled images and the PDFs generated from them — non-upscaled posters, on-device-upscaled posters, offline output, and posters made while signed out all stay on your device, where they\'re already free.</string>
     <string name="faq_q_credit_value">Why are my credits worth less than the price I paid?</string>
     <string name="faq_a_credit_value">Margin transparency: the underlying AI providers charge us about two-thirds of what you pay. The other third covers Play Store\'s 15%% cut, server costs (Cloud Functions + Firestore + Storage), and leaves a small margin to fund development. We aim for ~50%% above raw FAL.ai cost — that\'s enough to keep the lights on, not enough to make us rich. The exact USD-equivalent is shown on every credit pack so there are no surprises.</string>
     <string name="faq_q_offline">Can I use it offline?</string>
@@ -281,7 +281,7 @@
     <string name="getting_started_feat_storage_body">We hold your generated PDFs for 30 days so you can re-download from another device.</string>
     <string name="getting_started_feat_history_title">History forever</string>
     <string name="getting_started_feat_history_body">Every poster you make stays in your local history on this phone.</string>
-    <string name="getting_started_paid_explainer">AI upscale (Topaz, Recraft, Magnific…) is opt-in and uses credits. We charge enough above the AI provider\'s per-image cost to cover Play Store fees and servers — see the FAQ for the exact margin breakdown.</string>
+    <string name="getting_started_paid_explainer">AI upscale (Topaz, Recraft, SeedVR2…) is opt-in and uses credits. We charge enough above the AI provider\'s per-image cost to cover Play Store fees and servers — see the FAQ for the exact margin breakdown.</string>
     <string name="getting_started_tour_section">3-Step Tour</string>
     <string name="getting_started_tour1_title">Pick an image</string>
     <string name="getting_started_tour1_body">Tap the photo card at the top. Use the highest-resolution copy you have — small phone screenshots will look pixelated when blown up to wall-poster size.</string>
@@ -305,7 +305,7 @@
     <string name="privacy_sec_storage_title">Cloud copies of your PDFs</string>
     <string name="privacy_sec_storage_body">When you use AI upscale, your upscaled image and the PDF made from it are stored on our servers (Google Cloud Storage), scoped to your account. Posters made without AI upscale, made offline, or made while signed out stay only on your device. Default keep-time is 30 days; paid tiers extend that. Turn cloud copies off entirely under Settings → Cloud storage.</string>
     <string name="privacy_sec_fal_title">AI upscale (FAL.ai)</string>
-    <string name="privacy_sec_fal_body">When you tap an AI upscale option (Topaz, Recraft, AuraSR, ESRGAN, Magnific), the source image is sent to FAL.ai for processing, and the upscaled result is returned. FAL.ai retains the input and output for the period set in their TOS — typically minutes to hours, but read their policy directly:</string>
+    <string name="privacy_sec_fal_body">When you tap an AI upscale option (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), the source image is sent to FAL.ai for processing, and the upscaled result is returned. FAL.ai retains the input and output for the period set in their TOS — typically minutes to hours, but read their policy directly:</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">Retention</string>
     <string name="privacy_sec_retention_body">Set by your Settings → Cloud storage… choice. Free tier: 30 days. Paid tiers: 90 days, 1 year, or indefinite. History metadata in Firestore follows the same retention. Local files and local history stay on your device until you uninstall or tap Reset to Defaults.</string>
@@ -501,6 +501,8 @@
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_button">Erase account</string>
     <string name="erase_confirm_keep">Keep account</string>
+    <string name="erase_account_done">Your account and cloud data have been erased.</string>
+    <string name="erase_account_failed">Account erase failed — check your connection and try again.</string>
 
     <!-- RC38: CreditsHistoryScreen -->
     <string name="credits_history_title">Credits history</string>
@@ -694,7 +696,6 @@
     <string name="upscale_option_topaz_gigapixel">Topaz Gigapixel</string>
     <!-- RC60: Google Imagen 4 upscale via Vertex AI. Brand name "Google
          Imagen" stays in English across all locales. -->
-    <string name="upscale_option_imagen_name" translatable="false">Google Imagen</string>
 
     <!-- Upscale option pros/cons (extracted from data class init) -->
     <string name="upscale_option_now_pros">Fastest, free, works on any device</string>
@@ -709,19 +710,18 @@
     <string name="upscale_option_aurasr_cons">Occasional artifacts on skies and skin</string>
     <string name="upscale_option_ccsr_pros">Photo-faithful, scale-tunable mid-tier</string>
     <string name="upscale_option_ccsr_cons">Slower than ESRGAN; less crisp on text than Topaz</string>
+    <string name="upscale_option_seedvr_name" translatable="false">SeedVR2</string>
+    <string name="upscale_option_seedvr_pros">Huge posters for pennies — crisp, clean detail</string>
+    <string name="upscale_option_seedvr_cons">Polished look · softens fine photo grain</string>
     <string name="upscale_option_topaz_pros">Best for text, line art &amp; print-shop polish</string>
     <string name="upscale_option_topaz_cons">30× the cost for ~10–20% sharper edges</string>
     <!-- RC60: Google Imagen pros/cons. Material 3 body-small budget; ~80 chars each.
          RC62: dropped the "Pure-Google stack" framing — that copy was aimed at
          Play Store editorial reviewers, not consumers. New phrasing matches the
          pattern of the other model cards (descriptive benefit + provider). -->
-    <string name="upscale_option_imagen_pros">Photo-faithful upscale — made by Google</string>
-    <string name="upscale_option_imagen_cons">17 MP output cap · Google safety filters apply</string>
 
     <!-- RC60: Imagen-specific error messages surfaced when the Vertex API
          returns a failure_reason. Mirrors the vm_error_<reason> pattern. -->
-    <string name="vm_error_imagen_content_filter">Google Imagen\'s safety filters couldn\'t process this image. Your credits weren\'t charged — try a different upscaler.</string>
-    <string name="vm_error_imagen_too_large">Google Imagen can only handle outputs up to 17 megapixels. Try a smaller poster size or a different model.</string>
 
     <!-- LowDpiUpgradeModal extra cards / lever rows / footer -->
     <string name="lowdpi_header_svg_inline">Vector source — no upscale needed</string>
@@ -802,7 +802,7 @@
     <string name="gs_feat_storage_body">We hold your generated PDFs for 30 days so you can re-download from another device.</string>
     <string name="gs_feat_history_title">History forever</string>
     <string name="gs_feat_history_body">Every poster you make stays in your local history on this phone.</string>
-    <string name="gs_paid_explainer">AI upscale (Topaz, Recraft, Magnific…) is opt-in and uses credits. We charge enough above the AI provider\'s per-image cost to cover Play Store fees and servers — see the FAQ for the exact margin breakdown.</string>
+    <string name="gs_paid_explainer">AI upscale (Topaz, Recraft, SeedVR2…) is opt-in and uses credits. We charge enough above the AI provider\'s per-image cost to cover Play Store fees and servers — see the FAQ for the exact margin breakdown.</string>
     <string name="gs_section_4_step_tour">4-Step Tour</string>
     <string name="gs_tour_pick_image_title">Pick an image</string>
     <string name="gs_tour_pick_image_body">Tap the photo card at the top. Use the highest-resolution copy you have — small phone screenshots will look pixelated when blown up to wall-poster size.</string>
@@ -826,7 +826,7 @@
     <string name="privacy_storage_title">Cloud copies of your PDFs</string>
     <string name="privacy_storage_body">When you use AI upscale, your upscaled image and the PDF made from it are stored on our servers (Google Cloud Storage), scoped to your account. Posters made without AI upscale, made offline, or made while signed out stay only on your device. Default keep-time is 30 days; paid tiers extend that. Turn cloud copies off entirely under Settings → Cloud storage.</string>
     <string name="privacy_fal_title">AI upscale (FAL.ai)</string>
-    <string name="privacy_fal_body">When you tap an AI upscale option (Topaz, Recraft, AuraSR, ESRGAN, Magnific), the source image is sent to FAL.ai for processing, and the upscaled result is returned. FAL.ai retains the input and output for the period set in their TOS — typically minutes to hours, but read their policy directly:</string>
+    <string name="privacy_fal_body">When you tap an AI upscale option (Topaz, Recraft, AuraSR, ESRGAN, SeedVR2), the source image is sent to FAL.ai for processing, and the upscaled result is returned. FAL.ai retains the input and output for the period set in their TOS — typically minutes to hours, but read their policy directly:</string>
     <string name="privacy_retention_title">Retention</string>
     <string name="privacy_retention_body">Set by your Settings → Cloud storage… choice. Free tier: 30 days. Paid tiers: 90 days, 1 year, or indefinite. History metadata in Firestore follows the same retention. Local files and local history stay on your device until you uninstall or tap Reset to Defaults.</string>
     <string name="privacy_deletion_title">Deletion paths</string>
@@ -1020,6 +1020,26 @@
     <string name="community_relative_hours_ago">%1$dh ago</string>
     <string name="community_relative_days_ago">%1$dd ago</string>
     <string name="community_post_by_author">by %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">More actions</string>
+    <string name="community_report_action">Report</string>
+    <string name="community_block_action">Block user</string>
+    <string name="community_report_dialog_title">Report content</string>
+    <string name="community_report_reason_spam">Spam</string>
+    <string name="community_report_reason_offensive">Offensive or unsafe</string>
+    <string name="community_report_reason_other">Other</string>
+    <string name="community_report_detail_placeholder">Add details (optional)</string>
+    <string name="community_report_submit" tools:maxLength="14">Report</string>
+    <string name="community_report_submitted">Report submitted. Thank you.</string>
+    <string name="community_report_failed">Couldn\'t submit report: %1$s</string>
+    <string name="community_block_confirm_title">Block user?</string>
+    <string name="community_block_confirm">Hide all posts and replies from %1$s on this device? You can unblock them anytime from the side menu.</string>
+    <string name="community_block_yes" tools:maxLength="14">Block</string>
+    <string name="community_blocked_toast">User blocked.</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">Blocked users</string>
+    <string name="blocked_users_empty">You haven\'t blocked anyone.</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">Unblock</string>
 
     <string name="history_open_chooser_title">Open PDF</string>
     <string name="history_share_chooser_title">Share PDF</string>

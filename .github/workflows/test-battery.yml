@@ -236,6 +236,13 @@ jobs:
 
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
+        # rc82: signing credentials required since the plaintext password
+        # fallback was removed from app/build.gradle.kts (debug builds sign
+        # with the release config, so instrumentation builds need these too).
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
@@ -373,6 +380,11 @@ jobs:
 
       - name: Run macrobenchmark
         uses: reactivecircus/android-emulator-runner@v2
+        # rc82: signing credentials — see instrumentation job note.
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         with:
           api-level: 36
           arch: x86_64

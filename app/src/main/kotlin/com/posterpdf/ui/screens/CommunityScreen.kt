@@ -52,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import android.widget.Toast
 import com.posterpdf.MainViewModel
 import com.posterpdf.R
 import com.posterpdf.data.backend.CommunityRepository
@@ -84,6 +85,14 @@ fun CommunityScreen(
     var loading by remember { mutableStateOf(true) }
     var loadFailed by remember { mutableStateOf(false) }
     var refreshTick by remember { mutableStateOf(0) }
+
+    // rc84: Play UGC policy — report + block. Posts from locally-blocked
+    // authors are filtered out of the feed; the overflow menu on each
+    // card feeds these two dialog targets.
+    val sessionUid = viewModel.authSession.uid
+    val blockedIds = viewModel.blockedUsers.keys
+    var reportTarget by remember { mutableStateOf<ModerationTarget?>(null) }
+    var blockTarget by remember { mutableStateOf<ModerationTarget?>(null) }
 
     LaunchedEffect(selectedTopic, refreshTick) {
         loading = true
@@ -184,6 +193,10 @@ fun CommunityScreen(
             }
 
             // Feed
+            // rc84: filter blocked authors out of the feed (and use the
+            // filtered list for the empty state so an all-blocked feed
+            // reads as empty rather than rendering a blank list).
+            val visiblePosts = posts.filter { it.uid !in blockedIds }
             when {
                 loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
@@ -194,7 +207,7 @@ fun CommunityScreen(
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
-                posts.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                visiblePosts.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         if (selectedTopic == null) stringResource(R.string.community_no_posts_all)
                         else stringResource(R.string.community_no_posts_topic),
@@ -210,18 +223,72 @@ fun CommunityScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    items(posts, key = { it.id }) { post ->
-                        PostCard(post = post, onClick = { onOpenPost(post.id) })
+                    items(visiblePosts, key = { it.id }) { post ->
+                        PostCard(
+                            post = post,
+                            onClick = { onOpenPost(post.id) },
+                            // rc84: report/block only on OTHER people's
+                            // live posts — hidden on own + deleted content.
+                            moderationTarget = if (
+                                sessionUid != null && post.uid != sessionUid &&
+                                post.uid.isNotBlank() && post.deletedAt == null
+                            ) {
+                                ModerationTarget(
+                                    targetType = CommunityRepository.ReportType.POST,
+                                    postId = post.id,
+                                    replyId = null,
+                                    targetUid = post.uid,
+                                    authorName = post.authorName,
+                                )
+                            } else {
+                                null
+                            },
+                            onReport = { reportTarget = it },
+                            onBlock = { blockTarget = it },
+                        )
                     }
                     item { Spacer(Modifier.height(80.dp)) }  // FAB clearance
                 }
             }
         }
     }
+
+    // rc84: Play UGC policy — report + block dialogs.
+    val reporting = reportTarget
+    if (reporting != null && sessionUid != null) {
+        CommunityReportDialog(
+            target = reporting,
+            reporterUid = sessionUid,
+            onDismiss = { reportTarget = null },
+        )
+    }
+    val blocking = blockTarget
+    if (blocking != null) {
+        BlockUserDialog(
+            target = blocking,
+            onConfirm = {
+                viewModel.blockUser(blocking.targetUid, blocking.authorName)
+                blockTarget = null
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.community_blocked_toast),
+                    Toast.LENGTH_SHORT,
+                ).show()
+            },
+            onDismiss = { blockTarget = null },
+        )
+    }
 }
 
 @Composable
-private fun PostCard(post: CommunityPost, onClick: () -> Unit) {
+private fun PostCard(
+    post: CommunityPost,
+    onClick: () -> Unit,
+    // rc84: null hides the report/block overflow (own or deleted content).
+    moderationTarget: ModerationTarget?,
+    onReport: (ModerationTarget) -> Unit,
+    onBlock: (ModerationTarget) -> Unit,
+) {
     val context = LocalContext.current
     Surface(
         modifier = Modifier
@@ -258,6 +325,11 @@ private fun PostCard(post: CommunityPost, onClick: () -> Unit) {
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // rc84: report/block overflow (Play UGC policy).
+                if (moderationTarget != null) {
+                    Spacer(Modifier.weight(1f))
+                    ModerationOverflow(moderationTarget, onReport, onBlock)
+                }
             }
             Spacer(Modifier.height(6.dp))
             Text(

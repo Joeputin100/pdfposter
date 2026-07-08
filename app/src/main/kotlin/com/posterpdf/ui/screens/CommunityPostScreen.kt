@@ -84,6 +84,13 @@ fun CommunityPostScreen(
     var deletePostConfirm by remember { mutableStateOf(false) }
     var deleteReplyConfirm by remember { mutableStateOf<String?>(null) }
 
+    // rc84: Play UGC policy — report + block. Replies from locally-blocked
+    // authors are filtered out; the overflow menu on the post and each
+    // reply feeds these two dialog targets.
+    val blockedIds = viewModel.blockedUsers.keys
+    var reportTarget by remember { mutableStateOf<ModerationTarget?>(null) }
+    var blockTarget by remember { mutableStateOf<ModerationTarget?>(null) }
+
     LaunchedEffect(postId, refreshTick) {
         loading = true
         loadFailed = false
@@ -140,6 +147,10 @@ fun CommunityPostScreen(
                 }
                 else -> {
                     val current = post!!
+                    // rc84: filter replies from locally-blocked authors
+                    // (Play UGC policy); the count label uses the filtered
+                    // list so it matches what's on screen.
+                    val visibleReplies = replies.filter { it.uid !in blockedIds }
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
@@ -147,7 +158,29 @@ fun CommunityPostScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        item { OriginalPost(current) }
+                        item {
+                            OriginalPost(
+                                post = current,
+                                // rc84: report/block only on OTHER people's
+                                // live posts — hidden on own + deleted.
+                                moderationTarget = if (
+                                    session.uid != null && current.uid != session.uid &&
+                                    current.uid.isNotBlank() && current.deletedAt == null
+                                ) {
+                                    ModerationTarget(
+                                        targetType = CommunityRepository.ReportType.POST,
+                                        postId = current.id,
+                                        replyId = null,
+                                        targetUid = current.uid,
+                                        authorName = current.authorName,
+                                    )
+                                } else {
+                                    null
+                                },
+                                onReport = { reportTarget = it },
+                                onBlock = { blockTarget = it },
+                            )
+                        }
                         item {
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
@@ -156,21 +189,38 @@ fun CommunityPostScreen(
                         }
                         item {
                             Text(
-                                text = when (replies.size) {
+                                text = when (visibleReplies.size) {
                                     0 -> stringResource(R.string.community_reply_count_zero)
                                     1 -> stringResource(R.string.community_reply_count_one)
-                                    else -> stringResource(R.string.community_reply_count, replies.size)
+                                    else -> stringResource(R.string.community_reply_count, visibleReplies.size)
                                 },
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Medium,
                             )
                         }
-                        items(replies, key = { it.id }) { reply ->
+                        items(visibleReplies, key = { it.id }) { reply ->
                             ReplyCard(
                                 reply = reply,
                                 isOwner = reply.uid == session.uid,
                                 onDelete = { deleteReplyConfirm = reply.id },
+                                // rc84: report/block on others' live replies.
+                                moderationTarget = if (
+                                    session.uid != null && reply.uid != session.uid &&
+                                    reply.uid.isNotBlank() && reply.deletedAt == null
+                                ) {
+                                    ModerationTarget(
+                                        targetType = CommunityRepository.ReportType.REPLY,
+                                        postId = postId,
+                                        replyId = reply.id,
+                                        targetUid = reply.uid,
+                                        authorName = reply.authorName,
+                                    )
+                                } else {
+                                    null
+                                },
+                                onReport = { reportTarget = it },
+                                onBlock = { blockTarget = it },
                             )
                         }
                         item { Spacer(Modifier.height(8.dp)) }
@@ -321,10 +371,47 @@ fun CommunityPostScreen(
             },
         )
     }
+
+    // rc84: Play UGC policy — report + block dialogs.
+    val reporting = reportTarget
+    val reporterUid = session.uid
+    if (reporting != null && reporterUid != null) {
+        CommunityReportDialog(
+            target = reporting,
+            reporterUid = reporterUid,
+            onDismiss = { reportTarget = null },
+        )
+    }
+    val blocking = blockTarget
+    if (blocking != null) {
+        BlockUserDialog(
+            target = blocking,
+            onConfirm = {
+                viewModel.blockUser(blocking.targetUid, blocking.authorName)
+                blockTarget = null
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.community_blocked_toast),
+                    Toast.LENGTH_SHORT,
+                ).show()
+                // rc84: if the whole thread is authored by the user we just
+                // blocked, there's nothing left to show — leave the screen
+                // (the feed filter hides the post from now on).
+                if (post?.uid == blocking.targetUid) onBack()
+            },
+            onDismiss = { blockTarget = null },
+        )
+    }
 }
 
 @Composable
-private fun OriginalPost(post: CommunityPost) {
+private fun OriginalPost(
+    post: CommunityPost,
+    // rc84: null hides the report/block overflow (own or deleted content).
+    moderationTarget: ModerationTarget?,
+    onReport: (ModerationTarget) -> Unit,
+    onBlock: (ModerationTarget) -> Unit,
+) {
     val context = LocalContext.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -354,6 +441,11 @@ private fun OriginalPost(post: CommunityPost) {
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // rc84: report/block overflow (Play UGC policy).
+                if (moderationTarget != null) {
+                    Spacer(Modifier.weight(1f))
+                    ModerationOverflow(moderationTarget, onReport, onBlock)
+                }
             }
             Spacer(Modifier.height(8.dp))
             Text(
@@ -377,7 +469,15 @@ private fun OriginalPost(post: CommunityPost) {
 }
 
 @Composable
-private fun ReplyCard(reply: CommunityReply, isOwner: Boolean, onDelete: () -> Unit) {
+private fun ReplyCard(
+    reply: CommunityReply,
+    isOwner: Boolean,
+    onDelete: () -> Unit,
+    // rc84: null hides the report/block overflow (own or deleted content).
+    moderationTarget: ModerationTarget?,
+    onReport: (ModerationTarget) -> Unit,
+    onBlock: (ModerationTarget) -> Unit,
+) {
     val context = LocalContext.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -409,6 +509,12 @@ private fun ReplyCard(reply: CommunityReply, isOwner: Boolean, onDelete: () -> U
                             modifier = Modifier.size(16.dp),
                         )
                     }
+                }
+                // rc84: report/block overflow on others' replies
+                // (Play UGC policy); mutually exclusive with the owner
+                // delete button above.
+                if (moderationTarget != null) {
+                    ModerationOverflow(moderationTarget, onReport, onBlock)
                 }
             }
             Spacer(Modifier.height(6.dp))

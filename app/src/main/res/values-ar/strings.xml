@@ -205,7 +205,7 @@
     <!-- شاشة الأسئلة الشائعة -->
     <string name="screen_faq_title">الأسئلة الشائعة</string>
     <string name="faq_q_credits">لماذا يطلب التطبيق أرصدة؟</string>
-    <string name="faq_a_credits">الأرصدة تغطي تكاليف تكبير الذكاء الاصطناعي — Topaz وRecraft وAuraSR وMagnific. كل مزود يفرض رسوماً لكل صورة، لذا نفرض أرصدة لكل صورة. PosterPDF نفسه (إنشاء الملصقات، التكبير على الجهاز، السجل، التخزين السحابي 30 يوماً) مجاني مع أي مصدر للصور. الأرصدة تُطبَّق فقط عند اختيار تكبير بالذكاء الاصطناعي.</string>
+    <string name="faq_a_credits">الأرصدة تغطي تكاليف تكبير الذكاء الاصطناعي — Topaz وRecraft وAuraSR وSeedVR2. كل مزود يفرض رسوماً لكل صورة، لذا نفرض أرصدة لكل صورة. PosterPDF نفسه (إنشاء الملصقات، التكبير على الجهاز، السجل، التخزين السحابي 30 يوماً) مجاني مع أي مصدر للصور. الأرصدة تُطبَّق فقط عند اختيار تكبير بالذكاء الاصطناعي.</string>
     <string name="faq_q_credit_value">لماذا تبدو قيمة أرصدتي أقل من المبلغ الذي دفعته؟</string>
     <string name="faq_a_credit_value">شفافية الهامش: مزودو الذكاء الاصطناعي يفرضون علينا حوالي ثلثَي ما تدفعه. الثلث الآخر يغطي عمولة Play Store بنسبة 15%%، وتكاليف الخوادم (Cloud Functions + Firestore + Storage)، مع هامش ربح صغير لتمويل التطوير. نهدف إلى ~50%% فوق تكلفة FAL.ai الأصلية — وهو ما يكفي للاستمرار لا لجني ثروة. يظهر ما يعادله بالدولار على كل حزمة أرصدة لتجنب المفاجآت.</string>
     <string name="faq_q_offline">هل يمكنني استخدامه بدون إنترنت؟</string>
@@ -233,7 +233,7 @@
     <string name="getting_started_feat_storage_body">نحتفظ بملفات PDF التي تُنشئها 30 يوماً حتى تتمكن من إعادة التنزيل من جهاز آخر.</string>
     <string name="getting_started_feat_history_title">سجل دائم</string>
     <string name="getting_started_feat_history_body">كل ملصق تُنشئه يبقى في سجلك المحلي على هذا الهاتف.</string>
-    <string name="getting_started_paid_explainer">تكبير الذكاء الاصطناعي (Topaz وRecraft وMagnific…) اختياري ويستخدم الأرصدة. نتقاضى فوق تكلفة مزود الذكاء الاصطناعي لكل صورة ما يكفي لتغطية رسوم Play Store والخوادم — راجع الأسئلة الشائعة لتفاصيل الهامش.</string>
+    <string name="getting_started_paid_explainer">تكبير الذكاء الاصطناعي (Topaz وRecraft وSeedVR2…) اختياري ويستخدم الأرصدة. نتقاضى فوق تكلفة مزود الذكاء الاصطناعي لكل صورة ما يكفي لتغطية رسوم Play Store والخوادم — راجع الأسئلة الشائعة لتفاصيل الهامش.</string>
     <string name="getting_started_tour_section">جولة من 3 خطوات</string>
     <string name="getting_started_tour1_title">اختر صورة</string>
     <string name="getting_started_tour1_body">انقر على بطاقة الصورة في الأعلى. استخدم أعلى دقة متاحة — لقطات الشاشة الصغيرة ستبدو مكسَّرة عند تكبيرها لحجم ملصق جداري.</string>
@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_title">نسخ سحابية لملفات PDF</string>
     <string name="privacy_sec_storage_body">عند استخدام تحسين الصور بالذكاء الاصطناعي، يتم حفظ الصورة المُحسَّنة وملف PDF الناتج عنها على خوادمنا (Google Cloud Storage) وترتبط بحسابك فقط. الملصقات التي تم إنشاؤها دون تحسين أو دون اتصال أو وأنت غير مسجَّل الدخول، تبقى على جهازك فقط. مدة الاحتفاظ الافتراضية 30 يوماً؛ الخطط المدفوعة تمددها. يمكنك تعطيل النسخ السحابية بالكامل من الإعدادات ← التخزين السحابي.</string>
     <string name="privacy_sec_fal_title">تكبير الذكاء الاصطناعي (FAL.ai)</string>
-    <string name="privacy_sec_fal_body">عند اختيار خيار تكبير بالذكاء الاصطناعي (Topaz أو Recraft أو AuraSR أو ESRGAN أو Magnific)، تُرسَل الصورة المصدر إلى FAL.ai للمعالجة ويُعاد الناتج المكبَّر. تحتفظ FAL.ai بالمدخلات والمخرجات للمدة المحددة في شروط خدمتها — عادةً دقائق إلى ساعات، لكن اقرأ سياستهم مباشرة:</string>
+    <string name="privacy_sec_fal_body">عند اختيار خيار تكبير بالذكاء الاصطناعي (Topaz أو Recraft أو AuraSR أو ESRGAN أو SeedVR2)، تُرسَل الصورة المصدر إلى FAL.ai للمعالجة ويُعاد الناتج المكبَّر. تحتفظ FAL.ai بالمدخلات والمخرجات للمدة المحددة في شروط خدمتها — عادةً دقائق إلى ساعات، لكن اقرأ سياستهم مباشرة:</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">الاحتفاظ</string>
     <string name="privacy_sec_retention_body">يُحدَّد باختيارك في الإعدادات → التخزين السحابي…. التيار المجاني: 30 يوماً. التيارات المدفوعة: 90 يوماً أو سنة أو إلى أجل غير مسمى. بيانات السجل في Firestore تتبع نفس فترة الاحتفاظ. الملفات المحلية والسجل المحلي تبقى على جهازك حتى تُلغي التثبيت أو تنقر إعادة الضبط الافتراضي.</string>
@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">سيؤدي هذا إلى حذف ملفك الشخصي ورصيدك وملصقاتك المُنشأة وأي تكبيرات مخزَّنة سحابياً بشكل دائم. نحتفظ فقط بالحد الأدنى من السجلات المالية المطلوبة قانوناً.</string>
     <string name="erase_confirm_button">مسح الحساب</string>
     <string name="erase_confirm_keep">الاحتفاظ بالحساب</string>
+    <string name="erase_account_done">تم حذف حسابك وبياناتك السحابية.</string>
+    <string name="erase_account_failed">فشل حذف الحساب — يُرجى التحقق من الاتصال والمحاولة مرة أخرى.</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">مسح حسابك؟</string>
     <string name="erase_confirm_type_instruction">اكتب CANCEL أدناه للتأكيد.</string>
@@ -605,7 +607,7 @@
     <string name="gs_feat_upscale_body">ترقية 4&#215; تعمل محلياً على هاتفك &#8212; دون إنترنت ودون أرصدة.</string>
     <string name="gs_feat_upscale_title">ترقية على الجهاز</string>
     <string name="gs_intro_body">يحوّل Poster PDF أي صورة إلى ملصق جداري قابل للطباعة، مقسّم على صفحات Letter أو A4 لتجمعه في المنزل. اختر صورة، وحدّد الحجم النهائي للملصق، وسننشئ لك ملف PDF جاهزاً للطباعة يمكنك إرساله مباشرةً إلى طابعتك.</string>
-    <string name="gs_paid_explainer">الترقية بالذكاء الاصطناعي (Topaz وRecraft وMagnific&#8230;) اختيارية وتستهلك أرصدة. نتقاضى ما يكفي فوق تكلفة كل صورة من مزود الذكاء الاصطناعي لتغطية رسوم Play Store والخوادم &#8212; راجع الأسئلة الشائعة لمعرفة تفاصيل الهامش.</string>
+    <string name="gs_paid_explainer">الترقية بالذكاء الاصطناعي (Topaz وRecraft وSeedVR2&#8230;) اختيارية وتستهلك أرصدة. نتقاضى ما يكفي فوق تكلفة كل صورة من مزود الذكاء الاصطناعي لتغطية رسوم Play Store والخوادم &#8212; راجع الأسئلة الشائعة لمعرفة تفاصيل الهامش.</string>
     <string name="gs_screen_title">البدء</string>
     <string name="gs_section_4_step_tour">جولة من 4 خطوات</string>
     <string name="gs_section_what_you_get_for_free">ما تحصل عليه مجاناً</string>
@@ -714,7 +716,7 @@
     <string name="privacy_contact_title">التواصل</string>
     <string name="privacy_deletion_body">البيانات المحلية: الإعدادات &#8594; إعادة التعيين إلى الافتراضي تمسح التفضيلات وفهرس السجل على الجهاز. نسخة سحابية لكل ملصق: افتح السجل، واضغط زر \"سحابة مشطوبة\" الأحمر في الصف. على مستوى الحساب (المصادقة + كل سجل Firestore + كل ملفات PDF السحابية): راسل jc24q@pm.me من العنوان المرتبط بتسجيل دخولك بحساب Google. نعالج الطلب خلال 7 أيام.</string>
     <string name="privacy_deletion_title">مسارات الحذف</string>
-    <string name="privacy_fal_body">عندما تضغط خيار ترقية بالذكاء الاصطناعي (Topaz أو Recraft أو AuraSR أو ESRGAN أو Magnific)، تُرسَل الصورة المصدر إلى FAL.ai للمعالجة، وتُعاد النتيجة المُرقّاة. يحتفظ FAL.ai بالمدخل والمخرج للفترة المحددة في شروطه &#8212; عادةً دقائق إلى ساعات، لكن اقرأ سياستهم مباشرةً:</string>
+    <string name="privacy_fal_body">عندما تضغط خيار ترقية بالذكاء الاصطناعي (Topaz أو Recraft أو AuraSR أو ESRGAN أو SeedVR2)، تُرسَل الصورة المصدر إلى FAL.ai للمعالجة، وتُعاد النتيجة المُرقّاة. يحتفظ FAL.ai بالمدخل والمخرج للفترة المحددة في شروطه &#8212; عادةً دقائق إلى ساعات، لكن اقرأ سياستهم مباشرةً:</string>
     <string name="privacy_fal_title">الترقية بالذكاء الاصطناعي (FAL.ai)</string>
     <string name="privacy_firestore_body">عندما تنشئ ملصقاً، نسجّل: عرض الملصق وارتفاعه، وحجم الورق، والاتجاه، والهامش، والتداخل، وDPI الناتج، وعدد الصفحات، وطابع زمني للإنشاء. يذهب هذا إلى Firestore على /users/{uid}/history. لا نخزّن بايتات الصورة المصدر أو أي بيانات بكسل في Firestore.</string>
     <string name="privacy_firestore_title">بيانات السجل الوصفية (Firestore)</string>
@@ -778,6 +780,8 @@
     <string name="upscale_option_aurasr_pros">الأفضل للفن والأنمي والرسوم التوضيحية &#8212; صقل GAN سريع</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">أبطأ من ESRGAN؛ أقل حدة على النص من Topaz</string>
+    <string name="upscale_option_seedvr_pros">ملصقات ضخمة بتكلفة زهيدة — تفاصيل واضحة ونظيفة</string>
+    <string name="upscale_option_seedvr_cons">مظهر مصقول · ينعّم حبيبات الصور الدقيقة</string>
     <string name="upscale_option_ccsr_pros">وفيّ للصور، قابل لضبط المقياس، فئة متوسطة</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">نموذج قديم؛ قد يفرط في تنعيم التفاصيل الدقيقة</string>
@@ -785,8 +789,6 @@
     <string name="upscale_option_free_cons">أبطأ على الهواتف الأقدم؛ بحد أقصى 4&#215;</string>
     <string name="upscale_option_free_pros">مجاني، دون اتصال، يعمل دون إنترنت</string>
     <string name="upscale_option_free_upscale">ترقية مجانية</string>
-    <string name="upscale_option_imagen_cons">حد أقصى للإخراج 17 ميغابكسل · تُطبَّق فلاتر أمان Google</string>
-    <string name="upscale_option_imagen_pros">ترقية وفيّة للصور &#8212; من صنع Google</string>
     <string name="upscale_option_now_cons">تظهر بكسلة عند الطباعات الكبيرة</string>
     <string name="upscale_option_now_pixelated">الآن (مبكسلة)</string>
     <string name="upscale_option_now_pros">الأسرع، مجاني، يعمل على أي جهاز</string>
@@ -800,8 +802,6 @@
     <string name="vm_error_ai_failed_prefix">فشلت الترقية بالذكاء الاصطناعي: %1$s</string>
     <string name="vm_error_couldnt_open_image">تعذّر فتح الصورة المصدر</string>
     <string name="vm_error_decode_failed">اكتملت الترقية لكن تعذّر فك ترميز الصورة الناتجة</string>
-    <string name="vm_error_imagen_content_filter">تعذّر على فلاتر أمان Google Imagen معالجة هذه الصورة. لم تُخصم أرصدتك &#8212; جرّب أداة ترقية مختلفة.</string>
-    <string name="vm_error_imagen_too_large">يستطيع Google Imagen التعامل فقط مع مخرجات تصل إلى 17 ميغابكسل. جرّب حجم ملصق أصغر أو نموذجاً مختلفاً.</string>
     <string name="vm_error_sharpening_timed_out">انتهت مهلة التحديد بعد 15 دقيقة &#8212; جرّب حجم ملصق أصغر أو استخدم خيار ذكاء اصطناعي بدلاً من ذلك.</string>
     <string name="vm_error_upscale_failed_inline">فشلت الترقية: %1$s</string>
     <string name="vm_phase_done">تم</string>
@@ -862,6 +862,26 @@
     <string name="community_relative_hours_ago">منذ %1$dس</string>
     <string name="community_relative_days_ago">منذ %1$dي</string>
     <string name="community_post_by_author">بواسطة %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">إجراءات إضافية</string>
+    <string name="community_report_action">إبلاغ</string>
+    <string name="community_block_action">حظر المستخدم</string>
+    <string name="community_report_dialog_title">الإبلاغ عن محتوى</string>
+    <string name="community_report_reason_spam">محتوى مزعج</string>
+    <string name="community_report_reason_offensive">مسيء أو غير آمن</string>
+    <string name="community_report_reason_other">أخرى</string>
+    <string name="community_report_detail_placeholder">أضف تفاصيل (اختياري)</string>
+    <string name="community_report_submit" tools:maxLength="14">إبلاغ</string>
+    <string name="community_report_submitted">تم إرسال البلاغ. شكرًا لك.</string>
+    <string name="community_report_failed">تعذّر إرسال البلاغ: %1$s</string>
+    <string name="community_block_confirm_title">حظر المستخدم؟</string>
+    <string name="community_block_confirm">إخفاء جميع منشورات وردود %1$s على هذا الجهاز؟ يمكنك إلغاء الحظر في أي وقت من القائمة الجانبية.</string>
+    <string name="community_block_yes" tools:maxLength="14">حظر</string>
+    <string name="community_blocked_toast">تم حظر المستخدم.</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">المستخدمون المحظورون</string>
+    <string name="blocked_users_empty">لم تحظر أي مستخدم.</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">إلغاء الحظر</string>
     <!-- RC65: Gemini Q&amp;A -->
     <string name="top_bar_gemini_cd">اسأل Gemini</string>
     <string name="gemini_qa_sheet_header">اسأل Gemini عن ملصقك</string>

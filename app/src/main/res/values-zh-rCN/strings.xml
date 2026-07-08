@@ -205,7 +205,7 @@
     <!-- 常见问题页 -->
     <string name="screen_faq_title">常见问题</string>
     <string name="faq_q_credits">为什么需要点数？</string>
-    <string name="faq_a_credits">点数用于支付 AI 放大调用费用——Topaz、Recraft、AuraSR、Magnific。每家服务商按图片收费，因此我们也按图片收取点数。PosterPDF 本身（海报生成、本机放大、历史记录、30 天云存储）免费，不限图片来源。点数仅在选择 AI 放大选项时消耗。</string>
+    <string name="faq_a_credits">点数用于支付 AI 放大调用费用——Topaz、Recraft、AuraSR、SeedVR2。每家服务商按图片收费，因此我们也按图片收取点数。PosterPDF 本身（海报生成、本机放大、历史记录、30 天云存储）免费，不限图片来源。点数仅在选择 AI 放大选项时消耗。</string>
     <string name="faq_q_credit_value">为什么我的点数价值低于支付金额？</string>
     <string name="faq_a_credit_value">透明定价：底层 AI 服务商向我们收取约三分之二的价格，另外三分之一用于覆盖 Play Store 15%% 抽成、服务器成本（Cloud Functions + Firestore + Storage），并留有小额利润用于开发。我们的目标是在 FAL.ai 原始成本上加价约 50%%——足以维持运营，不会暴利。每个点数套餐均标注对应美元金额，无任何隐藏收费。</string>
     <string name="faq_q_offline">可以离线使用吗？</string>
@@ -233,7 +233,7 @@
     <string name="getting_started_feat_storage_body">生成的 PDF 保存 30 天，可从其他设备重新下载。</string>
     <string name="getting_started_feat_history_title">永久历史记录</string>
     <string name="getting_started_feat_history_body">您制作的每张海报都保留在本机的历史记录中。</string>
-    <string name="getting_started_paid_explainer">AI 放大（Topaz、Recraft、Magnific…）为可选功能，需消耗点数。我们在 AI 服务商每张图片成本基础上加价，以覆盖 Play Store 费用和服务器开支——详见常见问题中的利润明细。</string>
+    <string name="getting_started_paid_explainer">AI 放大（Topaz、Recraft、SeedVR2…）为可选功能，需消耗点数。我们在 AI 服务商每张图片成本基础上加价，以覆盖 Play Store 费用和服务器开支——详见常见问题中的利润明细。</string>
     <string name="getting_started_tour_section">三步上手</string>
     <string name="getting_started_tour1_title">选择图片</string>
     <string name="getting_started_tour1_body">点击顶部的照片卡片。请使用分辨率最高的版本——小尺寸手机截图放大至墙面海报尺寸后会出现明显像素化。</string>
@@ -257,7 +257,7 @@
     <string name="privacy_sec_storage_title">您的 PDF 云端副本</string>
     <string name="privacy_sec_storage_body">使用 AI 放大时，您放大后的图像及由此生成的 PDF 会保存在我们的服务器（Google Cloud Storage）上，仅与您的账户关联。未使用 AI 放大、离线生成或未登录时生成的海报只保留在您的设备上。默认保留期为 30 天；付费方案可延长。您可以在「设置 → 云存储」中完全关闭云端副本。</string>
     <string name="privacy_sec_fal_title">AI 放大（FAL.ai）</string>
-    <string name="privacy_sec_fal_body">当您点击 AI 放大选项（Topaz、Recraft、AuraSR、ESRGAN、Magnific）时，源图片将发送至 FAL.ai 进行处理，放大后的结果将返回给您。FAL.ai 按其服务条款规定的期限保留输入和输出——通常为数分钟至数小时，请直接参阅其隐私政策：</string>
+    <string name="privacy_sec_fal_body">当您点击 AI 放大选项（Topaz、Recraft、AuraSR、ESRGAN、SeedVR2）时，源图片将发送至 FAL.ai 进行处理，放大后的结果将返回给您。FAL.ai 按其服务条款规定的期限保留输入和输出——通常为数分钟至数小时，请直接参阅其隐私政策：</string>
     <string name="privacy_fal_link">https://fal.ai/legal/privacy-policy</string>
     <string name="privacy_sec_retention_title">数据保留</string>
     <string name="privacy_sec_retention_body">由设置 → 云存储… 中的选择决定。免费方案：30 天。付费方案：90 天、1 年或无限期。Firestore 中的历史元数据遵循相同保留策略。本地文件和本地历史记录保存在您的设备上，直到您卸载应用或点击恢复默认设置。</string>
@@ -432,6 +432,8 @@
     <string name="erase_confirm_body">此操作将永久删除您的个人资料、点数余额、生成的海报及所有云端存储的放大文件。我们仅保留法律要求的最低限度财务记录。</string>
     <string name="erase_confirm_button">注销账户</string>
     <string name="erase_confirm_keep">保留账户</string>
+    <string name="erase_account_done">您的账号和云端数据已删除。</string>
+    <string name="erase_account_failed">账号删除失败——请检查网络连接后重试。</string>
     <string name="erase_confirm_placeholder">CANCEL</string>
     <string name="erase_confirm_title">注销您的账户？</string>
     <string name="erase_confirm_type_instruction">请在下方输入 CANCEL 以确认。</string>
@@ -605,7 +607,7 @@
     <string name="gs_feat_upscale_body">4&#215; 提升在您的手机本地运行 &#8212; 无需联网，无需点数。</string>
     <string name="gs_feat_upscale_title">本地提升</string>
     <string name="gs_intro_body">Poster PDF 可将任何图像变成可打印的墙面海报，跨多张 Letter 或 A4 纸拼贴，方便您在家组装。选择一张照片，设定成品海报尺寸，我们会生成一份可直接发送给打印机的 PDF。</string>
-    <string name="gs_paid_explainer">AI 提升（Topaz、Recraft、Magnific&#8230;）为可选项，需消耗点数。我们的收费高于 AI 提供商的单图成本，以覆盖 Play Store 费用和服务器开销 &#8212; 详细的利润分配请参阅常见问题。</string>
+    <string name="gs_paid_explainer">AI 提升（Topaz、Recraft、SeedVR2&#8230;）为可选项，需消耗点数。我们的收费高于 AI 提供商的单图成本，以覆盖 Play Store 费用和服务器开销 &#8212; 详细的利润分配请参阅常见问题。</string>
     <string name="gs_screen_title">入门指南</string>
     <string name="gs_section_4_step_tour">四步导览</string>
     <string name="gs_section_what_you_get_for_free">免费可获得的内容</string>
@@ -714,7 +716,7 @@
     <string name="privacy_contact_title">联系</string>
     <string name="privacy_deletion_body">本地数据：设置 &#8594; 重置为默认值会清除偏好和本地历史索引。单张海报云端副本：打开历史记录，点击该行的红色云断开按钮。账号范围（认证 + 全部 Firestore 历史 + 全部云端 PDF）：使用与您 Google 登录绑定的邮箱发送邮件至 jc24q@pm.me。我们将在 7 天内处理。</string>
     <string name="privacy_deletion_title">删除途径</string>
-    <string name="privacy_fal_body">当您点击 AI 提升选项（Topaz、Recraft、AuraSR、ESRGAN、Magnific）时，原始图像会发送到 FAL.ai 处理，并返回提升后的结果。FAL.ai 会按照其服务条款保留输入和输出 &#8212; 通常为几分钟到几小时，请直接阅读其政策：</string>
+    <string name="privacy_fal_body">当您点击 AI 提升选项（Topaz、Recraft、AuraSR、ESRGAN、SeedVR2）时，原始图像会发送到 FAL.ai 处理，并返回提升后的结果。FAL.ai 会按照其服务条款保留输入和输出 &#8212; 通常为几分钟到几小时，请直接阅读其政策：</string>
     <string name="privacy_fal_title">AI 提升 (FAL.ai)</string>
     <string name="privacy_firestore_body">当您生成海报时，我们会记录：海报的宽和高、纸张尺寸、方向、边距、重叠、输出 DPI、页数和创建时间戳。这些数据保存到 Firestore 的 /users/{uid}/history。我们不会在 Firestore 中存储原始图像字节或任何像素数据。</string>
     <string name="privacy_firestore_title">历史元数据 (Firestore)</string>
@@ -778,6 +780,8 @@
     <string name="upscale_option_aurasr_pros">最适合艺术、动漫和插画 &#8212; 快速 GAN 润色</string>
     <string name="upscale_option_ccsr">CCSR</string>
     <string name="upscale_option_ccsr_cons">比 ESRGAN 慢；文字不如 Topaz 清晰</string>
+    <string name="upscale_option_seedvr_pros">超大海报，花费极低——细节清晰干净</string>
+    <string name="upscale_option_seedvr_cons">画面偏精修 · 会柔化照片细微颗粒</string>
     <string name="upscale_option_ccsr_pros">忠实于照片，可调倍率的中端选项</string>
     <string name="upscale_option_esrgan">ESRGAN</string>
     <string name="upscale_option_esrgan_cons">较旧的模型；可能过度平滑细节</string>
@@ -785,8 +789,6 @@
     <string name="upscale_option_free_cons">在较旧的手机上较慢；最高 4&#215;</string>
     <string name="upscale_option_free_pros">免费、离线，无需联网即可使用</string>
     <string name="upscale_option_free_upscale">免费提升</string>
-    <string name="upscale_option_imagen_cons">输出上限 17 MP · 受 Google 安全过滤器限制</string>
-    <string name="upscale_option_imagen_pros">照片级还原放大 — Google 出品</string>
     <string name="upscale_option_now_cons">大尺寸打印时可见明显像素化</string>
     <string name="upscale_option_now_pixelated">当前（像素化）</string>
     <string name="upscale_option_now_pros">最快、免费，适用于任何设备</string>
@@ -800,8 +802,6 @@
     <string name="vm_error_ai_failed_prefix">AI 提升失败：%1$s</string>
     <string name="vm_error_couldnt_open_image">无法打开原始图像</string>
     <string name="vm_error_decode_failed">提升完成但结果图像无法解码</string>
-    <string name="vm_error_imagen_content_filter">Google Imagen 的安全过滤器无法处理此图片。未扣除点数 — 请尝试其他提升器。</string>
-    <string name="vm_error_imagen_too_large">Google Imagen 仅支持最高 17 兆像素的输出。请尝试更小的海报尺寸或其他模型。</string>
     <string name="vm_error_sharpening_timed_out">锐化在 15 分钟后超时 &#8212; 请尝试更小的海报尺寸或改用 AI 选项。</string>
     <string name="vm_error_upscale_failed_inline">提升失败：%1$s</string>
     <string name="vm_phase_done">完成</string>
@@ -860,6 +860,26 @@
     <string name="community_relative_hours_ago">%1$d 小时前</string>
     <string name="community_relative_days_ago">%1$d 天前</string>
     <string name="community_post_by_author">来自 %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">更多操作</string>
+    <string name="community_report_action">举报</string>
+    <string name="community_block_action">屏蔽用户</string>
+    <string name="community_report_dialog_title">举报内容</string>
+    <string name="community_report_reason_spam">垃圾内容</string>
+    <string name="community_report_reason_offensive">冒犯或不安全</string>
+    <string name="community_report_reason_other">其他</string>
+    <string name="community_report_detail_placeholder">补充说明（可选）</string>
+    <string name="community_report_submit" tools:maxLength="14">举报</string>
+    <string name="community_report_submitted">举报已提交。感谢您的反馈。</string>
+    <string name="community_report_failed">无法提交举报：%1$s</string>
+    <string name="community_block_confirm_title">屏蔽该用户？</string>
+    <string name="community_block_confirm">在此设备上隐藏 %1$s 的所有帖子和回复？您可以随时在侧边菜单中解除屏蔽。</string>
+    <string name="community_block_yes" tools:maxLength="14">屏蔽</string>
+    <string name="community_blocked_toast">已屏蔽该用户。</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">已屏蔽的用户</string>
+    <string name="blocked_users_empty">您尚未屏蔽任何用户。</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">解除屏蔽</string>
     <!-- RC65: Gemini Q&amp;A -->
     <string name="top_bar_gemini_cd">向 Gemini 提问</string>
     <string name="gemini_qa_sheet_header">向 Gemini 询问关于您海报的问题</string>

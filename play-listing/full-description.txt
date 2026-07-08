@@ -1,0 +1,29 @@
+Print it huge. Poster PDF turns any picture on your phone into a print-ready poster — tiled across ordinary printer pages you tape together, or exported as one large-format PDF for a print shop.
+
+HOW IT WORKS
+1. Pick any image — a photo, artwork, a kid's drawing.
+2. Choose your poster size: from two pages to wall-sized.
+3. Poster PDF slices it into perfectly aligned, overlapping tiles with trim guides.
+4. Print at home, trim, tape, done.
+
+AI UPSCALING, DONE RIGHT
+Small images look blurry when printed big. Poster PDF fixes that:
+• On-device AI upscaling — free, private, works offline, GPU-accelerated.
+• Cloud AI upscaling — pro-grade models (including Topaz-class enhancement) for the sharpest large prints, with a live time estimate before you commit.
+• Always lossless: every AI result is delivered as pixel-perfect PNG, never recompressed.
+
+BUILT FOR REAL PRINTING
+• Trim marks, overlap margins, and page-count preview before you print.
+• Handles very large images without running out of memory — 17+ megapixel posters stream to disk as they render.
+• Works with any printer that can print a normal page.
+
+FAIR PRICING
+The poster maker is free. On-device AI upscaling is free. Cloud AI upscaling uses simple prepaid credits — no subscription, no ads, and prices are shown up front in your currency. One credit is one cent.
+
+ASK THE ASSISTANT
+Not sure which upscale model or poster size to pick? The built-in AI assistant answers in plain language — type or speak your question.
+
+PRIVATE BY DESIGN
+Your images stay on your device unless you choose cloud upscaling; cloud copies are stored in your own private area and can be deleted anytime. No ads, no data sold. Privacy policy: https://posterpdf.web.app/privacy-policy
+
+Available in English, Spanish, French, German, Portuguese, Russian, Japanese, Chinese (Simplified), Hindi, and Arabic.

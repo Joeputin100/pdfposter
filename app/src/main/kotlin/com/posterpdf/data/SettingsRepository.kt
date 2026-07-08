@@ -33,6 +33,10 @@ class SettingsRepository(private val context: Context) {
         // picked content URI's bytes to an app-private file, then writes
         // that local file:// URI here so loadSettings can restore it.
         val SELECTED_IMAGE_URI = stringPreferencesKey("selected_image_uri")
+        // rc84: Play UGC policy — locally-persisted community block list.
+        // Each entry is "uid\ndisplayName" (uids can't contain '\n'); see
+        // MainViewModel.blockedUsers for the in-memory map + filtering.
+        val COMMUNITY_BLOCKED_USERS = stringSetPreferencesKey("community_blocked_users")
     }
 
     val settingsFlow: Flow<Map<Preferences.Key<*>, Any>> = context.dataStore.data

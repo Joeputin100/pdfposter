@@ -181,6 +181,30 @@ Baseline profiles encode "which classes/methods to AOT-compile at install time" 
 
 **Status:** Long-term polish; runs in parallel with engineering.
 
+**⚠️ 2026-07-03 — PRE-LAUNCH SUBSET (user-requested, blocks launch):**
+A minimum-cleanup pass must land BEFORE the Play production release —
+the listing links to posterpdf.web.app, but the repo is public and one
+search away. Launch-gating items only:
+1. **Delete stale root clutter**: `posterpdf-rc35..rc40-*.apk` (old debug
+   builds in repo root), `wood.png`, `AISelect_20260506_155101_Chrome_OpenArt.png`,
+   `poster pdf.png` (superseded blue-logo concept — final brand is the teal
+   press; archive under docs/ if worth keeping), `keystore_gen.yaml` if stale.
+2. **Commit or drop `docs/logo-variations/`** (46 untracked candidate PNGs
+   from 2026-05-01 — the only high-res masters of the final logo family;
+   recommend committing a curated subset).
+3. **Top-level README.md** with the Print Room brand: hero (reuse
+   `play-listing/feature-graphic.png`), 1-paragraph pitch, screenshots
+   (reuse the rc83 store set), Play Store badge/link once live, privacy
+   policy + posterpdf.web.app links, build badge, license note.
+4. **LICENSE decision** (see A below — default today is "no license" =
+   all rights reserved, fine but make it explicit).
+5. **Repo description + topics + social preview** (use `hero-1280x640` /
+   feature graphic).
+6. Sweep for internal-only docs that read wrong publicly (docs/reviews,
+   old specs are fine; check nothing embarrassing/secret-adjacent).
+
+Rest of TODO 7 (below) stays post-launch.
+
 **Why:** The repo at `https://github.com/Joeputin100/pdfposter` is the public artifact of this app. For a Play-Store-featured-app candidate, the GitHub repo is the secondary calling card — recruiters, fellow developers, journalists, and the curious all land there before they land on the Play Store listing. Currently it's a working dev repo, not a showcase.
 
 **Workstreams:**
@@ -218,5 +242,31 @@ Baseline profiles encode "which classes/methods to AOT-compile at install time" 
 **When to start:** A + B can start the day MD3E redesign lands on master. C piggybacks on each phase's PR. D is gated on TODO 1 (GH Actions). E is the very last step.
 
 ---
+
+## TODO 8 — Community UGC report/block (Play UGC policy) — PRE-PRODUCTION
+
+**Added 2026-07-05** (surfaced by the content-rating questionnaire): the
+community board has no user-facing "report post/reply" or "block user"
+mechanism — only admin soft-delete. Play's UGC policy expects in-app
+reporting for social features; a reviewer seeing the declared
+"users interact" flag may check. Scope: report action on post/reply
+overflow menu → writes to a `reports` collection (admin-readable, rules:
+create-only by signed-in users); local block-list filter by uid; strings
+×10 locales. Fits inside the 14-day closed-test window; must land before
+the production-access application.
+
+## TODO 9 — GitHub repo page as a da Vinci-notebook visual showcase — PRE-PRODUCTION
+
+**Added 2026-07-05** (user-directed; absorbs and supersedes TODO 7's
+pre-launch subset). Rebuild the public repo face (README.md, social
+preview, description/topics, stale-file cleanup) as an award-tier visual
+showcase in a **Leonardo da Vinci notebook** direction — the brand logo is
+literally the Mona Lisa in a dot-matrix printer, so: parchment/codex
+textures, sanguine chalk + sepia ink, technical "invention study" sketch
+plates of the teal press, proportion-grid Mona studies (the tiling story),
+chancery-italic annotations. Process: 3 rendered mockups → user picks →
+implementation (hero banner light/dark, folio section plates, screenshot
+frames, badges, social preview 1280×640). Assets pre-render as images so
+typography is unrestricted despite GitHub's CSS-less markdown.
 
 ## (Append future deferrals here)

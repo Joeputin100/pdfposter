@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Poster PDF</title>
+<link rel="icon" href="icon.png">
+<style>
+  :root { --navy:#0A3D62; --teal:#27CBD0; --cream:#F7EEDC; --ink:#123; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Georgia, 'Times New Roman', serif; background:#FBF6EA; color:var(--ink); line-height:1.65; }
+  header { background:var(--navy); color:var(--cream); padding:40px 24px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  header .brand { display:flex; align-items:center; gap:14px; font-family:'Helvetica Neue',Arial,sans-serif; }
+  header img { width:52px; height:52px; border-radius:12px; }
+  header .brand b { font-size:22px; letter-spacing:.02em; }
+  header h1 { font-size:34px; margin-top:18px; font-weight:700; }
+  header .meta { color:var(--teal); font-family:Arial,sans-serif; font-size:14px; letter-spacing:.12em; margin-top:6px; }
+  main { padding:36px 24px 64px; }
+  main h2 { font-family:'Helvetica Neue',Arial,sans-serif; font-size:19px; color:var(--navy);
+            margin:34px 0 10px; padding-bottom:6px; border-bottom:2px solid var(--teal); }
+  main h3 { font-size:16px; color:var(--navy); margin:16px 0 4px; }
+  main p, main li { font-size:16.5px; }
+  main ul { padding-left:24px; margin:8px 0; }
+  main a { color:var(--navy); }
+  .callout { background:#EDF7F7; border-left:4px solid var(--teal); border-radius:6px; padding:14px 18px; margin:14px 0; }
+  .contact { background:var(--navy); color:var(--cream); border-radius:10px; padding:18px 22px; margin-top:28px; }
+  .contact a { color:var(--teal); font-weight:bold; }
+  footer { text-align:center; font-family:Arial,sans-serif; font-size:13px; color:#7a7264; padding:24px; }
+  footer a { color:var(--navy); }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand"><img src="icon.png" alt="Poster PDF icon"><b>Poster PDF</b></div>
+  <h1>Privacy Policy</h1>
+  <div class="meta">LAST UPDATED · JULY 2, 2026</div>
+</div></header>
+<main><div class="wrap">
+  <p>Poster PDF (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) respects your privacy. This policy explains what data is collected, why, and how it is used &mdash; and, just as importantly, what never leaves your device.</p>
+
+  <h2>1. Data We Collect</h2>
+  <h3>a) Account Data</h3>
+  <ul><li>Google account identifier (when signed in)</li>
+      <li>Basic authentication metadata provided by Firebase Authentication</li></ul>
+  <h3>b) App Usage Data</h3>
+  <ul><li>Posters generated count</li>
+      <li>Upscale usage counters (free and paid)</li>
+      <li>Credit balances and transactions</li>
+      <li>History metadata (generation timestamps, source hash, output references)</li></ul>
+  <h3>c) Image / File Data</h3>
+  <ul><li>Images you send to <b>cloud</b> AI upscaling, and their upscaled results (stored in your private cloud storage area)</li>
+      <li>Generated PDF files you choose to keep a cloud copy of</li></ul>
+  <h3>d) Crash &amp; Diagnostic Data</h3>
+  <ul><li>Crash reports and performance diagnostics (Firebase Crashlytics)</li></ul>
+  <h3>e) Debug Logs (optional)</h3>
+  <ul><li>If Debug Logging is enabled by you, app events may be written to local storage on your device only</li></ul>
+
+  <h2>2. What Stays on Your Device</h2>
+  <div class="callout">
+  <ul>
+    <li>Source images you select stay on your phone unless <b>you</b> choose a cloud AI model. The on-device AI upscaler runs entirely offline &mdash; those images never leave your device.</li>
+    <li>Generated PDFs and caches are stored locally unless you enable a cloud copy.</li>
+    <li>Voice input for the in-app assistant is transcribed by Android&rsquo;s system speech service; the audio itself is never sent to our servers &mdash; only the resulting text question.</li>
+  </ul>
+  </div>
+  <p>We never collect: your location, contacts, calendar, browsing history, advertising identifiers, or files other than the images you explicitly select. Poster PDF contains no ads and no ad-tracking SDKs.</p>
+
+  <h2>3. Why We Use Data</h2>
+  <ul><li>Provide core app features (poster generation and AI upscaling)</li>
+      <li>Enforce free-tier and credit limits fairly</li>
+      <li>Persist user state across reinstall/sign-in</li>
+      <li>Process and track upscaling transactions safely with stage/commit/refund</li>
+      <li>Show generation/upscale history</li>
+      <li>Diagnose crashes and performance problems</li></ul>
+
+  <h2>4. Third-Party Services</h2>
+  <ul><li>Firebase / Google Cloud (Authentication, Firestore, Cloud Functions, Storage, Crashlytics, Cloud Messaging)</li>
+      <li>Google Play Billing (for purchases)</li>
+      <li>fal.ai (AI upscaling models, via our backend proxy)</li>
+      <li>Google Cloud Vertex AI (Gemini &mdash; powers the in-app AI assistant, via our backend proxy; receives your typed/spoken questions as text, not your images)</li></ul>
+  <p>When you choose a cloud AI model, the image is made available to the AI provider (fal.ai) through a private, time-limited link, solely to fulfil your request. API keys and requests are proxied through our backend so secrets never live in the app.</p>
+
+  <h2>5. Data Retention</h2>
+  <ul><li>Cloud copies of posters and upscale results are stored <b>free for 30 days</b>.</li>
+      <li>After 30 days they are either covered by optional paid storage (if you enable it) or enter a 30-day grace period and are then <b>automatically deleted</b>.</li>
+      <li>You can delete any cloud copy at any time from the app, and request full account deletion at any time (see Contact).</li>
+      <li>Transaction and accounting records may be retained for abuse prevention, tax, and billing reconciliation.</li></ul>
+
+  <h2>6. Security — an honest description</h2>
+  <ul><li>All data is encrypted <b>in transit</b> (HTTPS/TLS).</li>
+      <li>Data stored in Firebase/Google Cloud is encrypted <b>at rest</b> with Google-managed encryption.</li>
+      <li>Your cloud storage area is isolated per account: security rules allow only your signed-in account to access your files.</li>
+      <li>Cloud AI upscaling is <b>not end-to-end encrypted</b> &mdash; by its nature, our backend and the AI provider you select must access the actual image to process it. Processing is automated; no humans review your images, and we never use them for advertising or to train models. If you prefer that images never leave your phone, use the on-device upscaler.</li>
+      <li>Sensitive API secrets are stored server-side (Google Secret Manager).</li></ul>
+
+  <h2>7. Legal Basis / Consent</h2>
+  <ul><li>We process data necessary to provide the app service.</li>
+      <li>Optional features (cloud upscaling, cloud copies, debug logging) are user-controlled.</li></ul>
+
+  <h2>8. Your Choices</h2>
+  <ul><li>Use on-device upscaling to keep images entirely local</li>
+      <li>Delete cloud copies from within the app, or wipe <b>all</b> cloud data (keeping your account and credits) self-service at <a href='/delete-data'>posterpdf.web.app/delete-data</a></li>
+      <li>Disable debug logging</li>
+      <li>Delete local files from device storage</li>
+      <li>Request account/history deletion: <a href="/delete-account">posterpdf.web.app/delete-account</a></li></ul>
+
+  <h2>9. Children</h2>
+  <p>Poster PDF is not directed to children under 13 (or the local digital age of consent).</p>
+
+  <h2>10. Changes</h2>
+  <p>We may update this policy. The &ldquo;Last updated&rdquo; date will reflect revisions.</p>
+
+  <h2>11. Contact</h2>
+  <div class="contact">For privacy requests, account/history deletion, or support:
+    <a href="mailto:joeputin100@gmail.com">joeputin100@gmail.com</a> ·
+    <a href="/delete-account">Delete your account</a></div>
+</div></main>
+<footer>© 2026 Poster PDF · <a href="/">posterpdf.web.app</a></footer>
+</body>
+</html>

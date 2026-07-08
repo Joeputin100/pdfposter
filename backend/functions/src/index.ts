@@ -412,13 +412,16 @@ export const api = onRequest(
 export { getPricing, refreshPricing } from './pricing';
 export { getFalBalance } from './balance';
 export { dailySweep, deleteCloudCopy } from './storageBilling';
+export { eraseAccount } from './eraseAccount';
+export { eraseCloudData } from './eraseCloudData';
+export { redeemPurchase } from './redeemPurchase';
 // RC22 fix: requestUpscale + getUpscaleStatus weren't being exported from
 // the index, so they never deployed. AiUpscaleRepository on the client got
 // a NOT_FOUND when calling functions.getHttpsCallable("requestUpscale")
 // because the named function didn't exist in the project's Cloud Functions
 // inventory. Adding both onCall exports here brings them online on the
 // next `gcloud builds submit --config=cloudbuild-backend.yaml .`.
-export { requestUpscale, getUpscaleStatus } from './upscale';
+export { requestUpscale, getUpscaleStatus, getModelPricing } from './upscale';
 
 // RC48: email the dev team via Resend on every Send Feedback ticket.
 // Triggers on Firestore /support/{ticketId} create.

@@ -28,18 +28,9 @@ steps:
         npm run build
 
   - name: 'node:20'
-    # DEV-ONLY: ALLOW_TEST_CREDITS=true enables the grantTestCredits faucet
-    # function (see backend/functions/src/test-credits.ts). This lets us develop
-    # and test Phase G billing flows without the $25 Play Console fee or real
-    # Google Play Billing.
-    #
-    # REMOVE this env var (and re-deploy) once Phase G is published-ready
-    # (Play Console paid + SKUs live + real BillingClient verified). When
-    # unset, grantTestCredits refuses every call and is also conditionally
-    # excluded from index.ts exports — defense in depth. See plan task G2.5
-    # Step 4: docs/superpowers/plans/2026-05-01-md3e-redesign.md.
-    env:
-      - 'ALLOW_TEST_CREDITS=true'
+    # rc82: dropped the dead ALLOW_TEST_CREDITS env — test-credits.ts no
+    # longer exists and grantTestCredits is not exported, so the flag was
+    # inert config that only *looked* like a live credit faucet.
     entrypoint: 'bash'
     dir: 'backend'
     args:

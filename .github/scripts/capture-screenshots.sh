@@ -93,6 +93,77 @@ capture_preview_burst() {  # $1=config
   ls -l "$OUT/$cfg-preview-burst-"*.png
 }
 
+# --- rc83: STORE_MODE — clean Play-listing captures at a modern phone
+# resolution (1080x2340 @440dpi ≈ Pixel 7 class), baseline font, portrait.
+# Captures the eight-shot story from docs/screenshots/README.md as far as
+# launch-state hooks allow, then exits (skips the QA matrix entirely).
+if [ "${STORE_MODE:-0}" = "1" ]; then
+  adb shell wm size 1080x2340
+  adb shell wm density 440
+  sleep 2
+  for s in main model_picker compare settings gemini getting_started; do
+    capture store "$s"
+  done
+  # with_image: top frame + scrolled frames (coords scaled for 1080x2340).
+  adb shell am force-stop "$PKG" || true
+  adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
+  sleep 9
+  adb exec-out screencap -p > "$OUT/store-with_image-1.png"
+  for i in 2 3 4; do
+    adb shell input swipe 540 1900 540 500 450
+    sleep 2
+    adb exec-out screencap -p > "$OUT/store-with_image-$i.png"
+  done
+  # Construction-cycle burst: scroll to the BOTTOM of the page (the preview
+  # is the last major element) — fixed swipe counts kept missing because the
+  # Advanced Styling section's expansion changes the page length. Eight slow
+  # swipes guarantees the end stop; over-scroll is impossible.
+  for i in $(seq 1 8); do adb shell input swipe 540 1800 540 700 900; sleep 1; done
+  sleep 2
+  for n in $(seq -w 1 14); do
+    adb exec-out screencap -p > "$OUT/store-construction-$n.png"
+    sleep 3
+  done
+  # rc83: product-video raw footage — DISABLED BY DEFAULT (STORE_VIDEO=1 to
+  # try). BOTH recorders crash this runner's emulator: device-side
+  # screenrecord needs a hw h264 encoder swiftshader lacks, and even the
+  # emulator-side `adb emu screenrecord` kills it (runs 28654310187,
+  # 28729212356 — "no frame!" spam then "error: closed"). The product video
+  # is assembled OFF-CI from the construction burst frames instead
+  # (1 fps × 45 s at 10 fps playback ≈ the 6×-accelerated loop the
+  # docs/screenshots README always wanted).
+  if [ "${STORE_VIDEO:-0}" = "1" ]; then
+  vstart() { adb emu screenrecord start "$OUT/$1.webm" || echo "WARN: emu recorder start failed for $1"; }
+  vstop()  { adb emu screenrecord stop || true; sleep 1; }
+  vstate() {  # $1=name $2=seconds $3=state — static screen segment
+    echo "=== video: $1 ($3, ${2}s) ==="
+    adb shell am force-stop "$PKG" || true
+    adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot "$3"
+    sleep 8
+    vstart "$1"; sleep "$2"; vstop
+  }
+  vstate vid-main 10 main
+  # with_image + slow scroll through the full page during recording
+  adb shell am force-stop "$PKG" || true
+  adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
+  sleep 9
+  vstart vid-scroll
+  for i in 1 2 3 4; do adb shell input swipe 540 1800 540 700 900; sleep 3; done
+  sleep 2; vstop
+  # construction cycle: scroll to the preview, record a full ~40s loop
+  adb shell am force-stop "$PKG" || true
+  adb shell am start -n "$PKG/com.posterpdf.MainActivity" --es screenshot with_image
+  sleep 9
+  for i in $(seq 1 6); do adb shell input swipe 540 1900 540 500 350; done
+  sleep 2
+  vstart vid-cycle; sleep 45; vstop
+  vstate vid-picker 10 model_picker
+  vstate vid-gemini 10 gemini
+  fi  # STORE_VIDEO
+  echo "STORE_MODE captures done:"; ls -l "$OUT"
+  exit 0
+fi
+
 # --- baseline ---
 run_config baseline
 

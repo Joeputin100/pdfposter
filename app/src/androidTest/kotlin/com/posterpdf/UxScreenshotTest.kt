@@ -52,4 +52,63 @@ class UxScreenshotTest {
             check(f.length() > 0) { "empty screenshot for state=$state" }
         }
     }
+
+    /**
+     * rc83: store-listing captures — the with_image page top plus a burst of
+     * the Live Assembly Preview at the page bottom, feeding the product
+     * video's animation segment. Runs on FTL because the GH-runner emulator
+     * proved unable to survive this state reliably (6 crashed runs on
+     * 2026-07-05). Ten full-screen swipes bottom the page out regardless of
+     * the Advanced Styling card's expansion state.
+     */
+    @Test
+    @FtlOnly  // capture utility, not a regression test: 60s of screenshot
+              // bursts kills the GH software emulator (run 28739035940);
+              // the battery filters notAnnotation=FtlOnly.
+    fun captureStoreAssemblyBurst() {
+        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        val ctx = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val outDir = File(ctx.getExternalFilesDir(null), "ux-shots").apply { mkdirs() }
+        // FTL zeroes the animation scales for instrumentation runs, which
+        // freezes the assembly cycle's animator-driven camera while its
+        // clock-driven captions keep advancing (run 28734179277: 24 frames,
+        // 9 caption phases, one camera pose). Re-enable them — this burst
+        // exists precisely to photograph motion.
+        device.executeShellCommand("settings put global animator_duration_scale 1")
+        device.executeShellCommand("settings put global transition_animation_scale 1")
+        device.executeShellCommand("settings put global window_animation_scale 1")
+        ctx.startActivity(
+            ctx.packageManager.getLaunchIntentForPackage("com.posterpdf")!!
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                .putExtra("screenshot", "with_image"),
+        )
+        device.waitForIdle()
+        Thread.sleep(8_000L) // splash + seeded-image decode + first preview frame
+        val top = File(outDir, "store-with-image-top.png")
+        device.takeScreenshot(top)
+        check(top.length() > 0) { "empty with_image top screenshot" }
+        // Scroll to the bottom, where the Live Assembly Preview lives.
+        // NOT UiScrollable(scrollable(true)) — that matched the horizontal
+        // paper-size carousel (first scrollable in the tree) and flung THAT
+        // (FTL run 28733394914). Ten raw full-screen swipes bottom out the
+        // vertical page deterministically; over-swiping is harmless.
+        repeat(10) {
+            device.swipe(
+                device.displayWidth / 2, (device.displayHeight * 0.85).toInt(),
+                device.displayWidth / 2, (device.displayHeight * 0.15).toInt(),
+                40,
+            )
+            Thread.sleep(400L)
+        }
+        Thread.sleep(1_000L)
+        // Sample past a full ~38s assembly cycle. 24 frames x 2s = 48s: the
+        // 16-frame run (28733841132) spanned only 32s and missed the top-down
+        // tile-grid phase entirely — a full cycle plus margin can't.
+        for (i in 1..24) {
+            val f = File(outDir, "store-assy-%02d.png".format(i))
+            device.takeScreenshot(f)
+            check(f.length() > 0) { "empty assembly burst frame $i" }
+            Thread.sleep(2_000L)
+        }
+    }
 }
