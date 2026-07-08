@@ -1,9 +1,13 @@
 # Play Console "Set up your app" — Fill-in Cheat Sheet
 
-Answers below match what the app actually does as of rc82 (verified against
-source 2026-07-02). Work top-to-bottom through Dashboard → "Finish setting
-up your app" → View tasks. Items marked ⚠️ have consequences — read the note
-before clicking.
+Answers below match what the app actually does as of rc83 (re-verified
+2026-07-05). Work top-to-bottom through Dashboard → "Finish setting up
+your app" → View tasks. Items marked ⚠️ have consequences — read the note.
+
+**Already done via API (skip these):** the entire Main store listing —
+title, descriptions, icon, feature graphic, 6 screenshots, and the video
+are uploaded and committed. Your job is ONLY the declaration forms below
+(Google provides no API for them).
 
 ---
 
@@ -80,22 +84,18 @@ that section means banking/loans/crypto).
 
 ---
 
-## Store listing (Main store listing page)
+## Store listing — ✅ DONE via API (verify, don't re-enter)
 
-- **App name:** `Poster PDF`
-- **Short description** (74 chars):
-  > Turn any picture into a huge print-ready poster. AI upscale, tiled PDF.
-- **Full description:** see `play-listing/full-description.txt`
-- **App icon:** upload `play-listing/icon-512.png`
-- **Feature graphic:** upload `play-listing/feature-graphic.png`
-- **Phone screenshots:** pending (min 2, target 8) — being produced
+Text, icon, feature graphic, 6 screenshots, video: all uploaded 2026-07-05.
+Still set manually if prompted under "Store settings":
 - **Category:** App → **Photography** (alt: Productivity)
 - **Tags:** poster, print, PDF, upscale, photo enhancer
 - **Contact email:** `joeputin100@gmail.com`
 - **Website:** `https://posterpdf.web.app`
 
 ## Remaining after forms
-1. Closed testing release (I build + you upload the AAB, or grant me a
-   Console API service account to upload directly)
-2. Testers list: Console → Closed testing → create email list of 12+
-3. IAP products (needs merchant account linked + first AAB uploaded)
+1. I upload the 86MB release AAB to Closed testing via the API and hand
+   you the tester opt-in link for Reddit replies
+2. Tester list: send me the Gmails from r/betatesters — I add them via API
+3. IAP credit products (needs the payments profile finished — bank
+   details — plus the first AAB; then I create all 4 SKUs via API)
