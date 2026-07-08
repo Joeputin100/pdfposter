@@ -131,6 +131,26 @@ The forty-second film below shows the press at work, from picture to pasted wall
 - **Privacy policy:** [posterpdf.web.app/privacy-policy](https://posterpdf.web.app/privacy-policy)
 - **Delete your account:** [posterpdf.web.app/delete-account](https://posterpdf.web.app/delete-account)
 
+## The first study
+
+Every machine in the codex began as a sketch. Poster PDF began as
+[**`poster.py`**](docs/prototype/poster.py) — a 375-line Python study
+(PIL + ReportLab) that already performed the essential craft, and performs
+it still: any picture in, a tiled print-ready PDF out, with letter/A4/
+legal/11×17 paper, margins and overlap, auto orientation, the very same
+A1·B2 leaf labels, a ruled assembly page — even the same warning when a
+print would come out soft below 150 dpi. The Android app grew around that
+engine; the study wanted nothing to do with AI upscaling, accounts, or
+the piazza, and it never will.
+
+```sh
+cd docs/prototype && pip install -r requirements.txt
+python poster.py mona.jpg 24 --format letter
+```
+
+*One picture, one width in inches — and the wall is yours. Some inventions
+are finished the day they are drawn.*
+
 ---
 
 **Kotlin · Jetpack Compose · Firebase** — built in a small workshop, like all good machines.
