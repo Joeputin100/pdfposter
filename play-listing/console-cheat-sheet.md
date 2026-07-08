@@ -30,8 +30,16 @@ Choose: **"All or some functionality in my app is restricted"**
 - Start questionnaire → Email: `joeputin100@gmail.com`
 - Category: **Utility, Productivity, Communication, or Other**
 - Violence / sexuality / language / drugs / gambling: **No** to all
-- Does the app allow users to interact or exchange content with others? **No**
-  (posters are private to the user; nothing is shared in-app)
+- Online content (not part of the download)? **Yes** — Gemini assistant
+  replies + cloud AI upscale results ("generated AI content" per their own
+  example list) + the community board. Follow-ups about objectionable
+  online content: **No** to all.
+- Does the app allow users to interact or exchange content with others?
+  **YES** — the in-app community board (posts/replies). CORRECTED
+  2026-07-05: an earlier version of this sheet said No. Follow-ups:
+  users communicate via public text posts only (no DMs/voice); content IS
+  moderated (non-anonymous sign-in to post, admin removal, admin-only
+  announcement topics); location is NOT shared.
 - Does the app share user-provided location? **No**
 - In-app digital purchases? **Yes**
 - Expected result: **Everyone** (with "In-App Purchases" notice)
