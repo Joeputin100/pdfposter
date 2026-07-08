@@ -243,4 +243,16 @@ Rest of TODO 7 (below) stays post-launch.
 
 ---
 
+## TODO 8 — Community UGC report/block (Play UGC policy) — PRE-PRODUCTION
+
+**Added 2026-07-05** (surfaced by the content-rating questionnaire): the
+community board has no user-facing "report post/reply" or "block user"
+mechanism — only admin soft-delete. Play's UGC policy expects in-app
+reporting for social features; a reviewer seeing the declared
+"users interact" flag may check. Scope: report action on post/reply
+overflow menu → writes to a `reports` collection (admin-readable, rules:
+create-only by signed-in users); local block-list filter by uid; strings
+×10 locales. Fits inside the 14-day closed-test window; must land before
+the production-access application.
+
 ## (Append future deferrals here)
