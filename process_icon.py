@@ -54,4 +54,5 @@ def process_icon(input_path, output_dir):
         foreground.save(f"{res_dir}/ic_launcher.png")
 
 if __name__ == "__main__":
-    process_icon("poster pdf.png", "app/src/main/res")
+    # Historical: processed the v1 blue-logo concept (now archived).
+    process_icon("docs/brand-archive/poster-pdf-v1-concept.png", "app/src/main/res")
