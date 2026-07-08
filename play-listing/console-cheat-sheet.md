@@ -72,6 +72,7 @@ Play's definitions exempt from "sharing"):
 | Personal info → Email address | Account management | Required for cloud features | Google sign-in |
 | Personal info → User IDs | Account management, App functionality | Required for cloud features | Firebase UID |
 | Photos and videos → Photos | App functionality | Optional | Only images the user sends to *cloud* upscale; on-device upscale never uploads |
+| Files and docs | App functionality | Optional | ONLY cloud copies of generated poster PDFs (user-enabled); source-image filenames never leave the device (uploads are renamed to a content hash) |
 | Financial info → Purchase history | App functionality | Required for purchases | Credit packs, credit ledger |
 | App activity → App interactions | App functionality | Required | Poster/upscale counters for free-tier limits |
 | App activity → Other user-generated content | App functionality | Optional | Community posts/replies + questions typed to the Gemini assistant (added 2026-07-05 with the UGC correction) |
@@ -82,7 +83,10 @@ Play's definitions exempt from "sharing"):
 NOT collected (answer No if asked): location, contacts, calendar, audio
 (mic input is transcribed by Android's on-device/system speech service;
 only the resulting text query reaches our backend), browsing history,
-health, files other than user-chosen images.
+health, **Messages (all three: Emails / SMS / Other in-app messages)** —
+the forum is public UGC (declared above), NOT user-to-user messaging;
+there are no DMs. Files beyond user-chosen images + optional PDF cloud
+copies are not collected.
 
 ## 8. Government apps
 **No.**
