@@ -255,4 +255,18 @@ create-only by signed-in users); local block-list filter by uid; strings
 ×10 locales. Fits inside the 14-day closed-test window; must land before
 the production-access application.
 
+## TODO 9 — GitHub repo page as a da Vinci-notebook visual showcase — PRE-PRODUCTION
+
+**Added 2026-07-05** (user-directed; absorbs and supersedes TODO 7's
+pre-launch subset). Rebuild the public repo face (README.md, social
+preview, description/topics, stale-file cleanup) as an award-tier visual
+showcase in a **Leonardo da Vinci notebook** direction — the brand logo is
+literally the Mona Lisa in a dot-matrix printer, so: parchment/codex
+textures, sanguine chalk + sepia ink, technical "invention study" sketch
+plates of the teal press, proportion-grid Mona studies (the tiling story),
+chancery-italic annotations. Process: 3 rendered mockups → user picks →
+implementation (hero banner light/dark, folio section plates, screenshot
+frames, badges, social preview 1280×640). Assets pre-render as images so
+typography is unrestricted despite GitHub's CSS-less markdown.
+
 ## (Append future deferrals here)
