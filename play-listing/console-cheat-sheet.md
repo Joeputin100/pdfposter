@@ -71,6 +71,7 @@ Play's definitions exempt from "sharing"):
 | Photos and videos → Photos | App functionality | Optional | Only images the user sends to *cloud* upscale; on-device upscale never uploads |
 | Financial info → Purchase history | App functionality | Required for purchases | Credit packs, credit ledger |
 | App activity → App interactions | App functionality | Required | Poster/upscale counters for free-tier limits |
+| App activity → Other user-generated content | App functionality | Optional | Community posts/replies + questions typed to the Gemini assistant (added 2026-07-05 with the UGC correction) |
 | App info & performance → Crash logs | Analytics | Required | Crashlytics |
 | App info & performance → Diagnostics | Analytics | Required | Crashlytics |
 | Device or other IDs | App functionality, Analytics | Required | FCM push token, Crashlytics install ID |
