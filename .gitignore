@@ -47,3 +47,10 @@ disco_chicken.png
 
 # rc82: local signing credentials (never commit)
 .secrets/
+
+# rc84 repo hygiene: dead tool configs + local session/debug junk
+.grok/
+.opencode/
+session-*.md
+*.log
+Screen_Recording_*
