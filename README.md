@@ -1,166 +1,144 @@
-# Poster PDF
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/hero-dark.jpg">
+  <img src="docs/readme-assets/hero-light.jpg" width="916" alt="Folio f.1r of an aged parchment codex, titled POSTER PDF — 'any picture, made monumental — tiled into leaves, printed at home'. Below the masthead, a Leonardo da Vinci-style invention study drawn in sepia iron-gall ink: a dot-matrix printer with a platen cylinder, supply roll of endless paper, and a gear train picked out with red-chalk construction circles. The press is printing a continuous tractor-feed sheet bearing the Mona Lisa, divided into fifteen tiles by dashed red cut lines. Handwritten Italian annotations with leader lines read 'il rullo — the platen that carries the leaf', 'la carta continua — the endless paper', 'rocchetti dentati — the gear train', 'la Gioconda, in fogli XV — the picture, divided into 15 leaves', 'fori di trascinamento', and 'scala — one braccio'; a magnified gear tooth is studied in the corner, and a line of mirrored writing runs along the bottom edge.">
+</picture>
+</div>
 
-An Android app that turns any image into a printable, multi-page poster.
-Pick a photo, choose a poster size, and Poster PDF tiles it across as many
-sheets of paper as needed — with margins, overlap zones, and an assembly
-guide page so you can trim and tape the result into one large print.
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Android%208.0%2B-8a6a3c?labelColor=4a3a26" alt="Platform: Android 8.0 and up">
+  <img src="https://img.shields.io/badge/core-free%20%C2%B7%20offline-17808a?labelColor=4a3a26" alt="Core features: free and fully offline">
+  <img src="https://img.shields.io/badge/privacy-no%20ads%20%C2%B7%20no%20tracking-a3432a?labelColor=4a3a26" alt="Privacy: no ads, no tracking">
+  <img src="https://img.shields.io/badge/built%20with-Kotlin%20%C2%B7%20Compose-8a6a3c?labelColor=4a3a26" alt="Built with Kotlin and Jetpack Compose">
+  <a href="https://github.com/Joeputin100/pdfposter/actions/workflows/build-android.yml"><img src="https://github.com/Joeputin100/pdfposter/actions/workflows/build-android.yml/badge.svg" alt="Build Android CI status"></a>
+</p>
 
-[![Build Android](https://github.com/Joeputin100/pdfposter/actions/workflows/build-android.yml/badge.svg)](https://github.com/Joeputin100/pdfposter/actions/workflows/build-android.yml)
-[![Test Battery](https://github.com/Joeputin100/pdfposter/actions/workflows/test-battery.yml/badge.svg)](https://github.com/Joeputin100/pdfposter/actions/workflows/test-battery.yml)
+> **Poster PDF** turns any picture into a print-at-home poster: pick an image, choose a size,
+> and the press hands you a tiled PDF — trim guides on every page, an assembly map at the end.
 
-## Why this exists
+Five hundred years ago, making a picture monumental took a workshop, a wall, and an apprentice
+with a grid. Poster PDF keeps the grid and retires the apprentice: the *machine* divides your
+image into letter-size leaves, and any household printer becomes a poster press.
 
-Anyone who's tried to print a 24×36 inch poster on an 8.5×11 inch printer
-knows the standard advice: open the PDF in Preview / Adobe / a print shop's
-desktop tool, manually slice it into pages, eyeball the overlap, hope the
-trim lines align. It's tedious, error-prone, and gatekept behind tools that
-don't exist on phones — where most people's source images live in the
-first place.
+It is an Android app written in **Kotlin** with **Jetpack Compose** (Material 3), backed by
+**Firebase** for the optional cloud features. The core — tiling, trim guides, the assembly
+map, and on-device AI upscaling — is free, unwatermarked, and works with the network
+switched off. Website: [posterpdf.web.app](https://posterpdf.web.app) · Film:
+[the 40-second product video](https://www.youtube.com/watch?v=hQ0lYU83VVg).
 
-Poster PDF does the slicing on your phone. It also goes a few steps beyond
-"divide into rectangles": it picks the smallest sheet count for your target
-print resolution, draws cut lines you can actually follow, generates an
-assembly diagram, and (optionally) sharpens low-resolution photos with
-either an on-device upscaler or a cloud AI model — your choice between
-free-but-slow on-device and paid-but-fast cloud.
+## Study of proportion — how a picture becomes fifteen leaves
 
-## Features
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/study-dark.jpg">
+  <img src="docs/readme-assets/study-light.jpg" width="916" alt="Parchment plate f.2v: a sepia ink-wash Mona Lisa overlaid with a red-chalk proportion grid of three columns and five rows, each cell lettered A1 through C5 like the pages of a tiled poster, with construction diagonals and a dotted circle about the head. Beside it, four lines of chancery handwriting: 'XV fogli — fifteen letter pages, 3 across, 5 down'; 'ogni foglio porta segni di taglio — every leaf carries trim guides'; 'i lembi si sovrappongono — edges overlap, so scissors may err'; 'l'ultimo foglio è la mappa — the last page is the assembly map'. Below the notes, a small ink sketch of two overlapping pages with a hatched strip labelled 'il lembo — the overlap flap'. The caption reads PLATE II — LA GIOCONDA DIVIDED INTO FIFTEEN LEAVES, 24 × 36 IN.">
+</picture>
 
-### Core (works offline, no signup)
-- **Image picker** that handles any source the system shares — gallery,
-  files, screenshot, Lens, web URL, SVG.
-- **Tile math** that picks rows × columns, places overlap zones, and
-  sizes each printable rect to your paper of choice (Letter, A4, Legal,
-  Tabloid, A3, custom).
-- **Live preview** showing every page as it'll print, with margin guides
-  and overlap zones visible so you can plan your trim before any ink
-  hits paper.
-- **Assembly cycle animation** — a 30-second hand-drawn sequence
-  demonstrating the print → arrange → cut → tighten → tape → pin
-  workflow so first-time users know what to do with the output.
-- **Brand-aware PDF output** with a wordmark header, ruler-marked
-  assembly guide, label coordinates per page (A1, B2, …), and an
-  optional QR code linking back to the Play Store for sharing.
+What the plate records, in plain terms:
 
-### Optional (signed-in features)
-- **AI sharpening** — choose between Topaz Gigapixel, Recraft Crisp,
-  AuraSR, or Real-ESRGAN. Each model has its own price/quality tradeoff;
-  the modal shows live cost in credits. Or pick the free on-device
-  ESRGAN-TF2 that runs slower (~5 minutes for a 12 MP photo) but costs
-  nothing.
-- **Cloud history** — recent posters auto-save for 30 days with optional
-  paid extension (1¢/MB-month, billed monthly per file).
-- **9-locale UI** — English, Spanish, French, German, Portuguese (Brazil),
-  Russian, Hindi, Japanese, Chinese (Simplified), Arabic. Switchable
-  via the drawer's Language picker independent of OS language.
+- A 24 × 36 in poster on letter paper comes out as **fifteen pages — 3 across, 5 down**.
+- **Every page carries trim guides**, so you know exactly where to cut.
+- **Edges overlap** by design, so scissors may err without ruining the poster.
+- **The last page is the assembly map** — a little diagram of where every leaf goes.
 
-## Screenshots
+Sizes are free-form — inches or centimetres, up to wall scale. The engine reckons the grain
+of your picture (`original dpi → target dpi`) and warns you before a soft print, long before
+ink touches paper.
 
-The `docs/screenshots/` directory holds the gallery used in this README +
-the Play Store listing. See `docs/screenshots/README.md` for the capture
-script.
+| Poster | Leaves | Paper |
+| --- | --- | --- |
+| 18 × 24 in | 6 (3 × 2) | Letter, landscape |
+| 24 × 36 in | 15 (3 × 5) | Letter, portrait |
+| A0 (841 × 1189 mm) | 16 (4 × 4) | A4, portrait |
 
-## Tech stack
+## The four folios
 
-- **UI**: Jetpack Compose + Material 3 Expressive (BOM 2026.04.01,
-  material3:1.5.0-alpha18 for `MaterialExpressiveTheme` + motion scheme)
-- **Kotlin** 2.0.21, **AGP** 8.9.0, **Gradle** 8.11.1
-- **Source compat** Java 17 → Android API 23 (Marshmallow) through
-  API 36 (Android 16)
-- **PDF generation**: PDFBox-Android 2.0.27
-- **AI upscaling**:
-  - On-device: ESRGAN-TF2 via TFLite 2.16.1 (NnApiDelegate; not GPU)
-  - Cloud: FAL.ai (Topaz, Recraft, AuraSR, Real-ESRGAN) via signed
-    Cloud Functions calls
-- **Auth + sync**: Firebase Auth (anon + Google), Firestore, Cloud
-  Messaging, Cloud Storage
-- **Backend**: TypeScript Cloud Functions v2 deployed via Cloud Build
-- **Dependencies**: see [`app/build.gradle.kts`](app/build.gradle.kts)
-  + [`backend/functions/package.json`](backend/functions/package.json)
+<table>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/folio-i-dark.jpg">
+        <img src="docs/readme-assets/folio-i-light.jpg" alt="Parchment folio card I, THE MACHINE — 'la macchina che divide' — with an ink sketch of a toothed gear: tiled PDF at any size up to wall-scale; trim guides and overlap flaps on every leaf; an assembly map rides on the last page.">
+      </picture>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/folio-ii-dark.jpg">
+        <img src="docs/readme-assets/folio-ii-light.jpg" alt="Parchment folio card II, THE EYE — 'l'occhio che affina' — with an ink sketch of an anatomical eye: on-device AI upscale runs on the phone itself, free and offline; your picture never leaves your hands.">
+      </picture>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/folio-iii-dark.jpg">
+        <img src="docs/readme-assets/folio-iii-light.jpg" alt="Parchment folio card III, THE SIX ENGINES — 'i sei motori del cielo' — with an ink sketch of six small wheels above a common shaft: six cloud upscalers for heroic enlargements, each priced live from the source, so you see the cost before you commission the work.">
+      </picture>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/folio-iv-dark.jpg">
+        <img src="docs/readme-assets/folio-iv-light.jpg" alt="Parchment folio card IV, THE WORKSHOP — 'la bottega è tua' — with an ink sketch of a drafting compass: no ads, no tracking, no image retention; the core is free, unwatermarked, and works with the network switched off.">
+      </picture>
+    </td>
+  </tr>
+</table>
 
-## Building
+- **Free core** — tiled PDF export, trim guides, assembly page. No watermark.
+- **On-device AI upscale** — GPU-accelerated, streams big images without running out of memory.
+- **Six cloud engines** — live per-model pricing; unavailable models hide themselves.
+- **Ask Gemini** — an in-app advisor that reckons your pixels and suggests the right engine.
+- **Private by construction** — no ads, no analytics, nothing stored after the job is done.
 
-### Prerequisites
+## The instrument itself
 
-- JDK 21
-- Android SDK 36 + Build Tools 36.x
-- Gradle 8.11.1 (the project uses no wrapper; install Gradle directly
-  or let CI's `Install Gradle 8.11.1` step handle it)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/plate-studio-dark.jpg">
+  <img src="docs/readme-assets/plate-studio-light.jpg" width="916" alt="Parchment plate f.3r with two phone screenshots in museum mats. Left: the main screen — 'Pick an image for your poster', an Ask Gemini bar, and a four-step 'How to get started' list (pick a high-resolution image, set your final poster dimensions, select paper size and orientation, view or save your print-ready PDF). Right: the poster-size screen with the Mona Lisa chosen, width 24 in and height 36 in linked, 'Original 10 DPI, Target 150 DPI', a pink 'Sharpen for print' suggestion, and Letter, A4 and Legal paper choices. Ink annotations with leader lines read 'the studio, awaiting a picture', 'the reckoning of grain — 10 dpi is made 150', and 'sizes in braccia, inches, or centimetres'. Caption: PLATE III — THE INSTRUMENT, AS IT APPEARS IN THE HAND.">
+</picture>
 
-### Local debug build
+*Plate III — the studio: pick a picture, set the finished size, and watch 10 dpi get reckoned into 150.*
 
-```sh
-git clone https://github.com/Joeputin100/pdfposter
-cd pdfposter
-# Provide a release.keystore in the repo root (CI fetches one from
-# GH Actions secrets; for local dev any keystore with the legacy
-# "posterpdf" passwords works fine).
-gradle assembleDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/plate-engines-dark.jpg">
+  <img src="docs/readme-assets/plate-engines-light.jpg" width="916" alt="Parchment plate f.4v with two phone screenshots in museum mats. Left: the upscale picker warning 'This poster will print at low resolution — current 10 DPI at 24 by 36 inches', offering a free on-device upscale (about 40 DPI, offline, works without internet) beside the pixelated original, with cloud engines Recraft Crisp and AuraSR below. Right: the Ask Gemini sheet answering 'For a 24×36 poster at 150 DPI you'd want about 3600×5400 px (19 MP). Your image is 8 MP, so I'd suggest the Topaz Gigapixel model.' Ink annotations read 'the machine warns of a soft print', 'il consigliere — the advisor reckons your pixels', and 'each engine priced before it labours'. Caption: PLATE IV — THE ENGINES, AND THE ADVISOR WHO CHOOSES AMONG THEM.">
+</picture>
 
-### Release AAB
+*Plate IV — the engines: the app warns before a soft print, on-device upscale is free, and Gemini advises which cloud engine fits.*
 
-The release bundle path requires real credentials:
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/plate-proof-dark.jpg">
+  <img src="docs/readme-assets/plate-proof-light.jpg" width="916" alt="Parchment plate f.5r with two phone screenshots in museum mats. Left: the 'Compare AI upscalers' screen — subject chips (Disco chicken, Cat, Gristmill), model tabs (Topaz, Recraft, AuraSR, ESRGAN, CCSR), and an original-versus-upscaled slider across a brilliantly coloured feather picture. Right: the Getting Started page listing what you get for free — no catch (no ads, no watermarks, no reduced functionality), poster generation across multiple pages, all paper sizes, on-device upscale, 30-day cloud storage, history forever — with a fine-print note that cloud AI upscale is opt-in and uses credits. Ink annotations read 'il paragone — before and after, judged side by side', 'the compact — what is free, plainly said', and 'the fine print — cloud engines are opt-in, their price named first'. Caption: PLATE V — THE PROOF, AND THE COMPACT WITH THE READER.">
+</picture>
 
-```sh
-export KEYSTORE_PASSWORD=...
-export KEY_ALIAS=...
-export KEY_PASSWORD=...
-gradle bundleRelease
-```
+*Plate V — the proof: compare every engine on the same picture, and read exactly what stays free.*
 
-If those env vars aren't set, the build falls back to the in-tree
-`"posterpdf"` defaults — fine for testing the bundle output, not OK for
-actual Play Store submission.
+## Install
 
-### Backend
+Poster PDF is in **closed test on Google Play** — the workshop opens to testers first.
+The forty-second film below shows the press at work, from picture to pasted wall.
 
-The Cloud Functions backend deploys via Cloud Build (not GH Actions —
-the Cloud Build SA already has Firebase Admin + Cloud Functions
-Developer roles, replicating that under workload-identity federation
-isn't worth the fragility).
+<div align="center">
+<a href="https://www.youtube.com/watch?v=hQ0lYU83VVg">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/cta-dark.jpg">
+  <img src="docs/readme-assets/cta-light.jpg" width="916" alt="Parchment call-to-action plate reading 'Print it huge.' in large serif capitals with 'huge' in teal chancery script, above a dark 'CLOSED TEST ON Google Play' badge with a teal play triangle and an outlined button reading 'watch the forty-second film'. Click to watch the film on YouTube.">
+</picture>
+</a>
+</div>
 
-```sh
-gcloud builds submit --config=cloudbuild-backend.yaml .
-```
+- **Website:** [posterpdf.web.app](https://posterpdf.web.app)
+- **The 40-second film:** [youtube.com/watch?v=hQ0lYU83VVg](https://www.youtube.com/watch?v=hQ0lYU83VVg)
+- **Privacy policy:** [posterpdf.web.app/privacy-policy](https://posterpdf.web.app/privacy-policy)
+- **Delete your account:** [posterpdf.web.app/delete-account](https://posterpdf.web.app/delete-account)
 
-This builds the TypeScript, deploys functions, applies Firestore +
-Storage security rules.
+---
 
-## CI
+**Kotlin · Jetpack Compose · Firebase** — built in a small workshop, like all good machines.
+The Mona Lisa is public domain; Leonardo was not consulted, but we believe he would have shipped.
 
-| Workflow | Trigger | What it runs |
-|----------|---------|--------------|
-| `.github/workflows/build-android.yml` | push to `master`/`feat/**` touching `app/**` | `gradle assembleDebug bundleRelease` + uploads APK + AAB as artifacts |
-| `.github/workflows/test-battery.yml` | push touching `app/**` | JVM unit tests + emulator instrumentation tests on API 23 / 28 / 33 |
-| `cloudbuild-backend.yaml` | manual via `gcloud builds submit` | functions + firestore rules + storage rules deploy |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-assets/footer-dark.png">
+  <img src="docs/readme-assets/footer-light.png" width="916" alt="Hand-inked footer ornament: a horizontal rule interrupted by a small dotted rosette, with a line of mirrored Leonardo-style writing beneath it reading 'finisce il codice — qui comincia il muro' — the codex ends; here begins the wall.">
+</picture>
 
-## Tests
-
-- **JVM unit tests**: see `app/src/test/kotlin/com/posterpdf/`
-  - `PosterLogicTest` — sheet count, tile generation, grid label math
-  - `ui/components/preview/PaneGeometryTest` — pane layout, source-rect
-    fractions, edge-case clamping
-- **Instrumentation tests**: see `app/src/androidTest/kotlin/com/posterpdf/`
-  - `SmokeTest` — boot path, package match
-  - More to come as features stabilize.
-- **FAL exclusions**: pass
-  `-Pandroid.testInstrumentationRunnerArguments.excludeFAL=true` to
-  `connectedDebugAndroidTest` to skip anything that would call FAL
-  (paid). The CI workflow already passes this flag.
-
-## License
-
-See [LICENSE](LICENSE).
-
-## Contributing
-
-Issues + pull requests welcome. For non-trivial changes, open an issue
-first so we can talk through approach. Trivial fixes (typos,
-documentation, single-file logic) — just send the PR.
-
-## Contact
-
-- Bugs / feature requests: open an issue
-- Questions: <joeputin100@gmail.com>
+<p align="center">© 2026 Poster PDF — all rights reserved</p>
