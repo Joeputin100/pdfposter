@@ -116,6 +116,34 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
+    // rc84: community UGC reports (Play UGC policy — in-app reporting of
+    // objectionable content). One-way write mirroring /support: any
+    // signed-in user (anonymous included, same bar as /support tickets)
+    // may CREATE a report against a post or reply; clients can never
+    // read, update, or delete. Admins triage via the Firebase console /
+    // Admin SDK. The shape is:
+    //   {reporterUid, targetType: 'post'|'reply', postId,
+    //    replyId (null when targetType == 'post'), targetUid,
+    //    reason: 'spam'|'offensive'|'other', detail (<=500 chars),
+    //    createdAt}
+    match /reports/{reportId} {
+      allow create: if isAuthed()
+                    && request.resource.data.reporterUid == request.auth.uid
+                    && request.resource.data.postId is string
+                    && request.resource.data.postId.size() >= 1
+                    && ((request.resource.data.targetType == 'post'
+                           && request.resource.data.replyId == null)
+                        || (request.resource.data.targetType == 'reply'
+                            && request.resource.data.replyId is string
+                            && request.resource.data.replyId.size() >= 1))
+                    && request.resource.data.targetUid is string
+                    && request.resource.data.reason in ['spam', 'offensive', 'other']
+                    && request.resource.data.detail is string
+                    && request.resource.data.detail.size() <= 500
+                    && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if false;
+    }
+
     // RC44: in-app community board.
     //   /community/posts/{postId}                — top-level posts
     //   /community/posts/{postId}/replies/{rId}  — flat 1-level replies
