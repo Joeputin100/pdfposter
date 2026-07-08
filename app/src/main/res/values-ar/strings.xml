@@ -862,6 +862,26 @@
     <string name="community_relative_hours_ago">منذ %1$dس</string>
     <string name="community_relative_days_ago">منذ %1$dي</string>
     <string name="community_post_by_author">بواسطة %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">إجراءات إضافية</string>
+    <string name="community_report_action">إبلاغ</string>
+    <string name="community_block_action">حظر المستخدم</string>
+    <string name="community_report_dialog_title">الإبلاغ عن محتوى</string>
+    <string name="community_report_reason_spam">محتوى مزعج</string>
+    <string name="community_report_reason_offensive">مسيء أو غير آمن</string>
+    <string name="community_report_reason_other">أخرى</string>
+    <string name="community_report_detail_placeholder">أضف تفاصيل (اختياري)</string>
+    <string name="community_report_submit" tools:maxLength="14">إبلاغ</string>
+    <string name="community_report_submitted">تم إرسال البلاغ. شكرًا لك.</string>
+    <string name="community_report_failed">تعذّر إرسال البلاغ: %1$s</string>
+    <string name="community_block_confirm_title">حظر المستخدم؟</string>
+    <string name="community_block_confirm">إخفاء جميع منشورات وردود %1$s على هذا الجهاز؟ يمكنك إلغاء الحظر في أي وقت من القائمة الجانبية.</string>
+    <string name="community_block_yes" tools:maxLength="14">حظر</string>
+    <string name="community_blocked_toast">تم حظر المستخدم.</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">المستخدمون المحظورون</string>
+    <string name="blocked_users_empty">لم تحظر أي مستخدم.</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">إلغاء الحظر</string>
     <!-- RC65: Gemini Q&amp;A -->
     <string name="top_bar_gemini_cd">اسأل Gemini</string>
     <string name="gemini_qa_sheet_header">اسأل Gemini عن ملصقك</string>

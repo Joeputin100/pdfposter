@@ -1021,6 +1021,26 @@
     <string name="community_relative_days_ago">%1$dd ago</string>
     <string name="community_post_by_author">by %1$s</string>
 
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">More actions</string>
+    <string name="community_report_action">Report</string>
+    <string name="community_block_action">Block user</string>
+    <string name="community_report_dialog_title">Report content</string>
+    <string name="community_report_reason_spam">Spam</string>
+    <string name="community_report_reason_offensive">Offensive or unsafe</string>
+    <string name="community_report_reason_other">Other</string>
+    <string name="community_report_detail_placeholder">Add details (optional)</string>
+    <string name="community_report_submit" tools:maxLength="14">Report</string>
+    <string name="community_report_submitted">Report submitted. Thank you.</string>
+    <string name="community_report_failed">Couldn\'t submit report: %1$s</string>
+    <string name="community_block_confirm_title">Block user?</string>
+    <string name="community_block_confirm">Hide all posts and replies from %1$s on this device? You can unblock them anytime from the side menu.</string>
+    <string name="community_block_yes" tools:maxLength="14">Block</string>
+    <string name="community_blocked_toast">User blocked.</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">Blocked users</string>
+    <string name="blocked_users_empty">You haven\'t blocked anyone.</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">Unblock</string>
+
     <string name="history_open_chooser_title">Open PDF</string>
     <string name="history_share_chooser_title">Share PDF</string>
     <string name="voice_unavailable">Voice recognition unavailable on this device</string>

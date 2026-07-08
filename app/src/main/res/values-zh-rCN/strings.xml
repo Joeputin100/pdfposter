@@ -860,6 +860,26 @@
     <string name="community_relative_hours_ago">%1$d 小时前</string>
     <string name="community_relative_days_ago">%1$d 天前</string>
     <string name="community_post_by_author">来自 %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">更多操作</string>
+    <string name="community_report_action">举报</string>
+    <string name="community_block_action">屏蔽用户</string>
+    <string name="community_report_dialog_title">举报内容</string>
+    <string name="community_report_reason_spam">垃圾内容</string>
+    <string name="community_report_reason_offensive">冒犯或不安全</string>
+    <string name="community_report_reason_other">其他</string>
+    <string name="community_report_detail_placeholder">补充说明（可选）</string>
+    <string name="community_report_submit" tools:maxLength="14">举报</string>
+    <string name="community_report_submitted">举报已提交。感谢您的反馈。</string>
+    <string name="community_report_failed">无法提交举报：%1$s</string>
+    <string name="community_block_confirm_title">屏蔽该用户？</string>
+    <string name="community_block_confirm">在此设备上隐藏 %1$s 的所有帖子和回复？您可以随时在侧边菜单中解除屏蔽。</string>
+    <string name="community_block_yes" tools:maxLength="14">屏蔽</string>
+    <string name="community_blocked_toast">已屏蔽该用户。</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">已屏蔽的用户</string>
+    <string name="blocked_users_empty">您尚未屏蔽任何用户。</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">解除屏蔽</string>
     <!-- RC65: Gemini Q&amp;A -->
     <string name="top_bar_gemini_cd">向 Gemini 提问</string>
     <string name="gemini_qa_sheet_header">向 Gemini 询问关于您海报的问题</string>

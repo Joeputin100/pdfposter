@@ -864,6 +864,26 @@
     <string name="community_relative_days_ago">há %1$dd</string>
     <string name="community_post_by_author">por %1$s</string>
 
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">Mais ações</string>
+    <string name="community_report_action">Denunciar</string>
+    <string name="community_block_action">Bloquear usuário</string>
+    <string name="community_report_dialog_title">Denunciar conteúdo</string>
+    <string name="community_report_reason_spam">Spam</string>
+    <string name="community_report_reason_offensive">Ofensivo ou inseguro</string>
+    <string name="community_report_reason_other">Outro</string>
+    <string name="community_report_detail_placeholder">Adicione detalhes (opcional)</string>
+    <string name="community_report_submit" tools:maxLength="14">Denunciar</string>
+    <string name="community_report_submitted">Denúncia enviada. Obrigado.</string>
+    <string name="community_report_failed">Não foi possível enviar a denúncia: %1$s</string>
+    <string name="community_block_confirm_title">Bloquear usuário?</string>
+    <string name="community_block_confirm">Ocultar todas as postagens e respostas de %1$s neste dispositivo? Você pode desbloquear a qualquer momento no menu lateral.</string>
+    <string name="community_block_yes" tools:maxLength="14">Bloquear</string>
+    <string name="community_blocked_toast">Usuário bloqueado.</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">Usuários bloqueados</string>
+    <string name="blocked_users_empty">Você não bloqueou ninguém.</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">Desbloquear</string>
+
     <!-- RC65: Gemini Q&A -->
     <string name="top_bar_gemini_cd">Perguntar ao Gemini</string>
     <string name="gemini_qa_sheet_header">Pergunte ao Gemini sobre seu pôster</string>

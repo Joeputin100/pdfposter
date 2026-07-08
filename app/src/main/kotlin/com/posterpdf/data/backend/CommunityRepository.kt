@@ -33,6 +33,20 @@ object CommunityRepository {
         val ALL = listOf(RELEASE_NOTES, FEATURE_REQUESTS, TROUBLESHOOTING, DISCUSSION)
     }
 
+    // rc84: Play UGC policy — wire values for /reports documents. Both
+    // sets are validated again in firestore.rules, so a drifted client
+    // can't invent new values.
+    object ReportType {
+        const val POST = "post"
+        const val REPLY = "reply"
+    }
+
+    object ReportReason {
+        const val SPAM = "spam"
+        const val OFFENSIVE = "offensive"
+        const val OTHER = "other"
+    }
+
     data class CommunityPost(
         val id: String,
         val uid: String,
@@ -211,6 +225,39 @@ object CommunityRepository {
         Result.success(Unit)
     } catch (t: Throwable) {
         Log.w(TAG, "softDeleteReply failed: ${t.message}")
+        Result.failure(t)
+    }
+
+    /**
+     * rc84: Play UGC policy — file a user report about a post or reply
+     * into the top-level /reports collection. Create-only from the
+     * client (see firestore.rules); admins triage via the Firebase
+     * console / Admin SDK. [replyId] is null when reporting a post.
+     */
+    suspend fun submitReport(
+        reporterUid: String,
+        targetType: String,
+        postId: String,
+        replyId: String?,
+        targetUid: String,
+        reason: String,
+        detail: String,
+    ): Result<Unit> = try {
+        val payload = mapOf(
+            "reporterUid" to reporterUid,
+            "targetType" to targetType,
+            "postId" to postId,
+            "replyId" to replyId,
+            "targetUid" to targetUid,
+            "reason" to reason,
+            "detail" to detail.trim().take(500),
+            "createdAt" to FieldValue.serverTimestamp(),
+        )
+        db.collection("reports").add(payload).await()
+        Log.i(TAG, "report submitted: $targetType $postId/${replyId ?: "-"}")
+        Result.success(Unit)
+    } catch (t: Throwable) {
+        Log.w(TAG, "submitReport failed: ${t.message}")
         Result.failure(t)
     }
 

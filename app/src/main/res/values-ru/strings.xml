@@ -861,6 +861,26 @@
     <string name="community_relative_hours_ago">%1$d ч назад</string>
     <string name="community_relative_days_ago">%1$d дн назад</string>
     <string name="community_post_by_author">от %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">Другие действия</string>
+    <string name="community_report_action">Пожаловаться</string>
+    <string name="community_block_action">Заблокировать пользователя</string>
+    <string name="community_report_dialog_title">Пожаловаться на контент</string>
+    <string name="community_report_reason_spam">Спам</string>
+    <string name="community_report_reason_offensive">Оскорбительный или небезопасный</string>
+    <string name="community_report_reason_other">Другое</string>
+    <string name="community_report_detail_placeholder">Добавьте подробности (необязательно)</string>
+    <string name="community_report_submit" tools:maxLength="14">Пожаловаться</string>
+    <string name="community_report_submitted">Жалоба отправлена. Спасибо.</string>
+    <string name="community_report_failed">Не удалось отправить жалобу: %1$s</string>
+    <string name="community_block_confirm_title">Заблокировать пользователя?</string>
+    <string name="community_block_confirm">Скрыть все посты и ответы от %1$s на этом устройстве? Вы можете разблокировать пользователя в любой момент в боковом меню.</string>
+    <string name="community_block_yes" tools:maxLength="14">Заблокировать</string>
+    <string name="community_blocked_toast">Пользователь заблокирован.</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">Заблокированные</string>
+    <string name="blocked_users_empty">Вы никого не заблокировали.</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">Разблокировать</string>
     <!-- RC65: Gemini Q&amp;A -->
     <string name="top_bar_gemini_cd">Спросить Gemini</string>
     <string name="gemini_qa_sheet_header">Спросите Gemini о вашем постере</string>

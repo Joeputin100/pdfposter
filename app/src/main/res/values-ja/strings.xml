@@ -863,6 +863,26 @@
     <string name="community_relative_hours_ago">%1$d時間前</string>
     <string name="community_relative_days_ago">%1$d日前</string>
     <string name="community_post_by_author">投稿者: %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">その他の操作</string>
+    <string name="community_report_action">報告</string>
+    <string name="community_block_action">ユーザーをブロック</string>
+    <string name="community_report_dialog_title">コンテンツを報告</string>
+    <string name="community_report_reason_spam">スパム</string>
+    <string name="community_report_reason_offensive">不快または危険</string>
+    <string name="community_report_reason_other">その他</string>
+    <string name="community_report_detail_placeholder">詳細を追加（任意）</string>
+    <string name="community_report_submit" tools:maxLength="14">報告</string>
+    <string name="community_report_submitted">報告を送信しました。ありがとうございます。</string>
+    <string name="community_report_failed">報告を送信できませんでした: %1$s</string>
+    <string name="community_block_confirm_title">ユーザーをブロックしますか？</string>
+    <string name="community_block_confirm">この端末で %1$s のすべての投稿と返信を非表示にしますか？サイドメニューからいつでもブロックを解除できます。</string>
+    <string name="community_block_yes" tools:maxLength="14">ブロック</string>
+    <string name="community_blocked_toast">ユーザーをブロックしました。</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">ブロック中のユーザー</string>
+    <string name="blocked_users_empty">ブロック中のユーザーはいません。</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">解除</string>
     <!-- RC65: Gemini Q&amp;A -->
     <string name="top_bar_gemini_cd">Geminiに質問</string>
     <string name="gemini_qa_sheet_header">ポスターについてGeminiに質問</string>

@@ -863,6 +863,26 @@
     <string name="community_relative_hours_ago">vor %1$d Std.</string>
     <string name="community_relative_days_ago">vor %1$d T.</string>
     <string name="community_post_by_author">von %1$s</string>
+
+    <!-- rc84: Community moderation — report + block (Play UGC policy) -->
+    <string name="community_more_actions_cd">Weitere Aktionen</string>
+    <string name="community_report_action">Melden</string>
+    <string name="community_block_action">Nutzer blockieren</string>
+    <string name="community_report_dialog_title">Inhalt melden</string>
+    <string name="community_report_reason_spam">Spam</string>
+    <string name="community_report_reason_offensive">Anstößig oder unsicher</string>
+    <string name="community_report_reason_other">Sonstiges</string>
+    <string name="community_report_detail_placeholder">Details hinzufügen (optional)</string>
+    <string name="community_report_submit" tools:maxLength="14">Melden</string>
+    <string name="community_report_submitted">Meldung übermittelt. Vielen Dank.</string>
+    <string name="community_report_failed">Meldung konnte nicht gesendet werden: %1$s</string>
+    <string name="community_block_confirm_title">Nutzer blockieren?</string>
+    <string name="community_block_confirm">Alle Beiträge und Antworten von %1$s auf diesem Gerät ausblenden? Sie können die Blockierung jederzeit im Seitenmenü aufheben.</string>
+    <string name="community_block_yes" tools:maxLength="14">Blockieren</string>
+    <string name="community_blocked_toast">Nutzer blockiert.</string>
+    <string name="drawer_blocked_users" tools:maxLength="20">Blockierte Nutzer</string>
+    <string name="blocked_users_empty">Sie haben niemanden blockiert.</string>
+    <string name="blocked_users_unblock" tools:maxLength="14">Entsperren</string>
     <!-- RC65: Gemini Q&amp;A -->
     <string name="top_bar_gemini_cd">Gemini fragen</string>
     <string name="gemini_qa_sheet_header">Gemini zu deinem Poster fragen</string>

@@ -1288,6 +1288,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var selectedCommunityPostId by mutableStateOf<String?>(null)
     var composingCommunityPost by mutableStateOf(false)
 
+    /** rc84: Play UGC policy — locally-persisted community block list.
+     *  Map of blocked author uid -> display name captured at block time
+     *  (display-only, for the Blocked-users dialog; falls back to a
+     *  truncated uid when blank). Posts AND replies whose author uid is
+     *  in the key set are filtered out of the community UI. Local-only
+     *  by design — hiding content on this device needs no server
+     *  round-trip. */
+    var blockedUsers by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
+
+    fun blockUser(uid: String, displayName: String) {
+        // rc84: self-block guard — the UI hides the action on own content,
+        // but keep the invariant here too.
+        if (uid.isBlank() || uid == authSession.uid) return
+        blockedUsers = blockedUsers + (uid to displayName)
+        persistBlockedUsers()
+        logEvent(appContext, "community_block", "uid=$uid")
+    }
+
+    fun unblockUser(uid: String) {
+        blockedUsers = blockedUsers - uid
+        persistBlockedUsers()
+        logEvent(appContext, "community_unblock", "uid=$uid")
+    }
+
+    private fun persistBlockedUsers() {
+        viewModelScope.launch {
+            repository.saveSetting(
+                SettingsRepository.COMMUNITY_BLOCKED_USERS,
+                blockedUsers.map { (uid, name) -> "$uid\n$name" }.toSet(),
+            )
+        }
+    }
+
     private var ignoreFlowUpdates = false
 
     init {
@@ -1373,6 +1407,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 settings[SettingsRepository.IS_FIRST_RUN]?.let { isFirstRun = it as Boolean } ?: run { isFirstRun = true }
                 settings[SettingsRepository.DEBUG_LOGGING_ENABLED]?.let { debugLoggingEnabled = it as Boolean }
                 settings[SettingsRepository.POSTERS_MADE_COUNT]?.let { postersMadeCount = it as Int }
+                // rc84: restore the community block list (Play UGC policy).
+                // Entries are "uid\ndisplayName"; split at the first '\n'.
+                (settings[SettingsRepository.COMMUNITY_BLOCKED_USERS] as? Set<*>)?.let { raw ->
+                    blockedUsers = raw.filterIsInstance<String>().associate { entry ->
+                        val sep = entry.indexOf('\n')
+                        if (sep >= 0) entry.take(sep) to entry.substring(sep + 1)
+                        else entry to ""
+                    }
+                }
                 // RC54: restore the imported source image after process death
                 // by re-decoding the persisted file URI. Only fires once per
                 // settings emit, and only when selectedImageUri is currently
@@ -1420,6 +1463,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 repository.saveSetting(SettingsRepository.IS_FIRST_RUN, false)
                 repository.saveSetting(SettingsRepository.DEBUG_LOGGING_ENABLED, debugLoggingEnabled)
                 repository.saveSetting(SettingsRepository.POSTERS_MADE_COUNT, postersMadeCount)
+                // rc84: re-save the block list so "Reset to defaults" (which
+                // clears the whole DataStore before calling saveAllSettings)
+                // can't silently wipe a safety feature.
+                repository.saveSetting(
+                    SettingsRepository.COMMUNITY_BLOCKED_USERS,
+                    blockedUsers.map { (uid, name) -> "$uid\n$name" }.toSet(),
+                )
                 isFirstRun = false
             } finally {
                 ignoreFlowUpdates = false
